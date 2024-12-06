@@ -1,1 +1,1 @@
-# rupert
+# Prince Rupert's Cube
