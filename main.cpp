@@ -1,113 +1,106 @@
-#include <iostream>
-#include <Eigen/Dense>
-#include <opencv2/opencv.hpp>
 #include "plot.hpp"
 #include "math.hpp"
 #include "test.hpp"
+#include "cover.hpp"
+#include <iostream>
 
 
-Plot plot(4000, 4000, 2);
+Plot plot_main(1000, 1000, 1);
+std::vector<Eigen::Vector3f> polyhedron = {
+            {+1, +1, +1},
+            {+1, +1, -1},
+            {+1, -1, +1},
+            {+1, -1, -1},
+            {-1, +1, +1},
+            {-1, +1, -1},
+            {-1, -1, +1},
+            {-1, -1, -1}
+        };
+
+Plot plot_cover(1000, 1000, 1);
+Cover cover(10, 10);
+
+cv::Scalar tr = Color::GREEN;
+cv::Scalar tl = Color::RED;
+cv::Scalar br = Color::YELLOW;
+cv::Scalar bl = Color::BLUE;
 
 void test() {
     test_combined_amplitude_phase();
+    test_angle();
 }
 
 void setup() {
-    plot.line(Eigen::Vector2f(-10, 0), Eigen::Vector2f(10, 0), Color::GRAY);
-    plot.line(Eigen::Vector2f(0, -10), Eigen::Vector2f(0, 10), Color::GRAY);
-    // plot.circle(Eigen::Vector2f(0, 0), 1, Color::GRAY);
+    plot_main.line(Eigen::Vector2f(-10, 0), Eigen::Vector2f(10, 0), Color::GRAY);
+    plot_main.line(Eigen::Vector2f(0, -10), Eigen::Vector2f(0, 10), Color::GRAY);
+    plot_main.circle(Eigen::Vector2f(0, 0), 1, Color::GRAY);
+
+    for(Eigen::Vector3f &vertex: polyhedron) {
+        vertex /= vertex.norm();
+    }
 }
 
 void draw() {
-    // float hole_theta = 0.6;
-    // float hole_phi = 0.8;
-    // Eigen::Matrix<float, 2, 3> hole_axes = angles_to_axes(Eigen::Vector2f(hole_theta, hole_phi));
-    // std::vector<Eigen::Vector2f> hole_vertices;
-    // for(Eigen::Vector3f &vertex: polyhedron_vertices) {
-    //     hole_vertices.push_back(hole_axes * vertex);
-    // }
-    // std::vector<Eigen::Vector2f> hole_hull = convex_hull(hole_vertices);
-    // plot.polygon(hole_hull, Color::RED);
-
-    // float theta_min = 0.3;
-    // float theta_max = 0.5;
-    // float phi_min = 0.5;
-    // float phi_max = 0.6;
-    // float theta_min = 0.3;
-    // float theta_max = 1.3;
-    // float phi_min = 0.5;
-    // float phi_max = 0.8;
-    // for(float theta = theta_min; theta < theta_max; theta += 0.001) {
-    //     for(float phi = phi_min; phi < phi_max; phi += 0.001) {
-    //         Eigen::Matrix<float, 2, 3> axes = angles_to_axes(Eigen::Vector2f(theta, phi));
-    //         std::vector<Eigen::Vector2f> vertices;
-    //         for(Eigen::Vector3f &vertex: polyhedron_vertices) {
-    //             vertices.push_back(axes * vertex);
-    //         }
-    //         for(int i = 0; i < vertices.size(); i++) {
-    //             plot.point(vertices[i], Color::GREEN, 1);
-    //         }
-    //     }
-    // }
-    //generate a random theta min and phi min, ranges, and a vertekx to be rotated
-    // for(int t = 0; t < 150; t++) {
-    //     float theta_min = (rand() % 1000) / 1000.0 * (M_PI - 0.5) * 2;
-    //     float theta_range = (rand() % 1000) / 1000.0 * 0.5;
-    //     float phi_min = (rand() % 1000) / 1000.0 * M_PI;
-    //     float phi_range = (rand() % 1000) / 1000.0 * 0.1;
-    //     Eigen::Vector3f vertex;
-    //     vertex <<
-    //             (rand() % 1000 - 500) / 500.0,
-    //             (rand() % 1000 - 500) / 500.0,
-    //             (rand() % 1000 - 500) / 500.0;
-    //     vertex /= vertex.norm();
-    //     cv::Scalar color(rand() % 256, rand() % 256, rand() % 256);
-    //     for(float theta = theta_min; theta < theta_min + theta_range; theta += 0.0002) {
-    //         for(float phi = phi_min; phi < phi_min + phi_range; phi += 0.0002) {
-    //             Eigen::Matrix<float, 2, 3> axes = angles_to_axes(Eigen::Vector2f(theta, phi));
-    //             Eigen::Vector2f projected_vertex = axes * vertex;
-    //             plot.point(projected_vertex, color);
-    //         }
-    //     }
-    // }
-
-    float theta_min = 0.3;
-    float theta_max = 1.4;
-    float phi_min = 0.5;
-    float phi_max = 0.9;
-    Eigen::Vector3f vertex;
-    vertex << 1, -1, 1;
-    vertex /= vertex.norm();
-    for(float theta = theta_min; theta < theta_max; theta += 0.001) {
-        for(float phi = phi_min; phi < phi_max; phi += 0.001) {
-            Eigen::Matrix<float, 2, 3> axes = angles_to_axes(Eigen::Vector2f(theta, phi));
-            Eigen::Vector2f projected_vertex = axes * vertex;
-            plot.point(projected_vertex, Color::BLUE);
+    Box hole_box(
+        Interval(0.4, 0.5),
+        Interval(0.6, 0.7)
+    );
+    Interval hole_alpha(0.1, 0.2);
+    std::vector<Eigen::Vector2f> hole_all;
+    for(const Eigen::Vector3f &vertex: polyhedron) {
+        for(float theta = hole_box.theta_interval.min; theta < hole_box.theta_interval.max; theta += 0.01) {
+            for(float phi = hole_box.phi_interval.min; phi < hole_box.phi_interval.max; phi += 0.01) {
+                for(float alpha = hole_alpha.min; alpha < hole_alpha.max; alpha += 0.01) {
+                    hole_all.push_back(rotate_point(project_point(vertex, theta, phi), alpha));
+                }
+            }
         }
     }
+    std::vector<Eigen::Vector2f> hole = sort_by_angle(convex_hull(hole_all));
+    plot_main.polygon(hole, Color::CYAN, 2);
+    std::vector<float> hole_angles;
+    for(const Eigen::Vector2f &hole_point: hole) {
+        hole_angles.push_back(get_angle(hole_point));
+    }
 
-    std::vector<Eigen::Vector2f> boundary_points = boundary(vertex, {theta_min, theta_max}, {phi_min, phi_max}, 0.01, 0.01);
-    plot.polygon(boundary_points, Color::RED, 2);
-    plot.points(boundary_points, Color::GREEN, 2);
-
-
-    std::vector<Eigen::Vector3f> polyhedron = {
-                {+1, +1, +1},
-                {+1, +1, -1},
-                {+1, -1, +1},
-                {+1, -1, -1},
-                {-1, +1, +1},
-                {-1, +1, -1},
-                {-1, -1, +1},
-                {-1, -1, -1}
-            };
-    for(Eigen::Vector3f &vertex: polyhedron) {
-        vertex /= std::sqrt(3.0f);
+    for(int t = 0; t < 100000; t++) {
+        Box box = cover.pop();
+        std::vector<std::vector<Eigen::Vector2f>> boundaries;
+        for(const Eigen::Vector3f &vertex: polyhedron) {
+            boundaries.push_back(boundary(vertex, box, 0.01, 0.01));
+        }
+        bool is_any_outside = false;
+        for(const std::vector<Eigen::Vector2f> &boundary_points: boundaries) {
+            bool is_all_inside = false;
+            for(const Eigen::Vector2f &boundary_point: boundary_points) {
+                float angle = get_angle(boundary_point);
+                int index = get_index(hole_angles, angle);
+                if(is_inside(boundary_point, hole[index], hole[(index + 1) % hole.size()])) {
+                    is_all_inside = true;
+                    break;
+                }
+            }
+            if(!is_all_inside) {
+                is_any_outside = true;
+                break;
+            }
+        }
+        if(!is_any_outside) {
+            cover.push_quadrants(box);
+        }
+    }
+    cover.plot_boxes(plot_cover, 0);
+    for(const Box &box: cover.get_boxes()) {
+        for(const Eigen::Vector3f &vertex: polyhedron) {
+            std::vector<Eigen::Vector2f> boundary_points = boundary(vertex, box, 0.01, 0.01);
+            plot_main.polygon(boundary_points, Color::GREEN);
+        }
     }
 }
 
 void exit() {
-    plot.save("../outputs/image.png");
+    plot_main.save("../outputs/main.png");
+    plot_cover.save("../outputs/cover.png");
 }
 
 int main() {
