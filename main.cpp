@@ -1,24 +1,15 @@
 #include "plot.hpp"
-#include "math.hpp"
+#include "boxes.hpp"
 #include "test.hpp"
-#include "cover.hpp"
+#include "polyhedron.hpp"
 #include <iostream>
 
 
 Plot plot_main(1000, 1000, 1);
-std::vector<Eigen::Vector3f> polyhedron = {
-            {+1, +1, +1},
-            {+1, +1, -1},
-            {+1, -1, +1},
-            {+1, -1, -1},
-            {-1, +1, +1},
-            {-1, +1, -1},
-            {-1, -1, +1},
-            {-1, -1, -1}
-        };
+std::vector<Vector3f> polyhedron = Polyhedron::dodecahedron();
 
-Plot plot_cover(1000, 1000, 1);
-Cover cover(10, 10);
+Plot plot_boxes(1000, 1000, 1);
+Boxes boxes(2, 2);
 
 cv::Scalar tr = Color::GREEN;
 cv::Scalar tl = Color::RED;
@@ -31,76 +22,77 @@ void test() {
 }
 
 void setup() {
-    plot_main.line(Eigen::Vector2f(-10, 0), Eigen::Vector2f(10, 0), Color::GRAY);
-    plot_main.line(Eigen::Vector2f(0, -10), Eigen::Vector2f(0, 10), Color::GRAY);
-    plot_main.circle(Eigen::Vector2f(0, 0), 1, Color::GRAY);
+    plot_main.line(Vector2f(-10, 0), Vector2f(10, 0), Color::GRAY);
+    plot_main.line(Vector2f(0, -10), Vector2f(0, 10), Color::GRAY);
+    plot_main.circle(Vector2f(0, 0), 1, Color::GRAY);
 
-    for(Eigen::Vector3f &vertex: polyhedron) {
-        vertex /= vertex.norm();
+    for(Vector3f &vertex: polyhedron) {
+        vertex.normalize();
     }
 }
 
 void draw() {
     Box hole_box(
-        Interval(0.4, 0.5),
-        Interval(0.6, 0.7)
+        Interval(0.4, 0.41),
+        Interval(0.6, 0.61)
     );
-    Interval hole_alpha(0.1, 0.2);
-    std::vector<Eigen::Vector2f> hole_all;
-    for(const Eigen::Vector3f &vertex: polyhedron) {
-        for(float theta = hole_box.theta_interval.min; theta < hole_box.theta_interval.max; theta += 0.01) {
-            for(float phi = hole_box.phi_interval.min; phi < hole_box.phi_interval.max; phi += 0.01) {
-                for(float alpha = hole_alpha.min; alpha < hole_alpha.max; alpha += 0.01) {
-                    hole_all.push_back(rotate_point(project_point(vertex, theta, phi), alpha));
+    Interval hole_alpha(0.1, 0.11);
+
+    std::vector<Vector2f> hole_all;
+    for(float theta = hole_box.theta_interval.min; theta <= hole_box.theta_interval.max; theta += 0.01) {
+        for(float phi = hole_box.phi_interval.min; phi <= hole_box.phi_interval.max; phi += 0.01) {
+            for(float alpha = hole_alpha.min; alpha <= hole_alpha.max; alpha += 0.01) {
+                for(const Vector3f &vertex: polyhedron) {
+                    hole_all.push_back(vertex.project(theta, phi).rotate(alpha));
                 }
             }
         }
     }
-    std::vector<Eigen::Vector2f> hole = sort_by_angle(convex_hull(hole_all));
+    std::vector<Vector2f> hole = Vector2f::sort(Vector2f::hull(hole_all));
     plot_main.polygon(hole, Color::CYAN, 2);
     std::vector<float> hole_angles;
-    for(const Eigen::Vector2f &hole_point: hole) {
-        hole_angles.push_back(get_angle(hole_point));
+    for(const Vector2f &hole_point: hole) {
+        hole_angles.push_back(hole_point.get_angle());
     }
 
+    const auto start = std::chrono::high_resolution_clock::now();
     for(int t = 0; t < 100000; t++) {
-        Box box = cover.pop();
-        std::vector<std::vector<Eigen::Vector2f>> boundaries;
-        for(const Eigen::Vector3f &vertex: polyhedron) {
-            boundaries.push_back(boundary(vertex, box, 0.01, 0.01));
+        if(boxes.empty()) {
+            break;
         }
-        bool is_any_outside = false;
-        for(const std::vector<Eigen::Vector2f> &boundary_points: boundaries) {
-            bool is_all_inside = false;
-            for(const Eigen::Vector2f &boundary_point: boundary_points) {
-                float angle = get_angle(boundary_point);
-                int index = get_index(hole_angles, angle);
-                if(is_inside(boundary_point, hole[index], hole[(index + 1) % hole.size()])) {
-                    is_all_inside = true;
+        const Box box = boxes.pop();
+        bool is_any_boundary_outside = false;
+        for(const Vector3f &vertex: polyhedron) {
+            bool is_any_vertex_inside = false;
+            for(const Vector2f &boundary_point: Boxes::boundary(vertex, box, 0.001, 0.001)) {
+                const int index = boundary_point.get_index(hole_angles);
+                if(boundary_point.is_inside(hole[index], hole[(index + 1) % hole.size()])) {
+                    is_any_vertex_inside = true;
                     break;
                 }
             }
-            if(!is_all_inside) {
-                is_any_outside = true;
+            if(!is_any_vertex_inside) {
+                is_any_boundary_outside = true;
                 break;
             }
         }
-        if(!is_any_outside) {
-            cover.push_quadrants(box);
+        if(!is_any_boundary_outside) {
+            boxes.push_quadrants(box);
         }
     }
-    cover.plot_boxes(plot_cover, 0);
-    for(const Box &box: cover.get_boxes()) {
-        for(const Eigen::Vector3f &vertex: polyhedron) {
-            std::vector<Eigen::Vector2f> boundary_points = boundary(vertex, box, 0.01, 0.01);
-            plot_main.polygon(boundary_points, Color::GREEN);
+    const auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
+    boxes.plot_boxes(plot_boxes, 0);
+    for(const Box &box: boxes.get_boxes()) {
+        for(const Vector3f &vertex: polyhedron) {
+            plot_main.points(Boxes::boundary(vertex, box, 0.01, 0.01), Color::GRAY);
         }
     }
 }
 
 void exit() {
     plot_main.save("../outputs/main.png");
-    plot_cover.save("../outputs/cover.png");
+    plot_boxes.save("../outputs/boxes.png");
 }
 
 int main() {

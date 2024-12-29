@@ -1,4 +1,5 @@
 #pragma once
+#include <random>
 
 
 class RandomNumberGenerator {
@@ -40,16 +41,16 @@ inline void test_combined_amplitude_phase() {
 inline void test_angle() {
     RandomNumberGenerator rng;
     for(int t = 0; t < 10000; t++) {
-        Eigen::Vector2f v(rng.uniform(-10, 10), rng.uniform(-10, 10));
-        v /= v.norm();
+        Vector2f v(rng.uniform(-10, 10), rng.uniform(-10, 10));
+        v.normalize();
 
-        float angle = get_angle(v);
+        float angle = v.get_angle();
         float x = std::cos(angle);
         float y = std::sin(angle);
 
         assert(angle >= 0);
         assert(angle < 2 * M_PI);
-        assert(is_close(v.x(), x));
-        assert(is_close(v.y(), y));
+        assert(is_close(v.x, x));
+        assert(is_close(v.y, y));
     }
 }
