@@ -1,7 +1,6 @@
 #pragma once
 
 #include <opencv2/opencv.hpp>
-#include <Eigen/Dense>
 
 struct Color {
     inline static const cv::Scalar BLACK = cv::Scalar(0, 0, 0);
@@ -23,189 +22,189 @@ struct Color {
         return {static_cast<double>(b), static_cast<double>(g), static_cast<double>(r)};
     }
 
-    static cv::Scalar gradient(float t, const cv::Scalar &color_0, const cv::Scalar &color_1) {
+    static cv::Scalar gradient(double t, const cv::Scalar &color_0, const cv::Scalar &color_1) {
         return color_0 * (1 - t) + color_1 * t;
     }
 };
 
-struct Vector2f {
-    float x;
-    float y;
+struct Vector2 {
+    double x;
+    double y;
 
-    friend std::ostream &operator<<(std::ostream &os, const Vector2f &v) {
+    friend std::ostream &operator<<(std::ostream &os, const Vector2 &v) {
         os << "(" << v.x << ", " << v.y << ")";
         return os;
     }
 
-    Vector2f operator+(const float s) const {
+    Vector2 operator+(const double s) const {
         return {x + s, y + s};
     }
 
-    Vector2f operator+(const Vector2f &v) const {
+    Vector2 operator+(const Vector2 &v) const {
         return {x + v.x, y + v.y};
     }
 
-    Vector2f operator-(const float s) const {
+    Vector2 operator-(const double s) const {
         return {x - s, y - s};
     }
 
-    Vector2f operator-(const Vector2f &v) const {
+    Vector2 operator-(const Vector2 &v) const {
         return {x - v.x, y - v.y};
     }
 
-    Vector2f operator*(const float s) const {
+    Vector2 operator*(const double s) const {
         return {x * s, y * s};
     }
 
-    Vector2f operator*(const Vector2f &v) const {
+    Vector2 operator*(const Vector2 &v) const {
         return {x * v.x, y * v.y};
     }
 
-    Vector2f operator/(const float s) const {
+    Vector2 operator/(const double s) const {
         return {x / s, y / s};
     }
 
-    Vector2f operator/(const Vector2f &v) const {
+    Vector2 operator/(const Vector2 &v) const {
         return {x / v.x, y / v.y};
     }
 
-    float norm() const {
+    double norm() const {
         return std::sqrt(x * x + y * y);
     }
 
-    Vector2f normalized() const {
+    Vector2 normalized() const {
         return *this / norm();
     }
 
     void normalize() {
-        const float s = norm();
+        const double s = norm();
         x /= s;
         y /= s;
     }
 
-    float dot(const Vector2f &v) const {
+    double dot(const Vector2 &v) const {
         return x * v.x + y * v.y;
     }
 
-    float cross(const Vector2f &v) const {
+    double cross(const Vector2 &v) const {
         return x * v.y - y * v.x;
     }
 
-    static std::vector<Vector2f> hull(const std::vector<Vector2f> &points) {
+    static std::vector<Vector2> hull(const std::vector<Vector2> &points) {
         std::vector<cv::Point2f> cv_points;
-        for(const Vector2f &point: points) {
+        for(const Vector2 &point: points) {
             cv_points.emplace_back(point.x, point.y);
         }
         std::vector<cv::Point2f> cv_hull_points;
         cv::convexHull(cv_points, cv_hull_points);
-        std::vector<Vector2f> hull_points;
+        std::vector<Vector2> hull_points;
         for(const cv::Point2f &cv_hull_point: cv_hull_points) {
             hull_points.emplace_back(cv_hull_point.x, cv_hull_point.y);
         }
         return hull_points;
     }
 
-    float get_angle() const {
+    double get_angle() const {
         if(x == 0 && y == 0) [[unlikely]] {
             return 0;
         }
-        const float angle = std::atan2(y, x);
+        const double angle = std::atan2(y, x);
         return angle >= 0 ? angle : angle + 2 * M_PIf;
     }
 
-    static std::vector<Vector2f> sort(const std::vector<Vector2f> &vectors) {
-        std::vector<Vector2f> sorted_vectors = vectors;
-        std::sort(sorted_vectors.begin(), sorted_vectors.end(), [](const Vector2f &v0, const Vector2f &v1) {
+    static std::vector<Vector2> sort(const std::vector<Vector2> &vectors) {
+        std::vector<Vector2> sorted_vectors = vectors;
+        std::ranges::sort(sorted_vectors, [](const Vector2 &v0, const Vector2 &v1) {
             return v0.get_angle() < v1.get_angle();
         });
         return sorted_vectors;
     }
 
-    Vector2f rotate(const float angle) const {
-        const float cos_angle = std::cos(angle);
-        const float sin_angle = std::sin(angle);
+    Vector2 rotate(const double angle) const {
+        const double cos_angle = std::cos(angle);
+        const double sin_angle = std::sin(angle);
         return {
                     x * cos_angle - y * sin_angle,
                     x * sin_angle + y * cos_angle
                 };
     }
 
-    int get_index(const std::vector<float> &angles) const {
-        const float angle = get_angle();
+    int get_index(const std::vector<double> &angles) const {
+        const double angle = get_angle();
         if(angle < angles[0] || angle >= angles.back()) [[unlikely]] {
             return static_cast<int>(angles.size()) - 1;
         }
-        return static_cast<int>(std::upper_bound(angles.begin(), angles.end(), angle) - angles.begin()) - 1;
+        return static_cast<int>(std::ranges::upper_bound(angles, angle) - angles.begin()) - 1;
     }
 
-    bool is_inside(const Vector2f &a, const Vector2f &b) const {
-        const Vector2f d = b - a;
+    bool is_inside(const Vector2 &a, const Vector2 &b) const {
+        const Vector2 d = b - a;
         return d.cross(a) < d.cross(*this);
     }
 };
 
-struct Vector3f {
-    float x;
-    float y;
-    float z;
+struct Vector3 {
+    double x;
+    double y;
+    double z;
 
-    friend std::ostream &operator<<(std::ostream &os, const Vector3f &v) {
+    friend std::ostream &operator<<(std::ostream &os, const Vector3 &v) {
         os << "(" << v.x << ", " << v.y << ", " << v.z << ")";
         return os;
     }
 
-    Vector3f operator+(const float s) const {
+    Vector3 operator+(const double s) const {
         return {x + s, y + s, z + s};
     }
 
-    Vector3f operator+(const Vector3f &v) const {
+    Vector3 operator+(const Vector3 &v) const {
         return {x + v.x, y + v.y, z + v.z};
     }
 
-    Vector3f operator-(const float s) const {
+    Vector3 operator-(const double s) const {
         return {x - s, y - s, z - s};
     }
 
-    Vector3f operator-(const Vector3f &v) const {
+    Vector3 operator-(const Vector3 &v) const {
         return {x - v.x, y - v.y, z - v.z};
     }
 
-    Vector3f operator*(const float s) const {
+    Vector3 operator*(const double s) const {
         return {x * s, y * s, z * s};
     }
 
-    Vector3f operator*(const Vector3f &v) const {
+    Vector3 operator*(const Vector3 &v) const {
         return {x * v.x, y * v.y, z * v.z};
     }
 
-    Vector3f operator/(const float s) const {
+    Vector3 operator/(const double s) const {
         return {x / s, y / s, z / s};
     }
 
-    Vector3f operator/(const Vector3f &v) const {
+    Vector3 operator/(const Vector3 &v) const {
         return {x / v.x, y / v.y, z / v.z};
     }
 
-    float norm() const {
+    double norm() const {
         return std::sqrt(x * x + y * y + z * z);
     }
 
-    Vector3f normalized() const {
+    Vector3 normalized() const {
         return *this / norm();
     }
 
     void normalize() {
-        const float s = norm();
+        const double s = norm();
         x /= s;
         y /= s;
         z /= s;
     }
 
-    float dot(const Vector3f &v) const {
+    double dot(const Vector3 &v) const {
         return x * v.x + y * v.y + z * v.z;
     }
 
-    Vector3f cross(const Vector3f &v) const {
+    Vector3 cross(const Vector3 &v) const {
         return {
                     y * v.z - z * v.y,
                     z * v.x - x * v.z,
@@ -213,9 +212,9 @@ struct Vector3f {
                 };
     }
 
-    Vector2f project(const float theta, const float phi) const {
-        const float sin_theta = std::sin(theta);
-        const float cos_theta = std::cos(theta);
+    Vector2 project(const double theta, const double phi) const {
+        const double sin_theta = std::sin(theta);
+        const double cos_theta = std::cos(theta);
         return {
                     -x * sin_theta + y * cos_theta,
                     (x * cos_theta + y * sin_theta) * std::cos(phi) - z * std::sin(phi)
@@ -224,35 +223,35 @@ struct Vector3f {
 };
 
 class SineWave {
-    const float amplitude;
-    const float phase;
+    const double amplitude;
+    const double phase;
 
 public:
-    SineWave(float amplitude, float phase) : amplitude(amplitude), phase(phase) {}
+    SineWave(double amplitude, double phase) : amplitude(amplitude), phase(phase) {}
 
-    static SineWave combine(float sine_amplitude, float cosine_amplitude) {
-        float amplitude = std::sqrt(sine_amplitude * sine_amplitude + cosine_amplitude * cosine_amplitude);
-        float phase = Vector2f(sine_amplitude, cosine_amplitude).get_angle();
+    static SineWave combine(double sine_amplitude, double cosine_amplitude) {
+        double amplitude = std::sqrt(sine_amplitude * sine_amplitude + cosine_amplitude * cosine_amplitude);
+        double phase = Vector2(sine_amplitude, cosine_amplitude).get_angle();
         return {amplitude, phase};
     }
 
-    float operator()(float angle) const {
+    double operator()(double angle) const {
         return amplitude * std::sin(angle + phase);
     }
 };
 
 struct Interval {
-    const float min;
-    const float max;
+    const double min;
+    const double max;
 };
 
 struct Box {
-    static float constexpr theta_range = 2 * M_PIf;
-    static float constexpr phi_range = M_PI_2f;
+    static double constexpr theta_range = 2 * M_PIf;
+    static double constexpr phi_range = M_PI_2f;
     const Interval theta_interval;
     const Interval phi_interval;
 
-    Vector2f center() const {
+    Vector2 center() const {
         return {
                     (theta_interval.min + theta_interval.max) / 2 / M_PIf - 1,
                     (phi_interval.min + phi_interval.max) / 2 / M_PI_2f - 1
@@ -267,8 +266,8 @@ struct Box {
     }
 
     cv::Scalar color() const {
-        const float x = (theta_interval.min + theta_interval.max) / 2 / (2 * M_PIf);
-        const float y = (phi_interval.min + phi_interval.max) / 2 / M_PIf;
+        const double x = (theta_interval.min + theta_interval.max) / 2 / (2 * M_PIf);
+        const double y = (phi_interval.min + phi_interval.max) / 2 / M_PIf;
         return Color::gradient(y,
                                Color::gradient(x, Color::bottom_left, Color::bottom_right),
                                Color::gradient(x, Color::top_left, Color::top_right));

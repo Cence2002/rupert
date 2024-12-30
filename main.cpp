@@ -1,11 +1,13 @@
-#include "polyhedron.hpp"
-#include "plot.hpp"
-#include "boxes.hpp"
-#include "test.hpp"
+#include "src/base.hpp"
+#include "src/plot.hpp"
+#include "src/polyhedron.hpp"
+#include "src/boxes.hpp"
+#include "src/test.hpp"
+
 #include <iostream>
 
 Plot plot_main(1000, 1000, 1);
-std::vector<Vector3f> polyhedron = Polyhedron::rhombicosidodecahedron();
+std::vector<Vector3> polyhedron = Polyhedron::rhombicosidodecahedron();
 
 Plot plot_boxes(1000, 1000, 1);
 Boxes boxes(1, 1);
@@ -23,9 +25,9 @@ void test() {
 }
 
 void setup() {
-    plot_main.line(Vector2f(-10, 0), Vector2f(10, 0), Color::GRAY);
-    plot_main.line(Vector2f(0, -10), Vector2f(0, 10), Color::GRAY);
-    plot_main.circle(Vector2f(0, 0), 1, Color::GRAY);
+    plot_main.line(Vector2(-10, 0), Vector2(10, 0), Color::GRAY);
+    plot_main.line(Vector2(0, -10), Vector2(0, 10), Color::GRAY);
+    plot_main.circle(Vector2(0, 0), 1, Color::GRAY);
 
     std::cout << "Vertices: " << polyhedron.size() << std::endl;
 }
@@ -37,20 +39,20 @@ void draw() {
     );
     Interval hole_alpha(0, 0.01);
 
-    std::vector<Vector2f> hole_all;
-    for(float theta = hole_box.theta_interval.min; theta <= hole_box.theta_interval.max; theta += 0.01) {
-        for(float phi = hole_box.phi_interval.min; phi <= hole_box.phi_interval.max; phi += 0.01) {
-            for(float alpha = hole_alpha.min; alpha <= hole_alpha.max; alpha += 0.01) {
-                for(const Vector3f &vertex: polyhedron) {
+    std::vector<Vector2> hole_all;
+    for(double theta = hole_box.theta_interval.min; theta <= hole_box.theta_interval.max; theta += 0.01) {
+        for(double phi = hole_box.phi_interval.min; phi <= hole_box.phi_interval.max; phi += 0.01) {
+            for(double alpha = hole_alpha.min; alpha <= hole_alpha.max; alpha += 0.01) {
+                for(const Vector3 &vertex: polyhedron) {
                     hole_all.push_back(vertex.project(theta, phi).rotate(alpha));
                 }
             }
         }
     }
-    std::vector<Vector2f> hole = Vector2f::sort(Vector2f::hull(hole_all));
+    std::vector<Vector2> hole = Vector2::sort(Vector2::hull(hole_all));
     plot_main.polygon(hole, Color::CYAN, 2);
-    std::vector<float> hole_angles;
-    for(const Vector2f &hole_point: hole) {
+    std::vector<double> hole_angles;
+    for(const Vector2 &hole_point: hole) {
         hole_angles.push_back(hole_point.get_angle());
     }
 
@@ -61,9 +63,9 @@ void draw() {
         }
         const Box box = boxes.pop();
         bool is_any_boundary_outside = false;
-        for(const Vector3f &vertex: polyhedron) {
+        for(const Vector3 &vertex: polyhedron) {
             bool is_any_vertex_inside = false;
-            for(const Vector2f &boundary_point: Boxes::boundary(vertex, box, 0.01, 0.01)) {
+            for(const Vector2 &boundary_point: Boxes::boundary(vertex, box, 0.01, 0.01)) {
                 const int index = boundary_point.get_index(hole_angles);
                 if(boundary_point.is_inside(hole[index], hole[(index + 1) % hole.size()])) {
                     is_any_vertex_inside = true;
