@@ -9,10 +9,10 @@ public:
     Boxes(int theta_intervals, int phi_intervals) {
         for(int theta_i = 0; theta_i < theta_intervals; theta_i++) {
             for(int phi_i = 0; phi_i < phi_intervals; phi_i++) {
-                float theta_min = 2 * M_PIf * theta_i / theta_intervals;
-                float theta_max = 2 * M_PIf * (theta_i + 1) / theta_intervals;
-                float phi_min = M_PIf * phi_i / phi_intervals;
-                float phi_max = M_PIf * (phi_i + 1) / phi_intervals;
+                const float theta_min = 2 * M_PIf * static_cast<float>(theta_i) / static_cast<float>(theta_intervals);
+                const float theta_max = 2 * M_PIf * static_cast<float>(theta_i + 1) / static_cast<float>(theta_intervals);
+                const float phi_min = M_PIf * static_cast<float>(phi_i) / static_cast<float>(phi_intervals);
+                const float phi_max = M_PIf * static_cast<float>(phi_i + 1) / static_cast<float>(phi_intervals);
                 push(Box{
                         Interval(theta_min, theta_max),
                         Interval(phi_min, phi_max)
@@ -78,6 +78,8 @@ public:
         const float theta_max = box.theta_interval.max;
         const float phi_min = box.phi_interval.min;
         const float phi_max = box.phi_interval.max;
+        theta_step *= theta_max - theta_min;
+        phi_step *= phi_max - phi_min;
         std::vector<Vector2f> points;
         // theta = theta_min
         float x_theta_min = -x * std::sin(theta_min) + y * std::cos(theta_min);
@@ -106,30 +108,5 @@ public:
             points.emplace_back(x_phi_min(theta), y_phi_min(theta) + y_phi_min_constant);
         }
         return points;
-    }
-
-    static void plot_box(Plot &plot, const Box &box, int thickness = 1) {
-        Box shifted_box = {
-                    Interval(box.theta_interval.min / M_PIf - 1, box.theta_interval.max / M_PIf - 1),
-                    Interval(box.phi_interval.min / M_PI_2f - 1, box.phi_interval.max / M_PI_2f - 1)
-                };
-        float x = (box.theta_interval.min + box.theta_interval.max) / 2 / (2 * M_PIf);
-        float y = (box.phi_interval.min + box.phi_interval.max) / 2 / M_PIf;
-        cv::Scalar color = Color::gradient(y,
-                                           Color::gradient(x, Color::bottom_left, Color::bottom_right),
-                                           Color::gradient(x, Color::top_left, Color::top_right));
-        plot.filled_box(shifted_box, color);
-        if(thickness > 0) {
-            plot.box(shifted_box, Color::GRAY, thickness);
-        }
-    }
-
-    void plot_boxes(Plot &plot, int thickness = 1) {
-        for(const Box &box: get_boxes()) {
-            plot_box(plot, box, thickness);
-        }
-        if(thickness > 0) {
-            plot.box(Box{Interval(-1, 1), Interval(-1, 1)}, Color::WHITE, thickness);
-        }
     }
 };

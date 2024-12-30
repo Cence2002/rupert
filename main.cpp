@@ -1,15 +1,14 @@
+#include "polyhedron.hpp"
 #include "plot.hpp"
 #include "boxes.hpp"
 #include "test.hpp"
-#include "polyhedron.hpp"
 #include <iostream>
 
-
 Plot plot_main(1000, 1000, 1);
-std::vector<Vector3f> polyhedron = Polyhedron::dodecahedron();
+std::vector<Vector3f> polyhedron = Polyhedron::rhombicosidodecahedron();
 
 Plot plot_boxes(1000, 1000, 1);
-Boxes boxes(2, 2);
+Boxes boxes(1, 1);
 
 cv::Scalar tr = Color::GREEN;
 cv::Scalar tl = Color::RED;
@@ -19,6 +18,8 @@ cv::Scalar bl = Color::BLUE;
 void test() {
     test_combined_amplitude_phase();
     test_angle();
+
+    std::cout << "All tests passed" << std::endl;
 }
 
 void setup() {
@@ -26,17 +27,15 @@ void setup() {
     plot_main.line(Vector2f(0, -10), Vector2f(0, 10), Color::GRAY);
     plot_main.circle(Vector2f(0, 0), 1, Color::GRAY);
 
-    for(Vector3f &vertex: polyhedron) {
-        vertex.normalize();
-    }
+    std::cout << "Vertices: " << polyhedron.size() << std::endl;
 }
 
 void draw() {
     Box hole_box(
-        Interval(0.4, 0.41),
-        Interval(0.6, 0.61)
+        Interval(0, 0.01),
+        Interval(0, 0.01)
     );
-    Interval hole_alpha(0.1, 0.11);
+    Interval hole_alpha(0, 0.01);
 
     std::vector<Vector2f> hole_all;
     for(float theta = hole_box.theta_interval.min; theta <= hole_box.theta_interval.max; theta += 0.01) {
@@ -56,7 +55,7 @@ void draw() {
     }
 
     const auto start = std::chrono::high_resolution_clock::now();
-    for(int t = 0; t < 100000; t++) {
+    for(int t = 0; t < 1000; t++) {
         if(boxes.empty()) {
             break;
         }
@@ -64,7 +63,7 @@ void draw() {
         bool is_any_boundary_outside = false;
         for(const Vector3f &vertex: polyhedron) {
             bool is_any_vertex_inside = false;
-            for(const Vector2f &boundary_point: Boxes::boundary(vertex, box, 0.001, 0.001)) {
+            for(const Vector2f &boundary_point: Boxes::boundary(vertex, box, 0.01, 0.01)) {
                 const int index = boundary_point.get_index(hole_angles);
                 if(boundary_point.is_inside(hole[index], hole[(index + 1) % hole.size()])) {
                     is_any_vertex_inside = true;
@@ -82,11 +81,14 @@ void draw() {
     }
     const auto end = std::chrono::high_resolution_clock::now();
     std::cout << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
-    boxes.plot_boxes(plot_boxes, 0);
+    // for(const Box &box: boxes.get_boxes()) {
+    //     for(const Vector3f &vertex: polyhedron) {
+    //         // plot_main.points(Boxes::boundary(vertex, box, 0.01, 0.01), Color::GRAY);
+    //     }
+    // }
     for(const Box &box: boxes.get_boxes()) {
-        for(const Vector3f &vertex: polyhedron) {
-            plot_main.points(Boxes::boundary(vertex, box, 0.01, 0.01), Color::GRAY);
-        }
+        plot_boxes.circle(box.center(), 0.1, box.color() / 4);
+        plot_boxes.filled_box(box.normalized(), box.color());
     }
 }
 

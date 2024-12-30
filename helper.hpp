@@ -13,13 +13,14 @@ struct Color {
     inline static const cv::Scalar CYAN = cv::Scalar(255, 255, 0);
     inline static const cv::Scalar MAGENTA = cv::Scalar(255, 0, 255);
     inline static const cv::Scalar GRAY = cv::Scalar(127, 127, 127);
-    inline static const cv::Scalar top_right = Color::GREEN;
-    inline static const cv::Scalar top_left = Color::RED;
-    inline static const cv::Scalar bottom_right = Color::YELLOW;
-    inline static const cv::Scalar bottom_left = Color::BLUE;
+
+    inline static const cv::Scalar top_right = GREEN;
+    inline static const cv::Scalar top_left = RED;
+    inline static const cv::Scalar bottom_right = YELLOW;
+    inline static const cv::Scalar bottom_left = BLUE;
 
     static cv::Scalar rgb(int r, int g, int b) {
-        return cv::Scalar(b, g, r);
+        return {static_cast<double>(b), static_cast<double>(g), static_cast<double>(r)};
     }
 
     static cv::Scalar gradient(float t, const cv::Scalar &color_0, const cv::Scalar &color_1) {
@@ -31,8 +32,21 @@ struct Vector2f {
     float x;
     float y;
 
+    friend std::ostream &operator<<(std::ostream &os, const Vector2f &v) {
+        os << "(" << v.x << ", " << v.y << ")";
+        return os;
+    }
+
+    Vector2f operator+(const float s) const {
+        return {x + s, y + s};
+    }
+
     Vector2f operator+(const Vector2f &v) const {
         return {x + v.x, y + v.y};
+    }
+
+    Vector2f operator-(const float s) const {
+        return {x - s, y - s};
     }
 
     Vector2f operator-(const Vector2f &v) const {
@@ -43,40 +57,30 @@ struct Vector2f {
         return {x * s, y * s};
     }
 
+    Vector2f operator*(const Vector2f &v) const {
+        return {x * v.x, y * v.y};
+    }
+
     Vector2f operator/(const float s) const {
         return {x / s, y / s};
     }
 
-    Vector2f &operator+=(const Vector2f &v) {
-        x += v.x;
-        y += v.y;
-        return *this;
+    Vector2f operator/(const Vector2f &v) const {
+        return {x / v.x, y / v.y};
     }
 
-    Vector2f &operator-=(const Vector2f &v) {
-        x -= v.x;
-        y -= v.y;
-        return *this;
-    }
-
-    Vector2f &operator*=(const float s) {
-        x *= s;
-        y *= s;
-        return *this;
-    }
-
-    Vector2f &operator/=(const float s) {
-        x /= s;
-        y /= s;
-        return *this;
+    float norm() const {
+        return std::sqrt(x * x + y * y);
     }
 
     Vector2f normalized() const {
-        return *this / std::sqrt(x * x + y * y);
+        return *this / norm();
     }
 
     void normalize() {
-        *this /= std::sqrt(x * x + y * y);
+        const float s = norm();
+        x /= s;
+        y /= s;
     }
 
     float dot(const Vector2f &v) const {
@@ -145,8 +149,21 @@ struct Vector3f {
     float y;
     float z;
 
+    friend std::ostream &operator<<(std::ostream &os, const Vector3f &v) {
+        os << "(" << v.x << ", " << v.y << ", " << v.z << ")";
+        return os;
+    }
+
+    Vector3f operator+(const float s) const {
+        return {x + s, y + s, z + s};
+    }
+
     Vector3f operator+(const Vector3f &v) const {
         return {x + v.x, y + v.y, z + v.z};
+    }
+
+    Vector3f operator-(const float s) const {
+        return {x - s, y - s, z - s};
     }
 
     Vector3f operator-(const Vector3f &v) const {
@@ -157,44 +174,31 @@ struct Vector3f {
         return {x * s, y * s, z * s};
     }
 
+    Vector3f operator*(const Vector3f &v) const {
+        return {x * v.x, y * v.y, z * v.z};
+    }
+
     Vector3f operator/(const float s) const {
         return {x / s, y / s, z / s};
     }
 
-    Vector3f &operator+=(const Vector3f &v) {
-        x += v.x;
-        y += v.y;
-        z += v.z;
-        return *this;
+    Vector3f operator/(const Vector3f &v) const {
+        return {x / v.x, y / v.y, z / v.z};
     }
 
-    Vector3f &operator-=(const Vector3f &v) {
-        x -= v.x;
-        y -= v.y;
-        z -= v.z;
-        return *this;
-    }
-
-    Vector3f &operator*=(const float s) {
-        x *= s;
-        y *= s;
-        z *= s;
-        return *this;
-    }
-
-    Vector3f &operator/=(const float s) {
-        x /= s;
-        y /= s;
-        z /= s;
-        return *this;
+    float norm() const {
+        return std::sqrt(x * x + y * y + z * z);
     }
 
     Vector3f normalized() const {
-        return *this / std::sqrt(x * x + y * y + z * z);
+        return *this / norm();
     }
 
     void normalize() {
-        *this /= std::sqrt(x * x + y * y + z * z);
+        const float s = norm();
+        x /= s;
+        y /= s;
+        z /= s;
     }
 
     float dot(const Vector3f &v) const {
@@ -243,6 +247,30 @@ struct Interval {
 };
 
 struct Box {
+    static float constexpr theta_range = 2 * M_PIf;
+    static float constexpr phi_range = M_PI_2f;
     const Interval theta_interval;
     const Interval phi_interval;
+
+    Vector2f center() const {
+        return {
+                    (theta_interval.min + theta_interval.max) / 2 / M_PIf - 1,
+                    (phi_interval.min + phi_interval.max) / 2 / M_PI_2f - 1
+                };
+    }
+
+    Box normalized() const {
+        return {
+                    Interval(theta_interval.min / M_PIf - 1, theta_interval.max / M_PIf - 1),
+                    Interval(phi_interval.min / M_PI_2f - 1, phi_interval.max / M_PI_2f - 1)
+                };
+    }
+
+    cv::Scalar color() const {
+        const float x = (theta_interval.min + theta_interval.max) / 2 / (2 * M_PIf);
+        const float y = (phi_interval.min + phi_interval.max) / 2 / M_PIf;
+        return Color::gradient(y,
+                               Color::gradient(x, Color::bottom_left, Color::bottom_right),
+                               Color::gradient(x, Color::top_left, Color::top_right));
+    }
 };

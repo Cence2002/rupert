@@ -13,11 +13,11 @@ public:
 
     Plot(int width, int height, float range) {
         image = cv::Mat::zeros(height, width, CV_8UC3);
-        origin = Vector2f(width / 2, height / 2);
+        origin = Vector2f(static_cast<float>(width) / 2, static_cast<float>(height) / 2);
         scale = std::min(origin.x, origin.y) / range;
     }
 
-    cv::Point eigen_to_cv(const Vector2f &v) {
+    cv::Point eigen_to_cv(const Vector2f &v) const {
         return {
                     static_cast<int>(origin.x + scale * v.x),
                     static_cast<int>(origin.y - scale * v.y)
