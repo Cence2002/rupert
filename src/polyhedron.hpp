@@ -13,23 +13,23 @@ struct Polyhedron {
 
     static std::vector<Vector3> permutations(const std::vector<Vector3> &vertices) {
         std::vector<Vector3> permutations;
-        for(const Vector3 &vertex: vertices) {
-            permutations.push_back({vertex.x, vertex.y, vertex.z});
-            permutations.push_back({vertex.z, vertex.x, vertex.y});
-            permutations.push_back({vertex.y, vertex.z, vertex.x});
-            permutations.push_back({vertex.x, vertex.z, vertex.y});
-            permutations.push_back({vertex.y, vertex.x, vertex.z});
-            permutations.push_back({vertex.z, vertex.y, vertex.x});
+        for(const auto &[x, y, z]: vertices) {
+            permutations.push_back({x, y, z});
+            permutations.push_back({z, x, y});
+            permutations.push_back({y, z, x});
+            permutations.push_back({x, z, y});
+            permutations.push_back({y, x, z});
+            permutations.push_back({z, y, x});
         }
         return permutations;
     }
 
     static std::vector<Vector3> rotations(const std::vector<Vector3> &vertices) {
         std::vector<Vector3> rotations;
-        for(const Vector3 &vertex: vertices) {
-            rotations.push_back({vertex.x, vertex.y, vertex.z});
-            rotations.push_back({vertex.z, vertex.x, vertex.y});
-            rotations.push_back({vertex.y, vertex.z, vertex.x});
+        for(const auto &[x, y, z]: vertices) {
+            rotations.push_back({x, y, z});
+            rotations.push_back({z, x, y});
+            rotations.push_back({y, z, x});
         }
         return rotations;
     }

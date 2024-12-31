@@ -22,11 +22,11 @@ struct Color {
     inline static const cv::Scalar bottom_right = YELLOW;
     inline static const cv::Scalar bottom_left = BLUE;
 
-    static cv::Scalar rgb(int r, int g, int b) {
+    static cv::Scalar rgb(const int r, const int g, const int b) {
         return {static_cast<double>(b), static_cast<double>(g), static_cast<double>(r)};
     }
 
-    static cv::Scalar gradient(double t, const cv::Scalar &color_0, const cv::Scalar &color_1) {
+    static cv::Scalar gradient(const double t, const cv::Scalar &color_0, const cv::Scalar &color_1) {
         return color_0 * (1 - t) + color_1 * t;
     }
 };
@@ -153,6 +153,15 @@ struct Vector2 {
         const Vector2 d = b - a;
         return d.cross(a) < d.cross(*this);
     }
+
+    bool is_inside_polygon(const std::vector<Vector2> &vertices) const {
+        std::vector<double> angles;
+        for(const Vector2 &vertex: vertices) {
+            angles.push_back(vertex.get_angle());
+        }
+        const int index = get_index(angles);
+        return is_inside(vertices[index], vertices[(index + 1) % vertices.size()]);
+    }
 };
 
 struct Vector3 {
@@ -239,15 +248,15 @@ class SineWave {
     const double phase;
 
 public:
-    SineWave(double amplitude, double phase) : amplitude(amplitude), phase(phase) {}
+    SineWave(const double amplitude, const double phase) : amplitude(amplitude), phase(phase) {}
 
-    static SineWave combine(double sine_amplitude, double cosine_amplitude) {
+    static SineWave combine(const double sine_amplitude, const double cosine_amplitude) {
         double amplitude = std::sqrt(sine_amplitude * sine_amplitude + cosine_amplitude * cosine_amplitude);
         double phase = Vector2(sine_amplitude, cosine_amplitude).get_angle();
         return {amplitude, phase};
     }
 
-    double operator()(double angle) const {
+    double operator()(const double angle) const {
         return amplitude * std::sin(angle + phase);
     }
 };
@@ -258,13 +267,6 @@ struct Interval {
 
     bool contains(const double value) const {
         return min <= value && value <= max;
-    }
-
-    bool contains_wrap(const double value, const double wrap) const {
-        if(min <= max) {
-            return min <= value && value <= max;
-        }
-        return min <= value || value <= max;
     }
 };
 
@@ -335,29 +337,74 @@ struct Box {
     }
 
     static bool intersects_line_fixed_phi(const Vector3 &v, const Vector2 &vertex_0, const Vector2 &vertex_1, const Interval &theta_interval, const double phi) {
-        const double sin_phi = std::sin(phi);
-        const double cos_phi = std::cos(phi);
-        const Vector2 a(vertex_0.x, (vertex_0.y + v.z * sin_phi) / cos_phi);
-        const Vector2 b(vertex_1.x, (vertex_1.y + v.z * sin_phi) / cos_phi);
+        const double y_shift = v.z * std::sin(phi);
+        const double y_scale = std::cos(phi);
+        const Vector2 a(vertex_0.x, (vertex_0.y + y_shift) / y_scale);
+        const Vector2 b(vertex_1.x, (vertex_1.y + y_shift) / y_scale);
+
         const Vector2 d = b - a;
         const double A_double = 2 * d.dot(d);
         const double B = 2 * d.dot(a);
         const double C = a.dot(a) - (v.x * v.x + v.y * v.y);
         const double discriminant = B * B - 2 * A_double * C;
-        if(discriminant < 0) {
+        if(discriminant < 0) [[likely]] {
             return false;
         }
+
         const double sqrt_discriminant = std::sqrt(discriminant);
-        for(const double t: {
-                (-B + sqrt_discriminant) / A_double,
-                (-B - sqrt_discriminant) / A_double
-            }) {
-            if(0 <= t &&
-               t <= 1 &&
-               theta_interval.contains(mod((a + d * t).get_angle() - std::atan2(v.x, v.y)))) {
+        const auto solutions = {
+                    (-B + sqrt_discriminant) / A_double,
+                    (-B - sqrt_discriminant) / A_double
+                };
+        return std::ranges::any_of(solutions, [&](const double solution) {
+            return solution >= 0 && solution <= 1 &&
+                   theta_interval.contains(mod((a + d * solution).get_angle() - Vector2(v.y, v.x).get_angle()));
+        });
+    }
+
+    static bool intersects_line_fixed_theta(const Vector3 &v, const Vector2 &vertex_0, const Vector2 &vertex_1, const double theta, const Interval &phi_interval) {
+        const double sin_theta = std::sin(theta);
+        const double cos_theta = std::cos(theta);
+        const double x = -v.x * sin_theta + v.y * cos_theta;
+        if(x < std::min(vertex_0.x, vertex_1.x) || x > std::max(vertex_0.x, vertex_1.x)) [[likely]] {
+            return false;
+        }
+        const Vector2 coefficient(v.x * cos_theta + v.y * sin_theta, -v.z);
+        const double r = coefficient.norm();
+        const double shift = coefficient.get_angle();
+        const double y_0 = r * std::cos(phi_interval.min - shift);
+        const double y_1 = r * std::cos(phi_interval.max - shift);
+        double min_y = std::min(y_0, y_1);
+        if(phi_interval.contains(shift + M_PI)) [[unlikely]] {
+            min_y = -1;
+        }
+        double max_y = std::max(y_0, y_1);
+        if(phi_interval.contains(shift)) [[unlikely]] {
+            max_y = 1;
+        }
+        const auto [dx, dy] = vertex_1 - vertex_0;
+        const double y = vertex_0.y + dy * (x - vertex_0.x) / dx;
+        return min_y <= y && y <= max_y;
+    }
+
+    bool intersects_line(const Vector3 &v, const Vector2 &vertex_0, const Vector2 &vertex_1) const {
+        return intersects_line_fixed_phi(v, vertex_0, vertex_1, theta_interval, phi_interval.min) ||
+               intersects_line_fixed_phi(v, vertex_0, vertex_1, theta_interval, phi_interval.max) ||
+               intersects_line_fixed_theta(v, vertex_0, vertex_1, theta_interval.min, phi_interval) ||
+               intersects_line_fixed_theta(v, vertex_0, vertex_1, theta_interval.max, phi_interval);
+    }
+
+    bool intersects_polygon(const Vector3 &v, const std::vector<Vector2> &vertices) const {
+        const double sample_theta = (theta_interval.min + theta_interval.max) / 2;
+        const double sample_phi = (phi_interval.min + phi_interval.max) / 2;
+        if(v.project(sample_theta, sample_phi).is_inside_polygon(vertices)) {
+            return true;
+        }
+        for(size_t from = 0, to = 1; to < vertices.size(); from++, to++) {
+            if(intersects_line(v, vertices[from], vertices[to])) {
                 return true;
             }
         }
-        return false;
+        return intersects_line(v, vertices.back(), vertices.front());
     }
 };

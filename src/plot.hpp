@@ -8,9 +8,9 @@ class Plot {
     double scale;
 
 public:
-    Plot(int size, double range) : Plot(size, size, range) {}
+    Plot(const int size, const double range) : Plot(size, size, range) {}
 
-    Plot(int width, int height, double range) {
+    Plot(const int width, const int height, const double range) {
         image = cv::Mat::zeros(height, width, CV_8UC3);
         origin = Vector2(static_cast<double>(width) / 2, static_cast<double>(height) / 2);
         scale = std::min(origin.x, origin.y) / range;
@@ -47,7 +47,7 @@ public:
         }
     }
 
-    void polygon(const std::vector<Vector2> &vs, const cv::Scalar &color = Color::WHITE, int thickness = 1) {
+    void polygon(const std::vector<Vector2> &vs, const cv::Scalar &color = Color::WHITE, const int thickness = 1) {
         polyline(vs, color, thickness);
         line(vs.back(), vs.front(), color, thickness);
     }
@@ -60,11 +60,11 @@ public:
         cv::fillConvexPoly(image, cv_points.data(), static_cast<int>(cv_points.size()), color, cv::LINE_AA);
     }
 
-    void box(const Box &box, const cv::Scalar &color = Color::WHITE, int thickness = 1) {
-        Vector2 bottom_left = {box.theta_interval.min, box.phi_interval.min};
-        Vector2 top_left = {box.theta_interval.min, box.phi_interval.max};
-        Vector2 top_right = {box.theta_interval.max, box.phi_interval.max};
-        Vector2 bottom_right = {box.theta_interval.max, box.phi_interval.min};
+    void box(const Box &box, const cv::Scalar &color = Color::WHITE, const int thickness = 1) {
+        const Vector2 bottom_left = {box.theta_interval.min, box.phi_interval.min};
+        const Vector2 top_left = {box.theta_interval.min, box.phi_interval.max};
+        const Vector2 top_right = {box.theta_interval.max, box.phi_interval.max};
+        const Vector2 bottom_right = {box.theta_interval.max, box.phi_interval.min};
         line(bottom_left, top_left, color, thickness);
         line(top_left, top_right, color, thickness);
         line(top_right, bottom_right, color, thickness);
@@ -72,7 +72,7 @@ public:
     }
 
     void filled_box(const Box &box, const cv::Scalar &color = Color::WHITE) {
-        std::vector<Vector2> vertices = {
+        const std::vector<Vector2> vertices = {
                     {box.theta_interval.min, box.phi_interval.min},
                     {box.theta_interval.min, box.phi_interval.max},
                     {box.theta_interval.max, box.phi_interval.max},

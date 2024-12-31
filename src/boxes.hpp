@@ -6,7 +6,7 @@ class Boxes {
     std::queue<Box> boxes;
 
 public:
-    Boxes(int theta_intervals, int phi_intervals) {
+    Boxes(const int theta_intervals, const int phi_intervals) {
         for(int theta_i = 0; theta_i < theta_intervals; theta_i++) {
             for(int phi_i = 0; phi_i < phi_intervals; phi_i++) {
                 const double theta_min = 2 * M_PI * static_cast<double>(theta_i) / static_cast<double>(theta_intervals);
@@ -26,7 +26,7 @@ public:
     }
 
     Box pop() {
-        Box box = boxes.front();
+        const Box box = boxes.front();
         boxes.pop();
         return box;
     }
