@@ -23,29 +23,33 @@ public:
                 };
     }
 
-    void point(const Vector2 &v, const cv::Scalar &color = Color::WHITE, int radius = 0) {
+    void point(const Vector2 &v, const cv::Scalar &color = Color::WHITE, const int radius = 0) {
         cv::circle(image, cv_point(v), radius, color, -1, cv::LINE_AA);
     }
 
-    void points(const std::vector<Vector2> &vs, const cv::Scalar &color = Color::WHITE, int radius = 0) {
+    void points(const std::vector<Vector2> &vs, const cv::Scalar &color = Color::WHITE, const int radius = 0) {
         for(const Vector2 &v: vs) {
             point(v, color, radius);
         }
     }
 
-    void line(const Vector2 &v0, const Vector2 &v1, const cv::Scalar &color = Color::WHITE, int thickness = 1) {
-        cv::line(image, cv_point(v0), cv_point(v1), color, thickness, cv::LINE_AA);
-    }
-
-    void circle(const Vector2 &v, double radius, const cv::Scalar &color = Color::WHITE, int thickness = 1) {
+    void circle(const Vector2 &v, const double radius, const cv::Scalar &color = Color::WHITE, const int thickness = 1) {
         cv::circle(image, cv_point(v), static_cast<int>(scale * radius), color, thickness, cv::LINE_AA);
     }
 
-    void polygon(const std::vector<Vector2> &vs, const cv::Scalar &color = Color::WHITE, int thickness = 1) {
-        for(size_t from = 0; from < vs.size(); from++) {
-            const size_t to = (from + 1) % vs.size();
+    void line(const Vector2 &v0, const Vector2 &v1, const cv::Scalar &color = Color::WHITE, const int thickness = 1) {
+        cv::line(image, cv_point(v0), cv_point(v1), color, thickness, cv::LINE_AA);
+    }
+
+    void polyline(const std::vector<Vector2> &vs, const cv::Scalar &color = Color::WHITE, const int thickness = 1) {
+        for(size_t from = 0, to = 1; to < vs.size(); from++, to++) {
             line(vs[from], vs[to], color, thickness);
         }
+    }
+
+    void polygon(const std::vector<Vector2> &vs, const cv::Scalar &color = Color::WHITE, int thickness = 1) {
+        polyline(vs, color, thickness);
+        line(vs.back(), vs.front(), color, thickness);
     }
 
     void filled_polygon(const std::vector<Vector2> &vs, const cv::Scalar &color = Color::WHITE) {

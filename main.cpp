@@ -28,6 +28,36 @@ void setup() {
 }
 
 void draw() {
+    Vector2 a(-0.7, 0.7), b(-0.4, -0.3);
+    RandomNumberGenerator rng;
+    for(int t = 0; t < 3000; t++) {
+        Vector3 v(rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-1, 1));
+        v.normalize();
+        double theta_range = rng.uniform(0.1, 0.4);
+        double theta_min = rng.uniform(0, 2 * M_PI - theta_range);
+        double phi = rng.uniform(0, M_PI);
+        Interval theta_interval(theta_min, theta_min + theta_range);
+
+        if(Box::intersects_line_fixed_phi(v, a, b, theta_interval, phi)) {
+            std::vector<Vector2> points;
+            for(double theta = theta_min; theta <= theta_min + theta_range; theta += 0.001) {
+                points.push_back(v.project(theta, phi));
+            }
+            plot_main.polyline(points, Color::GREEN, 2);
+            plot_boxes.filled_box(Box(theta_interval, Interval(phi, phi)).normalized(), Color::GREEN);
+        } else {
+            std::vector<Vector2> points;
+            for(double theta = theta_min; theta <= theta_min + theta_range; theta += 0.001) {
+                points.push_back(v.project(theta, phi));
+            }
+            plot_main.polyline(points, Color::RED / 2);
+            plot_boxes.filled_box(Box(theta_interval, Interval(phi, phi)).normalized(), Color::RED / 2);
+        }
+        plot_main.line(a, b, Color::RED);
+    }
+}
+
+void draw2() {
     constexpr Box hole_box(
         Interval(0, 0.01),
         Interval(0, 0.01)
@@ -59,10 +89,10 @@ void draw() {
         const Box box = boxes.pop();
         bool is_any_boundary_outside = false;
         for(const Vector3 &vertex: polyhedron) {
-            if(!box.intersects(vertex, hole)) {
-                is_any_boundary_outside = true;
-                break;
-            }
+            // if(!box.intersects(vertex, hole)) {
+            //     is_any_boundary_outside = true;
+            //     break;
+            // }
         }
         if(!is_any_boundary_outside) {
             boxes.push_quadrants(box);

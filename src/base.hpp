@@ -334,40 +334,27 @@ struct Box {
         return points;
     }
 
-    bool intersects(const Vector3 &vertex, const std::vector<Vector2> &polygon) const {
-        std::vector<double> angles;
-        for(const Vector2 &point: polygon) {
-            angles.push_back(point.get_angle());
+    static bool intersects_line_fixed_phi(const Vector3 &v, const Vector2 &vertex_0, const Vector2 &vertex_1, const Interval &theta_interval, const double phi) {
+        const double sin_phi = std::sin(phi);
+        const double cos_phi = std::cos(phi);
+        const Vector2 a(vertex_0.x, (vertex_0.y + v.z * sin_phi) / cos_phi);
+        const Vector2 b(vertex_1.x, (vertex_1.y + v.z * sin_phi) / cos_phi);
+        const Vector2 d = b - a;
+        const double A_double = 2 * d.dot(d);
+        const double B = 2 * d.dot(a);
+        const double C = a.dot(a) - (v.x * v.x + v.y * v.y);
+        const double discriminant = B * B - 2 * A_double * C;
+        if(discriminant < 0) {
+            return false;
         }
-        for(const Vector2 &boundary_point: boundary(vertex, 0.01, 0.01)) {
-            const int index = boundary_point.get_index(angles);
-            if(boundary_point.is_inside(polygon[index], polygon[(index + 1) % polygon.size()])) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool includes_zero(const Vector3 &vertex) const {
-        if(vertex.x == 0 && vertex.y == 0) [[unlikely]] {
-            if(phi_interval.contains(0) || phi_interval.contains(M_PI)) {
-                return true;
-            }
-        }
-        const double theta_0 = Vector2(vertex.x, vertex.y).get_angle();
-        if(theta_interval.contains(theta_0)) {
-            const double c = (vertex.x * std::cos(theta_0) + vertex.y * std::sin(theta_0));
-            const double phi = std::atan2(c, vertex.z);
-            if(phi_interval.contains(phi)) {
-                return true;
-            }
-        }
-        // const double theta_1 = theta_0 < M_PI ? theta_0 + M_PI : theta_0 - M_PI;
-        const double theta_1 = mod(theta_0 + M_PI);
-        if(theta_interval.contains(theta_1)) {
-            const double c = (vertex.x * std::cos(theta_1) + vertex.y * std::sin(theta_1));
-            const double phi = std::atan2(c, vertex.z);
-            if(phi_interval.contains(phi)) {
+        const double sqrt_discriminant = std::sqrt(discriminant);
+        for(const double t: {
+                (-B + sqrt_discriminant) / A_double,
+                (-B - sqrt_discriminant) / A_double
+            }) {
+            if(0 <= t &&
+               t <= 1 &&
+               theta_interval.contains(mod((a + d * t).get_angle() - std::atan2(v.x, v.y)))) {
                 return true;
             }
         }
