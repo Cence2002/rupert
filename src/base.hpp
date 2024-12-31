@@ -1,6 +1,10 @@
 #pragma once
 
 #include <opencv2/opencv.hpp>
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/polygon.hpp>
+#include <boost/geometry/geometries/adapted/boost_tuple.hpp>
+BOOST_GEOMETRY_REGISTER_BOOST_TUPLE_CS(cs::cartesian)
 
 struct Color {
     inline static const cv::Scalar BLACK = cv::Scalar(0, 0, 0);
@@ -26,6 +30,10 @@ struct Color {
         return color_0 * (1 - t) + color_1 * t;
     }
 };
+
+constexpr double mod(const double angle) {
+    return std::fmod(std::fmod(angle, 2 * M_PI) + 2 * M_PI, 2 * M_PI);
+}
 
 struct Vector2 {
     double x;
@@ -90,16 +98,19 @@ struct Vector2 {
         return x * v.y - y * v.x;
     }
 
-    static std::vector<Vector2> hull(const std::vector<Vector2> &points) {
-        std::vector<cv::Point2f> cv_points;
-        for(const Vector2 &point: points) {
-            cv_points.emplace_back(point.x, point.y);
+    static std::vector<Vector2> convex_hull(const std::vector<Vector2> &points) {
+        namespace bg = boost::geometry;
+        using BoostPoint = boost::tuple<double, double>;
+        using BoostPolygon = bg::model::polygon<BoostPoint>;
+        BoostPolygon input_polygon;
+        for(const auto &[x, y]: points) {
+            bg::append(input_polygon.outer(), BoostPoint(x, y));
         }
-        std::vector<cv::Point2f> cv_hull_points;
-        cv::convexHull(cv_points, cv_hull_points);
+        BoostPolygon hull_polygon;
+        bg::convex_hull(input_polygon, hull_polygon);
         std::vector<Vector2> hull_points;
-        for(const cv::Point2f &cv_hull_point: cv_hull_points) {
-            hull_points.emplace_back(cv_hull_point.x, cv_hull_point.y);
+        for(const auto &hull_point: hull_polygon.outer()) {
+            hull_points.emplace_back(Vector2{bg::get<0>(hull_point), bg::get<1>(hull_point)});
         }
         return hull_points;
     }
@@ -109,7 +120,8 @@ struct Vector2 {
             return 0;
         }
         const double angle = std::atan2(y, x);
-        return angle >= 0 ? angle : angle + 2 * M_PIf;
+        // return angle >= 0 ? angle : angle + 2 * M_PI;
+        return mod(angle);
     }
 
     static std::vector<Vector2> sort(const std::vector<Vector2> &vectors) {
@@ -243,33 +255,122 @@ public:
 struct Interval {
     const double min;
     const double max;
+
+    bool contains(const double value) const {
+        return min <= value && value <= max;
+    }
+
+    bool contains_wrap(const double value, const double wrap) const {
+        if(min <= max) {
+            return min <= value && value <= max;
+        }
+        return min <= value || value <= max;
+    }
 };
 
 struct Box {
-    static double constexpr theta_range = 2 * M_PIf;
-    static double constexpr phi_range = M_PI_2f;
     const Interval theta_interval;
     const Interval phi_interval;
 
     Vector2 center() const {
         return {
-                    (theta_interval.min + theta_interval.max) / 2 / M_PIf - 1,
-                    (phi_interval.min + phi_interval.max) / 2 / M_PI_2f - 1
+                    (theta_interval.min + theta_interval.max) / 2 / M_PI - 1,
+                    (phi_interval.min + phi_interval.max) / 2 / M_PI_2 - 1
                 };
     }
 
     Box normalized() const {
         return {
-                    Interval(theta_interval.min / M_PIf - 1, theta_interval.max / M_PIf - 1),
-                    Interval(phi_interval.min / M_PI_2f - 1, phi_interval.max / M_PI_2f - 1)
+                    Interval(theta_interval.min / M_PI - 1, theta_interval.max / M_PI - 1),
+                    Interval(phi_interval.min / M_PI_2 - 1, phi_interval.max / M_PI_2 - 1)
                 };
     }
 
     cv::Scalar color() const {
-        const double x = (theta_interval.min + theta_interval.max) / 2 / (2 * M_PIf);
-        const double y = (phi_interval.min + phi_interval.max) / 2 / M_PIf;
+        const double x = (theta_interval.min + theta_interval.max) / 2 / (2 * M_PI);
+        const double y = (phi_interval.min + phi_interval.max) / 2 / M_PI;
         return Color::gradient(y,
                                Color::gradient(x, Color::bottom_left, Color::bottom_right),
                                Color::gradient(x, Color::top_left, Color::top_right));
+    }
+
+    std::vector<Vector2> boundary(const Vector3 &vertex, double theta_step, double phi_step) const {
+        const double x = vertex.x;
+        const double y = vertex.y;
+        const double z = vertex.z;
+        const double theta_min = theta_interval.min;
+        const double theta_max = theta_interval.max;
+        const double phi_min = phi_interval.min;
+        const double phi_max = phi_interval.max;
+        theta_step *= theta_max - theta_min;
+        phi_step *= phi_max - phi_min;
+        std::vector<Vector2> points;
+        // theta = theta_min
+        double x_theta_min = -x * std::sin(theta_min) + y * std::cos(theta_min);
+        SineWave y_theta_min = SineWave::combine(-z, x * std::cos(theta_min) + y * std::sin(theta_min));
+        for(double phi = phi_min; phi <= phi_max; phi += phi_step) {
+            points.emplace_back(x_theta_min, y_theta_min(phi));
+        }
+        // phi = phi_max
+        SineWave x_phi_max = SineWave::combine(-x, y);
+        SineWave y_phi_max = SineWave::combine(y * std::cos(phi_max), x * std::cos(phi_max));
+        double y_phi_max_constant = -z * std::sin(phi_max);
+        for(double theta = theta_min; theta <= theta_max; theta += theta_step) {
+            points.emplace_back(x_phi_max(theta), y_phi_max(theta) + y_phi_max_constant);
+        }
+        // theta = theta_max
+        double x_theta_max = -x * std::sin(theta_max) + y * std::cos(theta_max);
+        SineWave y_theta_max = SineWave::combine(-z, x * std::cos(theta_max) + y * std::sin(theta_max));
+        for(double phi = phi_max; phi >= phi_min; phi -= phi_step) {
+            points.emplace_back(x_theta_max, y_theta_max(phi));
+        }
+        // phi = phi_min
+        SineWave x_phi_min = SineWave::combine(-x, y);
+        SineWave y_phi_min = SineWave::combine(y * std::cos(phi_min), x * std::cos(phi_min));
+        double y_phi_min_constant = -z * std::sin(phi_min);
+        for(double theta = theta_max; theta >= theta_min; theta -= theta_step) {
+            points.emplace_back(x_phi_min(theta), y_phi_min(theta) + y_phi_min_constant);
+        }
+        return points;
+    }
+
+    bool intersects(const Vector3 &vertex, const std::vector<Vector2> &polygon) const {
+        std::vector<double> angles;
+        for(const Vector2 &point: polygon) {
+            angles.push_back(point.get_angle());
+        }
+        for(const Vector2 &boundary_point: boundary(vertex, 0.01, 0.01)) {
+            const int index = boundary_point.get_index(angles);
+            if(boundary_point.is_inside(polygon[index], polygon[(index + 1) % polygon.size()])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool includes_zero(const Vector3 &vertex) const {
+        if(vertex.x == 0 && vertex.y == 0) [[unlikely]] {
+            if(phi_interval.contains(0) || phi_interval.contains(M_PI)) {
+                return true;
+            }
+        }
+        const double theta_0 = Vector2(vertex.x, vertex.y).get_angle();
+        if(theta_interval.contains(theta_0)) {
+            const double c = (vertex.x * std::cos(theta_0) + vertex.y * std::sin(theta_0));
+            const double phi = std::atan2(c, vertex.z);
+            if(phi_interval.contains(phi)) {
+                return true;
+            }
+        }
+        // const double theta_1 = theta_0 < M_PI ? theta_0 + M_PI : theta_0 - M_PI;
+        const double theta_1 = mod(theta_0 + M_PI);
+        if(theta_interval.contains(theta_1)) {
+            const double c = (vertex.x * std::cos(theta_1) + vertex.y * std::sin(theta_1));
+            const double phi = std::atan2(c, vertex.z);
+            if(phi_interval.contains(phi)) {
+                return true;
+            }
+        }
+        return false;
     }
 };

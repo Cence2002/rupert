@@ -24,7 +24,7 @@ public:
     }
 
     void point(const Vector2 &v, const cv::Scalar &color = Color::WHITE, int radius = 0) {
-        cv::circle(image, cv_point(v), radius, color, -1, cv::LINE_4);
+        cv::circle(image, cv_point(v), radius, color, -1, cv::LINE_AA);
     }
 
     void points(const std::vector<Vector2> &vs, const cv::Scalar &color = Color::WHITE, int radius = 0) {
@@ -34,11 +34,11 @@ public:
     }
 
     void line(const Vector2 &v0, const Vector2 &v1, const cv::Scalar &color = Color::WHITE, int thickness = 1) {
-        cv::line(image, cv_point(v0), cv_point(v1), color, thickness, cv::LINE_4);
+        cv::line(image, cv_point(v0), cv_point(v1), color, thickness, cv::LINE_AA);
     }
 
     void circle(const Vector2 &v, double radius, const cv::Scalar &color = Color::WHITE, int thickness = 1) {
-        cv::circle(image, cv_point(v), static_cast<int>(scale * radius), color, thickness, cv::LINE_4);
+        cv::circle(image, cv_point(v), static_cast<int>(scale * radius), color, thickness, cv::LINE_AA);
     }
 
     void polygon(const std::vector<Vector2> &vs, const cv::Scalar &color = Color::WHITE, int thickness = 1) {
@@ -53,7 +53,7 @@ public:
         for(const Vector2 &v: vs) {
             cv_points.push_back(cv_point(v));
         }
-        cv::fillConvexPoly(image, cv_points.data(), static_cast<int>(cv_points.size()), color, cv::LINE_4);
+        cv::fillConvexPoly(image, cv_points.data(), static_cast<int>(cv_points.size()), color, cv::LINE_AA);
     }
 
     void box(const Box &box, const cv::Scalar &color = Color::WHITE, int thickness = 1) {
