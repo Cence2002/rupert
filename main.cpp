@@ -133,8 +133,7 @@ void draw() {
     std::cout << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
     std::cout << "Boxes: " << boxes.get_boxes().size() << std::endl;
     for(const Box &box: boxes.get_boxes()) {
-        plot_boxes.point(box.center(), box.color(), 3);
-        plot_boxes.circle(box.center(), 0.1, box.color() / 4);
+        plot_boxes.circle(box.center(), 0.1, box.color() / 2);
         plot_boxes.filled_box(box.normalized(), box.color());
         for(const Vector3 &vertex: polyhedron) {
             plot_main.polygon(box.boundary(vertex, 0.1, 0.1), box.color());
