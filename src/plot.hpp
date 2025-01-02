@@ -16,6 +16,19 @@ public:
         scale = std::min(origin.x, origin.y) / range;
     }
 
+    void clear() {
+        image = cv::Mat::zeros(image.size(), image.type());
+    }
+
+    void show() const {
+        cv::imshow("Plot", image);
+        cv::waitKey(0);
+    }
+
+    void save(const std::string &filename) const {
+        cv::imwrite(filename, image);
+    }
+
     cv::Point cv_point(const Vector2 &v) const {
         return {
                     static_cast<int>(origin.x + scale * v.x),
@@ -24,7 +37,7 @@ public:
     }
 
     void point(const Vector2 &v, const cv::Scalar &color = Color::WHITE, const int radius = 0) {
-        cv::circle(image, cv_point(v), radius, color, -1, cv::LINE_AA);
+        cv::circle(image, cv_point(v), radius, color, -1, cv::LINE_4);
     }
 
     void points(const std::vector<Vector2> &vs, const cv::Scalar &color = Color::WHITE, const int radius = 0) {
@@ -34,11 +47,11 @@ public:
     }
 
     void circle(const Vector2 &v, const double radius, const cv::Scalar &color = Color::WHITE, const int thickness = 1) {
-        cv::circle(image, cv_point(v), static_cast<int>(scale * radius), color, thickness, cv::LINE_AA);
+        cv::circle(image, cv_point(v), static_cast<int>(scale * radius), color, thickness, cv::LINE_4);
     }
 
     void line(const Vector2 &v0, const Vector2 &v1, const cv::Scalar &color = Color::WHITE, const int thickness = 1) {
-        cv::line(image, cv_point(v0), cv_point(v1), color, thickness, cv::LINE_AA);
+        cv::line(image, cv_point(v0), cv_point(v1), color, thickness, cv::LINE_4);
     }
 
     void polyline(const std::vector<Vector2> &vs, const cv::Scalar &color = Color::WHITE, const int thickness = 1) {
@@ -57,7 +70,7 @@ public:
         for(const Vector2 &v: vs) {
             cv_points.push_back(cv_point(v));
         }
-        cv::fillConvexPoly(image, cv_points.data(), static_cast<int>(cv_points.size()), color, cv::LINE_AA);
+        cv::fillConvexPoly(image, cv_points.data(), static_cast<int>(cv_points.size()), color, cv::LINE_4);
     }
 
     void box(const Box &box, const cv::Scalar &color = Color::WHITE, const int thickness = 1) {
@@ -79,14 +92,5 @@ public:
                     {box.theta_interval.max, box.phi_interval.min}
                 };
         filled_polygon(vertices, color);
-    }
-
-    void show() const {
-        cv::imshow("Plot", image);
-        cv::waitKey(0);
-    }
-
-    void save(const std::string &filename) const {
-        cv::imwrite(filename, image);
     }
 };

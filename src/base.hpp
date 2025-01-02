@@ -4,7 +4,20 @@
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
 #include <boost/geometry/geometries/adapted/boost_tuple.hpp>
+#include <boost/numeric/interval.hpp>
+#include <boost/numeric/interval/transc.hpp>
+
 BOOST_GEOMETRY_REGISTER_BOOST_TUPLE_CS(cs::cartesian)
+
+using I = boost::numeric::interval<
+    double,
+    boost::numeric::interval_lib::policies<
+        boost::numeric::interval_lib::save_state<
+            boost::numeric::interval_lib::rounded_transc_std<double>
+        >,
+        boost::numeric::interval_lib::checking_base<double>
+    >
+>;
 
 struct Color {
     inline static const cv::Scalar BLACK = cv::Scalar(0, 0, 0);
@@ -116,20 +129,10 @@ struct Vector2 {
     }
 
     double get_angle() const {
-        if(x == 0 && y == 0) [[unlikely]] {
+        if(x == 0 && y == 0) {
             return 0;
         }
-        const double angle = std::atan2(y, x);
-        // return angle >= 0 ? angle : angle + 2 * M_PI;
-        return mod(angle);
-    }
-
-    static std::vector<Vector2> sort(const std::vector<Vector2> &vectors) {
-        std::vector<Vector2> sorted_vectors = vectors;
-        std::ranges::sort(sorted_vectors, [](const Vector2 &v0, const Vector2 &v1) {
-            return v0.get_angle() < v1.get_angle();
-        });
-        return sorted_vectors;
+        return mod(std::atan2(y, x));
     }
 
     Vector2 rotate(const double angle) const {
@@ -141,26 +144,13 @@ struct Vector2 {
                 };
     }
 
-    int get_index(const std::vector<double> &angles) const {
+    bool is_inside_polygon(const std::vector<Vector2> &vertices, const std::vector<double> &angles) const {
         const double angle = get_angle();
-        if(angle < angles[0] || angle >= angles.back()) [[unlikely]] {
-            return static_cast<int>(angles.size()) - 1;
-        }
-        return static_cast<int>(std::ranges::upper_bound(angles, angle) - angles.begin()) - 1;
-    }
-
-    bool is_inside(const Vector2 &a, const Vector2 &b) const {
-        const Vector2 d = b - a;
-        return d.cross(a) < d.cross(*this);
-    }
-
-    bool is_inside_polygon(const std::vector<Vector2> &vertices) const {
-        std::vector<double> angles;
-        for(const Vector2 &vertex: vertices) {
-            angles.push_back(vertex.get_angle());
-        }
-        const int index = get_index(angles);
-        return is_inside(vertices[index], vertices[(index + 1) % vertices.size()]);
+        const int upper_bound = static_cast<int>(std::ranges::upper_bound(angles, angle) - angles.begin());
+        const int index_0 = upper_bound == 0 ? static_cast<int>(angles.size()) - 1 : upper_bound - 1;
+        const int index_1 = upper_bound == static_cast<int>(angles.size()) ? 0 : upper_bound;
+        const Vector2 d = vertices[index_1] - vertices[index_0];
+        return d.cross(vertices[index_0]) < d.cross(*this);
     }
 };
 
@@ -265,6 +255,14 @@ struct Interval {
     const double min;
     const double max;
 
+    double length() const {
+        return max - min;
+    }
+
+    double center() const {
+        return (min + max) / 2;
+    }
+
     bool contains(const double value) const {
         return min <= value && value <= max;
     }
@@ -347,7 +345,7 @@ struct Box {
         const double B = 2 * d.dot(a);
         const double C = a.dot(a) - (v.x * v.x + v.y * v.y);
         const double discriminant = B * B - 2 * A_double * C;
-        if(discriminant < 0) [[likely]] {
+        if(discriminant < 0) {
             return false;
         }
 
@@ -357,7 +355,7 @@ struct Box {
                     (-B - sqrt_discriminant) / A_double
                 };
         return std::ranges::any_of(solutions, [&](const double solution) {
-            return solution >= 0 && solution <= 1 &&
+            return 0 <= solution && solution <= 1 &&
                    theta_interval.contains(mod((a + d * solution).get_angle() - Vector2(v.y, v.x).get_angle()));
         });
     }
@@ -366,7 +364,7 @@ struct Box {
         const double sin_theta = std::sin(theta);
         const double cos_theta = std::cos(theta);
         const double x = -v.x * sin_theta + v.y * cos_theta;
-        if(x < std::min(vertex_0.x, vertex_1.x) || x > std::max(vertex_0.x, vertex_1.x)) [[likely]] {
+        if(x < std::min(vertex_0.x, vertex_1.x) || x > std::max(vertex_0.x, vertex_1.x)) {
             return false;
         }
         const Vector2 coefficient(v.x * cos_theta + v.y * sin_theta, -v.z);
@@ -374,14 +372,10 @@ struct Box {
         const double shift = coefficient.get_angle();
         const double y_0 = r * std::cos(phi_interval.min - shift);
         const double y_1 = r * std::cos(phi_interval.max - shift);
-        double min_y = std::min(y_0, y_1);
-        if(phi_interval.contains(shift + M_PI)) [[unlikely]] {
-            min_y = -1;
-        }
-        double max_y = std::max(y_0, y_1);
-        if(phi_interval.contains(shift)) [[unlikely]] {
-            max_y = 1;
-        }
+        const double min_y = phi_interval.contains(mod(shift + M_PI)) ? -1
+                                 : std::min(y_0, y_1);
+        const double max_y = phi_interval.contains(mod(shift)) ? 1
+                                 : std::max(y_0, y_1);
         const auto [dx, dy] = vertex_1 - vertex_0;
         const double y = vertex_0.y + dy * (x - vertex_0.x) / dx;
         return min_y <= y && y <= max_y;
@@ -394,10 +388,11 @@ struct Box {
                intersects_line_fixed_theta(v, vertex_0, vertex_1, theta_interval.max, phi_interval);
     }
 
-    bool intersects_polygon(const Vector3 &v, const std::vector<Vector2> &vertices) const {
-        const double sample_theta = (theta_interval.min + theta_interval.max) / 2;
-        const double sample_phi = (phi_interval.min + phi_interval.max) / 2;
-        if(v.project(sample_theta, sample_phi).is_inside_polygon(vertices)) {
+    bool intersects_polygon(const Vector3 &v, const std::vector<Vector2> &vertices, const std::vector<double> &angles) const {
+        if(v.project(theta_interval.min, phi_interval.min).is_inside_polygon(vertices, angles) ||
+           v.project(theta_interval.min, phi_interval.max).is_inside_polygon(vertices, angles) ||
+           v.project(theta_interval.max, phi_interval.min).is_inside_polygon(vertices, angles) ||
+           v.project(theta_interval.max, phi_interval.max).is_inside_polygon(vertices, angles)) {
             return true;
         }
         for(size_t from = 0, to = 1; to < vertices.size(); from++, to++) {
@@ -408,3 +403,18 @@ struct Box {
         return intersects_line(v, vertices.back(), vertices.front());
     }
 };
+
+std::vector<I> divide(const I &interval, const int divisions) {
+    std::vector<double> points;
+    const double step = (interval.upper() - interval.lower()) / divisions;
+    points.push_back(interval.lower());
+    for(int i = 1; i < divisions; i++) {
+        points.push_back(interval.lower() + i * step);
+    }
+    points.push_back(interval.upper());
+    std::vector<I> intervals;
+    for(size_t i = 0; i < points.size() - 1; i++) {
+        intervals.emplace_back(points[i], points[i + 1]);
+    }
+    return intervals;
+}
