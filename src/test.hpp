@@ -26,21 +26,6 @@ inline bool is_close(const double value, const double target_value, const double
     return std::abs(value - target_value) < absolute_tolerance + relative_tolerance * std::abs(target_value);
 }
 
-inline void test_combined_amplitude_phase() {
-    RandomNumberGenerator rng;
-    for(int t = 0; t < 10000; t++) {
-        const double sine_amplitude = rng.uniform(-10, 10);
-        const double cosine_amplitude = rng.uniform(-10, 10);
-        const double angle = rng.uniform(0, 2 * M_PI);
-        const double target_value = sine_amplitude * std::sin(angle) + cosine_amplitude * std::cos(angle);
-
-        SineWave sine_wave = SineWave::combine(sine_amplitude, cosine_amplitude);
-        const double value = sine_wave(angle);
-
-        assert(is_close(value, target_value));
-    }
-}
-
 inline void test_angle() {
     RandomNumberGenerator rng;
     for(int t = 0; t < 10000; t++) {
@@ -61,7 +46,7 @@ inline void test_angle() {
 inline void test_intersections() {
     RandomNumberGenerator rng;
     for(int T = 0; T < 10; T++) {
-        std::vector<Vector2> points = {
+        std::vector<Vector2d> points = {
                     {0.1, 0.1},
                     {0.1, -0.1},
                     {-0.1, -0.1},
@@ -72,12 +57,12 @@ inline void test_intersections() {
             const double r = rng.uniform(0, 1);
             points.push_back({r * std::cos(theta), r * std::sin(theta)});
         }
-        std::vector<Vector2> polygon = Vector2::convex_hull(points);
-        std::ranges::sort(polygon, [](const Vector2 &v0, const Vector2 &v1) {
+        std::vector<Vector2d> polygon = Vector2d::convex_hull(points);
+        std::ranges::sort(polygon, [](const Vector2d &v0, const Vector2d &v1) {
             return v0.get_angle() < v1.get_angle();
         });
         std::vector<double> angles;
-        for(const Vector2 &v: polygon) {
+        for(const Vector2d &v: polygon) {
             angles.push_back(v.get_angle());
         }
         for(int t = 0; t < 10000; t++) {
@@ -87,14 +72,14 @@ inline void test_intersections() {
             const double theta_min = rng.uniform(0, 2 * M_PI - theta_range);
             const double phi_range = rng.uniform(0.01, 0.1);
             const double phi_min = rng.uniform(0, M_PI - phi_range);
-            Box box(
+            Interval2 interval2(
                 Interval(theta_min, theta_min + theta_range),
                 Interval(phi_min, phi_min + phi_range)
             );
-            const bool intersects = box.intersects_polygon(vertex, polygon, angles);
+            const bool intersects = interval2.intersects_polygon(vertex, polygon, angles);
             bool actual_intersects = false;
-            const std::vector<Vector2> boundary = box.boundary(vertex, 0.1, 0.1);
-            for(const Vector2 &v: boundary) {
+            const std::vector<Vector2d> boundary = interval2.boundary(vertex, 0.1, 0.1);
+            for(const Vector2d &v: boundary) {
                 if(v.is_inside_polygon(polygon, angles)) {
                     actual_intersects = true;
                     break;
@@ -118,15 +103,15 @@ void test_constant_phi() {
         const double phi = rng.uniform(0, M_PI);
         Interval theta_interval(theta_min, theta_min + theta_range);
 
-        if(Box::intersects_line_fixed_phi(v, a, b, theta_interval, phi)) {
-            std::vector<Vector2> points;
+        if(Interval2::intersects_line_fixed_phi(v, a, b, theta_interval, phi)) {
+            std::vector<Vector2d> points;
             for(double theta = theta_min; theta <= theta_min + theta_range; theta += 0.001) {
                 points.push_back(v.project(theta, phi));
             }
             // plot_main.polyline(points, Color::GREEN, 2);
             // plot_boxes.filled_box(Box(theta_interval, Interval(phi, phi)).normalized(), Color::GREEN);
         } else {
-            std::vector<Vector2> points;
+            std::vector<Vector2d> points;
             for(double theta = theta_min; theta <= theta_min + theta_range; theta += 0.001) {
                 points.push_back(v.project(theta, phi));
             }
@@ -148,15 +133,15 @@ void test_constant_theta() {
         const double theta = rng.uniform(0, 2 * M_PI);
         Interval phi_interval(phi_min, phi_min + phi_range);
 
-        if(Box::intersects_line_fixed_theta(v, a, b, theta, phi_interval)) {
-            std::vector<Vector2> points;
+        if(Interval2::intersects_line_fixed_theta(v, a, b, theta, phi_interval)) {
+            std::vector<Vector2d> points;
             for(double phi = phi_min; phi <= phi_min + phi_range; phi += 0.001) {
                 points.push_back(v.project(theta, phi));
             }
             // plot_main.polyline(points, Color::GREEN, 2);
             // plot_boxes.filled_box(Box(Interval(theta, theta), phi_interval).normalized(), Color::GREEN);
         } else {
-            std::vector<Vector2> points;
+            std::vector<Vector2d> points;
             for(double phi = phi_min; phi <= phi_min + phi_range; phi += 0.001) {
                 points.push_back(v.project(theta, phi));
             }
@@ -167,10 +152,10 @@ void test_constant_theta() {
     }
 }
 
-inline bool line_intersects_line(const Vector2 &a_0, const Vector2 &b_0, const Vector2 &a_1, const Vector2 &b_1) {
-    const Vector2 d_0 = b_0 - a_0;
-    const Vector2 d_1 = b_1 - a_1;
-    const Vector2 c = a_1 - a_0;
+inline bool line_intersects_line(const Vector2d &a_0, const Vector2d &b_0, const Vector2d &a_1, const Vector2d &b_1) {
+    const Vector2d d_0 = b_0 - a_0;
+    const Vector2d d_1 = b_1 - a_1;
+    const Vector2d c = a_1 - a_0;
     const double denominator = d_0.cross(d_1);
     if(denominator == 0) {
         return false;
