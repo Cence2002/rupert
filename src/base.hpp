@@ -9,7 +9,7 @@
 
 BOOST_GEOMETRY_REGISTER_BOOST_TUPLE_CS(cs::cartesian)
 
-using BoostInterval = boost::numeric::interval<
+using Interval = boost::numeric::interval<
     double,
     boost::numeric::interval_lib::policies<
         boost::numeric::interval_lib::save_state<
@@ -19,46 +19,25 @@ using BoostInterval = boost::numeric::interval<
     >
 >;
 
-struct Interval : BoostInterval {
-    Interval() : BoostInterval() {}
+inline std::ostream &operator<<(std::ostream &os, const Interval &interval) {
+    os << "[" << lower(interval) << ", " << upper(interval) << "]";
+    return os;
+}
 
-    Interval(const double value) : BoostInterval(value) {}
-
-    Interval(const double lower, const double upper) : BoostInterval(lower, upper) {}
-
-    Interval(const BoostInterval &interval) : BoostInterval(interval) {}
-
-    friend std::ostream &operator<<(std::ostream &os, const Interval &interval) {
-        os << "[" << interval.lower() << ", " << interval.upper() << "]";
-        return os;
+inline std::vector<Interval> divide(const Interval &interval, const int parts) {
+    std::vector<double> points;
+    points.push_back(lower(interval));
+    for(int i = 1; i < parts; i++) {
+        // points.push_back(lower() + i * length() / parts);
+        points.push_back(lower(interval) + i * width(interval) / parts);
     }
-
-    double length() const {
-        return upper() - lower();
+    points.push_back(upper(interval));
+    std::vector<Interval> intervals;
+    for(size_t i = 0; i < points.size() - 1; i++) {
+        intervals.emplace_back(points[i], points[i + 1]);
     }
-
-    double center() const {
-        return (lower() + upper()) / 2;
-    }
-
-    bool contains(const double value) const {
-        return lower() <= value && value <= upper();
-    }
-
-    std::vector<Interval> divide(const int parts) const {
-        std::vector<double> points;
-        points.push_back(lower());
-        for(int i = 1; i < parts; i++) {
-            points.push_back(lower() + i * length() / parts);
-        }
-        points.push_back(upper());
-        std::vector<Interval> intervals;
-        for(size_t i = 0; i < points.size() - 1; i++) {
-            intervals.emplace_back(points[i], points[i + 1]);
-        }
-        return intervals;
-    }
-};
+    return intervals;
+}
 
 struct Color {
     inline static const cv::Scalar BLACK = cv::Scalar(0, 0, 0);
@@ -291,21 +270,21 @@ struct Interval2 {
 
     Vector2d center() const {
         return {
-                    (theta.lower() + theta.upper()) / 2 / M_PI - 1,
-                    (phi.lower() + phi.upper()) / 2 / M_PI_2 - 1
+                    (lower(theta) + upper(theta)) / 2 / M_PI - 1,
+                    (lower(phi) + upper(phi)) / 2 / M_PI_2 - 1
                 };
     }
 
     Interval2 normalized() const {
         return {
-                    Interval(theta.lower() / M_PI - 1, theta.upper() / M_PI - 1),
-                    Interval(phi.lower() / M_PI_2 - 1, phi.upper() / M_PI_2 - 1)
+                    Interval(lower(theta) / M_PI - 1, upper(theta) / M_PI - 1),
+                    Interval(lower(phi) / M_PI_2 - 1, upper(phi) / M_PI_2 - 1)
                 };
     }
 
     cv::Scalar color() const {
-        const double x = (theta.lower() + theta.upper()) / 2 / (2 * M_PI);
-        const double y = (phi.lower() + phi.upper()) / 2 / M_PI;
+        const double x = (lower(theta) + upper(theta)) / 2 / (2 * M_PI);
+        const double y = (lower(phi) + upper(phi)) / 2 / M_PI;
         return Color::gradient(y,
                                Color::gradient(x, Color::bottom_left, Color::bottom_right),
                                Color::gradient(x, Color::top_left, Color::top_right));
@@ -313,19 +292,19 @@ struct Interval2 {
 
     std::vector<Vector2d> boundary(const Vector3d &v, const int theta_parts, int phi_parts) const {
         std::vector<Vector2d> points;
-        const double theta_step = theta.length() / theta_parts;
-        const double phi_step = phi.length() / phi_parts;
+        const double theta_step = width(theta) / theta_parts;
+        const double phi_step = width(phi) / phi_parts;
         for(int phi_i = 0; phi_i < phi_parts; phi_i++) {
-            points.push_back(v.project(theta.lower(), phi.lower() + phi_i * phi_step));
+            points.push_back(v.project(lower(theta), lower(phi) + phi_i * phi_step));
         }
         for(int theta_i = 0; theta_i < theta_parts; theta_i++) {
-            points.push_back(v.project(theta.lower() + theta_i * theta_step, phi.upper()));
+            points.push_back(v.project(lower(theta) + theta_i * theta_step, upper(phi)));
         }
         for(int phi_i = phi_parts; phi_i > 0; phi_i--) {
-            points.push_back(v.project(theta.upper(), phi.lower() + phi_i * phi_step));
+            points.push_back(v.project(upper(theta), lower(phi) + phi_i * phi_step));
         }
         for(int theta_i = theta_parts; theta_i > 0; theta_i--) {
-            points.push_back(v.project(theta.lower() + theta_i * theta_step, phi.lower()));
+            points.push_back(v.project(lower(theta) + theta_i * theta_step, lower(phi)));
         }
         return points;
     }
@@ -352,7 +331,7 @@ struct Interval2 {
                 };
         return std::ranges::any_of(solutions, [&](const double solution) {
             return 0 <= solution && solution <= 1 &&
-                   theta_interval.contains(mod((a + d * solution).get_angle() - Vector2(v.y, v.x).get_angle()));
+                   in(mod((a + d * solution).get_angle() - Vector2(v.y, v.x).get_angle()), theta_interval);
         });
     }
 
@@ -366,11 +345,11 @@ struct Interval2 {
         const Vector2 coefficient(v.x * cos_theta + v.y * sin_theta, -v.z);
         const double r = coefficient.norm();
         const double shift = coefficient.get_angle();
-        const double y_0 = r * std::cos(phi_interval.lower() - shift);
-        const double y_1 = r * std::cos(phi_interval.upper() - shift);
-        const double min_y = phi_interval.contains(mod(shift + M_PI)) ? -1
+        const double y_0 = r * std::cos(lower(phi_interval) - shift);
+        const double y_1 = r * std::cos(upper(phi_interval) - shift);
+        const double min_y = in(mod(shift + M_PI), phi_interval) ? -1
                                  : std::min(y_0, y_1);
-        const double max_y = phi_interval.contains(mod(shift)) ? 1
+        const double max_y = in(mod(shift), phi_interval) ? 1
                                  : std::max(y_0, y_1);
         const auto [dx, dy] = vertex_1 - vertex_0;
         const double y = vertex_0.y + dy * (x - vertex_0.x) / dx;
@@ -378,17 +357,17 @@ struct Interval2 {
     }
 
     bool intersects_line(const Vector3d &v, const Vector2d &vertex_0, const Vector2d &vertex_1) const {
-        return intersects_line_fixed_phi(v, vertex_0, vertex_1, theta, phi.lower()) ||
-               intersects_line_fixed_phi(v, vertex_0, vertex_1, theta, phi.upper()) ||
-               intersects_line_fixed_theta(v, vertex_0, vertex_1, theta.lower(), phi) ||
-               intersects_line_fixed_theta(v, vertex_0, vertex_1, theta.upper(), phi);
+        return intersects_line_fixed_phi(v, vertex_0, vertex_1, theta, lower(phi)) ||
+               intersects_line_fixed_phi(v, vertex_0, vertex_1, theta, upper(phi)) ||
+               intersects_line_fixed_theta(v, vertex_0, vertex_1, lower(theta), phi) ||
+               intersects_line_fixed_theta(v, vertex_0, vertex_1, upper(theta), phi);
     }
 
     bool intersects_polygon(const Vector3d &v, const std::vector<Vector2d> &vertices, const std::vector<double> &angles) const {
-        if(v.project(theta.lower(), phi.lower()).is_inside_polygon(vertices, angles) ||
-           v.project(theta.lower(), phi.upper()).is_inside_polygon(vertices, angles) ||
-           v.project(theta.upper(), phi.lower()).is_inside_polygon(vertices, angles) ||
-           v.project(theta.upper(), phi.upper()).is_inside_polygon(vertices, angles)) {
+        if(v.project(lower(theta), lower(phi)).is_inside_polygon(vertices, angles) ||
+           v.project(lower(theta), upper(phi)).is_inside_polygon(vertices, angles) ||
+           v.project(upper(theta), lower(phi)).is_inside_polygon(vertices, angles) ||
+           v.project(upper(theta), upper(phi)).is_inside_polygon(vertices, angles)) {
             return true;
         }
         for(size_t from = 0, to = 1; to < vertices.size(); from++, to++) {

@@ -27,20 +27,23 @@ void setup() {
 }
 
 void draw() {
-    Interval hole_alpha(1.19, 1.2);
-    Interval hole_theta(0.49, 0.5);
-    Interval hole_phi(0.59, 0.6);
+    // Interval hole_alpha(1.19, 1.2);
+    // Interval hole_theta(0.49, 0.5);
+    // Interval hole_phi(0.59, 0.6);
+    Interval hole_alpha(0);
+    Interval hole_theta(0);
+    Interval hole_phi(-0.01, 0.01);
     std::vector<Vector2d> hole_all;
-    for(const Interval &alpha: hole_alpha.divide(10)) {
-        for(const Interval &theta: hole_theta.divide(10)) {
-            for(const Interval &phi: hole_phi.divide(10)) {
+    for(const Interval &alpha: divide(hole_alpha, 10)) {
+        for(const Interval &theta: divide(hole_theta, 10)) {
+            for(const Interval &phi: divide(hole_phi, 10)) {
                 for(const Vector3d &vertex: polyhedron) {
                     const Vector2I v_project = Vector3I(vertex.x, vertex.y, vertex.z).project(theta, phi);
                     const auto [x, y] = v_project.rotate(alpha);
-                    hole_all.emplace_back(x.lower(), y.lower());
-                    hole_all.emplace_back(x.lower(), y.upper());
-                    hole_all.emplace_back(x.upper(), y.lower());
-                    hole_all.emplace_back(x.upper(), y.upper());
+                    hole_all.emplace_back(lower(x), lower(y));
+                    hole_all.emplace_back(lower(x), upper(y));
+                    hole_all.emplace_back(upper(x), lower(y));
+                    hole_all.emplace_back(upper(x), upper(y));
                 }
             }
         }
@@ -57,7 +60,7 @@ void draw() {
 
     Intervals boxes(4, 4);
     const auto start = std::chrono::high_resolution_clock::now();
-    for(int t = 0; t < 9400; t++) {
+    for(int t = 0; t < 10000; t++) {
         if(boxes.empty()) {
             std::cout << std::format("Empty after {} iterations", t) << std::endl;
             break;
@@ -66,12 +69,12 @@ void draw() {
         bool any_outside = false;
         for(const Vector3d &v: polyhedron) {
             const auto &[x, y] = Vector3I(v.x, v.y, v.z).project(box.theta, box.phi);
-            const bool intersects = (x.contains(0) && y.contains(0)) |
-                                    Vector2(x.lower(), y.lower()).is_inside_polygon(hole, hole_angles) |
-                                    Vector2(x.lower(), y.upper()).is_inside_polygon(hole, hole_angles) |
-                                    Vector2(x.upper(), y.lower()).is_inside_polygon(hole, hole_angles) |
-                                    Vector2(x.upper(), y.upper()).is_inside_polygon(hole, hole_angles);
-            // bool intersects = box.intersects_polygon(v, hole, hole_angles);
+            const bool intersects = (in(0.0, x) && in(0.0, y)) |
+                                    Vector2(lower(x), lower(y)).is_inside_polygon(hole, hole_angles) |
+                                    Vector2(lower(x), upper(y)).is_inside_polygon(hole, hole_angles) |
+                                    Vector2(upper(x), lower(y)).is_inside_polygon(hole, hole_angles) |
+                                    Vector2(upper(x), upper(y)).is_inside_polygon(hole, hole_angles);
+            // const bool intersects = box.intersects_polygon(v, hole, hole_angles);
             if(!intersects) {
                 any_outside = true;
                 break;
@@ -90,7 +93,7 @@ void draw() {
         plot_boxes.filled_box(box.normalized(), box.color());
         for(const Vector3d &vertex: polyhedron) {
             plot_main.polygon(box.boundary(vertex, 10, 10), box.color(), 2);
-            plot_main.point(vertex.project(box.theta.center(), box.phi.center()), box.color());
+            plot_main.point(vertex.project(median(box.theta), median(box.phi)), box.color());
         }
     }
 }

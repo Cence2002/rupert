@@ -74,18 +74,18 @@ public:
     }
 
     void box(const Interval2 &interval2, const cv::Scalar &color = Color::WHITE, const int thickness = 1) {
-        line({interval2.theta.lower(), interval2.phi.lower()}, {interval2.theta.lower(), interval2.phi.upper()}, color, thickness);
-        line({interval2.theta.lower(), interval2.phi.upper()}, {interval2.theta.upper(), interval2.phi.upper()}, color, thickness);
-        line({interval2.theta.upper(), interval2.phi.upper()}, {interval2.theta.upper(), interval2.phi.lower()}, color, thickness);
-        line({interval2.theta.upper(), interval2.phi.lower()}, {interval2.theta.lower(), interval2.phi.lower()}, color, thickness);
+        line({lower(interval2.theta), lower(interval2.phi)}, {lower(interval2.theta), upper(interval2.phi)}, color, thickness);
+        line({lower(interval2.theta), upper(interval2.phi)}, {upper(interval2.theta), upper(interval2.phi)}, color, thickness);
+        line({upper(interval2.theta), upper(interval2.phi)}, {upper(interval2.theta), lower(interval2.phi)}, color, thickness);
+        line({upper(interval2.theta), lower(interval2.phi)}, {lower(interval2.theta), lower(interval2.phi)}, color, thickness);
     }
 
     void filled_box(const Interval2 &box, const cv::Scalar &color = Color::WHITE) {
         const std::vector<Vector2d> vertices = {
-                    {box.theta.lower(), box.phi.lower()},
-                    {box.theta.lower(), box.phi.upper()},
-                    {box.theta.upper(), box.phi.upper()},
-                    {box.theta.upper(), box.phi.lower()}
+                    {lower(box.theta), lower(box.phi)},
+                    {lower(box.theta), upper(box.phi)},
+                    {upper(box.theta), upper(box.phi)},
+                    {upper(box.theta), lower(box.phi)}
                 };
         filled_polygon(vertices, color);
     }

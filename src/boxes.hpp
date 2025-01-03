@@ -4,8 +4,8 @@
 
 struct Intervals : std::queue<Interval2> {
     Intervals(const int theta_parts, const int phi_parts) {
-        for(const Interval &theta: Interval(0, 2 * M_PI).divide(theta_parts)) {
-            for(const Interval &phi: Interval(0, M_PI).divide(phi_parts)) {
+        for(const Interval &theta: divide(Interval(0, 2 * M_PI),theta_parts)) {
+            for(const Interval &phi: divide(Interval(0, M_PI),phi_parts)) {
                 emplace(theta, phi);
             }
         }
@@ -22,9 +22,9 @@ struct Intervals : std::queue<Interval2> {
     }
 
     void push_quad(const Interval2 &box) {
-        push({{box.theta.lower(), box.theta.center()}, {box.phi.lower(), box.phi.center()}});
-        push({{box.theta.lower(), box.theta.center()}, {box.phi.center(), box.phi.upper()}});
-        push({{box.theta.center(), box.theta.upper()}, {box.phi.lower(), box.phi.center()}});
-        push({{box.theta.center(), box.theta.upper()}, {box.phi.center(), box.phi.upper()}});
+        push({{lower(box.theta), median(box.theta)}, {lower(box.phi), median(box.phi)}});
+        push({{lower(box.theta), median(box.theta)}, {median(box.phi), upper(box.phi)}});
+        push({{median(box.theta), upper(box.theta)}, {lower(box.phi), median(box.phi)}});
+        push({{median(box.theta), upper(box.theta)}, {median(box.phi), upper(box.phi)}});
     }
 };

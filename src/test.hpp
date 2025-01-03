@@ -174,12 +174,12 @@ inline void test_intervals() {
                 boost::numeric::interval_lib::rounded_transc_std<double>>,
             boost::numeric::interval_lib::checking_base<double>>>;
     auto pi = boost::numeric::interval_lib::pi<I>();
-    std::cout << std::setprecision(20) << pi.lower() << std::endl;
-    std::cout << std::setprecision(20) << pi.upper() << std::endl;
+    std::cout << std::setprecision(20) << lower(pi) << std::endl;
+    std::cout << std::setprecision(20) << upper(pi) << std::endl;
     I sin_pi = boost::numeric::sin(pi);
-    std::cout << std::setprecision(20) << sin_pi.lower() << std::endl;
-    std::cout << std::setprecision(20) << sin_pi.upper() << std::endl;
+    std::cout << std::setprecision(20) << lower(sin_pi) << std::endl;
+    std::cout << std::setprecision(20) << upper(sin_pi) << std::endl;
     I sin_pi_reciprocal = 1.0 / sin_pi;
-    std::cout << std::setprecision(20) << sin_pi_reciprocal.lower() << std::endl;
-    std::cout << std::setprecision(20) << sin_pi_reciprocal.upper() << std::endl;
+    std::cout << std::setprecision(20) << lower(sin_pi_reciprocal) << std::endl;
+    std::cout << std::setprecision(20) << upper(sin_pi_reciprocal) << std::endl;
 }
