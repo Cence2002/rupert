@@ -1,12 +1,12 @@
 #pragma once
 
-#include "base.hpp"
+#include "vector.hpp"
 
 struct Polyhedron {
     static std::vector<Vector3d> normalised(const std::vector<Vector3d> &vertices) {
         std::vector<Vector3d> normalised_vertices;
         for(const Vector3d &vertex: vertices) {
-            normalised_vertices.push_back(vertex.normalized());
+            normalised_vertices.push_back(vertex.unit());
         }
         return normalised_vertices;
     }

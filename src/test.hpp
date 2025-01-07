@@ -1,6 +1,6 @@
 #pragma once
 
-#include "base.hpp"
+#include "vector.hpp"
 #include <random>
 
 class RandomNumberGenerator {
@@ -29,8 +29,7 @@ inline bool is_close(const double value, const double target_value, const double
 inline void test_angle() {
     RandomNumberGenerator rng;
     for(int t = 0; t < 10000; t++) {
-        Vector2 v(rng.uniform(-10, 10), rng.uniform(-10, 10));
-        v.normalize();
+        Vector2 v = Vector2d(rng.uniform(-10, 10), rng.uniform(-10, 10)).unit();
 
         const double angle = v.get_angle();
         const double x = std::cos(angle);
@@ -66,8 +65,7 @@ inline void test_intersections() {
             angles.push_back(v.get_angle());
         }
         for(int t = 0; t < 10000; t++) {
-            Vector3 vertex(rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-1, 1));
-            vertex.normalize();
+            Vector3 vertex = Vector3d(rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-1, 1)).unit();
             const double theta_range = rng.uniform(0.01, 0.1);
             const double theta_min = rng.uniform(0, 2 * M_PI - theta_range);
             const double phi_range = rng.uniform(0.01, 0.1);
@@ -96,8 +94,7 @@ void test_constant_phi() {
     constexpr Vector2 a(0.7, -0.7), b(0.4, 0.3);
     RandomNumberGenerator rng;
     for(int t = 0; t < 3000; t++) {
-        Vector3 v(rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-1, 1));
-        v.normalize();
+        Vector3 v = Vector3d(rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-1, 1)).unit();
         const double theta_range = rng.uniform(0.1, 0.4);
         const double theta_min = rng.uniform(0, 2 * M_PI - theta_range);
         const double phi = rng.uniform(0, M_PI);
@@ -126,8 +123,7 @@ void test_constant_theta() {
     constexpr Vector2 a(0.7, -0.7), b(-0.4, -0.3);
     RandomNumberGenerator rng;
     for(int t = 0; t < 3000; t++) {
-        Vector3 v(rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-1, 1));
-        v.normalize();
+        Vector3 v = Vector3d(rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-1, 1)).unit();
         const double phi_range = rng.uniform(0.1, 0.5);
         const double phi_min = rng.uniform(0, M_PI - phi_range);
         const double theta = rng.uniform(0, 2 * M_PI);

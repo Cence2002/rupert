@@ -1,15 +1,16 @@
-#include "src/base.hpp"
+#include "src/vector.hpp"
+#include "src/interval.hpp"
 #include "src/plot.hpp"
 #include "src/polyhedron.hpp"
-#include "src/boxes.hpp"
+#include "src/queue.hpp"
 #include "src/test.hpp"
 
 #include <iostream>
 
-Plot plot_main(1000, 1000, 1);
 std::vector<Vector3d> polyhedron = Polyhedron::rhombicosidodecahedron();
 
-Plot plot_boxes(1000, 1000, 1);
+Plot plot_main("main", 1000);
+Plot plot_boxes("boxes", 1000);
 
 void test() {
     test_angle();
@@ -58,49 +59,63 @@ void draw() {
     }
     plot_main.polygon(hole, Color::CYAN, 2);
 
-    Intervals boxes(4, 4);
-    const auto start = std::chrono::high_resolution_clock::now();
-    for(int t = 0; t < 10000; t++) {
-        if(boxes.empty()) {
-            std::cout << std::format("Empty after {} iterations", t) << std::endl;
-            break;
-        }
-        const Interval2 &box = boxes.front();
-        bool any_outside = false;
-        for(const Vector3d &v: polyhedron) {
-            const auto &[x, y] = Vector3I(v.x, v.y, v.z).project(box.theta, box.phi);
-            const bool intersects = (in(0.0, x) && in(0.0, y)) |
-                                    Vector2(lower(x), lower(y)).is_inside_polygon(hole, hole_angles) |
-                                    Vector2(lower(x), upper(y)).is_inside_polygon(hole, hole_angles) |
-                                    Vector2(upper(x), lower(y)).is_inside_polygon(hole, hole_angles) |
-                                    Vector2(upper(x), upper(y)).is_inside_polygon(hole, hole_angles);
-            // const bool intersects = box.intersects_polygon(v, hole, hole_angles);
-            if(!intersects) {
-                any_outside = true;
+    Queue2 boxes(4, 4);
+    while(Plot::step(20)) {
+        for(int t = 0; t < 20; t++) {
+            if(boxes.empty()) {
+                std::cout << std::format("Empty after {} iterations", t) << std::endl;
                 break;
             }
+            const Interval2 &box = boxes.fetch();
+            bool any_outside = false;
+            for(const Vector3d &v: polyhedron) {
+                const auto &[x, y] = Vector3I(v.x, v.y, v.z).project(box.interval_0, box.interval_1);
+                const bool intersects = (in(0.0, x) && in(0.0, y)) |
+                                        Vector2(lower(x), lower(y)).is_inside_polygon(hole, hole_angles) |
+                                        Vector2(lower(x), upper(y)).is_inside_polygon(hole, hole_angles) |
+                                        Vector2(upper(x), lower(y)).is_inside_polygon(hole, hole_angles) |
+                                        Vector2(upper(x), upper(y)).is_inside_polygon(hole, hole_angles);
+                // const bool intersects = box.intersects_polygon(v, hole, hole_angles);
+                if(!intersects) {
+                    any_outside = true;
+                    break;
+                }
+            }
+            if(!any_outside) {
+                boxes.push_parts(box);
+            }
         }
-        if(!any_outside) {
-            boxes.push_quad(box);
+        plot_boxes.clear();
+        for(const Interval2 &box: boxes.get_vector()) {
+            // plot_boxes.circle((box.center() - Vector2d(M_PI, M_PI / 2)) / Vector2d(M_PI, M_PI_2), 0.1, Color::gradient2(box.center()) / 2);
+            plot_boxes.filled_interval2({
+                                            map(box.interval_0, {0, 2 * M_PI}, {-1, 1}),
+                                            map(box.interval_1, {0, M_PI}, {-1, 1})
+                                        }, Color::gradient2(map(box.center().x, {0, 2 * M_PI}, {0, 1}), map(box.center().y, {0, M_PI}, {0, 1})) / 2);
+            plot_boxes.interval2({
+                                     map(box.interval_0, {0, 2 * M_PI}, {-1, 1}),
+                                     map(box.interval_1, {0, M_PI}, {-1, 1})
+                                 }, Color::WHITE);
+            // for(const Vector3d &vertex: polyhedron) {
+            //     plot_main.filled_polygon(box.boundary(vertex, 10, 10), Color::gradient2(box.center()) / 2);
+            //     plot_main.polygon(box.boundary(vertex, 10, 10), Color::gradient2(box.center()), 2);
+            //     // plot_main.point(vertex.project(median(box.interval_0), median(box.interval_1)), Color::gradient2(box.center()), 2);
+            // }
         }
-        boxes.pop();
+        plot_boxes.point(plot_boxes.get_mouse(), Color::MAGENTA / 2, 10);
+        plot_boxes.show();
+
+        if(boxes.empty()) {
+            break;
+        }
     }
-    const auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
     std::cout << "Boxes: " << boxes.get_vector().size() << std::endl;
-    for(const Interval2 &box: boxes.get_vector()) {
-        plot_boxes.circle(box.center(), 0.1, box.color() / 2);
-        plot_boxes.filled_box(box.normalized(), box.color());
-        for(const Vector3d &vertex: polyhedron) {
-            plot_main.polygon(box.boundary(vertex, 10, 10), box.color(), 2);
-            plot_main.point(vertex.project(median(box.theta), median(box.phi)), box.color());
-        }
-    }
 }
 
 void exit() {
     plot_main.save("../outputs/main.png");
     plot_boxes.save("../outputs/boxes.png");
+    cv::destroyAllWindows();
 }
 
 int main() {
