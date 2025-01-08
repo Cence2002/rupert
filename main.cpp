@@ -11,6 +11,9 @@ std::vector<Vector3d> polyhedron = Polyhedron::rhombicosidodecahedron();
 Plot plot_main("main", 1000, 1000, {-1.5, 1.5}, {-1.5, 1.5});
 Plot plot_boxes("boxes", 1000, 1000, {0, 1}, {0, 1});
 
+std::vector<Vector2d> hole;
+Queue2 boxes;
+
 void test() {
     test_angle();
 
@@ -24,12 +27,7 @@ void setup() {
     plot_boxes.move({1150, 100});
     plot_boxes.show();
     plot_main.show();
-}
 
-void draw() {
-    // Interval hole_alpha(1.19, 1.2);
-    // Interval hole_theta(0.49, 0.5);
-    // Interval hole_phi(0.59, 0.6);
     Interval hole_alpha(0);
     Interval hole_theta(0);
     Interval hole_phi(-0.01, 0.01);
@@ -48,62 +46,58 @@ void draw() {
             }
         }
     }
-    std::vector<Vector2d> hole = convex_hull(hole_all);
+    hole = convex_hull(hole_all);
     std::ranges::sort(hole, [](const Vector2d &v0, const Vector2d &v1) {
         return v0.angle() < v1.angle();
     });
-    std::vector<double> hole_angles;
-    for(const Vector2d &hole_point: hole) {
-        hole_angles.push_back(hole_point.angle());
+}
+
+void process() {
+    if(boxes.empty()) {
+        return;
     }
+    const Box2 box = boxes.fetch();
+    for(const Vector3d &vertex: polyhedron) {
+        if(!box_intersects_polygon(vertex, box, hole)) {
+            return;
+        }
+    }
+    boxes.push_sub_boxes(box);
+}
 
-    Queue2 boxes;
+void plot() {
+    plot_main.clear();
+    plot_boxes.clear();
+
+    plot_main.line(Vector2d(-10, 0), Vector2d(10, 0), Colors::GRAY);
+    plot_main.line(Vector2d(0, -10), Vector2d(0, 10), Colors::GRAY);
+    plot_main.circle(Vector2d(0, 0), 1, Colors::GRAY);
+    plot_main.polygon(hole, Colors::CYAN);
+
+    for(const Box2 &box: boxes.vector()) {
+        if(std::max(width(box.theta), width(box.phi)) < 0.01) {
+            plot_boxes.circle(box.normalized().center(), 0.1, gradient(box) / 2);
+        }
+    }
+    for(const Box2 &box: boxes.vector()) {
+        plot_boxes.filled_box(box.normalized(), gradient(box) / 2);
+        plot_boxes.box(box.normalized(), gradient(box));
+    }
+    plot_boxes.show();
+    plot_main.show();
+}
+
+void draw() {
     while(Plot::step(1)) {
-        plot_boxes.clear();
-
-        plot_main.line(Vector2d(-1e6, 0), Vector2d(1e6, 0), Colors::GRAY);
-        plot_main.line(Vector2d(0, -1e6), Vector2d(0, 1e6), Colors::GRAY);
-        plot_main.circle(Vector2d(0, 0), 1, Colors::GRAY);
-        plot_main.polygon(hole, Colors::CYAN);
-
-        for(int t = 0; t < 16; t++) {
-            if(boxes.empty()) {
-                std::cout << std::format("Empty after {} iterations", t) << std::endl;
-                break;
-            }
-            const Box2 box = boxes.fetch();
-
-            const std::vector<Vector2d> box_vertices = box.vertices();
-            bool any_outside = false;
-            for(const Vector3d &vertex: polyhedron) {
-                const bool intersects = box_intersects_polygon(vertex, box, hole);
-                if(!intersects) {
-                    any_outside = true;
-                    const Vector2I projection = Vector3I(vertex.x, vertex.y, vertex.z).project(box.theta, box.phi);
-                    plot_main.box({projection.x, projection.y}, Colors::RED);
-                }
-            }
-            if(!any_outside) {
-                boxes.push_parts(box);
-            }
+        for(int t = 0; t < 100; t++) {
+            process();
         }
-        for(const Box2 &box: boxes.vector()) {
-            if(std::max(width(box.theta), width(box.phi)) < 0.01) {
-                plot_boxes.circle(box.normalized().center(), 0.1, gradient(box) / 2);
-            }
-        }
-        for(const Box2 &box: boxes.vector()) {
-            plot_boxes.filled_box(box.normalized(), gradient(box) / 2);
-            plot_boxes.box(box.normalized(), gradient(box));
-        }
-        plot_boxes.show();
-        plot_main.show();
-
+        plot();
+        std::cout << boxes.size() << std::endl;
         if(boxes.empty()) {
             break;
         }
     }
-    std::cout << "Boxes: " << boxes.size() << std::endl;
 }
 
 void exit() {

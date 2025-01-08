@@ -25,7 +25,7 @@ struct Queue2 : std::queue<Box2> {
         return boxes;
     }
 
-    void push_parts(const Box2 &box) {
+    void push_sub_boxes(const Box2 &box) {
         for(const Box2 &sub_box: box.sub_boxes()) {
             push(sub_box);
         }
@@ -57,7 +57,7 @@ struct Queue3 : std::queue<Box3> {
         return boxes;
     }
 
-    void push_parts(const Box3 &box) {
+    void push_sub_boxes(const Box3 &box) {
         for(const Box3 &sub_box: box.sub_boxes()) {
             push(sub_box);
         }
