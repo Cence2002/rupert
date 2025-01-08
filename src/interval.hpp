@@ -14,191 +14,120 @@ using Interval = boost::numeric::interval<
     >
 >;
 
-using Vector2I = Vector2<Interval>;
-using Vector3I = Vector3<Interval>;
-
-template<typename T>
-constexpr T mod(const T &angle) {
-    return fmod(fmod(angle, 2 * M_PI) + 2 * M_PI, 2 * M_PI);
-}
-
-template<typename T>
-inline T map(const T value, const Interval &from, const Interval &to) {
-    return (value - lower(from)) / width(from) * width(to) + lower(to);
-}
-
-inline std::vector<Interval> divide(const Interval &interval, const int parts) {
-    std::vector<double> points;
-    points.push_back(lower(interval));
-    for(int i = 1; i < parts; i++) {
-        points.push_back(lower(interval) + i * width(interval) / parts);
-    }
-    points.push_back(upper(interval));
-    std::vector<Interval> intervals;
-    for(size_t i = 0; i < points.size() - 1; i++) {
-        intervals.emplace_back(points[i], points[i + 1]);
-    }
-    return intervals;
-}
-
 inline std::ostream &operator<<(std::ostream &os, const Interval &interval) {
     os << "[" << lower(interval) << ", " << upper(interval) << "]";
     return os;
 }
 
-struct Interval2 {
-    Interval interval_0, interval_1;
+inline const Interval UNIT{0, 1};
+
+using Vector2I = Vector2<Interval>;
+using Vector3I = Vector3<Interval>;
+
+inline std::vector<Interval> divide(const Interval &interval, const int parts) {
+    std::vector<double> cutoffs;
+    cutoffs.push_back(lower(interval));
+    const double step = width(interval) / parts;
+    for(int i = 1; i < parts; i++) {
+        cutoffs.push_back(lower(interval) + i * step);
+    }
+    cutoffs.push_back(upper(interval));
+    std::vector<Interval> intervals;
+    for(size_t i = 0; i < cutoffs.size() - 1; i++) {
+        intervals.emplace_back(cutoffs[i], cutoffs[i + 1]);
+    }
+    return intervals;
+}
+
+struct Box2 {
+    Interval theta, phi;
+
+    inline static const Interval theta_interval{0, boost::numeric::interval_lib::constants::pi_twice_upper<double>()};
+    inline static const Interval phi_interval{0, boost::numeric::interval_lib::constants::pi_upper<double>()};
 
     Vector2d center() const {
+        return {median(theta), median(phi)};
+    }
+
+    Box2 normalized() const {
         return {
-                    (lower(interval_0) + upper(interval_0)) / 2,
-                    (lower(interval_1) + upper(interval_1)) / 2
+                    theta / upper(theta_interval),
+                    phi / upper(phi_interval)
                 };
     }
 
-    std::array<Vector2d, 4> vertices() const {
+    std::vector<Vector2d> vertices() const {
         return {
-                    Vector2(lower(interval_0), lower(interval_1)),
-                    Vector2(lower(interval_0), upper(interval_1)),
-                    Vector2(upper(interval_0), upper(interval_1)),
-                    Vector2(upper(interval_0), lower(interval_1))
+                    {lower(theta), lower(phi)},
+                    {lower(theta), upper(phi)},
+                    {upper(theta), upper(phi)},
+                    {upper(theta), lower(phi)}
                 };
     }
 
-    std::array<Interval2, 4> parts() const {
-        const auto [center_x, center_y] = center();
+    std::vector<Box2> sub_boxes() const {
+        const auto [median_theta, median_phi] = center();
         return {
-                    Interval2{{lower(interval_0), center_x}, {lower(interval_1), center_y}},
-                    Interval2{{lower(interval_0), center_x}, {center_y, upper(interval_1)}},
-                    Interval2{{center_x, upper(interval_0)}, {center_y, upper(interval_1)}},
-                    Interval2{{center_x, upper(interval_0)}, {lower(interval_1), center_y}}
+                    {{lower(theta), median_theta}, {lower(phi), median_phi}},
+                    {{lower(theta), median_theta}, {median_phi, upper(phi)}},
+                    {{median_theta, upper(theta)}, {lower(phi), median_phi}},
+                    {{median_theta, upper(theta)}, {median_phi, upper(phi)}}
                 };
-    }
-
-    std::vector<Vector2d> boundary(const Vector3d &v, const int theta_parts, int phi_parts) const {
-        std::vector<Vector2d> points;
-        const double step_0 = width(interval_0) / theta_parts;
-        const double step_1 = width(interval_1) / phi_parts;
-        for(int i = 0; i < phi_parts; i++) {
-            points.push_back(v.project(lower(interval_0), lower(interval_1) + i * step_1));
-        }
-        for(int i = 0; i < theta_parts; i++) {
-            points.push_back(v.project(lower(interval_0) + i * step_0, upper(interval_1)));
-        }
-        for(int i = phi_parts; i > 0; i--) {
-            points.push_back(v.project(upper(interval_0), lower(interval_1) + i * step_1));
-        }
-        for(int i = theta_parts; i > 0; i--) {
-            points.push_back(v.project(lower(interval_0) + i * step_0, lower(interval_1)));
-        }
-        return points;
-    }
-
-    static bool intersects_line_fixed_phi(const Vector3d &v, const Vector2d &vertex_0, const Vector2d &vertex_1, const Interval &theta_interval, const double phi) {
-        const double y_shift = v.z * std::sin(phi);
-        const double y_scale = std::cos(phi);
-        const Vector2 a(vertex_0.x, (vertex_0.y + y_shift) / y_scale);
-        const Vector2 b(vertex_1.x, (vertex_1.y + y_shift) / y_scale);
-
-        const Vector2 d = b - a;
-        const double A_double = 2 * d.dot(d);
-        const double B = 2 * d.dot(a);
-        const double C = a.dot(a) - (v.x * v.x + v.y * v.y);
-        const double discriminant = B * B - 2 * A_double * C;
-        if(discriminant < 0) {
-            return false;
-        }
-
-        const double sqrt_discriminant = std::sqrt(discriminant);
-        const auto solutions = {
-                    (-B + sqrt_discriminant) / A_double,
-                    (-B - sqrt_discriminant) / A_double
-                };
-        return std::ranges::any_of(solutions, [&](const double solution) {
-            return 0 <= solution && solution <= 1 &&
-                   in(mod((a + d * solution).get_angle() - Vector2(v.y, v.x).get_angle()), theta_interval);
-        });
-    }
-
-    static bool intersects_line_fixed_theta(const Vector3d &v, const Vector2d &vertex_0, const Vector2d &vertex_1, const double theta, const Interval &phi_interval) {
-        const double sin_theta = std::sin(theta);
-        const double cos_theta = std::cos(theta);
-        const double x = -v.x * sin_theta + v.y * cos_theta;
-        if(x < std::min(vertex_0.x, vertex_1.x) || x > std::max(vertex_0.x, vertex_1.x)) {
-            return false;
-        }
-        const Vector2 coefficient(v.x * cos_theta + v.y * sin_theta, -v.z);
-        const double r = coefficient.r();
-        const double shift = coefficient.get_angle();
-        const double y_0 = r * std::cos(lower(phi_interval) - shift);
-        const double y_1 = r * std::cos(upper(phi_interval) - shift);
-        const double min_y = in(mod(shift + M_PI), phi_interval) ? -1
-                                 : std::min(y_0, y_1);
-        const double max_y = in(mod(shift), phi_interval) ? 1
-                                 : std::max(y_0, y_1);
-        const auto [dx, dy] = vertex_1 - vertex_0;
-        const double y = vertex_0.y + dy * (x - vertex_0.x) / dx;
-        return min_y <= y && y <= max_y;
-    }
-
-    bool intersects_line(const Vector3d &v, const Vector2d &vertex_0, const Vector2d &vertex_1) const {
-        return intersects_line_fixed_phi(v, vertex_0, vertex_1, interval_0, lower(interval_1)) ||
-               intersects_line_fixed_phi(v, vertex_0, vertex_1, interval_0, upper(interval_1)) ||
-               intersects_line_fixed_theta(v, vertex_0, vertex_1, lower(interval_0), interval_1) ||
-               intersects_line_fixed_theta(v, vertex_0, vertex_1, upper(interval_0), interval_1);
-    }
-
-    bool intersects_polygon(const Vector3d &v, const std::vector<Vector2d> &vertices, const std::vector<double> &angles) const {
-        if(v.project(lower(interval_0), lower(interval_1)).is_inside_polygon(vertices, angles) ||
-           v.project(lower(interval_0), upper(interval_1)).is_inside_polygon(vertices, angles) ||
-           v.project(upper(interval_0), lower(interval_1)).is_inside_polygon(vertices, angles) ||
-           v.project(upper(interval_0), upper(interval_1)).is_inside_polygon(vertices, angles)) {
-            return true;
-        }
-        for(size_t from = 0, to = 1; to < vertices.size(); from++, to++) {
-            if(intersects_line(v, vertices[from], vertices[to])) {
-                return true;
-            }
-        }
-        return intersects_line(v, vertices.back(), vertices.front());
     }
 };
 
-struct Interval3 {
-    Interval interval_0, interval_1, interval_2;
+inline std::ostream &operator<<(std::ostream &os, const Box2 &box) {
+    os << "[" << box.theta << ", " << box.phi << "]";
+    return os;
+}
+
+inline bool box_intersects_polygon(const Vector3d &point, const Box2 &box, const std::vector<Vector2d> &vertices) {
+    const Vector2I projection = Vector3I(point.x, point.y, point.z).project(box.theta, box.phi);
+    const Box2 projection_box{projection.x, projection.y};
+    const std::vector<Vector2d> box_vertices = projection_box.vertices();
+    return point_inside_polygon(projection_box.center(), vertices) ||
+           line_intersects_polygon(box_vertices[0], box_vertices[1], vertices) ||
+           line_intersects_polygon(box_vertices[2], box_vertices[3], vertices) ||
+           line_intersects_polygon(box_vertices[1], box_vertices[2], vertices) ||
+           line_intersects_polygon(box_vertices[3], box_vertices[0], vertices) ||
+           in(0.0, projection_box.theta) && in(0.0, projection_box.phi);
+}
+
+struct Box3 {
+    Interval theta, phi, alpha;
+
+    inline static const Interval theta_interval{0, boost::numeric::interval_lib::constants::pi_twice_upper<double>()};
+    inline static const Interval phi_interval{0, boost::numeric::interval_lib::constants::pi_upper<double>()};
+    inline static const Interval alpha_interval{0, boost::numeric::interval_lib::constants::pi_twice_upper<double>()};
 
     Vector3d center() const {
+        return {median(theta), median(phi), median(alpha)};
+    }
+
+    Box3 normalized() const {
         return {
-                    (lower(interval_0) + upper(interval_0)) / 2,
-                    (lower(interval_1) + upper(interval_1)) / 2,
-                    (lower(interval_2) + upper(interval_2)) / 2
+                    theta / upper(theta_interval),
+                    phi / upper(phi_interval),
+                    alpha / upper(alpha_interval)
                 };
     }
 
-    std::array<Vector3d, 8> vertices() const {
+    std::vector<Box3> sub_boxes() const {
+        const auto [median_theta, median_phi, median_alpha] = center();
         return {
-                    Vector3d(lower(interval_0), lower(interval_1), lower(interval_2)),
-                    Vector3d(lower(interval_0), lower(interval_1), upper(interval_2)),
-                    Vector3d(lower(interval_0), upper(interval_1), lower(interval_2)),
-                    Vector3d(lower(interval_0), upper(interval_1), upper(interval_2)),
-                    Vector3d(upper(interval_0), lower(interval_1), lower(interval_2)),
-                    Vector3d(upper(interval_0), lower(interval_1), upper(interval_2)),
-                    Vector3d(upper(interval_0), upper(interval_1), lower(interval_2)),
-                    Vector3d(upper(interval_0), upper(interval_1), upper(interval_2))
-                };
-    }
-
-    std::array<Interval3, 8> parts() const {
-        const auto [center_x, center_y, center_z] = center();
-        return {
-                    Interval3{{lower(interval_0), center_x}, {lower(interval_1), center_y}, {lower(interval_2), center_z}},
-                    Interval3{{lower(interval_0), center_x}, {lower(interval_1), center_y}, {center_z, upper(interval_2)}},
-                    Interval3{{lower(interval_0), center_x}, {center_y, upper(interval_1)}, {lower(interval_2), center_z}},
-                    Interval3{{lower(interval_0), center_x}, {center_y, upper(interval_1)}, {center_z, upper(interval_2)}},
-                    Interval3{{center_x, upper(interval_0)}, {lower(interval_1), center_y}, {lower(interval_2), center_z}},
-                    Interval3{{center_x, upper(interval_0)}, {lower(interval_1), center_y}, {center_z, upper(interval_2)}},
-                    Interval3{{center_x, upper(interval_0)}, {center_y, upper(interval_1)}, {lower(interval_2), center_z}},
-                    Interval3{{center_x, upper(interval_0)}, {center_y, upper(interval_1)}, {center_z, upper(interval_2)}}
+                    {{lower(theta), median_theta}, {lower(phi), median_phi}, {lower(alpha), median_alpha}},
+                    {{lower(theta), median_theta}, {lower(phi), median_phi}, {median_alpha, upper(alpha)}},
+                    {{lower(theta), median_theta}, {median_phi, upper(phi)}, {lower(alpha), median_alpha}},
+                    {{lower(theta), median_theta}, {median_phi, upper(phi)}, {median_alpha, upper(alpha)}},
+                    {{median_theta, upper(theta)}, {lower(phi), median_phi}, {lower(alpha), median_alpha}},
+                    {{median_theta, upper(theta)}, {lower(phi), median_phi}, {median_alpha, upper(alpha)}},
+                    {{median_theta, upper(theta)}, {median_phi, upper(phi)}, {lower(alpha), median_alpha}},
+                    {{median_theta, upper(theta)}, {median_phi, upper(phi)}, {median_alpha, upper(alpha)}}
                 };
     }
 };
+
+inline std::ostream &operator<<(std::ostream &os, const Box3 &box) {
+    os << "[" << box.theta << ", " << box.phi << ", " << box.alpha << "]";
+    return os;
+}

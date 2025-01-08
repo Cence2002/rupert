@@ -1,30 +1,29 @@
 #include "src/vector.hpp"
 #include "src/interval.hpp"
+#include "src/queue.hpp"
 #include "src/plot.hpp"
 #include "src/polyhedron.hpp"
-#include "src/queue.hpp"
 #include "src/test.hpp"
-
 #include <iostream>
 
 std::vector<Vector3d> polyhedron = Polyhedron::rhombicosidodecahedron();
 
-Plot plot_main("main", 1000);
-Plot plot_boxes("boxes", 1000);
+Plot plot_main("main", 1000, 1000, {-1.5, 1.5}, {-1.5, 1.5});
+Plot plot_boxes("boxes", 1000, 1000, {0, 1}, {0, 1});
 
 void test() {
     test_angle();
-    test_intersections();
 
     std::cout << "All tests passed" << std::endl;
 }
 
 void setup() {
-    plot_main.line(Vector2d(-10, 0), Vector2d(10, 0), Color::GRAY);
-    plot_main.line(Vector2d(0, -10), Vector2d(0, 10), Color::GRAY);
-    plot_main.circle(Vector2d(0, 0), 1, Color::GRAY);
-
-    std::cout << "Vertices: " << polyhedron.size() << std::endl;
+    plot_main.clear();
+    plot_boxes.clear();
+    plot_main.move({100, 100});
+    plot_boxes.move({1150, 100});
+    plot_boxes.show();
+    plot_main.show();
 }
 
 void draw() {
@@ -49,67 +48,62 @@ void draw() {
             }
         }
     }
-    std::vector<Vector2d> hole = Vector2d::convex_hull(hole_all);
+    std::vector<Vector2d> hole = convex_hull(hole_all);
     std::ranges::sort(hole, [](const Vector2d &v0, const Vector2d &v1) {
-        return v0.get_angle() < v1.get_angle();
+        return v0.angle() < v1.angle();
     });
     std::vector<double> hole_angles;
     for(const Vector2d &hole_point: hole) {
-        hole_angles.push_back(hole_point.get_angle());
+        hole_angles.push_back(hole_point.angle());
     }
-    plot_main.polygon(hole, Color::CYAN, 2);
 
-    Queue2 boxes(4, 4);
-    while(Plot::step(20)) {
-        for(int t = 0; t < 20; t++) {
+    Queue2 boxes;
+    while(Plot::step(1)) {
+        plot_boxes.clear();
+
+        plot_main.line(Vector2d(-1e6, 0), Vector2d(1e6, 0), Colors::GRAY);
+        plot_main.line(Vector2d(0, -1e6), Vector2d(0, 1e6), Colors::GRAY);
+        plot_main.circle(Vector2d(0, 0), 1, Colors::GRAY);
+        plot_main.polygon(hole, Colors::CYAN);
+
+        for(int t = 0; t < 16; t++) {
             if(boxes.empty()) {
                 std::cout << std::format("Empty after {} iterations", t) << std::endl;
                 break;
             }
-            const Interval2 &box = boxes.fetch();
+            const Box2 box = boxes.fetch();
+
+            const std::vector<Vector2d> box_vertices = box.vertices();
             bool any_outside = false;
-            for(const Vector3d &v: polyhedron) {
-                const auto &[x, y] = Vector3I(v.x, v.y, v.z).project(box.interval_0, box.interval_1);
-                const bool intersects = (in(0.0, x) && in(0.0, y)) |
-                                        Vector2(lower(x), lower(y)).is_inside_polygon(hole, hole_angles) |
-                                        Vector2(lower(x), upper(y)).is_inside_polygon(hole, hole_angles) |
-                                        Vector2(upper(x), lower(y)).is_inside_polygon(hole, hole_angles) |
-                                        Vector2(upper(x), upper(y)).is_inside_polygon(hole, hole_angles);
-                // const bool intersects = box.intersects_polygon(v, hole, hole_angles);
+            for(const Vector3d &vertex: polyhedron) {
+                const bool intersects = box_intersects_polygon(vertex, box, hole);
                 if(!intersects) {
                     any_outside = true;
-                    break;
+                    const Vector2I projection = Vector3I(vertex.x, vertex.y, vertex.z).project(box.theta, box.phi);
+                    plot_main.box({projection.x, projection.y}, Colors::RED);
                 }
             }
             if(!any_outside) {
                 boxes.push_parts(box);
             }
         }
-        plot_boxes.clear();
-        for(const Interval2 &box: boxes.get_vector()) {
-            // plot_boxes.circle((box.center() - Vector2d(M_PI, M_PI / 2)) / Vector2d(M_PI, M_PI_2), 0.1, Color::gradient2(box.center()) / 2);
-            plot_boxes.filled_interval2({
-                                            map(box.interval_0, {0, 2 * M_PI}, {-1, 1}),
-                                            map(box.interval_1, {0, M_PI}, {-1, 1})
-                                        }, Color::gradient2(map(box.center().x, {0, 2 * M_PI}, {0, 1}), map(box.center().y, {0, M_PI}, {0, 1})) / 2);
-            plot_boxes.interval2({
-                                     map(box.interval_0, {0, 2 * M_PI}, {-1, 1}),
-                                     map(box.interval_1, {0, M_PI}, {-1, 1})
-                                 }, Color::WHITE);
-            // for(const Vector3d &vertex: polyhedron) {
-            //     plot_main.filled_polygon(box.boundary(vertex, 10, 10), Color::gradient2(box.center()) / 2);
-            //     plot_main.polygon(box.boundary(vertex, 10, 10), Color::gradient2(box.center()), 2);
-            //     // plot_main.point(vertex.project(median(box.interval_0), median(box.interval_1)), Color::gradient2(box.center()), 2);
-            // }
+        for(const Box2 &box: boxes.vector()) {
+            if(std::max(width(box.theta), width(box.phi)) < 0.01) {
+                plot_boxes.circle(box.normalized().center(), 0.1, gradient(box) / 2);
+            }
         }
-        plot_boxes.point(plot_boxes.get_mouse(), Color::MAGENTA / 2, 10);
+        for(const Box2 &box: boxes.vector()) {
+            plot_boxes.filled_box(box.normalized(), gradient(box) / 2);
+            plot_boxes.box(box.normalized(), gradient(box));
+        }
         plot_boxes.show();
+        plot_main.show();
 
         if(boxes.empty()) {
             break;
         }
     }
-    std::cout << "Boxes: " << boxes.get_vector().size() << std::endl;
+    std::cout << "Boxes: " << boxes.size() << std::endl;
 }
 
 void exit() {
@@ -125,3 +119,15 @@ int main() {
     exit();
     return 0;
 }
+
+// #include <opencv2/viz.hpp>
+// #include <opencv2/viz/widgets.hpp>
+// #include <opencv2/core.hpp>"
+//
+// int main() {
+//     cv::viz::Viz3d window("3D Scene");
+//     window.showWidget("Line", cv::viz::WLine(cv::Point3d(0, 0, 0), cv::Point3d(1, 1, 1), cv::viz::Colors::red()));
+//     window.showWidget("CoordinateSystem", cv::viz::WCoordinateSystem(1.0));
+//     window.spin();
+//     return 0;
+// }
