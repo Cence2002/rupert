@@ -1,86 +1,119 @@
 #pragma once
 
 #include "interval.hpp"
+#include <optional>
+#include <thread>
+#include <boost/lockfree/queue.hpp>
 
-struct Queue2 : std::queue<Box2> {
-    explicit Queue2(const int theta_parts = 1, const int phi_parts = 1) {
+class Queue2 {
+    boost::lockfree::queue<TrivialBox2> queue;
+    std::atomic<int> size = 0;
+
+public:
+    explicit Queue2(const int size, const int theta_parts = 1, const int phi_parts = 1) : queue(size) {
         for(const Interval &theta: divide(Box2::theta_interval, theta_parts)) {
             for(const Interval &phi: divide(Box2::phi_interval, phi_parts)) {
-                emplace(theta, phi);
+                const Box2 box(theta, phi);
+                push(box.trivial());
             }
         }
     }
 
-    Box2 fetch() {
-        const Box2 box = front();
-        pop();
+    bool empty() const {
+        return size == 0;
+    }
+
+    std::optional<TrivialBox2> pop(const bool decrement = true) {
+        TrivialBox2 box;
+        while(!queue.pop(box)) {
+            if(empty()) {
+                return std::nullopt;
+            }
+        }
+        if(decrement) {
+            --size;
+        }
         return box;
     }
 
-    std::vector<Box2> vector() const {
-        std::vector<Box2> boxes;
-        for(const Box2 &box: c) {
-            boxes.push_back(box);
+    void push(const TrivialBox2 &box) {
+        ++size;
+        while(!queue.push(box)) {
+            std::cout << "Queue2 push failed" << std::endl;
         }
-        return boxes;
     }
 
     void push_sub_boxes(const Box2 &box) {
         for(const Box2 &sub_box: box.sub_boxes()) {
-            push(sub_box);
+            push(sub_box.trivial());
         }
     }
 
-    void process(const std::vector<Vector3d> &polyhedron, const std::vector<Vector2d> &hole) {
+    bool process(const std::vector<Vector3d> &polyhedron, const std::vector<Vector2d> &hole, const bool check_fit = false) {
         if(empty()) {
-            return;
+            return false;
         }
-        const Box2 box = fetch();
+        const std::optional<TrivialBox2> optional_box = pop(false);
+        if(!optional_box.has_value()) {
+            return false;
+        }
+        const Box2 box(optional_box.value());
         for(const Vector3d &vertex: polyhedron) {
-            if(!box_intersects_polygon(vertex, box, hole)) {
-                return;
+            if(!box_intersects_polygon(box, vertex, hole)) {
+                --size;
+                return false;
             }
         }
         push_sub_boxes(box);
+        --size;
+
+        if(!check_fit) {
+            return false;
+        }
+        for(const Vector3d &vertex: polyhedron) {
+            if(!point_inside_polygon(vertex.project(median(box.theta), median(box.phi)), hole)) {
+                return false;
+            }
+        }
+        return true;
     }
 };
 
-struct Queue3 : std::queue<Box3> {
+class Queue3 {
+    std::queue<Box3> queue;
+
+public:
     explicit Queue3(const int theta_parts = 1, const int phi_parts = 1, const int alpha_parts = 1) {
-        for(const Interval &theta: divide(Box3::theta_interval / 4.0 + 1.0, theta_parts)) {
-            for(const Interval &phi: divide(Box3::phi_interval / 4.0 + 1.0, phi_parts)) {
-                for(const Interval &alpha: divide(Box3::alpha_interval / 4.0 + 1.0, alpha_parts)) {
-                    emplace(theta, phi, alpha);
+        for(const Interval &theta: divide(Box3::theta_interval, theta_parts)) {
+            for(const Interval &phi: divide(Box3::phi_interval, phi_parts)) {
+                for(const Interval &alpha: divide(Box3::alpha_interval, alpha_parts)) {
+                    queue.push({theta, phi, alpha});
                 }
             }
         }
     }
 
-    Box3 fetch() {
-        const Box3 box = front();
-        pop();
-        return box;
+    bool empty() const {
+        return queue.empty();
     }
 
-    std::vector<Box3> vector() const {
-        std::vector<Box3> boxes;
-        for(const Box3 &box: c) {
-            boxes.push_back(box);
-        }
-        return boxes;
+    Box3 pop() {
+        const Box3 box = queue.front();
+        queue.pop();
+        return box;
     }
 
     void push_sub_boxes(const Box3 &box) {
         for(const Box3 &sub_box: box.sub_boxes()) {
-            push(sub_box);
+            queue.push(sub_box);
         }
     }
 
-    void process(const std::vector<Vector3d> &polyhedron, const int resolution = 10, const int iterations = 10000) {
+    void process(const std::vector<Vector3d> &polyhedron, const int resolution = 2, const int iterations = 10000, const int frequency = 10, const int thread_count = 10) {
         if(empty()) {
             return;
         }
-        const Box3 box = fetch();
+        const Box3 box = pop();
         std::vector<Vector2d> hole_all;
         for(const Interval &theta: divide(box.theta, resolution)) {
             for(const Interval &phi: divide(box.phi, resolution)) {
@@ -100,17 +133,28 @@ struct Queue3 : std::queue<Box3> {
             return vertex_0.angle() < vertex_1.angle();
         });
 
-        Queue2 queue2;
-        for(int t = 0; t < iterations; t++) {
-            queue2.process(polyhedron, hole);
+        Queue2 queue2(iterations * 8);
+
+        std::vector<std::thread> threads;
+        bool done = false;
+        for(int i = 0; i < thread_count; i++) {
+            threads.emplace_back([&] {
+                for(int t = 0; !done && t < iterations / thread_count + 1; t++) {
+                    if(queue2.process(polyhedron, hole, t % thread_count == 0)) {
+                        done = true;
+                    }
+                }
+            });
         }
+        for(std::thread &thread: threads) {
+            thread.join();
+        }
+
         if(!queue2.empty()) {
             push_sub_boxes(box);
-        }
-        if(!queue2.empty()) {
             std::cout << "Divided Box3 " << box << std::endl;
         } else {
-            std::cout << "Empty Box3 " << box << std::endl;
+            std::cout << "Empty Box3 " << box << " volume " << width(box.theta) * width(box.phi) * width(box.alpha) << std::endl;
         }
     }
 };

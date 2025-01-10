@@ -39,11 +39,23 @@ inline std::vector<Interval> divide(const Interval &interval, const int parts) {
     return intervals;
 }
 
+using TrivialBox2 = std::array<double, 4>;
+
 struct Box2 {
     Interval theta, phi;
 
     inline static const Interval theta_interval{0, boost::numeric::interval_lib::constants::pi_twice_upper<double>()};
     inline static const Interval phi_interval{0, boost::numeric::interval_lib::constants::pi_upper<double>()};
+
+    Box2(const Interval &theta, const Interval &phi) : theta(theta), phi(phi) {}
+
+    Box2() = default;
+
+    ~Box2() = default;
+
+    Box2(const Box2 &box) = default;
+
+    Box2 &operator=(const Box2 &box) = default;
 
     Vector2d center() const {
         return {median(theta), median(phi)};
@@ -74,6 +86,13 @@ struct Box2 {
                     {{median_theta, upper(theta)}, {median_phi, upper(phi)}}
                 };
     }
+
+    explicit Box2(const TrivialBox2 &trivial_box) : theta(trivial_box[0], trivial_box[1]), phi(trivial_box[2], trivial_box[3]) {}
+
+    TrivialBox2 trivial() const {
+        std::array<double, 4> trivial_box{lower(theta), upper(theta), lower(phi), upper(phi)};
+        return trivial_box;
+    }
 };
 
 inline std::ostream &operator<<(std::ostream &os, const Box2 &box) {
@@ -81,7 +100,7 @@ inline std::ostream &operator<<(std::ostream &os, const Box2 &box) {
     return os;
 }
 
-inline bool box_intersects_polygon(const Vector3d &point, const Box2 &box, const std::vector<Vector2d> &vertices) {
+inline bool box_intersects_polygon(const Box2 &box, const Vector3d &point, const std::vector<Vector2d> &vertices) {
     const Vector2I projection = Vector3I(point.x, point.y, point.z).project(box.theta, box.phi);
     const Box2 projection_box{projection.x, projection.y};
     const std::vector<Vector2d> box_vertices = projection_box.vertices();

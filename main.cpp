@@ -8,10 +8,10 @@
 
 std::vector<Vector3d> polyhedron = Polyhedron::rhombicosidodecahedron();
 
-Plot plot_main("main", 1000, 1000, {-1.5, 1.5}, {-1.5, 1.5});
-Plot plot_queue("queue", 1000, 1000, {0, 1}, {0, 1});
+// Plot plot_main("main", 1000, 1000, {-1.5, 1.5}, {-1.5, 1.5});
+// Plot plot_queue("queue", 1000, 1000, {0, 1}, {0, 1});
 
-Queue3 queue3(2, 2, 2);
+Queue3 queue3;
 
 void test() {
     test_angle();
@@ -20,24 +20,24 @@ void test() {
 }
 
 void setup() {
-    plot_main.clear();
-    plot_queue.clear();
-    plot_main.move({100, 100});
-    plot_queue.move({1150, 100});
+    // plot_main.clear();
+    // plot_queue.clear();
+    // plot_main.move({100, 100});
+    // plot_queue.move({1150, 100});
     // plot_queue.show();
     // plot_main.show();
 }
 
 void draw() {
     while(!queue3.empty()) {
-        queue3.process(polyhedron);
+        queue3.process(polyhedron, 5, 20000, 20, 20);
     }
 }
 
 void exit() {
-    plot_main.save("../outputs/main.png");
-    plot_queue.save("../outputs/queue.png");
-    cv::destroyAllWindows();
+    // plot_main.save("../outputs/main.png");
+    // plot_queue.save("../outputs/queue.png");
+    // cv::destroyAllWindows();
 }
 
 int main() {

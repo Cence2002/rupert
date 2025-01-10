@@ -9,6 +9,16 @@ template<typename T>
 struct Vector2 {
     T x, y;
 
+    Vector2(const T x, const T y) : x(x), y(y) {}
+
+    Vector2() = default;
+
+    ~Vector2() = default;
+
+    Vector2(const Vector2 &v) = default;
+
+    Vector2 &operator=(const Vector2 &v) = default;
+
     Vector2 operator+(const T s) const {
         return {x + s, y + s};
     }
@@ -84,6 +94,16 @@ using Vector2d = Vector2<double>;
 template<typename T>
 struct Vector3 {
     T x, y, z;
+
+    Vector3(const T x, const T y, const T z) : x(x), y(y), z(z) {}
+
+    Vector3() = default;
+
+    ~Vector3() = default;
+
+    Vector3(const Vector3 &v) = default;
+
+    Vector3 &operator=(const Vector3 &v) = default;
 
     friend std::ostream &operator<<(std::ostream &os, const Vector3 &v) {
         os << "(" << v.x << ", " << v.y << ", " << v.z << ")";
@@ -205,7 +225,7 @@ inline std::vector<Vector2d> convex_hull(const std::vector<Vector2d> &points) {
     bg::convex_hull(input_polygon, hull_polygon);
     std::vector<Vector2d> hull_points;
     for(const auto &[x, y]: hull_polygon.outer()) {
-        hull_points.emplace_back(Vector2d{x, y});
+        hull_points.emplace_back(x, y);
     }
     return hull_points;
 }
