@@ -4,7 +4,7 @@
 #include <boost/numeric/interval.hpp>
 #include <boost/numeric/interval/transc.hpp>
 
-using Interval = boost::numeric::interval<
+using BoostInterval = boost::numeric::interval<
     double,
     boost::numeric::interval_lib::policies<
         boost::numeric::interval_lib::save_state<
@@ -14,17 +14,17 @@ using Interval = boost::numeric::interval<
     >
 >;
 
-inline std::ostream &operator<<(std::ostream &os, const Interval &interval) {
+inline std::ostream &operator<<(std::ostream &os, const BoostInterval &interval) {
     os << "[" << lower(interval) << ", " << upper(interval) << "]";
     return os;
 }
 
-inline const Interval UNIT{0, 1};
+inline const BoostInterval UNIT{0, 1};
 
-using Vector2I = Vector2<Interval>;
-using Vector3I = Vector3<Interval>;
+using Vector2I = Vector2<BoostInterval>;
+using Vector3I = Vector3<BoostInterval>;
 
-inline std::vector<Interval> divide(const Interval &interval, const int parts) {
+inline std::vector<BoostInterval> divide(const BoostInterval &interval, const int parts) {
     std::vector<double> cutoffs;
     cutoffs.push_back(lower(interval));
     const double step = width(interval) / parts;
@@ -32,22 +32,20 @@ inline std::vector<Interval> divide(const Interval &interval, const int parts) {
         cutoffs.push_back(lower(interval) + i * step);
     }
     cutoffs.push_back(upper(interval));
-    std::vector<Interval> intervals;
+    std::vector<BoostInterval> intervals;
     for(size_t i = 0; i < cutoffs.size() - 1; i++) {
         intervals.emplace_back(cutoffs[i], cutoffs[i + 1]);
     }
     return intervals;
 }
 
-using TrivialBox2 = std::array<double, 4>;
-
 struct Box2 {
-    Interval theta, phi;
+    BoostInterval theta, phi;
 
-    inline static const Interval theta_interval{0, boost::numeric::interval_lib::constants::pi_twice_upper<double>()};
-    inline static const Interval phi_interval{0, boost::numeric::interval_lib::constants::pi_upper<double>()};
+    inline static const BoostInterval theta_interval{0, boost::numeric::interval_lib::constants::pi_twice_upper<double>()};
+    inline static const BoostInterval phi_interval{0, boost::numeric::interval_lib::constants::pi_upper<double>()};
 
-    Box2(const Interval &theta, const Interval &phi) : theta(theta), phi(phi) {}
+    Box2(const BoostInterval &theta, const BoostInterval &phi) : theta(theta), phi(phi) {}
 
     Box2() = default;
 
@@ -86,13 +84,6 @@ struct Box2 {
                     {{median_theta, upper(theta)}, {median_phi, upper(phi)}}
                 };
     }
-
-    explicit Box2(const TrivialBox2 &trivial_box) : theta(trivial_box[0], trivial_box[1]), phi(trivial_box[2], trivial_box[3]) {}
-
-    TrivialBox2 trivial() const {
-        std::array<double, 4> trivial_box{lower(theta), upper(theta), lower(phi), upper(phi)};
-        return trivial_box;
-    }
 };
 
 inline std::ostream &operator<<(std::ostream &os, const Box2 &box) {
@@ -113,11 +104,11 @@ inline bool box_intersects_polygon(const Box2 &box, const Vector3d &point, const
 }
 
 struct Box3 {
-    Interval theta, phi, alpha;
+    BoostInterval theta, phi, alpha;
 
-    inline static const Interval theta_interval{0, boost::numeric::interval_lib::constants::pi_twice_upper<double>()};
-    inline static const Interval phi_interval{0, boost::numeric::interval_lib::constants::pi_upper<double>()};
-    inline static const Interval alpha_interval{0, boost::numeric::interval_lib::constants::pi_twice_upper<double>()};
+    inline static const BoostInterval theta_interval{0, boost::numeric::interval_lib::constants::pi_twice_upper<double>()};
+    inline static const BoostInterval phi_interval{0, boost::numeric::interval_lib::constants::pi_upper<double>()};
+    inline static const BoostInterval alpha_interval{0, boost::numeric::interval_lib::constants::pi_twice_upper<double>()};
 
     Vector3d center() const {
         return {median(theta), median(phi), median(alpha)};

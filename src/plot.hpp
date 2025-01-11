@@ -53,7 +53,7 @@ class Plot {
     Vector2d mouse{};
 
 public:
-    explicit Plot(const std::string &name, const int width, const int height, const Interval &x_interval, const Interval &y_interval) : name(name) {
+    explicit Plot(const std::string &name, const int width, const int height, const BoostInterval &x_interval, const BoostInterval &y_interval) : name(name) {
         pixels = cv::Mat::zeros(height, width, CV_8UC3);
 
         scale = {

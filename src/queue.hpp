@@ -42,8 +42,8 @@ class Queue2 {
 
 public:
     explicit Queue2(const int theta_parts = 1, const int phi_parts = 1) {
-        for(const Interval &theta: divide(Box2::theta_interval, theta_parts)) {
-            for(const Interval &phi: divide(Box2::phi_interval, phi_parts)) {
+        for(const BoostInterval &theta: divide(Box2::theta_interval, theta_parts)) {
+            for(const BoostInterval &phi: divide(Box2::phi_interval, phi_parts)) {
                 queue.push({theta, phi});
             }
         }
@@ -86,9 +86,9 @@ class Queue3 {
 public:
     explicit Queue3(const int theta_parts = 1, const int phi_parts = 1, const int alpha_parts = 1) {
         std::vector<Box3> boxes;
-        for(const Interval &theta: divide(Box3::theta_interval, theta_parts)) {
-            for(const Interval &phi: divide(Box3::phi_interval, phi_parts)) {
-                for(const Interval &alpha: divide(Box3::alpha_interval, alpha_parts)) {
+        for(const BoostInterval &theta: divide(Box3::theta_interval, theta_parts)) {
+            for(const BoostInterval &phi: divide(Box3::phi_interval, phi_parts)) {
+                for(const BoostInterval &alpha: divide(Box3::alpha_interval, alpha_parts)) {
                     boxes.push_back({theta, phi, alpha});
                 }
             }
@@ -106,9 +106,9 @@ public:
         }
         const Box3 &box = optional_box.value();
         std::vector<Vector2d> hole_all;
-        for(const Interval &theta: divide(box.theta, resolution)) {
-            for(const Interval &phi: divide(box.phi, resolution)) {
-                for(const Interval &alpha: divide(box.alpha, resolution)) {
+        for(const BoostInterval &theta: divide(box.theta, resolution)) {
+            for(const BoostInterval &phi: divide(box.phi, resolution)) {
+                for(const BoostInterval &alpha: divide(box.alpha, resolution)) {
                     for(const auto &[x, y, z]: polyhedron) {
                         const auto [x_interval, y_interval] = Vector3I(x, y, z).project(theta, phi).rotate(alpha);
                         hole_all.emplace_back(lower(x_interval), lower(y_interval));
