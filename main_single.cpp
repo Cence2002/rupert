@@ -662,87 +662,6 @@ struct Polyhedron {
     }
 };
 
-using BoostInterval = boost::numeric::interval<
-    double,
-    boost::numeric::interval_lib::policies<
-        boost::numeric::interval_lib::save_state<
-            boost::numeric::interval_lib::rounded_transc_std<double>
-        >,
-        boost::numeric::interval_lib::checking_base<double>
-    >
->;
-
-class RandomNumberGenerator {
-    static constexpr uint32_t default_seed = 42;
-    std::mt19937_64 engine;
-
-public:
-    RandomNumberGenerator() : engine(default_seed) {}
-
-    explicit RandomNumberGenerator(const std::mt19937_64::result_type seed) : engine(seed) {}
-
-    void seed(const std::mt19937_64::result_type seed) {
-        engine.seed(seed);
-    }
-
-    double uniform(const double min, const double max) {
-        std::uniform_real_distribution<double> distribution(min, max);
-        return distribution(engine);
-    }
-};
-
-inline bool is_close(const double value, const double target_value, const double absolute_tolerance = 1e-6, const double relative_tolerance = 1e-6) {
-    return std::abs(value - target_value) < absolute_tolerance + relative_tolerance * std::abs(target_value);
-}
-
-inline bool interval_is_close(const Interval &interval, const BoostInterval &target_interval, const double absolute_tolerance = 1e-6, const double relative_tolerance = 1e-6) {
-    return is_close(interval.lower(), target_interval.lower(), absolute_tolerance, relative_tolerance) &&
-           is_close(interval.upper(), target_interval.upper(), absolute_tolerance, relative_tolerance);
-}
-
-inline std::ostream &operator<<(std::ostream &os, const BoostInterval &interval) {
-    os << "[" << interval.lower() << ", " << interval.upper() << "]";
-    return os;
-}
-
-void test_intervals() {
-    RandomNumberGenerator rng;
-
-    for(int i = 0; i < 1000000; ++i) {
-        constexpr double absolute_tolerance = 1e-6;
-        constexpr double relative_tolerance = 1e-6;
-        double l1 = rng.uniform(-3, 3);
-        double u1 = rng.uniform(-3, 3);
-        if(l1 > u1) std::swap(l1, u1);
-
-        double l2 = rng.uniform(-3, 3);
-        double u2 = rng.uniform(-3, 3);
-        if(l2 > u2) std::swap(l2, u2);
-
-        BoostInterval b1(l1, u1);
-        BoostInterval b2(l2, u2);
-        Interval c1(l1, u1);
-        Interval c2(l2, u2);
-
-        assert(interval_is_close(c1 + c2, b1 + b2, absolute_tolerance, relative_tolerance));
-        assert(interval_is_close(c1 - c2, b1 - b2, absolute_tolerance, relative_tolerance));
-        assert(interval_is_close(c1 * c2, b1 * b2, absolute_tolerance, relative_tolerance));
-        if(!c2.contains(0.0)) {
-            assert(interval_is_close(c1 / c2, b1 / b2, absolute_tolerance, relative_tolerance));
-        }
-        if(!interval_is_close(cos(c1), cos(b1), absolute_tolerance, relative_tolerance)) {
-            std::cout << "sin(" << c1 << ") => " << cos(c1) << " != " << cos(b1) << std::endl;
-            assert(false);
-        }
-        if(!interval_is_close(sin(c1), sin(b1), absolute_tolerance, relative_tolerance)) {
-            std::cout << "sin(" << c1 << ") => " << sin(c1) << " != " << sin(b1) << std::endl;
-            assert(false);
-        }
-    }
-
-    std::cout << "All tests passed!\n";
-}
-
 template<typename T, typename... Args>
 void print(T &&first, Args &&... args) {
     std::cout << first;
@@ -767,7 +686,9 @@ int main() {
         });
     }
     for(std::thread &thread: threads) {
-        thread.join();
+        if(thread.joinable()) {
+            thread.join();
+        }
     }
 
     return 0;
