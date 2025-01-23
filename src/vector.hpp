@@ -3,51 +3,60 @@
 #include "interval.hpp"
 #include <vector>
 
-template<typename T, typename C>
+template<typename V, typename I>
 concept VectorType =
-        requires(T a) {
-            { +a } -> std::same_as<T>;
-            { -a } -> std::same_as<T>;
-            { a.mag() } -> std::same_as<C>;
-        } &&
-        requires(const T a, const T b) {
-            { a + b } -> std::same_as<T>;
-            { a - b } -> std::same_as<T>;
-            { a * b } -> std::same_as<T>;
-            { a / b } -> std::same_as<T>;
-        } &&
-        requires(const T a, const C b) {
-            { a + b } -> std::same_as<T>;
-            { a - b } -> std::same_as<T>;
-            { a * b } -> std::same_as<T>;
-            { a / b } -> std::same_as<T>;
+        requires(const V a, const V b, const I c) {
+            { +a } -> std::same_as<V>;
+            { -a } -> std::same_as<V>;
+            { a.mag() } -> std::same_as<I>;
+
+            { a + b } -> std::same_as<V>;
+            { a - b } -> std::same_as<V>;
+            { a * b } -> std::same_as<V>;
+            { a / b } -> std::same_as<V>;
+
+            { a + c } -> std::same_as<V>;
+            { a - c } -> std::same_as<V>;
+            { a * c } -> std::same_as<V>;
+            { a / c } -> std::same_as<V>;
+
+            { c + a } -> std::same_as<V>;
+            { c - a } -> std::same_as<V>;
+            { c * a } -> std::same_as<V>;
+            { c / a } -> std::same_as<V>;
         };
 
-template<typename T, typename C>
+template<typename V, typename I>
 concept Vector2Type =
-        VectorType<T, C> &&
-        requires(T a) {
-            { a.x } -> std::convertible_to<C>;
-            { a.y } -> std::convertible_to<C>;
+        VectorType<V, I> &&
+        requires(V a) {
+            { a.x } -> std::convertible_to<I>;
+            { a.y } -> std::convertible_to<I>;
         } &&
-        std::is_constructible_v<T, C, C>;
+        std::is_constructible_v<V, I, I> &&
+        std::is_constructible_v<V, double, double>;
 
-template<typename T, typename C>
+template<typename V, typename I>
 concept Vector3Type =
-        VectorType<T, C> &&
-        requires(const T a) {
-            { a.x } -> std::convertible_to<C>;
-            { a.x } -> std::convertible_to<C>;
-            { a.x } -> std::convertible_to<C>;
+        VectorType<V, I> &&
+        requires(const V a) {
+            { a.x } -> std::convertible_to<I>;
+            { a.x } -> std::convertible_to<I>;
+            { a.x } -> std::convertible_to<I>;
         } &&
-        std::is_constructible_v<T, C, C, C>;
+        std::is_constructible_v<V, double, double, double>;
 
-template<IntervalType T>
+template<IntervalType I>
+class Line2;
+
+template<IntervalType I>
 class Vector2 {
 public:
-    T x, y;
+    I x, y;
 
-    explicit Vector2(const T x, const T y) : x(x), y(y) {}
+    explicit Vector2(const I x, const I y) : x(x), y(y) {}
+
+    explicit Vector2(const double x, const double y) : x(I(x)), y(I(y)) {}
 
     Vector2 operator+() const {
         return Vector2(+x, +y);
@@ -57,7 +66,7 @@ public:
         return Vector2(-x, -y);
     }
 
-    Vector2 operator+(const T s) const {
+    Vector2 operator+(const I s) const {
         return Vector2(x + s, y + s);
     }
 
@@ -65,7 +74,7 @@ public:
         return Vector2(x + v.x, y + v.y);
     }
 
-    Vector2 operator-(const T s) const {
+    Vector2 operator-(const I s) const {
         return Vector2(x - s, y - s);
     }
 
@@ -73,7 +82,7 @@ public:
         return Vector2(x - v.x, y - v.y);
     }
 
-    Vector2 operator*(const T s) const {
+    Vector2 operator*(const I s) const {
         return Vector2(x * s, y * s);
     }
 
@@ -81,7 +90,7 @@ public:
         return Vector2(x * v.x, y * v.y);
     }
 
-    Vector2 operator/(const T s) const {
+    Vector2 operator/(const I s) const {
         return Vector2(x / s, y / s);
     }
 
@@ -89,74 +98,58 @@ public:
         return Vector2(x / v.x, y / v.y);
     }
 
-    T mag() const {
+    I mag() const {
         return (x * x + y * y).sqrt();
     }
 
-    Vector2 rotate(const T angle) const {
-        const T sin_angle = angle.sin();
-        const T cos_angle = angle.cos();
+    Vector2 rotate(const I angle) const {
+        const I sin_angle = angle.sin();
+        const I cos_angle = angle.cos();
         return Vector2(
             x * cos_angle - y * sin_angle,
             x * sin_angle + y * cos_angle
         );
     }
 
-    static T cross(const Vector2 &a, const Vector2 &b) {
+    static I cross(const Vector2 &a, const Vector2 &b) {
         return a.x * b.y - a.y * b.x;
     }
 
-    static bool line_avoids_line(const Vector2 &a, const Vector2 &b, const Vector2 &c, const Vector2 &d) {
-        const Vector2 ab = b - a;
-        const Vector2 cd = d - c;
-        const Vector2 ac = c - a;
-        const Vector2 bd = d - b;
-        return (cross(ab, ac) * cross(ab, bd)).pos() || (cross(cd, ac) * cross(cd, bd)).pos();
+    bool inside(const std::vector<Vector2<I>> &vertices) const {
+        return Line2<I>(Vector2<I>(0, 0), *this).avoids(vertices);
     }
 
-    static bool line_intersects_line(const Vector2 &a, const Vector2 &b, const Vector2 &c, const Vector2 &d) {
-        const Vector2 ab = b - a;
-        const Vector2 cd = d - c;
-        const Vector2 ac = c - a;
-        const Vector2 bd = d - b;
-        return (cross(ab, ac) * cross(ab, bd)).neg() && (cross(cd, ac) * cross(cd, bd)).neg();
+    bool outside(const std::vector<Vector2<I>> &vertices) const {
+        return Line2<I>(Vector2<I>(0, 0), *this).intersects(vertices);
     }
 
-    static bool line_avoids_polygon(const Vector2 &a, const Vector2 &b, const std::vector<Vector2> &vertices) {
-        for(size_t i = 0; i < vertices.size(); i++) {
-            if(!line_avoids_line(a, b, vertices[i], vertices[(i + 1) % vertices.size()])) {
-                return false;
-            }
-        }
-        return true;
+    bool intersects_polygon(const std::vector<Vector2<I>> &vertices) const {
+        return Vector2<I>(x.mid(), y.mid()).inside(vertices) ||
+               Line2<I>(Vector2<I>(x.min(), y.min()), Vector2<I>(x.min(), y.max())).intersects(vertices) ||
+               Line2<I>(Vector2<I>(x.max(), y.min()), Vector2<I>(x.max(), y.max())).intersects(vertices) ||
+               Line2<I>(Vector2<I>(x.min(), y.min()), Vector2<I>(x.max(), y.min())).intersects(vertices) ||
+               Line2<I>(Vector2<I>(x.min(), y.max()), Vector2<I>(x.max(), y.max())).intersects(vertices) ||
+               (x.has(0) && y.has(0));
     }
 
-    static bool line_intersects_polygon(const Vector2 &a, const Vector2 &b, const std::vector<Vector2> &vertices) {
-        for(size_t i = 0; i < vertices.size(); i++) {
-            if(line_intersects_line(a, b, vertices[i], vertices[(i + 1) % vertices.size()])) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    static bool point_inside_polygon(const Vector2 &point, const std::vector<Vector2> &vertices) {
-        const Vector2 origin = Vector2(0, 0);
-        return line_avoids_polygon(origin, point, vertices);
-    }
-
-    static bool point_outside_polygon(const Vector2 &point, const std::vector<Vector2> &vertices) {
-        const Vector2 origin = Vector2(0, 0);
-        return line_intersects_polygon(origin, point, vertices);
+    bool avoids_polygon(const std::vector<Vector2<I>> &vertices) const {
+        return Vector2<I>(x.mid(), y.mid()).outside(vertices) &&
+               Line2<I>(Vector2<I>(x.min(), y.min()), Vector2<I>(x.min(), y.max())).avoids(vertices) &&
+               Line2<I>(Vector2<I>(x.max(), y.min()), Vector2<I>(x.max(), y.max())).avoids(vertices) &&
+               Line2<I>(Vector2<I>(x.min(), y.min()), Vector2<I>(x.max(), y.min())).avoids(vertices) &&
+               Line2<I>(Vector2<I>(x.min(), y.max()), Vector2<I>(x.max(), y.max())).avoids(vertices) &&
+               (!x.has(0) || !y.has(0));
     }
 };
 
-template<IntervalType T>
+template<IntervalType I>
 class Vector3 {
 public:
-    T x, y, z;
+    I x, y, z;
 
-    explicit Vector3(const T x, const T y, const T z) : x(x), y(y), z(z) {}
+    explicit Vector3(const I x, const I y, const I z) : x(x), y(y), z(z) {}
+
+    explicit Vector3(const double x, const double y, const double z) : x(I(x)), y(I(y)), z(I(z)) {}
 
     Vector3 operator+() const {
         return Vector3(+x, +y, +z);
@@ -166,7 +159,7 @@ public:
         return Vector3(-x, -y, -z);
     }
 
-    Vector3 operator+(const T s) const {
+    Vector3 operator+(const I s) const {
         return Vector3(x + s, y + s, z + s);
     }
 
@@ -174,7 +167,7 @@ public:
         return Vector3(x + v.x, y + v.y, z + v.z);
     }
 
-    Vector3 operator-(const T s) const {
+    Vector3 operator-(const I s) const {
         return Vector3(x - s, y - s, z - s);
     }
 
@@ -182,7 +175,7 @@ public:
         return Vector3(x - v.x, y - v.y, z - v.z);
     }
 
-    Vector3 operator*(const T s) const {
+    Vector3 operator*(const I s) const {
         return Vector3(x * s, y * s, z * s);
     }
 
@@ -190,7 +183,7 @@ public:
         return Vector3(x * v.x, y * v.y, z * v.z);
     }
 
-    Vector3 operator/(const T s) const {
+    Vector3 operator/(const I s) const {
         return Vector3(x / s, y / s, z / s);
     }
 
@@ -198,16 +191,101 @@ public:
         return Vector3(x / v.x, y / v.y, z / v.z);
     }
 
-    T mag() const {
+    I mag() const {
         return (x * x + y * y + z * z).sqrt();
     }
 
-    Vector2<T> project(const T theta, const T phi) const {
-        const T sin_theta = theta.sin();
-        const T cos_theta = theta.cos();
-        return Vector2<T>(
+    Vector2<I> project(const I theta, const I phi) const {
+        const I sin_theta = theta.sin();
+        const I cos_theta = theta.cos();
+        return Vector2<I>(
             -x * sin_theta + y * cos_theta,
             (x * cos_theta + y * sin_theta) * phi.cos() - z * phi.sin()
         );
     }
 };
+
+template<IntervalType I>
+Vector2<I> operator+(const I s, const Vector2<I> &v) {
+    return Vector2(s + v.x, s + v.y);
+}
+
+template<IntervalType I>
+Vector2<I> operator-(const I s, const Vector2<I> &v) {
+    return Vector2(s - v.x, s - v.y);
+}
+
+template<IntervalType I>
+Vector2<I> operator*(const I s, const Vector2<I> &v) {
+    return Vector2(s * v.x, s * v.y);
+}
+
+template<IntervalType I>
+Vector2<I> operator/(const I s, const Vector2<I> &v) {
+    return Vector2(s / v.x, s / v.y);
+}
+
+template<IntervalType I>
+class Line2 {
+public:
+    Vector2<I> from;
+    Vector2<I> to;
+
+    explicit Line2(const Vector2<I> &from, const Vector2<I> &to) : from(from), to(to) {}
+
+    bool avoids(const Line2 &other) const {
+        // a=from, b=to, c=other.from, d=other.to
+        const Vector2<I> ab = to - from;
+        const Vector2<I> cd = other.to - other.from;
+        const Vector2<I> ac = other.from - from;
+        const Vector2<I> bd = other.to - to;
+        return (Vector2<I>::cross(ab, ac) * Vector2<I>::cross(ab, bd)).pos() || (Vector2<I>::cross(cd, ac) * Vector2<I>::cross(cd, bd)).pos();
+    }
+
+    bool intersects(const Line2 &other) const {
+        // a=from, b=to, c=other.from, d=other.to
+        const Vector2<I> ab = to - from;
+        const Vector2<I> cd = other.to - other.from;
+        const Vector2<I> ac = other.from - from;
+        const Vector2<I> bd = other.to - to;
+        return (Vector2<I>::cross(ab, ac) * Vector2<I>::cross(ab, bd)).neg() && (Vector2<I>::cross(cd, ac) * Vector2<I>::cross(cd, bd)).neg();
+    }
+
+    bool avoids(const std::vector<Vector2<I>> &vertices) const {
+        for(size_t i = 0; i < vertices.size(); i++) {
+            if(!avoids(Line2(vertices[i], vertices[(i + 1) % vertices.size()]))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool intersects(const std::vector<Vector2<I>> &vertices) const {
+        for(size_t i = 0; i < vertices.size(); i++) {
+            if(intersects(Line2(vertices[i], vertices[(i + 1) % vertices.size()]))) {
+                return true;
+            }
+        }
+        return false;
+    }
+};
+
+template<IntervalType I>
+Vector3<I> operator+(const I s, const Vector3<I> &v) {
+    return Vector3(s + v.x, s + v.y, s + v.z);
+}
+
+template<IntervalType I>
+Vector3<I> operator-(const I s, const Vector3<I> &v) {
+    return Vector3(s - v.x, s - v.y, s - v.z);
+}
+
+template<IntervalType I>
+Vector3<I> operator*(const I s, const Vector3<I> &v) {
+    return Vector3(s * v.x, s * v.y, s * v.z);
+}
+
+template<IntervalType I>
+Vector3<I> operator/(const I s, const Vector3<I> &v) {
+    return Vector3(s / v.x, s / v.y, s / v.z);
+}

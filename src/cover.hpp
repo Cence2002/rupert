@@ -123,12 +123,16 @@ public:
         push(Box2::init());
     }
 
+    bool empty() const {
+        return queue.empty();
+    }
+
     void push(const Box2 &box) {
         queue.push(box);
     }
 
     std::optional<Box2> pop() {
-        if(queue.empty()) {
+        if(empty()) {
             return std::nullopt;
         }
         const Box2 box = queue.front();

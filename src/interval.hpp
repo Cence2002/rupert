@@ -2,40 +2,39 @@
 
 #include <boost/numeric/interval.hpp>
 
-template<typename T>
+template<typename I>
 concept IntervalType =
-        requires(const T a) {
+        requires(const I a, const I b, const double c) {
             { a.min() } -> std::same_as<double>;
             { a.max() } -> std::same_as<double>;
+            { a.mid() } -> std::same_as<double>;
             { a.pos() } -> std::same_as<bool>;
             { a.neg() } -> std::same_as<bool>;
+            { a.has(c) } -> std::same_as<bool>;
 
-            { +a } -> std::same_as<T>;
-            { -a } -> std::same_as<T>;
-            { a.sqrt() } -> std::same_as<T>;
-            { a.cos() } -> std::same_as<T>;
-            { a.sin() } -> std::same_as<T>;
+            { +a } -> std::same_as<I>;
+            { -a } -> std::same_as<I>;
+            { a.sqrt() } -> std::same_as<I>;
+            { a.cos() } -> std::same_as<I>;
+            { a.sin() } -> std::same_as<I>;
+
+            { a + b } -> std::same_as<I>;
+            { a - b } -> std::same_as<I>;
+            { a * b } -> std::same_as<I>;
+            { a / b } -> std::same_as<I>;
+
+            { a + c } -> std::same_as<I>;
+            { a - c } -> std::same_as<I>;
+            { a * c } -> std::same_as<I>;
+            { a / c } -> std::same_as<I>;
+
+            { c + a } -> std::same_as<I>;
+            { c - a } -> std::same_as<I>;
+            { c * a } -> std::same_as<I>;
+            { c / a } -> std::same_as<I>;
         } &&
-        requires(const T a, const T b) {
-            { a + b } -> std::same_as<T>;
-            { a - b } -> std::same_as<T>;
-            { a * b } -> std::same_as<T>;
-            { a / b } -> std::same_as<T>;
-        } &&
-        requires(const T a, const double b) {
-            { a + b } -> std::same_as<T>;
-            { a - b } -> std::same_as<T>;
-            { a * b } -> std::same_as<T>;
-            { a / b } -> std::same_as<T>;
-        } &&
-        requires(const double a, const T b) {
-            { a + b } -> std::same_as<T>;
-            { a - b } -> std::same_as<T>;
-            { a * b } -> std::same_as<T>;
-            { a / b } -> std::same_as<T>;
-        } &&
-        std::is_constructible_v<T, double> &&
-        std::is_constructible_v<T, double, double>;
+        std::is_constructible_v<I, double> &&
+        std::is_constructible_v<I, double, double>;
 
 class PointInterval {
     double val;
@@ -43,7 +42,9 @@ class PointInterval {
 public:
     explicit PointInterval(const double val) : val(val) {}
 
-    explicit PointInterval(const double min, const double max) : val((min + max) / 2) {}
+    explicit PointInterval(const double min, const double max): val((min + max) / 2) {
+        throw std::runtime_error("PointInterval does not support intervals");
+    }
 
     double min() const {
         return val;
@@ -53,12 +54,20 @@ public:
         return val;
     }
 
+    double mid() const {
+        return val;
+    }
+
     bool pos() const {
         return val > 0;
     }
 
     bool neg() const {
         return val < 0;
+    }
+
+    bool has(const double c) const {
+        return val == c;
     }
 
     PointInterval operator+() const {
@@ -155,12 +164,20 @@ public:
         return interval.upper();
     }
 
+    double mid() const {
+        return boost::numeric::median(interval);
+    }
+
     bool pos() const {
         return interval.lower() > 0;
     }
 
     bool neg() const {
         return interval.upper() < 0;
+    }
+
+    bool has(const double c) const {
+        return interval.lower() <= c && c <= interval.upper();
     }
 
     BoostInterval operator+() const {
