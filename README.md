@@ -14,11 +14,13 @@ sudo apt update
 ## Build and Run
 
 ```bash
-mkdir -p build
+rm -rf build
+mkdir build
 cd build
 cmake ..
-make
-./rupert
+cmake --build .
+cd ..
+build/rupert
 ```
 
 ## Line Count
