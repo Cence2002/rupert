@@ -1,11 +1,12 @@
 #pragma once
 
 #include "interval.hpp"
+#include <iostream>
 #include <vector>
 
 template<typename V, typename I>
 concept VectorType =
-        requires(const V a, const V b, const I c) {
+        requires(const V a, const V b, const I c, std::ostream &os) {
             { +a } -> std::same_as<V>;
             { -a } -> std::same_as<V>;
             { a.mag() } -> std::same_as<I>;
@@ -24,6 +25,8 @@ concept VectorType =
             { c - a } -> std::same_as<V>;
             { c * a } -> std::same_as<V>;
             { c / a } -> std::same_as<V>;
+
+            { os << a } -> std::same_as<std::ostream&>;
         };
 
 template<typename V, typename I>
@@ -115,15 +118,40 @@ public:
         return a.x * b.y - a.y * b.x;
     }
 
+    static I orient(const Vector2 &a, const Vector2 &b, const Vector2 &c) {
+        return cross(b - a, c - a);
+    }
+
     bool inside(const std::vector<Vector2<I>> &vertices) const {
         return Line2<I>(Vector2<I>(0, 0), *this).avoids(vertices);
     }
 
     bool outside(const std::vector<Vector2<I>> &vertices) const {
+        // origin->vector line might go through a vertex, making this function return false
+        // despite the vector being outside the polygon
+        // TODO: replace this with avoids(vector, vector*c) for sufficiently large c
+        // it would also break for the convex hull consisting of a set of Lines instead of a sequence of points
+        // as it could intersect a Line and still be inside the convex hull
         return Line2<I>(Vector2<I>(0, 0), *this).intersects(vertices);
     }
 
-    bool intersects_polygon(const std::vector<Vector2<I>> &vertices) const {
+    bool inside_advanced(const std::vector<Vector2<I>> &vertices) const {
+        return Vector2<I>(x.min(), y.min()).inside(vertices) &&
+               Vector2<I>(x.min(), y.max()).inside(vertices) &&
+               Vector2<I>(x.max(), y.min()).inside(vertices) &&
+               Vector2<I>(x.max(), y.max()).inside(vertices);
+    }
+
+    bool outside_advanced(const std::vector<Vector2<I>> &vertices) const {
+        return Vector2<I>(x.mid(), y.mid()).outside(vertices) &&
+               Line2<I>(Vector2<I>(x.min(), y.min()), Vector2<I>(x.min(), y.max())).avoids(vertices) &&
+               Line2<I>(Vector2<I>(x.max(), y.min()), Vector2<I>(x.max(), y.max())).avoids(vertices) &&
+               Line2<I>(Vector2<I>(x.min(), y.min()), Vector2<I>(x.max(), y.min())).avoids(vertices) &&
+               Line2<I>(Vector2<I>(x.min(), y.max()), Vector2<I>(x.max(), y.max())).avoids(vertices) &&
+               !(x.has(0) && y.has(0));
+    }
+
+    bool intersects_advanced(const std::vector<Vector2<I>> &vertices) const {
         return Vector2<I>(x.mid(), y.mid()).inside(vertices) ||
                Line2<I>(Vector2<I>(x.min(), y.min()), Vector2<I>(x.min(), y.max())).intersects(vertices) ||
                Line2<I>(Vector2<I>(x.max(), y.min()), Vector2<I>(x.max(), y.max())).intersects(vertices) ||
@@ -132,13 +160,8 @@ public:
                (x.has(0) && y.has(0));
     }
 
-    bool avoids_polygon(const std::vector<Vector2<I>> &vertices) const {
-        return Vector2<I>(x.mid(), y.mid()).outside(vertices) &&
-               Line2<I>(Vector2<I>(x.min(), y.min()), Vector2<I>(x.min(), y.max())).avoids(vertices) &&
-               Line2<I>(Vector2<I>(x.max(), y.min()), Vector2<I>(x.max(), y.max())).avoids(vertices) &&
-               Line2<I>(Vector2<I>(x.min(), y.min()), Vector2<I>(x.max(), y.min())).avoids(vertices) &&
-               Line2<I>(Vector2<I>(x.min(), y.max()), Vector2<I>(x.max(), y.max())).avoids(vertices) &&
-               (!x.has(0) || !y.has(0));
+    friend std::ostream &operator<<(std::ostream &os, const Vector2 &v) {
+        return os << "(" << v.x << ", " << v.y << ")";
     }
 };
 
@@ -203,6 +226,10 @@ public:
             (x * cos_theta + y * sin_theta) * phi.cos() - z * phi.sin()
         );
     }
+
+    friend std::ostream &operator<<(std::ostream &os, const Vector3 &v) {
+        return os << "(" << v.x << ", " << v.y << ", " << v.z << ")";
+    }
 };
 
 template<IntervalType I>
@@ -233,31 +260,24 @@ public:
 
     explicit Line2(const Vector2<I> &from, const Vector2<I> &to) : from(from), to(to) {}
 
-    bool avoids(const Line2 &other) const {
-        // a=from, b=to, c=other.from, d=other.to
-        const Vector2<I> ab = to - from;
-        const Vector2<I> cd = other.to - other.from;
-        const Vector2<I> ac = other.from - from;
-        const Vector2<I> bd = other.to - to;
-        return (Vector2<I>::cross(ab, ac) * Vector2<I>::cross(ab, bd)).pos() || (Vector2<I>::cross(cd, ac) * Vector2<I>::cross(cd, bd)).pos();
-    }
-
     bool intersects(const Line2 &other) const {
-        // a=from, b=to, c=other.from, d=other.to
-        const Vector2<I> ab = to - from;
-        const Vector2<I> cd = other.to - other.from;
-        const Vector2<I> ac = other.from - from;
-        const Vector2<I> bd = other.to - to;
-        return (Vector2<I>::cross(ab, ac) * Vector2<I>::cross(ab, bd)).neg() && (Vector2<I>::cross(cd, ac) * Vector2<I>::cross(cd, bd)).neg();
+        return (
+                   Vector2<I>::orient(from, to, other.from) *
+                   Vector2<I>::orient(from, to, other.to)
+               ).neg() && (
+                   Vector2<I>::orient(other.from, other.to, from) *
+                   Vector2<I>::orient(other.from, other.to, to)
+               ).neg();
     }
 
-    bool avoids(const std::vector<Vector2<I>> &vertices) const {
-        for(size_t i = 0; i < vertices.size(); i++) {
-            if(!avoids(Line2(vertices[i], vertices[(i + 1) % vertices.size()]))) {
-                return false;
-            }
-        }
-        return true;
+    bool avoids(const Line2 &other) const {
+        return (
+                   Vector2<I>::orient(from, to, other.from) *
+                   Vector2<I>::orient(from, to, other.to)
+               ).pos() || (
+                   Vector2<I>::orient(other.from, other.to, from) *
+                   Vector2<I>::orient(other.from, other.to, to)
+               ).pos();
     }
 
     bool intersects(const std::vector<Vector2<I>> &vertices) const {
@@ -267,6 +287,15 @@ public:
             }
         }
         return false;
+    }
+
+    bool avoids(const std::vector<Vector2<I>> &vertices) const {
+        for(size_t i = 0; i < vertices.size(); i++) {
+            if(!avoids(Line2(vertices[i], vertices[(i + 1) % vertices.size()]))) {
+                return false;
+            }
+        }
+        return true;
     }
 };
 

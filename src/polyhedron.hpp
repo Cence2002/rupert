@@ -5,14 +5,6 @@
 
 template<IntervalType I>
 class Polyhedron {
-    static std::vector<Vector3<I>> normalised(const std::vector<Vector3<I>> &vertices) {
-        std::vector<Vector3<I>> normalised_vertices;
-        for(const Vector3<I> &vertex: vertices) {
-            normalised_vertices.push_back(vertex / vertex.mag());
-        }
-        return normalised_vertices;
-    }
-
     static std::vector<Vector3<I>> permutations(const std::vector<Vector3<I>> &vertices) {
         std::vector<Vector3<I>> permutations;
         for(const auto &[x, y, z]: vertices) {
@@ -88,42 +80,42 @@ public:
         return rotations(all_flips(Vector3<I>(0, phi, 1)));
     }
 
-    // static std::vector<Vector3<I>> cuboctahedron() {
-    //     return rotations(all_flips(Vector3<I>(0, 1, 1)));
-    // }
-    //
-    // static std::vector<Vector3<I>> truncated_cube() {
-    //     return rotations(all_flips(Vector3<I>(1, 1, sqrt2 - 1)));
-    // }
-    //
-    // static std::vector<Vector3<I>> truncated_octahedron() {
-    //     return permutations(all_flips(Vector3<I>(0,1,2)));
-    // }
-    //
-    // static std::vector<Vector3<I>> rhombicuboctahedron() {
-    //     return rotations(all_flips(Vector3<I>(1, 1, sqrt2 + 1)));
-    // }
-    //
-    // static std::vector<Vector3<I>> truncated_cuboctahedron() {
-    //     return rotations(all_flips(Vector3<I>(1, sqrt2 + 1, 2 * sqrt2 + 1)));
-    // }
-    //
-    // static std::vector<Vector3<I>> icosidodecahedron() {
-    //     return combine({
-    //             rotations(all_flips(Vector3<I>(2 * phi, 0, 0))),
-    //             rotations(all_flips(Vector3<I>(phi * phi, phi, 1)))
-    //         });
-    // }
-    //
-    // static std::vector<Vector3<I>> truncated_dodecahedron() {
-    //     return combine({
-    //             rotations(all_flips(Vector3<I>(phi + 2, 1 / phi, 0))),
-    //             rotations(all_flips(Vector3<I>(2 * phi, phi, 1 / phi))),
-    //             rotations(all_flips(Vector3<I>(phi + 1, 2, phi)))
-    //         });
-    // }
-    //
-    // // ...
+    /*
+    static std::vector<Vector3<I>> cuboctahedron() {
+        return rotations(all_flips(Vector3<I>(0, 1, 1)));
+    }
+
+    static std::vector<Vector3<I>> truncated_cube() {
+        return rotations(all_flips(Vector3<I>(1, 1, sqrt2 - 1)));
+    }
+
+    static std::vector<Vector3<I>> truncated_octahedron() {
+        return permutations(all_flips(Vector3<I>(0,1,2)));
+    }
+
+    static std::vector<Vector3<I>> rhombicuboctahedron() {
+        return rotations(all_flips(Vector3<I>(1, 1, sqrt2 + 1)));
+    }
+
+    static std::vector<Vector3<I>> truncated_cuboctahedron() {
+        return rotations(all_flips(Vector3<I>(1, sqrt2 + 1, 2 * sqrt2 + 1)));
+    }
+
+    static std::vector<Vector3<I>> icosidodecahedron() {
+        return combine({
+                rotations(all_flips(Vector3<I>(2 * phi, 0, 0))),
+                rotations(all_flips(Vector3<I>(phi * phi, phi, 1)))
+            });
+    }
+
+    static std::vector<Vector3<I>> truncated_dodecahedron() {
+        return combine({
+                rotations(all_flips(Vector3<I>(phi + 2, 1 / phi, 0))),
+                rotations(all_flips(Vector3<I>(2 * phi, phi, 1 / phi))),
+                rotations(all_flips(Vector3<I>(phi + 1, 2, phi)))
+            });
+    }
+    */
 
     static std::vector<Vector3<I>> rhombicosidodecahedron() {
         return rotations(combine({

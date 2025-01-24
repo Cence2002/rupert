@@ -1,16 +1,18 @@
 #pragma once
 
+#include <iostream>
 #include <boost/numeric/interval.hpp>
 
 template<typename I>
 concept IntervalType =
-        requires(const I a, const I b, const double c) {
+        requires(const I a, const I b, const double c, std::ostream &os) {
             { a.min() } -> std::same_as<double>;
             { a.max() } -> std::same_as<double>;
             { a.mid() } -> std::same_as<double>;
+            { a.len() } -> std::same_as<double>;
+            { a.has(c) } -> std::same_as<bool>;
             { a.pos() } -> std::same_as<bool>;
             { a.neg() } -> std::same_as<bool>;
-            { a.has(c) } -> std::same_as<bool>;
 
             { +a } -> std::same_as<I>;
             { -a } -> std::same_as<I>;
@@ -32,6 +34,8 @@ concept IntervalType =
             { c - a } -> std::same_as<I>;
             { c * a } -> std::same_as<I>;
             { c / a } -> std::same_as<I>;
+
+            { os << a } -> std::same_as<std::ostream&>;
         } &&
         std::is_constructible_v<I, double> &&
         std::is_constructible_v<I, double, double>;
@@ -58,16 +62,20 @@ public:
         return val;
     }
 
+    double len() const {
+        return 0;
+    }
+
+    bool has(const double c) const {
+        return val == c;
+    }
+
     bool pos() const {
         return val > 0;
     }
 
     bool neg() const {
         return val < 0;
-    }
-
-    bool has(const double c) const {
-        return val == c;
     }
 
     PointInterval operator+() const {
@@ -121,6 +129,10 @@ public:
     PointInterval operator/(const double other) const {
         return PointInterval(val / other);
     }
+
+    friend std::ostream &operator<<(std::ostream &os, const PointInterval &point) {
+        return os << "[" << point.val << "]";
+    }
 };
 
 inline PointInterval operator+(const double a, const PointInterval &b) {
@@ -168,16 +180,20 @@ public:
         return boost::numeric::median(interval);
     }
 
+    double len() const {
+        return boost::numeric::width(interval);
+    }
+
+    bool has(const double c) const {
+        return interval.lower() <= c && c <= interval.upper();
+    }
+
     bool pos() const {
         return interval.lower() > 0;
     }
 
     bool neg() const {
         return interval.upper() < 0;
-    }
-
-    bool has(const double c) const {
-        return interval.lower() <= c && c <= interval.upper();
     }
 
     BoostInterval operator+() const {
@@ -230,6 +246,10 @@ public:
 
     BoostInterval operator/(const double other) const {
         return BoostInterval(interval / other);
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const BoostInterval &interval) {
+        return os << "[" << interval.min() << ", " << interval.max() << "]";
     }
 };
 

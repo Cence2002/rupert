@@ -1,12 +1,7 @@
 #pragma once
 
-#include <boost/numeric/interval.hpp>
 #include <boost/dynamic_bitset.hpp>
 #include <queue>
-
-const double pi_half_upper = boost::numeric::interval_lib::constants::pi_half_upper<double>();
-const double pi_upper = boost::numeric::interval_lib::constants::pi_upper<double>();
-const double pi_twice_upper = boost::numeric::interval_lib::constants::pi_twice_upper<double>();
 
 class Id {
     boost::dynamic_bitset<> bits;
@@ -20,6 +15,16 @@ public:
         boost::dynamic_bitset<> new_bits = bits;
         new_bits.push_back(bit);
         return Id(new_bits);
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const Id &id) {
+        if(id.bits.empty()) {
+            return os << "-";
+        }
+        for(size_t i = id.bits.size(); i > 0; i--) {
+            os << (id.bits[i - 1] ? "1" : "0");
+        }
+        return os;
     }
 };
 
@@ -45,6 +50,13 @@ public:
 
     double len() const {
         return max - min;
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const Range &range) {
+        return os <<
+               "(" << range.id << ")" <<
+               " => " <<
+               "[" << range.min << ", " << range.max << "]";
     }
 };
 
@@ -75,6 +87,13 @@ public:
 
     double size() const {
         return theta.len() * phi.len();
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const Box2 &box2) {
+        return os << "{" << std::endl <<
+               "  " << box2.theta << std::endl <<
+               "  " << box2.phi << std::endl <<
+               "}";
     }
 };
 
@@ -113,6 +132,14 @@ public:
     double size() const {
         return theta.len() * phi.len() * alpha.len();
     }
+
+    friend std::ostream &operator<<(std::ostream &os, const Box3 &box3) {
+        return os << "{" << std::endl <<
+               "  " << box3.theta << std::endl <<
+               "  " << box3.phi << std::endl <<
+               "  " << box3.alpha << std::endl <<
+               "}";
+    }
 };
 
 class Queue2 {
@@ -127,17 +154,17 @@ public:
         return queue.empty();
     }
 
-    void push(const Box2 &box) {
-        queue.push(box);
+    void push(const Box2 &box2) {
+        queue.push(box2);
     }
 
     std::optional<Box2> pop() {
         if(empty()) {
             return std::nullopt;
         }
-        const Box2 box = queue.front();
+        const Box2 box2 = queue.front();
         queue.pop();
-        return std::make_optional(box);
+        return std::make_optional(box2);
     }
 };
 
