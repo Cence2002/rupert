@@ -4,26 +4,27 @@
 
 ```bash
 sudo apt update
-#sudo apt install libeigen3-dev
-#sudo apt install libopencv-dev
-#sudo apt-get install libgmp-dev
-#sudo apt-get install libmpfr-dev
-#sudo apt-get install libmpfi-dev
+sudo apt install libopencv-dev
+sudo apt install libboost-all-dev
+sudo apt install libgmp-dev
+sudo apt install libmpfr-dev
+sudo apt install libmpfi-dev
 ```
 
 ## Build and Run
 
 ```bash
-rm -rf build
-mkdir build
-cd build
-cmake ..
-cmake --build .
-cd ..
-build/rupert
+./build_and_run.sh
+```
+Or separately (e.g. for building once and running multiple times):
+```bash
+./build.sh
+./run.sh
 ```
 
-## Line Count
+## Utils
+
+### Line Count
 
 ```bash
 cloc . --exclude-dir=build,.idea

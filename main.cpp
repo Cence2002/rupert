@@ -125,8 +125,30 @@ void step(Queue3 &queue3, const std::vector<Vector3<I>> &plug, const std::vector
     }
 }
 
+#include <mpfi.h>
+
+void test_mpfi() {
+    mpfi_t x, sqrt_x;
+    mpfi_init2(x, 1);
+    mpfi_init2(sqrt_x, 1);
+
+    mpfi_set_d(x, 2);
+
+    mpfi_sqrt(sqrt_x, x);
+
+    std::cout << "Using MPFI:" << std::endl;
+    std::cout << "Interval result:" << std::endl;
+    std::cout << "\n";
+    mpfr_out_str(stdout, 10, 0, &sqrt_x->left, MPFR_RNDD);
+    std::cout << "\n";
+    mpfr_out_str(stdout, 10, 0, &sqrt_x->right, MPFR_RNDU);
+    std::cout << std::flush;
+}
+
 int main() {
     tests();
+
+    test_mpfi();
 
     std::vector<Vector3<BoostInterval>> plug = Polyhedron<BoostInterval>::rhombicosidodecahedron();
     std::vector<Vector3<BoostInterval>> hole = Polyhedron<BoostInterval>::rhombicosidodecahedron();
