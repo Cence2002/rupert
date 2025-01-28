@@ -7,64 +7,37 @@
 #include <thread>
 
 template<IntervalType I>
-I to_interval(const Range &range) {
-    return I(range.min, range.max);
+bool is_box2_terminal(const Box2 &box2, const std::vector<Vector3<I>> &plug, const Polygon<I> &projected_hole) {
+    return std::ranges::any_of(plug, [&](const Vector3<I> &plug_vertex) {
+        const Vector2<I> projected_plug_vertex = plug_vertex.project(box2.theta<I>(), box2.phi<I>());
+        return projected_hole.is_outside(projected_plug_vertex);
+    });
 }
 
 template<IntervalType I>
-bool is_box2_terminal(const Box2 &box2, const std::vector<Vector3<I>> &plug, const std::vector<Vector2<I>> &projected_hole) {
-    const I theta = to_interval<BoostInterval>(box2.theta);
-    const I phi = to_interval<BoostInterval>(box2.phi);
-    for(const Vector3<I> &plug_vertex: plug) {
-        const Vector2<I> projected_plug_vertex = plug_vertex.project(theta, phi);
-        if(projected_plug_vertex.outside_advanced(projected_hole)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-template<IntervalType I>
-bool is_box3_nonterminal(const Box2 &box2, const std::vector<Vector3<I>> &plug, const std::vector<Vector2<I>> &projected_hole) {
-    const I theta(box2.theta.mid());
-    const I phi(box2.phi.mid());
-    for(const Vector3<I> &plug_vertex: plug) {
-        const Vector2<I> projected_plug_vertex = plug_vertex.project(theta, phi);
-        if(!projected_plug_vertex.inside_advanced(projected_hole)) {
-            return false;
-        }
-    }
-    return true;
+bool is_box3_nonterminal(const Box2 &box2, const std::vector<Vector3<I>> &plug, const Polygon<I> &projected_hole) {
+    return std::ranges::all_of(plug, [&](const Vector3<I> &plug_vertex) {
+        const Vector2<I> projected_plug_vertex = plug_vertex.project(box2.theta<I>().mid(), box2.phi<I>().mid());
+        return projected_hole.is_inside(projected_plug_vertex);
+    });
 }
 
 template<IntervalType I>
 std::vector<I> split(const I &interval, const int parts) {
-    std::vector<double> cutoffs;
-    cutoffs.push_back(interval.min());
-    const double step = interval.len() / parts;
-    for(int i = 1; i < parts; i++) {
-        const double cutoff = interval.min() + i * step;
-        if(interval.has(cutoff)) {
-            cutoffs.push_back(cutoff);
-        }
-    }
-    cutoffs.push_back(interval.max());
     std::vector<I> sub_intervals;
-    for(size_t i = 0; i < cutoffs.size() - 1; i++) {
-        sub_intervals.emplace_back(cutoffs[i], cutoffs[i + 1]);
+    for(int i = 0; i < parts; i++) {
+        const I sub_interval = I(i, i + 1) * interval.len() / parts + interval.min();
+        sub_intervals.push_back(sub_interval);
     }
     return sub_intervals;
 }
 
 template<IntervalType I>
-std::vector<Vector2<I>> project_hole(const Box3 &box3, const std::vector<Vector3<I>> &hole, const int resolution) {
-    const I theta = to_interval<BoostInterval>(box3.theta);
-    const I phi = to_interval<BoostInterval>(box3.phi);
-    const I alpha = to_interval<BoostInterval>(box3.alpha);
-    std::vector<std::pair<double, double>> projected_hole_vertices;
-    for(const I &sub_theta: split(theta, resolution)) {
-        for(const I &sub_phi: split(phi, resolution)) {
-            for(const I &sub_alpha: split(alpha, resolution)) {
+Polygon<I> project_hole(const Box3 &box3, const std::vector<Vector3<I>> &hole, const int resolution) {
+    std::vector<Vector2<I>> projected_hole_vertices;
+    for(const I &sub_theta: split(box3.theta<I>(), resolution)) {
+        for(const I &sub_phi: split(box3.phi<I>(), resolution)) {
+            for(const I &sub_alpha: split(box3.alpha<I>(), resolution)) {
                 for(const Vector3<I> &hole_vertex: hole) {
                     const Vector2<I> projected_hole_vertex = hole_vertex.project(sub_theta, sub_phi).rotate(sub_alpha);
                     projected_hole_vertices.emplace_back(projected_hole_vertex.x.min(), projected_hole_vertex.y.min());
@@ -75,16 +48,12 @@ std::vector<Vector2<I>> project_hole(const Box3 &box3, const std::vector<Vector3
             }
         }
     }
-    std::vector<Vector2<I>> projected_hole_hull_vertices;
-    for(const auto &[x, y]: convex_hull(projected_hole_vertices)) {
-        projected_hole_hull_vertices.emplace_back(Vector2<I>(x, y));
-    }
-    return projected_hole_hull_vertices;
+    return Polygon<I>::convex_hull(projected_hole_vertices);
 }
 
 template<IntervalType I>
 bool is_box3_terminal(const Box3 &box3, const std::vector<Vector3<I>> &plug, const std::vector<Vector3<I>> &hole, const int iterations, const int resolution) {
-    std::vector<Vector2<I>> projected_hole = project_hole(box3, hole, resolution);
+    Polygon<I> projected_hole = project_hole(box3, hole, resolution);
     Queue2 queue2;
     for(int t = 0; t < iterations; t++) {
         const std::optional<Box2> optional_box2 = queue2.pop();
@@ -121,52 +90,32 @@ void step(Queue3 &queue3, const std::vector<Vector3<I>> &plug, const std::vector
     if(is_terminal) {
         print("Terminal Box:", box3);
     } else {
-        // print("Nonterminal Box:", box3);
+        print("Nonterminal Box:", box3);
     }
 }
 
-#include <mpfi.h>
-
-void test_mpfi() {
-    mpfi_t x, sqrt_x;
-    mpfi_init2(x, 1);
-    mpfi_init2(sqrt_x, 1);
-
-    mpfi_set_d(x, 2);
-
-    mpfi_sqrt(sqrt_x, x);
-
-    std::cout << "Using MPFI:" << std::endl;
-    std::cout << "Interval result:" << std::endl;
-    std::cout << "\n";
-    mpfr_out_str(stdout, 10, 0, &sqrt_x->left, MPFR_RNDD);
-    std::cout << "\n";
-    mpfr_out_str(stdout, 10, 0, &sqrt_x->right, MPFR_RNDU);
-    std::cout << std::flush;
-}
-
-int main() {
-    tests();
-
-    test_mpfi();
-
-    std::vector<Vector3<BoostInterval>> plug = Polyhedron<BoostInterval>::rhombicosidodecahedron();
-    std::vector<Vector3<BoostInterval>> hole = Polyhedron<BoostInterval>::rhombicosidodecahedron();
-
-    constexpr int num_threads = 10;
+template<IntervalType I>
+void solve(const int num_threads = 10) {
+    std::vector<Vector3<I>> plug = Polyhedron<I>::rhombicosidodecahedron();
+    std::vector<Vector3<I>> hole = Polyhedron<I>::rhombicosidodecahedron();
 
     Queue3 queue3;
     std::vector<std::thread> threads;
     for(int t = 0; t < num_threads; t++) {
         threads.emplace_back([&queue3, &plug, &hole]() {
             while(true) {
-                step(queue3, plug, hole, 10000, 10);
+                step(queue3, plug, hole, 10000, 5);
             }
         });
     }
     for(auto &thread: threads) {
         thread.join();
     }
+}
+
+int main() {
+    tests();
+    solve<BoostInterval>(10);
 
     return 0;
 }

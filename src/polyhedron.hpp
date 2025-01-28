@@ -4,7 +4,8 @@
 #include <vector>
 
 template<IntervalType I>
-class Polyhedron {
+struct Polyhedron {
+private:
     static std::vector<Vector3<I>> permutations(const std::vector<Vector3<I>> &vertices) {
         std::vector<Vector3<I>> permutations;
         for(const auto &[x, y, z]: vertices) {
@@ -30,9 +31,9 @@ class Polyhedron {
 
     static std::vector<Vector3<I>> flips(const std::vector<Vector3<I>> &vertices, const bool flip_x, const bool flip_y, const bool flip_z) {
         std::vector<Vector3<I>> flips;
-        for(const double sign_x: flip_x ? std::vector<double>{1, -1} : std::vector<double>{1}) {
-            for(const double sign_y: flip_y ? std::vector<double>{1, -1} : std::vector<double>{1}) {
-                for(const double sign_z: flip_z ? std::vector<double>{1, -1} : std::vector<double>{1}) {
+        for(const int sign_x: flip_x ? std::vector<int>{1, -1} : std::vector<int>{1}) {
+            for(const int sign_y: flip_y ? std::vector<int>{1, -1} : std::vector<int>{1}) {
+                for(const int sign_z: flip_z ? std::vector<int>{1, -1} : std::vector<int>{1}) {
                     for(const auto &[x, y, z]: vertices) {
                         flips.push_back(Vector3<I>(x * sign_x, y * sign_y, z * sign_z));
                     }
@@ -43,9 +44,9 @@ class Polyhedron {
     }
 
     static std::vector<Vector3<I>> all_flips(const Vector3<I> &vertex) {
-        const bool x_zero = vertex.x.min() == 0 && vertex.x.max() == 0;
-        const bool y_zero = vertex.y.min() == 0 && vertex.y.max() == 0;
-        const bool z_zero = vertex.z.min() == 0 && vertex.z.max() == 0;
+        const bool x_zero = vertex.x.min().has_zero() && vertex.x.max().has_zero();
+        const bool y_zero = vertex.y.min().has_zero() && vertex.y.max().has_zero();
+        const bool z_zero = vertex.z.min().has_zero() && vertex.z.max().has_zero();
         return flips({vertex}, !x_zero, !y_zero, !z_zero);
     }
 

@@ -1,3 +1,4 @@
+/*
 #pragma once
 
 #include "vector.hpp"
@@ -42,7 +43,7 @@ inline Color gradient(const Box2 &box) {
     return gradient(box.normalized().center());
 }
 
-class Plot {
+struct Plot {
     const std::string name;
     cv::Mat pixels;
 
@@ -159,3 +160,5 @@ public:
         filled_polygon(box.vertices(), color);
     }
 };
+
+*/

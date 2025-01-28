@@ -1,153 +1,161 @@
 #pragma once
 
+#include <bitset>
 #include <boost/dynamic_bitset.hpp>
 #include <queue>
+#include "interval.hpp"
 
-class Id {
-    boost::dynamic_bitset<> bits;
+struct Id {
+private:
+    uint64_t bits{};
+    uint8_t depth{};
 
 public:
-    explicit Id() : bits() {}
+    explicit Id() = default;
 
-    explicit Id(const boost::dynamic_bitset<> &bits) : bits(bits) {}
+    explicit Id(const uint64_t bits, const uint8_t depth) : bits(bits), depth(depth) {}
 
-    Id operator+(const bool bit) const {
-        boost::dynamic_bitset<> new_bits = bits;
-        new_bits.push_back(bit);
-        return Id(new_bits);
+    Id(const Id &other) = default;
+
+    Id &operator=(const Id &other) = default;
+
+    double len() const {
+        return 1.0 / static_cast<double>(1ull << depth);
+    }
+
+    Id left() const {
+        if(depth == 64) {
+            throw std::runtime_error("Id overflow");
+        }
+        return Id(bits << 1, depth + 1);
+    }
+
+    Id right() const {
+        if(depth == 64) {
+            throw std::runtime_error("Id overflow");
+        }
+        return Id((bits << 1) | 1ull, depth + 1);
+    }
+
+    std::pair<Id, Id> split() const {
+        if(depth == 64) {
+            throw std::runtime_error("Id overflow");
+        }
+        return std::make_pair(left(), right());
+    }
+
+    template<IntervalType I>
+    I to_interval() const {
+        I interval = I::unit();
+        for(uint8_t i = 0; i < depth; i++) {
+            if(bits & (1ull << (depth - 1 - i))) {
+                interval = (interval - interval.max()) / 2 + interval.max();
+            } else {
+                interval = (interval - interval.min()) / 2 + interval.min();
+            }
+        }
+        return interval;
     }
 
     friend std::ostream &operator<<(std::ostream &os, const Id &id) {
-        if(id.bits.empty()) {
-            return os << "-";
-        }
-        for(size_t i = id.bits.size(); i > 0; i--) {
-            os << (id.bits[i - 1] ? "1" : "0");
-        }
-        return os;
+        return os << "<" << std::bitset<64>(id.bits).to_string().substr(64u - id.depth) << ">";
     }
 };
 
-class Range {
-public:
-    Id id;
-    double min;
-    double max;
+struct Box2 {
+    Id theta_id;
+    Id phi_id;
 
-    explicit Range(const Id &id, const double min, const double max) : id(id), min(min), max(max) {}
+    explicit Box2() = default;
 
-    double mid() const {
-        return (min + max) / 2;
-    }
-
-    std::array<Range, 2> split() const {
-        const double mid = (min + max) / 2;
-        return std::array<Range, 2>{
-                    Range(id + false, min, mid),
-                    Range(id + true, mid, max)
-                };
-    }
-
-    double len() const {
-        return max - min;
-    }
-
-    friend std::ostream &operator<<(std::ostream &os, const Range &range) {
-        return os <<
-               "(" << range.id << ")" <<
-               " => " <<
-               "[" << range.min << ", " << range.max << "]";
-    }
-};
-
-class Box2 {
-public:
-    Range theta;
-    Range phi;
-
-    explicit Box2(const Range &theta, const Range &phi) : theta(theta), phi(phi) {}
-
-    static Box2 init() {
-        return Box2(
-            Range(Id(), 0, pi_twice_upper),
-            Range(Id(), 0, pi_upper)
-        );
-    }
+    explicit Box2(const Id &theta_id, const Id &phi_id) : theta_id(theta_id), phi_id(phi_id) {}
 
     std::array<Box2, 4> split() const {
-        const auto [theta0, theta1] = theta.split();
-        const auto [phi0, phi1] = phi.split();
+        const auto [theta_id_left, theta_id_right] = theta_id.split();
+        const auto [phi_id_left, phi_id_right] = phi_id.split();
         return std::array<Box2, 4>{
-                    Box2(theta0, phi0),
-                    Box2(theta0, phi1),
-                    Box2(theta1, phi0),
-                    Box2(theta1, phi1)
+                    Box2(theta_id_left, phi_id_left),
+                    Box2(theta_id_left, phi_id_right),
+                    Box2(theta_id_right, phi_id_left),
+                    Box2(theta_id_right, phi_id_right)
                 };
     }
 
     double size() const {
-        return theta.len() * phi.len();
+        return theta_id.len() * phi_id.len();
+    }
+
+    template<IntervalType I>
+    I theta() const {
+        return theta_id.to_interval<I>();
+    }
+
+    template<IntervalType I>
+    I phi() const {
+        return phi_id.to_interval<I>();
     }
 
     friend std::ostream &operator<<(std::ostream &os, const Box2 &box2) {
-        return os << "{" << std::endl <<
-               "  " << box2.theta << std::endl <<
-               "  " << box2.phi << std::endl <<
-               "}";
+        return os << "T" << box2.theta_id << " P" << box2.phi_id;
     }
 };
 
-class Box3 {
-public:
-    Range theta;
-    Range phi;
-    Range alpha;
+struct Box3 {
+    Id theta_id;
+    Id phi_id;
+    Id alpha_id;
 
-    explicit Box3(const Range &theta, const Range &phi, const Range &alpha) : theta(theta), phi(phi), alpha(alpha) {}
+    explicit Box3() = default;
 
-    static Box3 init() {
-        return Box3(
-            Range(Id(), 0, pi_twice_upper),
-            Range(Id(), 0, pi_upper),
-            Range(Id(), 0, pi_twice_upper)
-        );
-    }
+    explicit Box3(const Id &theta_id, const Id &phi_id, const Id &alpha_id) : theta_id(theta_id), phi_id(phi_id), alpha_id(alpha_id) {}
 
     std::array<Box3, 8> split() const {
-        const auto [theta0, theta1] = theta.split();
-        const auto [phi0, phi1] = phi.split();
-        const auto [alpha0, alpha1] = alpha.split();
+        const auto [theta_id_left, theta_id_right] = theta_id.split();
+        const auto [phi_id_left, phi_id_right] = phi_id.split();
+        const auto [alpha_id_left, alpha_id_right] = alpha_id.split();
         return std::array<Box3, 8>{
-                    Box3(theta0, phi0, alpha0),
-                    Box3(theta0, phi0, alpha1),
-                    Box3(theta0, phi1, alpha0),
-                    Box3(theta0, phi1, alpha1),
-                    Box3(theta1, phi0, alpha0),
-                    Box3(theta1, phi0, alpha1),
-                    Box3(theta1, phi1, alpha0),
-                    Box3(theta1, phi1, alpha1)
+                    Box3(theta_id_left, phi_id_left, alpha_id_left),
+                    Box3(theta_id_left, phi_id_left, alpha_id_right),
+                    Box3(theta_id_left, phi_id_right, alpha_id_left),
+                    Box3(theta_id_left, phi_id_right, alpha_id_right),
+                    Box3(theta_id_right, phi_id_left, alpha_id_left),
+                    Box3(theta_id_right, phi_id_left, alpha_id_right),
+                    Box3(theta_id_right, phi_id_right, alpha_id_left),
+                    Box3(theta_id_right, phi_id_right, alpha_id_right)
                 };
     }
 
     double size() const {
-        return theta.len() * phi.len() * alpha.len();
+        return theta_id.len() * phi_id.len() * alpha_id.len();
+    }
+
+    template<IntervalType I>
+    I theta() const {
+        return theta_id.to_interval<I>();
+    }
+
+    template<IntervalType I>
+    I phi() const {
+        return phi_id.to_interval<I>();
+    }
+
+    template<IntervalType I>
+    I alpha() const {
+        return alpha_id.to_interval<I>();
     }
 
     friend std::ostream &operator<<(std::ostream &os, const Box3 &box3) {
-        return os << "{" << std::endl <<
-               "  " << box3.theta << std::endl <<
-               "  " << box3.phi << std::endl <<
-               "  " << box3.alpha << std::endl <<
-               "}";
+        return os << "T" << box3.theta_id << " P" << box3.phi_id << " A" << box3.alpha_id;
     }
 };
 
-class Queue2 {
+struct Queue2 {
+private:
     std::queue<Box2> queue;
 
 public:
     explicit Queue2() {
-        push(Box2::init());
+        push(Box2());
     }
 
     bool empty() const {
@@ -168,13 +176,18 @@ public:
     }
 };
 
-class Queue3 {
+struct Queue3 {
+private:
     std::queue<Box3> queue;
     std::mutex mutex;
 
 public:
     explicit Queue3() {
-        push(Box3::init());
+        push(Box3(
+            Id(0b101u, 3),
+            Id(0b101u, 3),
+            Id(0b101u, 3)
+        ));
     }
 
     void push(const Box3 &box) {
