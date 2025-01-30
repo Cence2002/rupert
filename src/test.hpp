@@ -34,10 +34,6 @@ inline bool is_close(const double value, const double target_value, const double
 inline void tests() {
     const auto start = current_time();
 
-    static_assert(IntervalType<FastInterval>);
-    static_assert(IntervalType<BoostInterval>);
-    static_assert(IntervalType<PreciseInterval>);
-    static_assert(VectorType<Vector2<BoostInterval>, BoostInterval>);
     static_assert(VectorType<Vector2<PreciseInterval>, PreciseInterval>);
 
     // TODO: Add MUCH MUCH more tests, potentially visual ones

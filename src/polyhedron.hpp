@@ -44,9 +44,9 @@ private:
     }
 
     static std::vector<Vector3<I>> all_flips(const Vector3<I> &vertex) {
-        const bool x_zero = vertex.x.min().has_zero() && vertex.x.max().has_zero();
-        const bool y_zero = vertex.y.min().has_zero() && vertex.y.max().has_zero();
-        const bool z_zero = vertex.z.min().has_zero() && vertex.z.max().has_zero();
+        const bool x_zero = !vertex.x.pos() && !vertex.x.neg();
+        const bool y_zero = !vertex.y.pos() && !vertex.y.neg();
+        const bool z_zero = !vertex.z.pos() && !vertex.z.neg();
         return flips({vertex}, !x_zero, !y_zero, !z_zero);
     }
 

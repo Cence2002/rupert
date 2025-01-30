@@ -115,7 +115,7 @@ void solve(const int num_threads = 10) {
 
 int main() {
     tests();
-    solve<BoostInterval>(10);
+    solve<PreciseInterval>(10);
 
     return 0;
 }

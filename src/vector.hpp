@@ -59,8 +59,8 @@ concept Vector2Type =
         std::is_constructible_v<V, int, int> &&
 
         requires(V vector) {
-            { vector.x } -> std::same_as<I>;
-            { vector.y } -> std::same_as<I>;
+            { vector.x } -> std::convertible_to<I>;
+            { vector.y } -> std::convertible_to<I>;
         };
 
 template<typename V, typename I>
@@ -77,9 +77,9 @@ concept Vector3Type =
         std::is_constructible_v<V, int, int, int> &&
 
         requires(const V vector) {
-            { vector.x } -> std::same_as<I>;
-            { vector.y } -> std::same_as<I>;
-            { vector.z } -> std::same_as<I>;
+            { vector.x } -> std::convertible_to<I>;
+            { vector.y } -> std::convertible_to<I>;
+            { vector.z } -> std::convertible_to<I>;
         };
 
 enum class Orientation {
@@ -239,15 +239,19 @@ struct Vector2 {
 
     Orientation orientation(const Vector2 &v) const {
         const I cross_product = cross(v);
-        if(cross_product.is_pos()) {
+        if(cross_product.pos()) {
             return Orientation::COUNTERCLOCKWISE;
         }
-        if(cross_product.is_neg()) {
+        if(cross_product.neg()) {
             return Orientation::CLOCKWISE;
         }
         return Orientation::COLLINEAR;
     }
 };
+
+static_assert(Vector2Type<Vector2<FastInterval>, FastInterval>);
+static_assert(Vector2Type<Vector2<BoostInterval>, BoostInterval>);
+static_assert(Vector2Type<Vector2<PreciseInterval>, PreciseInterval>);
 
 template<IntervalType I>
 struct Vector3 {
@@ -397,6 +401,10 @@ struct Vector3 {
         );
     }
 };
+
+static_assert(Vector3Type<Vector3<FastInterval>, FastInterval>);
+static_assert(Vector3Type<Vector3<BoostInterval>, BoostInterval>);
+static_assert(Vector3Type<Vector3<PreciseInterval>, PreciseInterval>);
 
 template<IntervalType I>
 struct Line {

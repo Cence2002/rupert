@@ -3,19 +3,10 @@
 #include <iostream>
 #include <chrono>
 
-inline void print() {
+template<typename... Args>
+void print(Args &&... args) {
+    ((std::cout << args << ' '), ...);
     std::cout << std::endl;
-}
-
-template<typename T, typename... Args>
-void print(T t, Args... args) {
-    std::cout << t;
-    if constexpr(sizeof...(args) > 0) {
-        std::cout << " ";
-        print(args...);
-    } else {
-        std::cout << std::endl;
-    }
 }
 
 inline std::chrono::time_point<std::chrono::high_resolution_clock> current_time() {
