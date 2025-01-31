@@ -7,38 +7,38 @@
 
 struct Id {
 private:
-    uint64_t bits{};
-    uint8_t depth{};
+    uint64_t bits_{};
+    uint8_t depth_{};
 
 public:
     explicit Id() = default;
 
-    explicit Id(const uint64_t bits, const uint8_t depth) : bits(bits), depth(depth) {}
+    explicit Id(const uint64_t bits, const uint8_t depth) : bits_(bits), depth_(depth) {}
 
-    Id(const Id &other) = default;
+    Id(const Id& other) = default;
 
-    Id &operator=(const Id &other) = default;
+    Id& operator=(const Id& other) = default;
 
     double len() const {
-        return 1.0 / static_cast<double>(1ull << depth);
+        return 1.0 / static_cast<double>(1ull << depth_);
     }
 
     Id left() const {
-        if(depth == 64) {
+        if(depth_ == 64) {
             throw std::runtime_error("Id overflow");
         }
-        return Id(bits << 1, depth + 1);
+        return Id(bits_ << 1, depth_ + 1);
     }
 
     Id right() const {
-        if(depth == 64) {
+        if(depth_ == 64) {
             throw std::runtime_error("Id overflow");
         }
-        return Id((bits << 1) | 1ull, depth + 1);
+        return Id((bits_ << 1) | 1ull, depth_ + 1);
     }
 
     std::pair<Id, Id> split() const {
-        if(depth == 64) {
+        if(depth_ == 64) {
             throw std::runtime_error("Id overflow");
         }
         return std::make_pair(left(), right());
@@ -47,8 +47,8 @@ public:
     template<IntervalType I>
     I to_interval() const {
         I interval = I::unit();
-        for(uint8_t i = 0; i < depth; i++) {
-            if(bits & (1ull << (depth - 1 - i))) {
+        for(uint8_t i = 0; i < depth_; i++) {
+            if(bits_ & (1ull << (depth_ - 1 - i))) {
                 interval = (interval - interval.max()) / 2 + interval.max();
             } else {
                 interval = (interval - interval.min()) / 2 + interval.min();
@@ -57,22 +57,24 @@ public:
         return interval;
     }
 
-    friend std::ostream &operator<<(std::ostream &os, const Id &id) {
-        return os << "<" << std::bitset<64>(id.bits).to_string().substr(64u - id.depth) << ">";
+    friend std::ostream& operator<<(std::ostream& os, const Id& id) {
+        return os << "<" << std::bitset<64>(id.bits_).to_string().substr(64u - id.depth_) << ">";
     }
 };
 
 struct Box2 {
-    Id theta_id;
-    Id phi_id;
+private:
+    Id theta_id_{};
+    Id phi_id_{};
 
+public:
     explicit Box2() = default;
 
-    explicit Box2(const Id &theta_id, const Id &phi_id) : theta_id(theta_id), phi_id(phi_id) {}
+    explicit Box2(const Id& theta_id, const Id& phi_id) : theta_id_(theta_id), phi_id_(phi_id) {}
 
     std::array<Box2, 4> split() const {
-        const auto [theta_id_left, theta_id_right] = theta_id.split();
-        const auto [phi_id_left, phi_id_right] = phi_id.split();
+        const auto [theta_id_left, theta_id_right] = theta_id_.split();
+        const auto [phi_id_left, phi_id_right] = phi_id_.split();
         return std::array<Box2, 4>{
                     Box2(theta_id_left, phi_id_left),
                     Box2(theta_id_left, phi_id_right),
@@ -82,37 +84,39 @@ struct Box2 {
     }
 
     double size() const {
-        return theta_id.len() * phi_id.len();
+        return theta_id_.len() * phi_id_.len();
     }
 
     template<IntervalType I>
     I theta() const {
-        return theta_id.to_interval<I>();
+        return theta_id_.to_interval<I>();
     }
 
     template<IntervalType I>
     I phi() const {
-        return phi_id.to_interval<I>();
+        return phi_id_.to_interval<I>();
     }
 
-    friend std::ostream &operator<<(std::ostream &os, const Box2 &box2) {
-        return os << "T" << box2.theta_id << " P" << box2.phi_id;
+    friend std::ostream& operator<<(std::ostream& os, const Box2& box2) {
+        return os << "T" << box2.theta_id_ << " P" << box2.phi_id_;
     }
 };
 
 struct Box3 {
-    Id theta_id;
-    Id phi_id;
-    Id alpha_id;
+private:
+    Id theta_id_{};
+    Id phi_id_{};
+    Id alpha_id_{};
 
+public:
     explicit Box3() = default;
 
-    explicit Box3(const Id &theta_id, const Id &phi_id, const Id &alpha_id) : theta_id(theta_id), phi_id(phi_id), alpha_id(alpha_id) {}
+    explicit Box3(const Id& theta_id, const Id& phi_id, const Id& alpha_id) : theta_id_(theta_id), phi_id_(phi_id), alpha_id_(alpha_id) {}
 
     std::array<Box3, 8> split() const {
-        const auto [theta_id_left, theta_id_right] = theta_id.split();
-        const auto [phi_id_left, phi_id_right] = phi_id.split();
-        const auto [alpha_id_left, alpha_id_right] = alpha_id.split();
+        const auto [theta_id_left, theta_id_right] = theta_id_.split();
+        const auto [phi_id_left, phi_id_right] = phi_id_.split();
+        const auto [alpha_id_left, alpha_id_right] = alpha_id_.split();
         return std::array<Box3, 8>{
                     Box3(theta_id_left, phi_id_left, alpha_id_left),
                     Box3(theta_id_left, phi_id_left, alpha_id_right),
@@ -126,32 +130,32 @@ struct Box3 {
     }
 
     double size() const {
-        return theta_id.len() * phi_id.len() * alpha_id.len();
+        return theta_id_.len() * phi_id_.len() * alpha_id_.len();
     }
 
     template<IntervalType I>
     I theta() const {
-        return theta_id.to_interval<I>();
+        return theta_id_.to_interval<I>();
     }
 
     template<IntervalType I>
     I phi() const {
-        return phi_id.to_interval<I>();
+        return phi_id_.to_interval<I>();
     }
 
     template<IntervalType I>
     I alpha() const {
-        return alpha_id.to_interval<I>();
+        return alpha_id_.to_interval<I>();
     }
 
-    friend std::ostream &operator<<(std::ostream &os, const Box3 &box3) {
-        return os << "T" << box3.theta_id << " P" << box3.phi_id << " A" << box3.alpha_id;
+    friend std::ostream& operator<<(std::ostream& os, const Box3& box3) {
+        return os << "T" << box3.theta_id_ << " P" << box3.phi_id_ << " A" << box3.alpha_id_;
     }
 };
 
 struct Queue2 {
 private:
-    std::queue<Box2> queue;
+    std::queue<Box2> queue{};
 
 public:
     explicit Queue2() {
@@ -162,7 +166,7 @@ public:
         return queue.empty();
     }
 
-    void push(const Box2 &box2) {
+    void push(const Box2& box2) {
         queue.push(box2);
     }
 
@@ -178,8 +182,8 @@ public:
 
 struct Queue3 {
 private:
-    std::queue<Box3> queue;
-    std::mutex mutex;
+    std::queue<Box3> queue{};
+    std::mutex mutex{};
 
 public:
     explicit Queue3() {
@@ -190,7 +194,7 @@ public:
         ));
     }
 
-    void push(const Box3 &box) {
+    void push(const Box3& box) {
         std::lock_guard<std::mutex> lock(mutex);
         queue.push(box);
     }

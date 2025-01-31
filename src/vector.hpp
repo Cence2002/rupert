@@ -45,7 +45,7 @@ concept VectorType =
             { vector.len() } -> std::same_as<I>;
         } &&
 
-        requires(const V a, std::ostream &os) {
+        requires(const V a, std::ostream& os) {
             { os << a } -> std::same_as<std::ostream&>;
         };
 
@@ -59,8 +59,13 @@ concept Vector2Type =
         std::is_constructible_v<V, int, int> &&
 
         requires(V vector) {
-            { vector.x } -> std::convertible_to<I>;
-            { vector.y } -> std::convertible_to<I>;
+            { vector.x() } -> std::convertible_to<I&>;
+            { vector.y() } -> std::convertible_to<I&>;
+        } &&
+
+        requires(const V vector) {
+            { vector.x() } -> std::convertible_to<const I&>;
+            { vector.y() } -> std::convertible_to<const I&>;
         };
 
 template<typename V, typename I>
@@ -76,10 +81,16 @@ concept Vector3Type =
         std::is_constructible_v<V, int, int, I> &&
         std::is_constructible_v<V, int, int, int> &&
 
+        requires(V vector) {
+            { vector.x() } -> std::convertible_to<I&>;
+            { vector.y() } -> std::convertible_to<I&>;
+            { vector.z() } -> std::convertible_to<I&>;
+        } &&
+
         requires(const V vector) {
-            { vector.x } -> std::convertible_to<I>;
-            { vector.y } -> std::convertible_to<I>;
-            { vector.z } -> std::convertible_to<I>;
+            { vector.x() } -> std::convertible_to<const I&>;
+            { vector.y() } -> std::convertible_to<const I&>;
+            { vector.z() } -> std::convertible_to<const I&>;
         };
 
 enum class Orientation {
@@ -88,7 +99,7 @@ enum class Orientation {
     COLLINEAR
 };
 
-inline std::ostream &operator<<(std::ostream &os, const Orientation &orientation) {
+inline std::ostream& operator<<(std::ostream& os, const Orientation& orientation) {
     switch(orientation) {
         case Orientation::COUNTERCLOCKWISE: return os << "COUNTERCLOCKWISE";
         case Orientation::CLOCKWISE: return os << "CLOCKWISE";
@@ -99,145 +110,164 @@ inline std::ostream &operator<<(std::ostream &os, const Orientation &orientation
 
 template<IntervalType I>
 struct Vector2 {
-    I x, y;
+private:
+    I x_{};
+    I y_{};
 
+public:
     explicit Vector2() = default;
 
-    Vector2(const Vector2 &v) = default;
+    Vector2(const Vector2& v) = default;
 
-    Vector2 &operator=(const Vector2 &v) = default;
+    Vector2& operator=(const Vector2& v) = default;
 
     ~Vector2() = default;
 
-    explicit Vector2(const I x, const I y) : x(x), y(y) {}
+    explicit Vector2(const I x, const I y) : x_(x), y_(y) {}
 
     template<IntegerType Int>
-    explicit Vector2(const I x, const Int y) : x(x), y(I(y)) {}
+    explicit Vector2(const I x, const Int y) : x_(x), y_(I(y)) {}
 
     template<IntegerType Int>
-    explicit Vector2(const Int x, const I y) : x(I(x)), y(y) {}
+    explicit Vector2(const Int x, const I y) : x_(I(x)), y_(y) {}
 
     template<IntegerType Int>
-    explicit Vector2(const Int x, const Int y) : x(I(x)), y(I(y)) {}
+    explicit Vector2(const Int x, const Int y) : x_(I(x)), y_(I(y)) {}
+
+    I& x() {
+        return x_;
+    }
+
+    I& y() {
+        return y_;
+    }
+
+    const I& x() const {
+        return x_;
+    }
+
+    const I& y() const {
+        return y_;
+    }
 
     Vector2 operator+() const {
-        return Vector2(+x, +y);
+        return Vector2(+x_, +y_);
     }
 
     Vector2 operator-() const {
-        return Vector2(-x, -y);
+        return Vector2(-x_, -y_);
     }
 
-    Vector2 operator+(const Vector2 &v) const {
-        return Vector2(x + v.x, y + v.y);
+    Vector2 operator+(const Vector2& v) const {
+        return Vector2(x_ + v.x_, y_ + v.y_);
     }
 
     Vector2 operator+(const I i) const {
-        return Vector2(x + i, y + i);
+        return Vector2(x_ + i, y_ + i);
     }
 
     template<IntegerType Int>
     Vector2 operator+(const Int n) const {
-        return Vector2(x + n, y + n);
+        return Vector2(x_ + n, y_ + n);
     }
 
-    friend Vector2 operator+(const I i, const Vector2 &v) {
-        return Vector2(i + v.x, i + v.y);
+    friend Vector2 operator+(const I i, const Vector2& v) {
+        return Vector2(i + v.x_, i + v.y_);
     }
 
     template<IntegerType Int>
-    friend Vector2 operator+(const Int n, const Vector2 &v) {
-        return Vector2(I(n) + v.x, I(n) + v.y);
+    friend Vector2 operator+(const Int n, const Vector2& v) {
+        return Vector2(I(n) + v.x_, I(n) + v.y_);
     }
 
-    Vector2 operator-(const Vector2 &v) const {
-        return Vector2(x - v.x, y - v.y);
+    Vector2 operator-(const Vector2& v) const {
+        return Vector2(x_ - v.x_, y_ - v.y_);
     }
 
     Vector2 operator-(const I i) const {
-        return Vector2(x - i, y - i);
+        return Vector2(x_ - i, y_ - i);
     }
 
     template<IntegerType Int>
     Vector2 operator-(const Int n) const {
-        return Vector2(x - n, y - n);
+        return Vector2(x_ - n, y_ - n);
     }
 
-    friend Vector2 operator-(const I i, const Vector2 &v) {
-        return Vector2(i - v.x, i - v.y);
+    friend Vector2 operator-(const I i, const Vector2& v) {
+        return Vector2(i - v.x_, i - v.y_);
     }
 
     template<IntegerType Int>
-    friend Vector2 operator-(const Int n, const Vector2 &v) {
-        return Vector2(I(n) - v.x, I(n) - v.y);
+    friend Vector2 operator-(const Int n, const Vector2& v) {
+        return Vector2(I(n) - v.x_, I(n) - v.y_);
     }
 
-    Vector2 operator*(const Vector2 &v) const {
-        return Vector2(x * v.x, y * v.y);
+    Vector2 operator*(const Vector2& v) const {
+        return Vector2(x_ * v.x_, y_ * v.y_);
     }
 
     Vector2 operator*(const I i) const {
-        return Vector2(x * i, y * i);
+        return Vector2(x_ * i, y_ * i);
     }
 
     template<IntegerType Int>
     Vector2 operator*(const Int n) const {
-        return Vector2(x * n, y * n);
+        return Vector2(x_ * n, y_ * n);
     }
 
-    friend Vector2 operator*(const I i, const Vector2 &v) {
-        return Vector2(i * v.x, i * v.y);
+    friend Vector2 operator*(const I i, const Vector2& v) {
+        return Vector2(i * v.x_, i * v.y_);
     }
 
     template<IntegerType Int>
-    friend Vector2 operator*(const Int n, const Vector2 &v) {
-        return Vector2(I(n) * v.x, I(n) * v.y);
+    friend Vector2 operator*(const Int n, const Vector2& v) {
+        return Vector2(I(n) * v.x_, I(n) * v.y_);
     }
 
-    Vector2 operator/(const Vector2 &v) const {
-        return Vector2(x / v.x, y / v.y);
+    Vector2 operator/(const Vector2& v) const {
+        return Vector2(x_ / v.x_, y_ / v.y_);
     }
 
     Vector2 operator/(const I i) const {
-        return Vector2(x / i, y / i);
+        return Vector2(x_ / i, y_ / i);
     }
 
     template<IntegerType Int>
     Vector2 operator/(const Int n) const {
-        return Vector2(x / n, y / n);
+        return Vector2(x_ / n, y_ / n);
     }
 
-    friend Vector2 operator/(const I i, const Vector2 &v) {
-        return Vector2(i / v.x, i / v.y);
+    friend Vector2 operator/(const I i, const Vector2& v) {
+        return Vector2(i / v.x_, i / v.y_);
     }
 
     template<IntegerType Int>
-    friend Vector2 operator/(const Int n, const Vector2 &v) {
-        return Vector2(I(n) / v.x, I(n) / v.y);
+    friend Vector2 operator/(const Int n, const Vector2& v) {
+        return Vector2(I(n) / v.x_, I(n) / v.y_);
     }
 
     I len() const {
-        return (x.sqr() + y.sqr()).sqrt();
+        return (x_.sqr() + y_.sqr()).sqrt();
     }
 
-    friend std::ostream &operator<<(std::ostream &os, const Vector2 &v) {
-        return os << "(" << v.x << " , " << v.y << ")";
+    friend std::ostream& operator<<(std::ostream& os, const Vector2& v) {
+        return os << "(" << v.x_ << " , " << v.y_ << ")";
     }
 
     Vector2 rotate(const I angle) const {
         const I sin_angle = angle.sin();
         const I cos_angle = angle.cos();
         return Vector2(
-            x * cos_angle - y * sin_angle,
-            x * sin_angle + y * cos_angle
+            x_ * cos_angle - y_ * sin_angle,
+            x_ * sin_angle + y_ * cos_angle
         );
     }
 
-    I cross(const Vector2 &v) const {
-        return x * v.y - y * v.x;
+    I cross(const Vector2& v) const {
+        return x_ * v.y_ - y_ * v.x_;
     }
 
-    Orientation orientation(const Vector2 &v) const {
+    Orientation orientation(const Vector2& v) const {
         const I cross_product = cross(v);
         if(cross_product.pos()) {
             return Orientation::COUNTERCLOCKWISE;
@@ -255,149 +285,177 @@ static_assert(Vector2Type<Vector2<PreciseInterval>, PreciseInterval>);
 
 template<IntervalType I>
 struct Vector3 {
-    I x, y, z;
+private:
+    I x_{};
+    I y_{};
+    I z_{};
 
+public:
     explicit Vector3() = default;
 
-    Vector3(const Vector3 &v) = default;
+    Vector3(const Vector3& v) = default;
 
-    Vector3 &operator=(const Vector3 &v) = default;
+    Vector3& operator=(const Vector3& v) = default;
 
     ~Vector3() = default;
 
-    explicit Vector3(const I x, const I y, const I z) : x(x), y(y), z(z) {}
+    explicit Vector3(const I x, const I y, const I z) : x_(x), y_(y), z_(z) {}
 
     template<IntegerType Int>
-    explicit Vector3(const I x, const I y, const Int z) : x(x), y(y), z(I(z)) {}
+    explicit Vector3(const I x, const I y, const Int z) : x_(x), y_(y), z_(I(z)) {}
 
     template<IntegerType Int>
-    explicit Vector3(const I x, const Int y, const I z) : x(x), y(I(y)), z(z) {}
+    explicit Vector3(const I x, const Int y, const I z) : x_(x), y_(I(y)), z_(z) {}
 
     template<IntegerType Int>
-    explicit Vector3(const I x, const Int y, const Int z) : x(x), y(I(y)), z(I(z)) {}
+    explicit Vector3(const I x, const Int y, const Int z) : x_(x), y_(I(y)), z_(I(z)) {}
 
     template<IntegerType Int>
-    explicit Vector3(const Int x, const I y, const I z) : x(I(x)), y(y), z(z) {}
+    explicit Vector3(const Int x, const I y, const I z) : x_(I(x)), y_(y), z_(z) {}
 
     template<IntegerType Int>
-    explicit Vector3(const Int x, const I y, const Int z) : x(I(x)), y(y), z(I(z)) {}
+    explicit Vector3(const Int x, const I y, const Int z) : x_(I(x)), y_(y), z_(I(z)) {}
 
     template<IntegerType Int>
-    explicit Vector3(const Int x, const Int y, const I z) : x(I(x)), y(I(y)), z(z) {}
+    explicit Vector3(const Int x, const Int y, const I z) : x_(I(x)), y_(I(y)), z_(z) {}
 
     template<IntegerType Int>
-    explicit Vector3(const Int x, const Int y, const Int z) : x(I(x)), y(I(y)), z(I(z)) {}
+    explicit Vector3(const Int x, const Int y, const Int z) : x_(I(x)), y_(I(y)), z_(I(z)) {}
+
+    I& x() {
+        return x_;
+    }
+
+    I& y() {
+        return y_;
+    }
+
+    I& z() {
+        return z_;
+    }
+
+    const I& x() const {
+        return x_;
+    }
+
+    const I& y() const {
+        return y_;
+    }
+
+    const I& z() const {
+        return z_;
+    }
 
     Vector3 operator+() const {
-        return Vector3(+x, +y, +z);
+        return Vector3(+x_, +y_, +z_);
     }
 
     Vector3 operator-() const {
-        return Vector3(-x, -y, -z);
+        return Vector3(-x_, -y_, -z_);
     }
 
-    Vector3 operator+(const Vector3 &v) const {
-        return Vector3(x + v.x, y + v.y, z + v.z);
+    Vector3 operator+(const Vector3& v) const {
+        return Vector3(x_ + v.x_, y_ + v.y_, z_ + v.z_);
     }
 
     Vector3 operator+(const I i) const {
-        return Vector3(x + i, y + i, z + i);
+        return Vector3(x_ + i, y_ + i, z_ + i);
     }
 
     template<IntegerType Int>
     Vector3 operator+(const Int n) const {
-        return Vector3(x + n, y + n, z + n);
+        return Vector3(x_ + n, y_ + n, z_ + n);
     }
 
-    friend Vector3 operator+(const I i, const Vector3 &v) {
-        return Vector3(i + v.x, i + v.y, i + v.z);
+    friend Vector3 operator+(const I i, const Vector3& v) {
+        return Vector3(i + v.x_, i + v.y_, i + v.z_);
     }
 
     template<IntegerType Int>
-    friend Vector3 operator+(const Int n, const Vector3 &v) {
-        return Vector3(I(n) + v.x, I(n) + v.y, I(n) + v.z);
+    friend Vector3 operator+(const Int n, const Vector3& v) {
+        return Vector3(I(n) + v.x_, I(n) + v.y_, I(n) + v.z_);
     }
 
-    Vector3 operator-(const Vector3 &v) const {
-        return Vector3(x - v.x, y - v.y, z - v.z);
+    Vector3 operator-(const Vector3& v) const {
+        return Vector3(x_ - v.x_, y_ - v.y_, z_ - v.z_);
     }
 
     Vector3 operator-(const I i) const {
-        return Vector3(x - i, y - i, z - i);
+        return Vector3(x_ - i, y_ - i, z_ - i);
     }
 
     template<IntegerType Int>
     Vector3 operator-(const Int n) const {
-        return Vector3(x - n, y - n, z - n);
+        return Vector3(x_ - n, y_ - n, z_ - n);
     }
 
-    friend Vector3 operator-(const I i, const Vector3 &v) {
-        return Vector3(i - v.x, i - v.y, i - v.z);
+    friend Vector3 operator-(const I i, const Vector3& v) {
+        return Vector3(i - v.x_, i - v.y_, i - v.z_);
     }
 
     template<IntegerType Int>
-    friend Vector3 operator-(const Int n, const Vector3 &v) {
-        return Vector3(I(n) - v.x, I(n) - v.y, I(n) - v.z);
+    friend Vector3 operator-(const Int n, const Vector3& v) {
+        return Vector3(I(n) - v.x_, I(n) - v.y_, I(n) - v.z_);
     }
 
-    Vector3 operator*(const Vector3 &v) const {
-        return Vector3(x * v.x, y * v.y, z * v.z);
+    Vector3 operator*(const Vector3& v) const {
+        return Vector3(x_ * v.x_, y_ * v.y_, z_ * v.z_);
     }
 
     Vector3 operator*(const I i) const {
-        return Vector3(x * i, y * i, z * i);
+        return Vector3(x_ * i, y_ * i, z_ * i);
     }
 
     template<IntegerType Int>
     Vector3 operator*(const Int n) const {
-        return Vector3(x * n, y * n, z * n);
+        return Vector3(x_ * n, y_ * n, z_ * n);
     }
 
-    friend Vector3 operator*(const I i, const Vector3 &v) {
-        return Vector3(i * v.x, i * v.y, i * v.z);
+    friend Vector3 operator*(const I i, const Vector3& v) {
+        return Vector3(i * v.x_, i * v.y_, i * v.z_);
     }
 
     template<IntegerType Int>
-    friend Vector3 operator*(const Int n, const Vector3 &v) {
-        return Vector3(I(n) * v.x, I(n) * v.y, I(n) * v.z);
+    friend Vector3 operator*(const Int n, const Vector3& v) {
+        return Vector3(I(n) * v.x_, I(n) * v.y_, I(n) * v.z_);
     }
 
-    Vector3 operator/(const Vector3 &v) const {
-        return Vector3(x / v.x, y / v.y, z / v.z);
+    Vector3 operator/(const Vector3& v) const {
+        return Vector3(x_ / v.x_, y_ / v.y_, z_ / v.z_);
     }
 
     Vector3 operator/(const I i) const {
-        return Vector3(x / i, y / i, z / i);
+        return Vector3(x_ / i, y_ / i, z_ / i);
     }
 
     template<IntegerType Int>
     Vector3 operator/(const Int n) const {
-        return Vector3(x / n, y / n, z / n);
+        return Vector3(x_ / n, y_ / n, z_ / n);
     }
 
-    friend Vector3 operator/(const I i, const Vector3 &v) {
-        return Vector3(i / v.x, i / v.y, i / v.z);
+    friend Vector3 operator/(const I i, const Vector3& v) {
+        return Vector3(i / v.x_, i / v.y_, i / v.z_);
     }
 
     template<IntegerType Int>
-    friend Vector3 operator/(const Int n, const Vector3 &v) {
-        return Vector3(I(n) / v.x, I(n) / v.y, I(n) / v.z);
+    friend Vector3 operator/(const Int n, const Vector3& v) {
+        return Vector3(I(n) / v.x_, I(n) / v.y_, I(n) / v.z_);
     }
 
     I len() const {
-        return (x.sqr() + y.sqr() + z.sqr()).sqrt();
+        return (x_.sqr() + y_.sqr() + z_.sqr()).sqrt();
     }
 
-    friend std::ostream &operator<<(std::ostream &os, const Vector3 &v) {
-        return os << "(" << v.x << " , " << v.y << ", " << v.z << ")";
+    friend std::ostream& operator<<(std::ostream& os, const Vector3& v) {
+        return os << "(" << v.x_ << " , " << v.y_ << ", " << v.z_ << ")";
     }
 
     Vector2<I> project(const I theta, const I phi) const {
         const I sin_theta = theta.sin();
         const I cos_theta = theta.cos();
         return Vector2<I>(
-            -x * sin_theta + y * cos_theta,
-            (x * cos_theta + y * sin_theta) * phi.cos() - z * phi.sin()
+            -x_ * sin_theta + y_ * cos_theta,
+            (x_ * cos_theta + y_ * sin_theta) * phi.cos() - z_ * phi.sin()
         );
     }
 };
@@ -409,72 +467,72 @@ static_assert(Vector3Type<Vector3<PreciseInterval>, PreciseInterval>);
 template<IntervalType I>
 struct Line {
 private:
-    Vector2<I> from;
-    Vector2<I> to;
+    Vector2<I> from_{};
+    Vector2<I> to_{};
 
 public:
-    explicit Line(const Vector2<I> &from, const Vector2<I> &to) : from(from), to(to) {}
+    explicit Line(const Vector2<I>& from, const Vector2<I>& to) : from_(from), to_(to) {}
 
-    explicit Line(const Vector2<I> &to) : from(Vector2<I>(0, 0)), to(to) {}
+    explicit Line(const Vector2<I>& to) : from_(Vector2<I>(0, 0)), to_(to) {}
 
-    Orientation orientation(const Vector2<I> &v) const {
-        return (to - from).orientation(v - from);
+    Orientation orientation(const Vector2<I>& v) const {
+        return (to_ - from_).orientation(v - from_);
     }
 
-    bool opposite_side(const Line &l) const {
-        const Orientation orientation_from = orientation(l.from);
-        const Orientation orientation_to = orientation(l.to);
+    bool opposite_side(const Line& l) const {
+        const Orientation orientation_from = orientation(l.from_);
+        const Orientation orientation_to = orientation(l.to_);
         if(orientation_from == Orientation::COLLINEAR || orientation_to == Orientation::COLLINEAR) {
             return false;
         }
         return orientation_from != orientation_to;
     }
 
-    bool same_side(const Line &l) const {
-        const Orientation orientation_from = orientation(l.from);
-        const Orientation orientation_to = orientation(l.to);
+    bool same_side(const Line& l) const {
+        const Orientation orientation_from = orientation(l.from_);
+        const Orientation orientation_to = orientation(l.to_);
         if(orientation_from == Orientation::COLLINEAR || orientation_to == Orientation::COLLINEAR) {
             return false;
         }
         return orientation_from == orientation_to;
     }
 
-    bool intersects(const Line &l) const {
+    bool intersects(const Line& l) const {
         return opposite_side(l) && l.opposite_side(*this);
     }
 
-    bool avoids(const Line &l) const {
+    bool avoids(const Line& l) const {
         return same_side(l) || l.same_side(*this);
     }
 
-    friend std::ostream &operator<<(std::ostream &os, const Line &line) {
-        return os << line.from << " -> " << line.to;
+    friend std::ostream& operator<<(std::ostream& os, const Line& line) {
+        return os << line.from_ << " -> " << line.to_;
     }
 };
 
 template<IntervalType I>
 struct Polygon {
 private:
-    std::vector<Line<I>> edges;
+    std::vector<Line<I>> edges_{};
 
 public:
     explicit Polygon() = default;
 
-    Polygon(const Polygon &polygon) = default;
+    Polygon(const Polygon& polygon) = default;
 
-    Polygon &operator=(const Polygon &polygon) = default;
+    Polygon& operator=(const Polygon& polygon) = default;
 
-    explicit Polygon(const std::vector<Line<I>> &edges) : edges(edges) {}
+    explicit Polygon(const std::vector<Line<I>>& edges) : edges_(edges) {}
 
-    static Polygon convex_hull(const std::vector<Vector2<I>> &vertices) {
+    static Polygon convex_hull(const std::vector<Vector2<I>>& vertices) {
         std::vector<Line<I>> edges;
 
         std::vector<bool> visited(vertices.size(), false);
 
         size_t max_index = 0;
         for(size_t better_max_index = 1; better_max_index < vertices.size(); better_max_index++) {
-            const I better_max = vertices[better_max_index].x;
-            if(better_max > vertices[max_index].x) {
+            const I better_max = vertices[better_max_index].x();
+            if(better_max > vertices[max_index].x()) {
                 max_index = better_max_index;
             }
         }
@@ -535,9 +593,9 @@ public:
         return Polygon(edges);
     }
 
-    bool is_inside(const Vector2<I> &v) const {
+    bool is_inside(const Vector2<I>& v) const {
         bool all_counter_clockwise = true;
-        for(const Line<I> &edge: edges) {
+        for(const Line<I>& edge: edges_) {
             const Orientation orientation = edge.orientation(v);
             if(orientation == Orientation::COLLINEAR) {
                 return false;
@@ -547,9 +605,9 @@ public:
         return all_counter_clockwise;
     }
 
-    bool is_outside(const Vector2<I> &v) const {
+    bool is_outside(const Vector2<I>& v) const {
         bool any_clockwise = false;
-        for(const Line<I> &edge: edges) {
+        for(const Line<I>& edge: edges_) {
             const Orientation orientation = edge.orientation(v);
             if(orientation == Orientation::COLLINEAR) {
                 return false;
@@ -559,8 +617,8 @@ public:
         return any_clockwise;
     }
 
-    friend std::ostream &operator<<(std::ostream &os, const Polygon &polygon) {
-        for(const Line<I> &edge: polygon.edges) {
+    friend std::ostream& operator<<(std::ostream& os, const Polygon& polygon) {
+        for(const Line<I>& edge: polygon.edges_) {
             os << edge << std::endl;
         }
         return os;

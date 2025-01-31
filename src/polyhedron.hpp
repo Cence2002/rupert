@@ -6,9 +6,9 @@
 template<IntervalType I>
 struct Polyhedron {
 private:
-    static std::vector<Vector3<I>> permutations(const std::vector<Vector3<I>> &vertices) {
+    static std::vector<Vector3<I>> permutations(const std::vector<Vector3<I>>& vertices) {
         std::vector<Vector3<I>> permutations;
-        for(const auto &[x, y, z]: vertices) {
+        for(const auto& [x, y, z]: vertices) {
             permutations.push_back(Vector3<I>(x, y, z));
             permutations.push_back(Vector3<I>(z, x, y));
             permutations.push_back(Vector3<I>(y, z, x));
@@ -19,23 +19,23 @@ private:
         return permutations;
     }
 
-    static std::vector<Vector3<I>> rotations(const std::vector<Vector3<I>> &vertices) {
+    static std::vector<Vector3<I>> rotations(const std::vector<Vector3<I>>& vertices) {
         std::vector<Vector3<I>> rotations;
-        for(const auto &[x, y, z]: vertices) {
-            rotations.push_back(Vector3<I>(x, y, z));
-            rotations.push_back(Vector3<I>(z, x, y));
-            rotations.push_back(Vector3<I>(y, z, x));
+        for(const Vector3<I>& vertex: vertices) {
+            rotations.emplace_back(vertex.x(), vertex.y(), vertex.z());
+            rotations.emplace_back(vertex.z(), vertex.x(), vertex.y());
+            rotations.emplace_back(vertex.y(), vertex.z(), vertex.x());
         }
         return rotations;
     }
 
-    static std::vector<Vector3<I>> flips(const std::vector<Vector3<I>> &vertices, const bool flip_x, const bool flip_y, const bool flip_z) {
+    static std::vector<Vector3<I>> flips(const std::vector<Vector3<I>>& vertices, const bool flip_x, const bool flip_y, const bool flip_z) {
         std::vector<Vector3<I>> flips;
         for(const int sign_x: flip_x ? std::vector<int>{1, -1} : std::vector<int>{1}) {
             for(const int sign_y: flip_y ? std::vector<int>{1, -1} : std::vector<int>{1}) {
                 for(const int sign_z: flip_z ? std::vector<int>{1, -1} : std::vector<int>{1}) {
-                    for(const auto &[x, y, z]: vertices) {
-                        flips.push_back(Vector3<I>(x * sign_x, y * sign_y, z * sign_z));
+                    for(const Vector3<I>& vertex: vertices) {
+                        flips.emplace_back(vertex.x() * sign_x, vertex.y() * sign_y, vertex.z() * sign_z);
                     }
                 }
             }
@@ -43,16 +43,16 @@ private:
         return flips;
     }
 
-    static std::vector<Vector3<I>> all_flips(const Vector3<I> &vertex) {
-        const bool x_zero = !vertex.x.pos() && !vertex.x.neg();
-        const bool y_zero = !vertex.y.pos() && !vertex.y.neg();
-        const bool z_zero = !vertex.z.pos() && !vertex.z.neg();
+    static std::vector<Vector3<I>> all_flips(const Vector3<I>& vertex) {
+        const bool x_zero = !vertex.x().pos() && !vertex.x().neg();
+        const bool y_zero = !vertex.y().pos() && !vertex.y().neg();
+        const bool z_zero = !vertex.z().pos() && !vertex.z().neg();
         return flips({vertex}, !x_zero, !y_zero, !z_zero);
     }
 
-    static std::vector<Vector3<I>> combine(const std::vector<std::vector<Vector3<I>>> &vertices) {
+    static std::vector<Vector3<I>> combine(const std::vector<std::vector<Vector3<I>>>& vertices) {
         std::vector<Vector3<I>> combine;
-        for(const std::vector<Vector3<I>> &vertex: vertices) {
+        for(const std::vector<Vector3<I>>& vertex: vertices) {
             combine.insert(combine.end(), vertex.begin(), vertex.end());
         }
         return combine;

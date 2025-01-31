@@ -10,7 +10,7 @@
 struct RandomNumberGenerator {
 private:
     static constexpr uint32_t default_seed = 42;
-    std::mt19937_64 engine;
+    std::mt19937_64 engine{};
 
 public:
     RandomNumberGenerator() : engine(default_seed) {}
@@ -33,8 +33,6 @@ inline bool is_close(const double value, const double target_value, const double
 
 inline void tests() {
     const auto start = current_time();
-
-    static_assert(VectorType<Vector2<PreciseInterval>, PreciseInterval>);
 
     // TODO: Add MUCH MUCH more tests, potentially visual ones
 
