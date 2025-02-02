@@ -117,7 +117,7 @@ private:
     I y_;
 
 public:
-    explicit Vector2() = default;
+    explicit Vector2() : x_(), y_() {}
 
     ~Vector2() = default;
 
@@ -129,13 +129,13 @@ public:
 
     Vector2& operator=(Vector2&& v) = default;
 
-    explicit Vector2(const I x, const I y) : x_(x), y_(y) {}
+    explicit Vector2(const I& x, const I& y) : x_(x), y_(y) {}
 
     template<IntegerType Int>
-    explicit Vector2(const I x, const Int y) : x_(x), y_(I(y)) {}
+    explicit Vector2(const I& x, const Int y) : x_(x), y_(I(y)) {}
 
     template<IntegerType Int>
-    explicit Vector2(const Int x, const I y) : x_(I(x)), y_(y) {}
+    explicit Vector2(const Int x, const I& y) : x_(I(x)), y_(y) {}
 
     template<IntegerType Int>
     explicit Vector2(const Int x, const Int y) : x_(I(x)), y_(I(y)) {}
@@ -292,9 +292,9 @@ static_assert(Vector2Type<Vector2<PreciseInterval>, PreciseInterval>);
 template<IntervalType I>
 struct Vector3 {
 private:
-    I x_{};
-    I y_{};
-    I z_{};
+    I x_;
+    I y_;
+    I z_;
 
 public:
     explicit Vector3() = default;
@@ -309,25 +309,25 @@ public:
 
     Vector3& operator=(Vector3&& v) = default;
 
-    explicit Vector3(const I x, const I y, const I z) : x_(x), y_(y), z_(z) {}
+    explicit Vector3(const I& x, const I& y, const I& z) : x_(x), y_(y), z_(z) {}
 
     template<IntegerType Int>
-    explicit Vector3(const I x, const I y, const Int z) : x_(x), y_(y), z_(I(z)) {}
+    explicit Vector3(const I& x, const I& y, const Int z) : x_(x), y_(y), z_(I(z)) {}
 
     template<IntegerType Int>
-    explicit Vector3(const I x, const Int y, const I z) : x_(x), y_(I(y)), z_(z) {}
+    explicit Vector3(const I& x, const Int y, const I& z) : x_(x), y_(I(y)), z_(z) {}
 
     template<IntegerType Int>
-    explicit Vector3(const I x, const Int y, const Int z) : x_(x), y_(I(y)), z_(I(z)) {}
+    explicit Vector3(const I& x, const Int y, const Int z) : x_(x), y_(I(y)), z_(I(z)) {}
 
     template<IntegerType Int>
-    explicit Vector3(const Int x, const I y, const I z) : x_(I(x)), y_(y), z_(z) {}
+    explicit Vector3(const Int x, const I& y, const I& z) : x_(I(x)), y_(y), z_(z) {}
 
     template<IntegerType Int>
-    explicit Vector3(const Int x, const I y, const Int z) : x_(I(x)), y_(y), z_(I(z)) {}
+    explicit Vector3(const Int x, const I& y, const Int z) : x_(I(x)), y_(y), z_(I(z)) {}
 
     template<IntegerType Int>
-    explicit Vector3(const Int x, const Int y, const I z) : x_(I(x)), y_(I(y)), z_(z) {}
+    explicit Vector3(const Int x, const Int y, const I& z) : x_(I(x)), y_(I(y)), z_(z) {}
 
     template<IntegerType Int>
     explicit Vector3(const Int x, const Int y, const Int z) : x_(I(x)), y_(I(y)), z_(I(z)) {}
@@ -477,8 +477,8 @@ static_assert(Vector3Type<Vector3<PreciseInterval>, PreciseInterval>);
 template<IntervalType I>
 struct Line {
 private:
-    Vector2<I> from_{};
-    Vector2<I> to_{};
+    Vector2<I> from_;
+    Vector2<I> to_;
 
 public:
     explicit Line(const Vector2<I>& from, const Vector2<I>& to) : from_(from), to_(to) {}
@@ -523,7 +523,7 @@ public:
 template<IntervalType I>
 struct Polygon {
 private:
-    std::vector<Line<I>> edges_{};
+    std::vector<Line<I>> edges_;
 
 public:
     explicit Polygon() = default;

@@ -90,15 +90,12 @@ private:
 
     explicit FastInterval(const double min, const double max) : min_(min), max_(max) {}
 
-#undef NAN
-    static constexpr double NAN = std::numeric_limits<double>::quiet_NaN();
-    static constexpr double INF = std::numeric_limits<double>::infinity();
-    static constexpr double PI = std::numbers::pi_v<double>;
-    static constexpr double TWO_PI = 2 * std::numbers::pi_v<double>;
-    static constexpr double HALF_PI = std::numbers::pi_v<double> / 2;
+    static FastInterval whole() {
+        return FastInterval(-std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity());
+    }
 
 public:
-    explicit FastInterval() : min_(NAN), max_(NAN) {}
+    explicit FastInterval() : min_(std::numeric_limits<double>::quiet_NaN()), max_(std::numeric_limits<double>::quiet_NaN()) {}
 
     template<IntegerType Int>
     explicit FastInterval(const Int val) : min_(static_cast<double>(val)), max_(static_cast<double>(val)) {}
@@ -236,7 +233,7 @@ public:
 
     FastInterval operator/(const FastInterval& i) const {
         if(i.min_ <= 0 && 0 <= i.max_) {
-            return FastInterval(-INF, INF);
+            return whole();
         }
         const double min_min = min_ / i.min_;
         const double min_max = min_ / i.max_;
@@ -249,7 +246,7 @@ public:
     template<IntegerType Int>
     FastInterval operator/(const Int n) const {
         if(n == 0) {
-            return FastInterval(-INF, INF);
+            return whole();
         }
         const double min_n = min_ / static_cast<double>(n);
         const double max_n = max_ / static_cast<double>(n);
@@ -259,7 +256,7 @@ public:
     template<IntegerType Int>
     friend FastInterval operator/(const Int n, const FastInterval& i) {
         if(i.min_ <= 0 && 0 <= i.max_) {
-            return FastInterval(-INF, INF);
+            return whole();
         }
         const double n_min = static_cast<double>(n) / i.min_;
         const double n_max = static_cast<double>(n) / i.max_;
@@ -268,7 +265,7 @@ public:
 
     FastInterval inv() const {
         if(min_ <= 0 && 0 <= max_) {
-            return FastInterval(-INF, INF);
+            return whole();
         }
         return FastInterval(1.0 / max_, 1.0 / min_);
     }
@@ -291,6 +288,8 @@ public:
     }
 
     FastInterval cos() const {
+        constexpr double PI = std::numbers::pi_v<double>;
+        constexpr double TWO_PI = 2 * std::numbers::pi_v<double>;
         const double cos_min = std::cos(min_);
         const double cos_max = std::cos(max_);
         double min = std::min(cos_min, cos_max);
@@ -305,6 +304,8 @@ public:
     }
 
     FastInterval sin() const {
+        constexpr double TWO_PI = 2 * std::numbers::pi_v<double>;
+        constexpr double HALF_PI = std::numbers::pi_v<double> / 2;
         const double sin_min = std::sin(min_);
         const double sin_max = std::sin(max_);
         double min = std::min(sin_min, sin_max);
@@ -323,6 +324,7 @@ public:
     }
 
     static FastInterval pi() {
+        constexpr double PI = std::numbers::pi_v<double>;
         return FastInterval(PI, PI);
     }
 
@@ -610,7 +612,7 @@ public:
         mpfr_init(left);
         mpfi_get_left(left, interval);
         PreciseInterval min;
-        mpfi_init_set_fr(min.interval, left);
+        mpfi_set_fr(min.interval, left);
         mpfr_clear(left);
         return min;
     }
@@ -620,7 +622,7 @@ public:
         mpfr_init(right);
         mpfi_get_right(right, interval);
         PreciseInterval max;
-        mpfi_init_set_fr(max.interval, right);
+        mpfi_set_fr(max.interval, right);
         mpfr_clear(right);
         return max;
     }

@@ -7,13 +7,13 @@
 
 struct Id {
 private:
-    uint64_t bits_{};
-    uint8_t depth_{};
+    uint64_t bits_;
+    uint8_t depth_;
 
 public:
-    explicit Id() = default;
+    explicit Id() : bits_(0), depth_(0) {}
 
-    explicit Id(const uint64_t bits, const uint8_t depth) : bits_(bits), depth_(depth) {}
+    explicit Id(const uint64_t& bits, const uint8_t& depth) : bits_(bits), depth_(depth) {}
 
     Id(const Id& other) = default;
 
@@ -23,14 +23,14 @@ public:
         return 1.0 / static_cast<double>(1ull << depth_);
     }
 
-    Id left() const {
+    Id min() const {
         if(depth_ == 64) {
             throw std::runtime_error("Id overflow");
         }
         return Id(bits_ << 1, depth_ + 1);
     }
 
-    Id right() const {
+    Id max() const {
         if(depth_ == 64) {
             throw std::runtime_error("Id overflow");
         }
@@ -41,7 +41,7 @@ public:
         if(depth_ == 64) {
             throw std::runtime_error("Id overflow");
         }
-        return std::make_pair(left(), right());
+        return std::make_pair(min(), max());
     }
 
     template<IntervalType I>
@@ -64,22 +64,22 @@ public:
 
 struct Box2 {
 private:
-    Id theta_id_{};
-    Id phi_id_{};
+    Id theta_id_;
+    Id phi_id_;
 
 public:
-    explicit Box2() = default;
+    explicit Box2() : theta_id_(), phi_id_() {}
 
     explicit Box2(const Id& theta_id, const Id& phi_id) : theta_id_(theta_id), phi_id_(phi_id) {}
 
     std::array<Box2, 4> split() const {
-        const auto [theta_id_left, theta_id_right] = theta_id_.split();
-        const auto [phi_id_left, phi_id_right] = phi_id_.split();
+        const auto [theta_id_min, theta_id_max] = theta_id_.split();
+        const auto [phi_id_min, phi_id_max] = phi_id_.split();
         return std::array<Box2, 4>{
-                    Box2(theta_id_left, phi_id_left),
-                    Box2(theta_id_left, phi_id_right),
-                    Box2(theta_id_right, phi_id_left),
-                    Box2(theta_id_right, phi_id_right)
+                    Box2(theta_id_min, phi_id_min),
+                    Box2(theta_id_min, phi_id_max),
+                    Box2(theta_id_max, phi_id_min),
+                    Box2(theta_id_max, phi_id_max)
                 };
     }
 
@@ -104,28 +104,28 @@ public:
 
 struct Box3 {
 private:
-    Id theta_id_{};
-    Id phi_id_{};
-    Id alpha_id_{};
+    Id theta_id_;
+    Id phi_id_;
+    Id alpha_id_;
 
 public:
-    explicit Box3() = default;
+    explicit Box3() : theta_id_(), phi_id_(), alpha_id_() {}
 
     explicit Box3(const Id& theta_id, const Id& phi_id, const Id& alpha_id) : theta_id_(theta_id), phi_id_(phi_id), alpha_id_(alpha_id) {}
 
     std::array<Box3, 8> split() const {
-        const auto [theta_id_left, theta_id_right] = theta_id_.split();
-        const auto [phi_id_left, phi_id_right] = phi_id_.split();
-        const auto [alpha_id_left, alpha_id_right] = alpha_id_.split();
+        const auto [theta_id_min, theta_id_max] = theta_id_.split();
+        const auto [phi_id_min, phi_id_max] = phi_id_.split();
+        const auto [alpha_id_min, alpha_id_max] = alpha_id_.split();
         return std::array<Box3, 8>{
-                    Box3(theta_id_left, phi_id_left, alpha_id_left),
-                    Box3(theta_id_left, phi_id_left, alpha_id_right),
-                    Box3(theta_id_left, phi_id_right, alpha_id_left),
-                    Box3(theta_id_left, phi_id_right, alpha_id_right),
-                    Box3(theta_id_right, phi_id_left, alpha_id_left),
-                    Box3(theta_id_right, phi_id_left, alpha_id_right),
-                    Box3(theta_id_right, phi_id_right, alpha_id_left),
-                    Box3(theta_id_right, phi_id_right, alpha_id_right)
+                    Box3(theta_id_min, phi_id_min, alpha_id_min),
+                    Box3(theta_id_min, phi_id_min, alpha_id_max),
+                    Box3(theta_id_min, phi_id_max, alpha_id_min),
+                    Box3(theta_id_min, phi_id_max, alpha_id_max),
+                    Box3(theta_id_max, phi_id_min, alpha_id_min),
+                    Box3(theta_id_max, phi_id_min, alpha_id_max),
+                    Box3(theta_id_max, phi_id_max, alpha_id_min),
+                    Box3(theta_id_max, phi_id_max, alpha_id_max)
                 };
     }
 

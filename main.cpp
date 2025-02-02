@@ -98,8 +98,8 @@ void step(Queue3& queue3, const std::vector<Vector3<I>>& plug, const std::vector
 
 template<IntervalType I>
 void solve(const int num_threads = 10, const int iterations = 10000, const int resolution = 5) {
-    std::vector<Vector3<I>> plug = Polyhedron<I>::rhombicosidodecahedron();
-    std::vector<Vector3<I>> hole = Polyhedron<I>::rhombicosidodecahedron();
+    std::vector<Vector3<I>> plug = Polyhedron<I>::cube();
+    std::vector<Vector3<I>> hole = Polyhedron<I>::cube();
 
     Queue3 queue3;
     if(num_threads == 1) {
@@ -113,6 +113,7 @@ void solve(const int num_threads = 10, const int iterations = 10000, const int r
             threads.emplace_back([&] {
                 while(true) {
                     step(queue3, plug, hole, iterations, resolution);
+                    break;
                 }
             });
         }
@@ -125,18 +126,6 @@ void solve(const int num_threads = 10, const int iterations = 10000, const int r
 int main() {
     tests();
     solve<PreciseInterval>(10, 2, 2);
-
-    mpfi_t a{}, b{};
-    print(a->left._mpfr_d == nullptr);
-    mpfi_init(a);
-    print(a->left._mpfr_d == nullptr);
-    mpfi_set_si(a, 1);
-    print(a->left._mpfr_d == nullptr);
-    mpfi_swap(a, b);
-    print(a->left._mpfr_d == nullptr);
-    print(b->left._mpfr_d == nullptr);
-    mpfi_clear(b);
-    print(b->left._mpfr_d == nullptr);
 
     // // default constructor
     // PreciseInterval a0;
