@@ -4,7 +4,6 @@
 #include "cover.hpp"
 #include "polyhedron.hpp"
 #include "test.hpp"
-// #include "custom_interval.hpp"
 #include <thread>
 
 template<IntervalType I>
@@ -126,6 +125,18 @@ void solve(const int num_threads = 10, const int iterations = 10000, const int r
 int main() {
     tests();
     solve<PreciseInterval>(10, 2, 2);
+
+    mpfi_t a{}, b{};
+    print(a->left._mpfr_d == nullptr);
+    mpfi_init(a);
+    print(a->left._mpfr_d == nullptr);
+    mpfi_set_si(a, 1);
+    print(a->left._mpfr_d == nullptr);
+    mpfi_swap(a, b);
+    print(a->left._mpfr_d == nullptr);
+    print(b->left._mpfr_d == nullptr);
+    mpfi_clear(b);
+    print(b->left._mpfr_d == nullptr);
 
     // // default constructor
     // PreciseInterval a0;

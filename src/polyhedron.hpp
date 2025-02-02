@@ -58,8 +58,8 @@ private:
         return combine;
     }
 
-    inline static const I phi = 1 + I(5).sqrt() / 2;
-    inline static const I sqrt2 = I(2).sqrt();
+    static inline const I phi = 1 + I(5).sqrt() / 2;
+    static inline const I sqrt2 = I(2).sqrt();
 
 public:
     static std::vector<Vector3<I>> cube() {

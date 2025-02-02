@@ -10,9 +10,11 @@ concept VectorType =
         IntervalType<I> &&
 
         std::is_default_constructible_v<V> &&
+        std::is_destructible_v<V> &&
         std::is_copy_constructible_v<V> &&
         std::is_copy_assignable_v<V> &&
-        std::is_destructible_v<V> &&
+        std::is_move_constructible_v<V> &&
+        std::is_move_assignable_v<V> &&
 
         requires(const V vector, const V v, const I i, const int n) {
             { +vector } -> std::same_as<V>;
@@ -111,17 +113,21 @@ inline std::ostream& operator<<(std::ostream& os, const Orientation& orientation
 template<IntervalType I>
 struct Vector2 {
 private:
-    I x_{};
-    I y_{};
+    I x_;
+    I y_;
 
 public:
     explicit Vector2() = default;
+
+    ~Vector2() = default;
 
     Vector2(const Vector2& v) = default;
 
     Vector2& operator=(const Vector2& v) = default;
 
-    ~Vector2() = default;
+    Vector2(Vector2&& v) = default;
+
+    Vector2& operator=(Vector2&& v) = default;
 
     explicit Vector2(const I x, const I y) : x_(x), y_(y) {}
 
@@ -162,7 +168,7 @@ public:
         return Vector2(x_ + v.x_, y_ + v.y_);
     }
 
-    Vector2 operator+(const I i) const {
+    Vector2 operator+(const I& i) const {
         return Vector2(x_ + i, y_ + i);
     }
 
@@ -171,7 +177,7 @@ public:
         return Vector2(x_ + n, y_ + n);
     }
 
-    friend Vector2 operator+(const I i, const Vector2& v) {
+    friend Vector2 operator+(const I& i, const Vector2& v) {
         return Vector2(i + v.x_, i + v.y_);
     }
 
@@ -184,7 +190,7 @@ public:
         return Vector2(x_ - v.x_, y_ - v.y_);
     }
 
-    Vector2 operator-(const I i) const {
+    Vector2 operator-(const I& i) const {
         return Vector2(x_ - i, y_ - i);
     }
 
@@ -193,7 +199,7 @@ public:
         return Vector2(x_ - n, y_ - n);
     }
 
-    friend Vector2 operator-(const I i, const Vector2& v) {
+    friend Vector2 operator-(const I& i, const Vector2& v) {
         return Vector2(i - v.x_, i - v.y_);
     }
 
@@ -206,7 +212,7 @@ public:
         return Vector2(x_ * v.x_, y_ * v.y_);
     }
 
-    Vector2 operator*(const I i) const {
+    Vector2 operator*(const I& i) const {
         return Vector2(x_ * i, y_ * i);
     }
 
@@ -215,7 +221,7 @@ public:
         return Vector2(x_ * n, y_ * n);
     }
 
-    friend Vector2 operator*(const I i, const Vector2& v) {
+    friend Vector2 operator*(const I& i, const Vector2& v) {
         return Vector2(i * v.x_, i * v.y_);
     }
 
@@ -228,7 +234,7 @@ public:
         return Vector2(x_ / v.x_, y_ / v.y_);
     }
 
-    Vector2 operator/(const I i) const {
+    Vector2 operator/(const I& i) const {
         return Vector2(x_ / i, y_ / i);
     }
 
@@ -237,7 +243,7 @@ public:
         return Vector2(x_ / n, y_ / n);
     }
 
-    friend Vector2 operator/(const I i, const Vector2& v) {
+    friend Vector2 operator/(const I& i, const Vector2& v) {
         return Vector2(i / v.x_, i / v.y_);
     }
 
@@ -254,7 +260,7 @@ public:
         return os << "(" << v.x_ << " , " << v.y_ << ")";
     }
 
-    Vector2 rotate(const I angle) const {
+    Vector2 rotate(const I& angle) const {
         const I sin_angle = angle.sin();
         const I cos_angle = angle.cos();
         return Vector2(
@@ -293,11 +299,15 @@ private:
 public:
     explicit Vector3() = default;
 
+    ~Vector3() = default;
+
     Vector3(const Vector3& v) = default;
 
     Vector3& operator=(const Vector3& v) = default;
 
-    ~Vector3() = default;
+    Vector3(Vector3&& v) = default;
+
+    Vector3& operator=(Vector3&& v) = default;
 
     explicit Vector3(const I x, const I y, const I z) : x_(x), y_(y), z_(z) {}
 
@@ -358,7 +368,7 @@ public:
         return Vector3(x_ + v.x_, y_ + v.y_, z_ + v.z_);
     }
 
-    Vector3 operator+(const I i) const {
+    Vector3 operator+(const I& i) const {
         return Vector3(x_ + i, y_ + i, z_ + i);
     }
 
@@ -367,7 +377,7 @@ public:
         return Vector3(x_ + n, y_ + n, z_ + n);
     }
 
-    friend Vector3 operator+(const I i, const Vector3& v) {
+    friend Vector3 operator+(const I& i, const Vector3& v) {
         return Vector3(i + v.x_, i + v.y_, i + v.z_);
     }
 
@@ -380,7 +390,7 @@ public:
         return Vector3(x_ - v.x_, y_ - v.y_, z_ - v.z_);
     }
 
-    Vector3 operator-(const I i) const {
+    Vector3 operator-(const I& i) const {
         return Vector3(x_ - i, y_ - i, z_ - i);
     }
 
@@ -389,7 +399,7 @@ public:
         return Vector3(x_ - n, y_ - n, z_ - n);
     }
 
-    friend Vector3 operator-(const I i, const Vector3& v) {
+    friend Vector3 operator-(const I& i, const Vector3& v) {
         return Vector3(i - v.x_, i - v.y_, i - v.z_);
     }
 
@@ -402,7 +412,7 @@ public:
         return Vector3(x_ * v.x_, y_ * v.y_, z_ * v.z_);
     }
 
-    Vector3 operator*(const I i) const {
+    Vector3 operator*(const I& i) const {
         return Vector3(x_ * i, y_ * i, z_ * i);
     }
 
@@ -411,7 +421,7 @@ public:
         return Vector3(x_ * n, y_ * n, z_ * n);
     }
 
-    friend Vector3 operator*(const I i, const Vector3& v) {
+    friend Vector3 operator*(const I& i, const Vector3& v) {
         return Vector3(i * v.x_, i * v.y_, i * v.z_);
     }
 
@@ -424,7 +434,7 @@ public:
         return Vector3(x_ / v.x_, y_ / v.y_, z_ / v.z_);
     }
 
-    Vector3 operator/(const I i) const {
+    Vector3 operator/(const I& i) const {
         return Vector3(x_ / i, y_ / i, z_ / i);
     }
 
@@ -433,7 +443,7 @@ public:
         return Vector3(x_ / n, y_ / n, z_ / n);
     }
 
-    friend Vector3 operator/(const I i, const Vector3& v) {
+    friend Vector3 operator/(const I& i, const Vector3& v) {
         return Vector3(i / v.x_, i / v.y_, i / v.z_);
     }
 
@@ -450,7 +460,7 @@ public:
         return os << "(" << v.x_ << " , " << v.y_ << ", " << v.z_ << ")";
     }
 
-    Vector2<I> project(const I theta, const I phi) const {
+    Vector2<I> project(const I& theta, const I& phi) const {
         const I sin_theta = theta.sin();
         const I cos_theta = theta.cos();
         return Vector2<I>(

@@ -10,9 +10,6 @@ enum class IntervalPrintMode {
     MID_AND_RAD,
 };
 
-template<typename Int>
-concept IntegerType = std::is_integral_v<Int>;
-
 template<typename I>
 concept IntervalType =
         std::is_default_constructible_v<I> &&
@@ -81,10 +78,13 @@ concept IntervalType =
             { os << a } -> std::same_as<std::ostream&>;
         };
 
+template<typename Int>
+concept IntegerType = std::is_integral_v<Int>;
+
 struct FastInterval {
 private:
-    double min_{};
-    double max_{};
+    double min_;
+    double max_;
 
     static inline IntervalPrintMode print_mode = IntervalPrintMode::MIN_AND_MAX;
 
@@ -358,7 +358,7 @@ private:
                 boost::numeric::interval_lib::rounded_transc_std<double>>,
             boost::numeric::interval_lib::checking_base<double>>>;
 
-    BoostIntervalType interval_{};
+    BoostIntervalType interval_;
 
     static inline IntervalPrintMode print_mode = IntervalPrintMode::MIN_AND_MAX;
 
@@ -558,11 +558,7 @@ struct PreciseInterval {
 private:
     static inline IntervalPrintMode print_mode = IntervalPrintMode::MIN_AND_MAX;
 
-    mpfi_t interval{};
-
-    explicit PreciseInterval(const mpfi_t& i) {
-        mpfi_init_set(interval, i);
-    }
+    mpfi_t interval;
 
 public:
     explicit PreciseInterval() {
@@ -581,9 +577,7 @@ public:
     }
 
     ~PreciseInterval() {
-        if(interval->left._mpfr_d != nullptr) {
-            mpfi_clear(interval);
-        }
+        mpfi_clear(interval);
     }
 
     PreciseInterval(const PreciseInterval& i) {
@@ -598,12 +592,14 @@ public:
     }
 
     PreciseInterval(PreciseInterval&& i) noexcept {
+        mpfi_init(interval);
         mpfi_swap(interval, i.interval);
     }
 
     PreciseInterval& operator=(PreciseInterval&& i) noexcept {
         if(this != &i) {
             mpfi_clear(interval);
+            mpfi_init(interval);
             mpfi_swap(interval, i.interval);
         }
         return *this;
@@ -853,50 +849,3 @@ public:
 };
 
 static_assert(IntervalType<PreciseInterval>);
-
-struct Dummy {
-private:
-    int* i_{};
-
-public:
-    explicit Dummy() {}
-
-    explicit Dummy(const int i) : i_(new int(i)) {}
-
-    ~Dummy() {
-        if(i_ != nullptr) {
-            delete i_;
-        }
-    }
-
-    Dummy(const Dummy& d) = delete;
-
-    Dummy& operator=(const Dummy& d) = delete;
-
-    Dummy(Dummy&& d) noexcept {
-        std::swap(i_, d.i_);
-    }
-
-    Dummy& operator=(Dummy&& d) noexcept {
-        if(this != &d) {
-            if(i_ != nullptr) {
-                delete i_;
-                i_ = nullptr;
-            }
-            std::swap(i_, d.i_);
-        }
-        return *this;
-    }
-
-    Dummy copy() const {
-        Dummy d;
-        if(i_ != nullptr) {
-            d.i_ = new int(*i_);
-        }
-        return d;
-    }
-
-    friend std::ostream& operator<<(std::ostream& os, const Dummy& d) {
-        return os << (d.i_ == nullptr ? "null" : std::to_string(*d.i_));
-    }
-};
