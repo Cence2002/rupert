@@ -366,7 +366,7 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const MpfiInterval& interval) {
         switch(print_mode_) {
             case IntervalPrintMode::MIN_AND_MAX: {
-                return os << "[" << interval.min() << " | " << interval.max() << "]";
+                return os << "[" << interval.min() << " : " << interval.max() << "]";
             }
             case IntervalPrintMode::MID_AND_RAD: {
                 return os << "[" << interval.mid() << " ~ " << interval.rad() << "]";

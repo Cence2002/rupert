@@ -75,6 +75,7 @@ include_directories(
         src
         str/number
         src/interval
+        src/vector
         src/geometry
 )
 

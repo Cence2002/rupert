@@ -1,49 +1,34 @@
 #pragma once
 
-#include "geometry/vector_2.hpp"
+#include "geometry/util.hpp"
 
-template<IntervalType I>
+template<IntervalType Interval>
 struct Line {
 private:
-    Vector2<I> from_;
-    Vector2<I> to_;
+    Vector2<Interval> point_;
+    Vector2<Interval> direction_;
 
 public:
-    explicit Line(const Vector2<I>& from, const Vector2<I>& to) : from_(from), to_(to) {}
+    explicit Line(const Vector2<Interval>& point, const Vector2<Interval>& direction) : point_(point), direction_(direction) {}
 
-    explicit Line(const Vector2<I>& to) : from_(Vector2<I>(0, 0)), to_(to) {}
+    explicit Line(const Vector2<Interval>& direction) : point_(Vector2<Interval>(0, 0)), direction_(direction) {}
 
-    Orientation orientation(const Vector2<I>& v) const {
-        return (to_ - from_).orientation(v - from_);
+    static Line from_two_points(const Vector2<Interval>& point, const Vector2<Interval>& other_point) {
+        return DirectedLine(point, other_point - point);
     }
 
-    bool opposite_side(const Line& l) const {
-        const Orientation orientation_from = orientation(l.from_);
-        const Orientation orientation_to = orientation(l.to_);
-        if(orientation_from == Orientation::COLLINEAR || orientation_to == Orientation::COLLINEAR) {
-            return false;
+    Orientation orientation(const Vector2<Interval>& vector2) const {
+        const Interval cross = direction_.cross(vector2 - point_);
+        if(cross.pos()) {
+            return Orientation::COUNTERCLOCKWISE;
         }
-        return orientation_from != orientation_to;
-    }
-
-    bool same_side(const Line& l) const {
-        const Orientation orientation_from = orientation(l.from_);
-        const Orientation orientation_to = orientation(l.to_);
-        if(orientation_from == Orientation::COLLINEAR || orientation_to == Orientation::COLLINEAR) {
-            return false;
+        if(cross.neg()) {
+            return Orientation::CLOCKWISE;
         }
-        return orientation_from == orientation_to;
-    }
-
-    bool intersects(const Line& l) const {
-        return opposite_side(l) && l.opposite_side(*this);
-    }
-
-    bool avoids(const Line& l) const {
-        return same_side(l) || l.same_side(*this);
+        return Orientation::COLLINEAR;
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Line& line) {
-        return os << line.from_ << " -> " << line.to_;
+        return os << line.point_ << " @ " << line.direction_;
     }
 };

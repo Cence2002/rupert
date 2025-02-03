@@ -44,9 +44,9 @@ public:
         return std::make_pair(min(), max());
     }
 
-    template<IntervalType I>
-    I to_interval() const {
-        I interval = I::unit();
+    template<IntervalType Interval>
+    Interval to_interval() const {
+        Interval interval = Interval::unit();
         for(uint8_t i = 0; i < depth_; i++) {
             if(bits_ & (1ull << (depth_ - 1 - i))) {
                 interval = (interval - interval.max()) / 2 + interval.max();
@@ -64,37 +64,37 @@ public:
 
 struct Box2 {
 private:
-    Id theta_id_;
     Id phi_id_;
+    Id theta_id_;
 
 public:
-    explicit Box2() : theta_id_(), phi_id_() {}
+    explicit Box2() : phi_id_(), theta_id_() {}
 
-    explicit Box2(const Id& theta_id, const Id& phi_id) : theta_id_(theta_id), phi_id_(phi_id) {}
+    explicit Box2(const Id& phi_id, const Id& theta_id) : phi_id_(phi_id), theta_id_(theta_id) {}
 
     std::array<Box2, 4> split() const {
-        const auto [theta_id_min, theta_id_max] = theta_id_.split();
         const auto [phi_id_min, phi_id_max] = phi_id_.split();
+        const auto [theta_id_min, theta_id_max] = theta_id_.split();
         return std::array<Box2, 4>{
-                    Box2(theta_id_min, phi_id_min),
-                    Box2(theta_id_min, phi_id_max),
-                    Box2(theta_id_max, phi_id_min),
-                    Box2(theta_id_max, phi_id_max)
-                };
+                Box2(phi_id_min, theta_id_min),
+                Box2(phi_id_min, theta_id_max),
+                Box2(phi_id_max, theta_id_min),
+                Box2(phi_id_max, theta_id_max)
+            };
     }
 
     double size() const {
-        return theta_id_.len() * phi_id_.len();
+        return phi_id_.len() * theta_id_.len();
     }
 
-    template<IntervalType I>
-    I theta() const {
-        return theta_id_.to_interval<I>();
+    template<IntervalType Interval>
+    Interval phi() const {
+        return phi_id_.to_interval<Interval>();
     }
 
-    template<IntervalType I>
-    I phi() const {
-        return phi_id_.to_interval<I>();
+    template<IntervalType Interval>
+    Interval theta() const {
+        return theta_id_.to_interval<Interval>();
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Box2& box2) {
@@ -104,48 +104,48 @@ public:
 
 struct Box3 {
 private:
-    Id theta_id_;
     Id phi_id_;
+    Id theta_id_;
     Id alpha_id_;
 
 public:
-    explicit Box3() : theta_id_(), phi_id_(), alpha_id_() {}
+    explicit Box3() : phi_id_(), theta_id_(), alpha_id_() {}
 
-    explicit Box3(const Id& theta_id, const Id& phi_id, const Id& alpha_id) : theta_id_(theta_id), phi_id_(phi_id), alpha_id_(alpha_id) {}
+    explicit Box3(const Id& phi_id, const Id& theta_id, const Id& alpha_id) : phi_id_(phi_id), theta_id_(theta_id), alpha_id_(alpha_id) {}
 
     std::array<Box3, 8> split() const {
-        const auto [theta_id_min, theta_id_max] = theta_id_.split();
         const auto [phi_id_min, phi_id_max] = phi_id_.split();
+        const auto [theta_id_min, theta_id_max] = theta_id_.split();
         const auto [alpha_id_min, alpha_id_max] = alpha_id_.split();
         return std::array<Box3, 8>{
-                    Box3(theta_id_min, phi_id_min, alpha_id_min),
-                    Box3(theta_id_min, phi_id_min, alpha_id_max),
-                    Box3(theta_id_min, phi_id_max, alpha_id_min),
-                    Box3(theta_id_min, phi_id_max, alpha_id_max),
-                    Box3(theta_id_max, phi_id_min, alpha_id_min),
-                    Box3(theta_id_max, phi_id_min, alpha_id_max),
-                    Box3(theta_id_max, phi_id_max, alpha_id_min),
-                    Box3(theta_id_max, phi_id_max, alpha_id_max)
-                };
+                Box3(phi_id_min, theta_id_min, alpha_id_min),
+                Box3(phi_id_min, theta_id_min, alpha_id_max),
+                Box3(phi_id_min, theta_id_max, alpha_id_min),
+                Box3(phi_id_min, theta_id_max, alpha_id_max),
+                Box3(phi_id_max, theta_id_min, alpha_id_min),
+                Box3(phi_id_max, theta_id_min, alpha_id_max),
+                Box3(phi_id_max, theta_id_max, alpha_id_min),
+                Box3(phi_id_max, theta_id_max, alpha_id_max)
+            };
     }
 
     double size() const {
-        return theta_id_.len() * phi_id_.len() * alpha_id_.len();
+        return phi_id_.len() * theta_id_.len() * alpha_id_.len();
     }
 
-    template<IntervalType I>
-    I theta() const {
-        return theta_id_.to_interval<I>();
+    template<IntervalType Interval>
+    Interval phi() const {
+        return phi_id_.to_interval<Interval>();
     }
 
-    template<IntervalType I>
-    I phi() const {
-        return phi_id_.to_interval<I>();
+    template<IntervalType Interval>
+    Interval theta() const {
+        return theta_id_.to_interval<Interval>();
     }
 
-    template<IntervalType I>
-    I alpha() const {
-        return alpha_id_.to_interval<I>();
+    template<IntervalType Interval>
+    Interval alpha() const {
+        return alpha_id_.to_interval<Interval>();
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Box3& box3) {
@@ -187,11 +187,7 @@ private:
 
 public:
     explicit Queue3() {
-        push(Box3(
-            Id(0b101u, 3),
-            Id(0b101u, 3),
-            Id(0b101u, 3)
-        ));
+        push(Box3());
     }
 
     void push(const Box3& box) {

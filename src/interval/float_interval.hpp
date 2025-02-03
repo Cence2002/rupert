@@ -341,7 +341,7 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const FloatInterval& interval) {
         switch(print_mode) {
             case IntervalPrintMode::MIN_AND_MAX: {
-                return os << "[" << interval.min().value() << " | " << interval.max().value() << "]";
+                return os << "[" << interval.min().value() << " : " << interval.max().value() << "]";
             }
             case IntervalPrintMode::MID_AND_RAD: {
                 return os << "[" << interval.mid().value() << " ~ " << interval.rad().value() << "]";

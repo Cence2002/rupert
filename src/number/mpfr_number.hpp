@@ -23,9 +23,10 @@ public:
         mpfr_init(value_);
     }
 
-    explicit MpfrNumber(const int value) {
+    template<IntegerType Integer>
+    explicit MpfrNumber(const Integer integer) {
         mpfr_init(value_);
-        mpfr_set_si(value_, value, MPFR_RNDN);
+        mpfr_set_si(value_, integer, MPFR_RNDN);
     }
 
     ~MpfrNumber() {
@@ -68,6 +69,14 @@ public:
 
     const mpfr_t& value() const {
         return value_;
+    }
+
+    bool operator>(const MpfrNumber& number) const {
+        return mpfr_cmp(value_, number.value_) > 0;
+    }
+
+    bool operator<(const MpfrNumber& number) const {
+        return mpfr_cmp(value_, number.value_) < 0;
     }
 
     static void set_print_precision(const int print_precision) {

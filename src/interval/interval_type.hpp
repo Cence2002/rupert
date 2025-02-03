@@ -3,9 +3,6 @@
 #include "number/number.hpp"
 #include <iostream>
 
-template<typename Integer>
-concept IntegerType = std::is_integral_v<Integer>;
-
 enum class IntervalPrintMode {
     MIN_AND_MAX,
     MID_AND_RAD,
@@ -14,7 +11,7 @@ enum class IntervalPrintMode {
 template<typename Interval>
 concept IntervalType =
     requires {
-        typename Interval::Number;
+        requires NumberType<typename Interval::Number>;
     } &&
 
     std::is_default_constructible_v<Interval> &&

@@ -2,6 +2,9 @@
 
 #include <iostream>
 
+template<typename Integer>
+concept IntegerType = std::is_integral_v<Integer>;
+
 template<typename Number>
 concept NumberType =
     requires {
@@ -23,6 +26,11 @@ concept NumberType =
 
     requires(const Number number) {
         { number.value() } -> std::same_as<typename Number::Value const&>;
+    } &&
+
+    requires(const Number number, const Number other_number) {
+        { number > other_number } -> std::same_as<bool>;
+        { number < other_number } -> std::same_as<bool>;
     } &&
 
     requires(const int print_precision) {

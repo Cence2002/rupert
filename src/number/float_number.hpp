@@ -15,7 +15,8 @@ public:
 
     explicit FloatNumber() : value_(std::numeric_limits<double>::quiet_NaN()) {}
 
-    explicit FloatNumber(const int value) : value_(static_cast<double>(value)) {}
+    template<IntegerType Integer>
+    explicit FloatNumber(const Integer integer) : value_(static_cast<double>(integer)) {}
 
     ~FloatNumber() = default;
 
@@ -33,6 +34,14 @@ public:
 
     const double& value() const {
         return value_;
+    }
+
+    bool operator>(const FloatNumber& number) const {
+        return value_ > number.value_;
+    }
+
+    bool operator<(const FloatNumber& number) const {
+        return value_ < number.value_;
     }
 
     static void set_print_precision(const int print_precision) {

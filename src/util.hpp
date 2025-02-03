@@ -28,6 +28,3 @@ inline std::chrono::duration<long>::rep elapsed_milliseconds(const std::chrono::
 inline std::chrono::duration<long>::rep elapsed_seconds(const std::chrono::time_point<std::chrono::high_resolution_clock>& start) {
     return std::chrono::duration_cast<std::chrono::seconds>(current_time() - start).count();
 }
-
-template<typename Int>
-concept IntegerType = std::is_integral_v<Int>;
