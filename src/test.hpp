@@ -1,10 +1,8 @@
 #pragma once
 
 #include "util.hpp"
-#include "interval.hpp"
-#include "vector.hpp"
+#include "geometry/geometry.hpp"
 #include "cover.hpp"
-#include "polyhedron.hpp"
 #include <random>
 
 struct RandomNumberGenerator {

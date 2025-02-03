@@ -3,7 +3,7 @@
 #include <bitset>
 #include <boost/dynamic_bitset.hpp>
 #include <queue>
-#include "interval.hpp"
+#include "interval/interval.hpp"
 
 struct Id {
 private:

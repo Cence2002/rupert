@@ -71,7 +71,13 @@ find_library(MPFR_LIB mpfr REQUIRED)
 find_library(MPFI_LIB mpfi REQUIRED)
 
 
-include_directories(src)
+include_directories(
+        src
+        str/number
+        src/interval
+        src/geometry
+)
+
 add_executable(rupert main.cpp)
 
 
