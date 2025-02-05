@@ -17,6 +17,8 @@ private:
     }
 
 public:
+    static inline const std::string name = "MpfrNumber";
+
     using Value = mpfr_t;
 
     explicit MpfrNumber() {
@@ -71,12 +73,54 @@ public:
         return value_;
     }
 
+    double float_value() const {
+        return mpfr_get_d(value_, MPFR_RNDN);
+    }
+
     bool operator>(const MpfrNumber& number) const {
         return mpfr_cmp(value_, number.value_) > 0;
     }
 
+    template<IntegerType Integer>
+    bool operator>(const Integer integer) const {
+        return mpfr_cmp_si(value_, integer) > 0;
+    }
+
+    template<IntegerType Integer>
+    friend bool operator>(const Integer integer, const MpfrNumber& number) {
+        return mpfr_cmp_si(number.value_, integer) < 0;
+    }
+
     bool operator<(const MpfrNumber& number) const {
         return mpfr_cmp(value_, number.value_) < 0;
+    }
+
+    template<IntegerType Integer>
+    bool operator<(const Integer integer) const {
+        return mpfr_cmp_si(value_, integer) < 0;
+    }
+
+    template<IntegerType Integer>
+    friend bool operator<(const Integer integer, const MpfrNumber& number) {
+        return mpfr_cmp_si(number.value_, integer) > 0;
+    }
+
+    bool is_pos() const {
+        return mpfr_sgn(value_) > 0;
+    }
+
+    bool is_neg() const {
+        return mpfr_sgn(value_) < 0;
+    }
+
+    bool is_nan() const {
+        return mpfr_nan_p(value_);
+    }
+
+    static MpfrNumber nan() {
+        MpfrNumber number;
+        mpfr_set_nan(number.value_);
+        return number;
     }
 
     static void set_print_precision(const int print_precision) {

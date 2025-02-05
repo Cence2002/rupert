@@ -22,10 +22,25 @@ private:
     }
 
 public:
+    static inline const std::string name = "MpfiInterval";
+
     using Number = MpfrNumber;
 
     explicit MpfiInterval() {
         mpfi_init(interval_);
+    }
+
+    explicit MpfiInterval(const Number& number) {
+        mpfi_init(interval_);
+        assert_same_precision(number);
+        mpfi_set_fr(interval_, number.value());
+    }
+
+    explicit MpfiInterval(const Number& min, const Number& max) {
+        mpfi_init(interval_);
+        assert_same_precision(min);
+        assert_same_precision(max);
+        mpfi_interv_fr(interval_, min.value(), max.value());
     }
 
     template<IntegerType Integer>
@@ -41,19 +56,6 @@ public:
         assert_same_precision(min);
         assert_same_precision(max);
         mpfi_interv_si(interval_, min, max);
-    }
-
-    explicit MpfiInterval(const Number& number) {
-        mpfi_init(interval_);
-        assert_same_precision(number);
-        mpfi_set_fr(interval_, number.value());
-    }
-
-    explicit MpfiInterval(const Number& min, const Number& max) {
-        mpfi_init(interval_);
-        assert_same_precision(min);
-        assert_same_precision(max);
-        mpfi_interv_fr(interval_, min.value(), max.value());
     }
 
     ~MpfiInterval() {
@@ -121,56 +123,90 @@ public:
         return rad;
     }
 
-    bool pos() const {
+    bool is_pos() const {
         return mpfi_is_strictly_pos(interval_);
     }
 
-    bool neg() const {
+    bool is_neg() const {
         return mpfi_is_strictly_neg(interval_);
     }
 
+    bool is_nan() const {
+        return mpfi_nan_p(interval_);
+    }
+
     bool operator>(const MpfiInterval& interval) const {
+        if(is_nan() || interval.is_nan()) {
+            return false;
+        }
         return mpfi_cmp(interval_, interval.interval_) > 0;
+    }
+
+    bool operator>(const Number& number) const {
+        if(is_nan() || number.is_nan()) {
+            return false;
+        }
+        return mpfi_cmp_fr(interval_, number.value()) > 0;
+    }
+
+    friend bool operator>(const Number& number, const MpfiInterval& interval) {
+        if(number.is_nan() || interval.is_nan()) {
+            return false;
+        }
+        return mpfi_cmp_fr(interval.interval_, number.value()) < 0;
     }
 
     template<IntegerType Integer>
     bool operator>(const Integer integer) const {
+        if(is_nan()) {
+            return false;
+        }
         return mpfi_cmp_si(interval_, integer) > 0;
     }
 
     template<IntegerType Integer>
     friend bool operator>(const Integer integer, const MpfiInterval& interval) {
+        if(interval.is_nan()) {
+            return false;
+        }
         return mpfi_cmp_si(interval.interval_, integer) < 0;
     }
 
-    bool operator>(const Number& number) const {
-        return mpfi_cmp_fr(interval_, number.value()) > 0;
-    }
-
-    friend bool operator>(const Number& number, const MpfiInterval& interval) {
-        return mpfi_cmp_fr(interval.interval_, number.value()) < 0;
-    }
-
     bool operator<(const MpfiInterval& interval) const {
+        if(is_nan() || interval.is_nan()) {
+            return false;
+        }
         return mpfi_cmp(interval_, interval.interval_) < 0;
+    }
+
+    bool operator<(const Number& number) const {
+        if(is_nan() || number.is_nan()) {
+            return false;
+        }
+        return mpfi_cmp_fr(interval_, number.value()) < 0;
+    }
+
+    friend bool operator<(const Number& number, const MpfiInterval& interval) {
+        if(number.is_nan() || interval.is_nan()) {
+            return false;
+        }
+        return mpfi_cmp_fr(interval.interval_, number.value()) > 0;
     }
 
     template<IntegerType Integer>
     bool operator<(const Integer integer) const {
+        if(is_nan()) {
+            return false;
+        }
         return mpfi_cmp_si(interval_, integer) < 0;
     }
 
     template<IntegerType Integer>
     friend bool operator<(const Integer integer, const MpfiInterval& interval) {
+        if(interval.is_nan()) {
+            return false;
+        }
         return mpfi_cmp_si(interval.interval_, integer) > 0;
-    }
-
-    bool operator<(const Number& number) const {
-        return mpfi_cmp_fr(interval_, number.value()) < 0;
-    }
-
-    friend bool operator<(const Number& number, const MpfiInterval& interval) {
-        return mpfi_cmp_fr(interval.interval_, number.value()) > 0;
     }
 
     MpfiInterval operator+() const {
@@ -191,6 +227,18 @@ public:
         return add;
     }
 
+    MpfiInterval operator+(const Number& number) const {
+        MpfiInterval add;
+        mpfi_add_fr(add.interval_, interval_, number.value());
+        return add;
+    }
+
+    friend MpfiInterval operator+(const Number& number, const MpfiInterval& interval) {
+        MpfiInterval add;
+        mpfi_add_fr(add.interval_, interval.interval_, number.value());
+        return add;
+    }
+
     template<IntegerType Integer>
     MpfiInterval operator+(const Integer integer) const {
         MpfiInterval add;
@@ -205,21 +253,27 @@ public:
         return add;
     }
 
-    MpfiInterval operator+(const Number& number) const {
-        MpfiInterval add;
-        mpfi_add_fr(add.interval_, interval_, number.value());
-        return add;
-    }
-
-    friend MpfiInterval operator+(const Number& number, const MpfiInterval& interval) {
-        MpfiInterval add;
-        mpfi_add_fr(add.interval_, interval.interval_, number.value());
-        return add;
-    }
-
     MpfiInterval operator-(const MpfiInterval& interval) const {
         MpfiInterval sub;
         mpfi_sub(sub.interval_, interval_, interval.interval_);
+        return sub;
+    }
+
+    MpfiInterval operator-(const Number& number) const {
+        if(number.is_nan()) {
+            return nan();
+        }
+        MpfiInterval sub;
+        mpfi_sub_fr(sub.interval_, interval_, number.value());
+        return sub;
+    }
+
+    friend MpfiInterval operator-(const Number& number, const MpfiInterval& interval) {
+        if(number.is_nan()) {
+            return nan();
+        }
+        MpfiInterval sub;
+        mpfi_fr_sub(sub.interval_, number.value(), interval.interval_);
         return sub;
     }
 
@@ -237,21 +291,21 @@ public:
         return sub;
     }
 
-    MpfiInterval operator-(const Number& number) const {
-        MpfiInterval sub;
-        mpfi_sub_fr(sub.interval_, interval_, number.value());
-        return sub;
-    }
-
-    friend MpfiInterval operator-(const Number& number, const MpfiInterval& interval) {
-        MpfiInterval sub;
-        mpfi_fr_sub(sub.interval_, number.value(), interval.interval_);
-        return sub;
-    }
-
     MpfiInterval operator*(const MpfiInterval& interval) const {
         MpfiInterval mul;
         mpfi_mul(mul.interval_, interval_, interval.interval_);
+        return mul;
+    }
+
+    MpfiInterval operator*(const Number& number) const {
+        MpfiInterval mul;
+        mpfi_mul_fr(mul.interval_, interval_, number.value());
+        return mul;
+    }
+
+    friend MpfiInterval operator*(const Number& number, const MpfiInterval& interval) {
+        MpfiInterval mul;
+        mpfi_mul_fr(mul.interval_, interval.interval_, number.value());
         return mul;
     }
 
@@ -269,26 +323,38 @@ public:
         return mul;
     }
 
-    MpfiInterval operator*(const Number& number) const {
-        MpfiInterval mul;
-        mpfi_mul_fr(mul.interval_, interval_, number.value());
-        return mul;
-    }
-
-    friend MpfiInterval operator*(const Number& number, const MpfiInterval& interval) {
-        MpfiInterval mul;
-        mpfi_mul_fr(mul.interval_, interval.interval_, number.value());
-        return mul;
-    }
-
     MpfiInterval operator/(const MpfiInterval& interval) const {
+        if(!interval.is_pos() && !interval.is_neg()) {
+            return nan();
+        }
         MpfiInterval div;
         mpfi_div(div.interval_, interval_, interval.interval_);
         return div;
     }
 
+    MpfiInterval operator/(const Number& number) const {
+        if(!number.is_pos() && !number.is_neg()) {
+            return nan();
+        }
+        MpfiInterval div;
+        mpfi_div_fr(div.interval_, interval_, number.value());
+        return div;
+    }
+
+    friend MpfiInterval operator/(const Number& number, const MpfiInterval& interval) {
+        if(!interval.is_pos() && !interval.is_neg()) {
+            return nan();
+        }
+        MpfiInterval div;
+        mpfi_fr_div(div.interval_, number.value(), interval.interval_);
+        return div;
+    }
+
     template<IntegerType Integer>
     MpfiInterval operator/(const Integer integer) const {
+        if(integer == 0) {
+            return nan();
+        }
         MpfiInterval div;
         mpfi_div_si(div.interval_, interval_, integer);
         return div;
@@ -296,24 +362,18 @@ public:
 
     template<IntegerType Integer>
     friend MpfiInterval operator/(const Integer integer, const MpfiInterval& interval) {
+        if(!interval.is_pos() && !interval.is_neg()) {
+            return nan();
+        }
         MpfiInterval div;
         mpfi_si_div(div.interval_, integer, interval.interval_);
         return div;
     }
 
-    MpfiInterval operator/(const Number& number) const {
-        MpfiInterval div;
-        mpfi_div_fr(div.interval_, interval_, number.value());
-        return div;
-    }
-
-    friend MpfiInterval operator/(const Number& number, const MpfiInterval& interval) {
-        MpfiInterval div;
-        mpfi_fr_div(div.interval_, number.value(), interval.interval_);
-        return div;
-    }
-
     MpfiInterval inv() const {
+        if(!is_pos() && !is_neg()) {
+            return nan();
+        }
         MpfiInterval inv;
         mpfi_inv(inv.interval_, interval_);
         return inv;
@@ -326,6 +386,9 @@ public:
     }
 
     MpfiInterval sqrt() const {
+        if(min() < 0) {
+            return nan();
+        }
         MpfiInterval sqrt;
         mpfi_sqrt(sqrt.interval_, interval_);
         return sqrt;
@@ -341,6 +404,10 @@ public:
         MpfiInterval sin;
         mpfi_sin(sin.interval_, interval_);
         return sin;
+    }
+
+    static MpfiInterval nan() {
+        return MpfiInterval();
     }
 
     static MpfiInterval unit() {

@@ -98,7 +98,7 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Box2& box2) {
-        return os << "T" << box2.theta_id_ << " P" << box2.phi_id_;
+        return os << "P" << box2.phi_id_ << " T" << box2.theta_id_;
     }
 };
 
@@ -149,16 +149,16 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Box3& box3) {
-        return os << "T" << box3.theta_id_ << " P" << box3.phi_id_ << " A" << box3.alpha_id_;
+        return os << "P" << box3.phi_id_ << " T" << box3.theta_id_ << " A" << box3.alpha_id_;
     }
 };
 
 struct Queue2 {
 private:
-    std::queue<Box2> queue{};
+    std::queue<Box2> queue;
 
 public:
-    explicit Queue2() {
+    explicit Queue2() : queue() {
         push(Box2());
     }
 
@@ -182,11 +182,11 @@ public:
 
 struct Queue3 {
 private:
-    std::queue<Box3> queue{};
-    std::mutex mutex{};
+    std::queue<Box3> queue;
+    std::mutex mutex;
 
 public:
-    explicit Queue3() {
+    explicit Queue3() : queue(), mutex() {
         push(Box3());
     }
 

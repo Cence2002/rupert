@@ -19,10 +19,10 @@ public:
 
     Orientation orientation(const Vector2<Interval>& vector2) const {
         const Interval cross = direction_.cross(vector2 - point_);
-        if(cross.pos()) {
+        if(cross.is_pos()) {
             return Orientation::COUNTERCLOCKWISE;
         }
-        if(cross.neg()) {
+        if(cross.is_neg()) {
             return Orientation::CLOCKWISE;
         }
         return Orientation::COLLINEAR;

@@ -11,14 +11,16 @@ enum class IntervalPrintMode {
 template<typename Interval>
 concept IntervalType =
     requires {
+        { Interval::name } -> std::convertible_to<std::string>;
+
         requires NumberType<typename Interval::Number>;
     } &&
 
     std::is_default_constructible_v<Interval> &&
-    std::is_constructible_v<Interval, int> &&
-    std::is_constructible_v<Interval, int, int> &&
     std::is_constructible_v<Interval, typename Interval::Number> &&
     std::is_constructible_v<Interval, typename Interval::Number, typename Interval::Number> &&
+    std::is_constructible_v<Interval, int> &&
+    std::is_constructible_v<Interval, int, int> &&
 
     std::is_destructible_v<Interval> &&
     std::is_copy_constructible_v<Interval> &&
@@ -33,47 +35,48 @@ concept IntervalType =
         { interval.len() } -> std::same_as<typename Interval::Number>;
         { interval.rad() } -> std::same_as<typename Interval::Number>;
 
-        { interval.pos() } -> std::same_as<bool>;
-        { interval.neg() } -> std::same_as<bool>;
+        { interval.is_pos() } -> std::same_as<bool>;
+        { interval.is_neg() } -> std::same_as<bool>;
+        { interval.is_nan() } -> std::same_as<bool>;
 
         { interval > other_interval } -> std::same_as<bool>;
-        { interval > integer } -> std::same_as<bool>;
-        { integer > interval } -> std::same_as<bool>;
         { interval > number } -> std::same_as<bool>;
         { number > interval } -> std::same_as<bool>;
+        { interval > integer } -> std::same_as<bool>;
+        { integer > interval } -> std::same_as<bool>;
 
         { interval < other_interval } -> std::same_as<bool>;
-        { interval < integer } -> std::same_as<bool>;
-        { integer < interval } -> std::same_as<bool>;
         { interval < number } -> std::same_as<bool>;
         { number < interval } -> std::same_as<bool>;
+        { interval < integer } -> std::same_as<bool>;
+        { integer < interval } -> std::same_as<bool>;
 
         { +interval } -> std::same_as<Interval>;
         { -interval } -> std::same_as<Interval>;
 
         { interval + other_interval } -> std::same_as<Interval>;
-        { interval + integer } -> std::same_as<Interval>;
-        { integer + interval } -> std::same_as<Interval>;
         { interval + number } -> std::same_as<Interval>;
         { number + interval } -> std::same_as<Interval>;
+        { interval + integer } -> std::same_as<Interval>;
+        { integer + interval } -> std::same_as<Interval>;
 
         { interval - other_interval } -> std::same_as<Interval>;
-        { interval - integer } -> std::same_as<Interval>;
-        { integer - interval } -> std::same_as<Interval>;
         { interval - number } -> std::same_as<Interval>;
         { number - interval } -> std::same_as<Interval>;
+        { interval - integer } -> std::same_as<Interval>;
+        { integer - interval } -> std::same_as<Interval>;
 
         { interval * other_interval } -> std::same_as<Interval>;
-        { interval * integer } -> std::same_as<Interval>;
-        { integer * interval } -> std::same_as<Interval>;
         { interval * number } -> std::same_as<Interval>;
         { number * interval } -> std::same_as<Interval>;
+        { interval * integer } -> std::same_as<Interval>;
+        { integer * interval } -> std::same_as<Interval>;
 
         { interval / other_interval } -> std::same_as<Interval>;
-        { interval / integer } -> std::same_as<Interval>;
-        { integer / interval } -> std::same_as<Interval>;
         { interval / number } -> std::same_as<Interval>;
         { number / interval } -> std::same_as<Interval>;
+        { interval / integer } -> std::same_as<Interval>;
+        { integer / interval } -> std::same_as<Interval>;
 
         { interval.inv() } -> std::same_as<Interval>;
         { interval.sqr() } -> std::same_as<Interval>;
@@ -82,6 +85,7 @@ concept IntervalType =
         { interval.cos() } -> std::same_as<Interval>;
         { interval.sin() } -> std::same_as<Interval>;
 
+        { Interval::nan() } -> std::same_as<Interval>;
         { Interval::unit() } -> std::same_as<Interval>;
         { Interval::pi() } -> std::same_as<Interval>;
     } &&
