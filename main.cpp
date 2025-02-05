@@ -87,9 +87,9 @@ void step(Queue3& queue3, const Polyhedron<Interval>& plug, const Polyhedron<Int
         }
     }
     if(is_terminal) {
-        print("Terminal Box:", box3);
+        print("Terminal Box: ", box3);
     } else {
-        print("Nonterminal Box:", box3);
+        print("Nonterminal Box: ", box3);
     }
 }
 
