@@ -80,18 +80,30 @@
     loadData();
 
 
+    import {PaneGroup, Pane, PaneResizer} from "paneforge";
 </script>
 
-<div style="display: grid; grid-template-columns: 1fr 1fr; height: 100%; width: 100%;">
-    <div style="padding: 32px; background-color: #00ffff; overflow: hidden">
-        <ThreeEmbed
-                onInit={setup}
-                onResize={resize}
-                onDestroy={() => renderer?.dispose()}
-                onTick={draw}/>
-    </div>
-    <div id="duck-image"></div>
-</div>
+
+<PaneGroup class="h-full w-full">
+    <Pane defaultSize={50}>
+        <div style="padding: 1px; background-color: #00ff00; height: 100%; box-sizing: border-box;">
+            <ThreeEmbed
+                    onInit={setup}
+                    onResize={resize}
+                    onDestroy={() => renderer?.dispose()}
+                    onTick={draw}/>
+        </div>
+    </Pane>
+    <PaneResizer>
+        <div style="width: 5px; background-color: #666666; height: 100%; box-sizing: border-box; cursor: col-resize;"></div>
+    </PaneResizer>
+    <Pane defaultSize={50}>
+        <div style="padding: 1px; background-color: #00ff00; height: 100%; box-sizing: border-box;">
+            <div id="duck-image" style="height: 100%"></div>
+        </div>
+    </Pane>
+</PaneGroup>
+
 
 <style>
     #duck-image {
