@@ -77,7 +77,7 @@ include_directories(
         src/interval
         src/vector
         src/geometry
-        src/data
+        src/flatbuffers
 )
 
 add_executable(rupert main.cpp)

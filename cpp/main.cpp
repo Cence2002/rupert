@@ -4,7 +4,7 @@
 #include <thread>
 
 #include "flatbuffers/flatbuffers.h"
-#include "src/data/data_generated.h"
+#include "src/flatbuffers/flatbuffers_generated.h"
 #include <fstream>
 
 template<IntervalType Interval>
@@ -159,11 +159,11 @@ void generate_example_data() {
 
     builder.Finish(data);
 
-    std::ofstream file("../data/test.bin", std::ios::binary);
+    std::ofstream file("../../web/static/test.bin", std::ios::binary);
     file.write(reinterpret_cast<const char*>(builder.GetBufferPointer()), builder.GetSize());
     file.close();
 
-    print("FlatBuffer saved to 'tetrahedron.bin'");
+    print("FlatBuffer saved");
 }
 
 int main() {
