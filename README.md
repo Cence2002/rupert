@@ -13,18 +13,6 @@ sudo apt install flatbuffers-compiler
 sudo apt install libflatbuffers-dev
 ```
 
-## Build and Run
-
-```bash
-./build_and_run.sh
-```
-Or separately (e.g. for building once and running multiple times):
-```bash
-./build.sh
-./run.sh
-```
-
-## Utils
 
 ### Line Count
 
