@@ -46,7 +46,7 @@
     console.log("ThreeEmbed example loaded");
 
     import * as flatbuffers from 'flatbuffers';
-    import {Data} from '$lib/data/data_generated';
+    import {Data} from '$lib/flatbuffers/flatbuffers_generated';
 
     function loadFlatBuffer(buffer: Uint8Array) {
         const byteBuffer = new flatbuffers.ByteBuffer(buffer);
