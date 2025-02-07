@@ -17,5 +17,5 @@ sudo apt install libflatbuffers-dev
 ### Line Count
 
 ```bash
-cloc . --exclude-dir=build,.idea
+cloc . --exclude-dir=.idea,build,node_modules,.svelte-kit,package-lock.json
 ```
