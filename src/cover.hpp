@@ -58,7 +58,7 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Id& id) {
-        return os << "<" << std::bitset<64>(id.bits_).to_string().substr(64u - id.depth_) << ">";
+        return os << "<" << std::bitset<64>(id.bits_).to_string().substr(64 - id.depth_) << ">";
     }
 };
 

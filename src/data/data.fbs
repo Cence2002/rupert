@@ -1,0 +1,66 @@
+namespace FlatBuffers;
+
+struct Vector2 {
+  x: double;
+  y: double;
+}
+
+struct Vector3 {
+  x: double;
+  y: double;
+  z: double;
+}
+
+struct Line {
+  point: Vector2;
+  direction: Vector2;
+}
+
+table Polygon {
+  lines: [Line];
+}
+
+table Polyhedron {
+  vertices: [Vector3];
+}
+
+struct Interval {
+  min: double;
+  max: double;
+}
+
+struct Id {
+  bits: ulong;
+  depth: ubyte;
+}
+
+struct IdInterval {
+  id: Id;
+  interval: Interval;
+}
+
+struct Box2 {
+  phi: IdInterval;
+  theta: IdInterval;
+}
+
+struct Box3 {
+  phi: IdInterval;
+  theta: IdInterval;
+  alpha: IdInterval;
+}
+
+table Cover {
+  full: bool;
+  box3: Box3;
+  box2s: [Box2];
+}
+
+table Data {
+  description: string;
+  hole: Polyhedron;
+  plug: Polyhedron;
+  covers: [Cover];
+}
+
+root_type Data;

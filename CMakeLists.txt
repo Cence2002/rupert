@@ -11,7 +11,7 @@ add_compile_options(
         -Wall                              # Enable all common warnings
         -Wextra                            # Enable extra warnings
         -Wpedantic                         # Enforce strict ISO C++
-        -Werror                            # Treat warnings as errors
+#        -Werror                            # Treat warnings as errors # TODO: Uncomment this line when I figure out how to ignore the flatbuffers header warnings
         -Weffc++                           # Warnings for violations of Effective C++ guidelines
         -Wconversion                       # Warn about implicit conversions
         -Wsign-conversion                  # Warn about sign conversions
@@ -77,9 +77,11 @@ include_directories(
         src/interval
         src/vector
         src/geometry
+        src/data
 )
 
 add_executable(rupert main.cpp)
 
 
-target_link_libraries(rupert PRIVATE ${OpenCV_LIBS} ${GMP_LIB} ${GMPXX_LIB} ${MPFR_LIB} ${MPFI_LIB})
+#target_link_libraries(rupert PRIVATE ${OpenCV_LIBS} ${GMP_LIB} ${GMPXX_LIB} ${MPFR_LIB} ${MPFI_LIB})
+target_link_libraries(rupert PRIVATE ${OpenCV_LIBS} ${GMP_LIB} ${GMPXX_LIB} ${MPFR_LIB} ${MPFI_LIB} /usr/lib/x86_64-linux-gnu/libflatbuffers.a)

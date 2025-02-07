@@ -3,6 +3,10 @@
 #include "test.hpp"
 #include <thread>
 
+#include "flatbuffers/flatbuffers.h"
+#include "src/data/data_generated.h"
+#include <fstream>
+
 template<IntervalType Interval>
 bool is_box2_terminal(const Box2& box2, const Polyhedron<Interval>& plug, const Polygon<Interval>& hole) {
     return std::ranges::any_of(plug.vertices(), [&](const Vector3<Interval>& plug_vertex) {
@@ -116,8 +120,55 @@ void solve(const int num_threads = 10, const int iterations = 10000, const int r
     mpfr_free_cache();
 }
 
+void generate_example_data() {
+    flatbuffers::FlatBufferBuilder builder(1024);
+
+    std::vector<FlatBuffers::Vector3> tetrahedron_vertices = {
+            {0.0, 0.0, 0.0},
+            {1.0, 0.0, 0.0},
+            {0.5, 1.0, 0.0},
+            {0.5, 0.5, 1.0}
+        };
+
+    auto plug_vertices = builder.CreateVectorOfStructs(tetrahedron_vertices);
+    auto hole_vertices = builder.CreateVectorOfStructs(tetrahedron_vertices); // Copy for example
+
+    auto plug = CreatePolyhedron(builder, plug_vertices);
+    auto hole = CreatePolyhedron(builder, hole_vertices);
+
+    FlatBuffers::Box3 box3(
+        FlatBuffers::IdInterval(FlatBuffers::Id(1, 5), FlatBuffers::Interval(0.0, 1.0)),
+        FlatBuffers::IdInterval(FlatBuffers::Id(2, 6), FlatBuffers::Interval(1.0, 2.0)),
+        FlatBuffers::IdInterval(FlatBuffers::Id(3, 7), FlatBuffers::Interval(2.0, 3.0))
+    );
+
+    std::vector<FlatBuffers::Box2> box2_list = {
+            FlatBuffers::Box2(FlatBuffers::IdInterval(FlatBuffers::Id(4, 8), FlatBuffers::Interval(3.0, 4.0)),
+                              FlatBuffers::IdInterval(FlatBuffers::Id(5, 9), FlatBuffers::Interval(4.0, 5.0)))
+        };
+
+    auto box2_vector = builder.CreateVectorOfStructs(box2_list);
+
+    auto cover = CreateCover(builder, false, &box3, box2_vector);
+
+    auto covers = builder.CreateVector(&cover, 1);
+
+    auto description = builder.CreateString("Tetrahedron Example");
+
+    auto data = CreateData(builder, description, hole, plug, covers);
+
+    builder.Finish(data);
+
+    std::ofstream file("../data/test.bin", std::ios::binary);
+    file.write(reinterpret_cast<const char*>(builder.GetBufferPointer()), builder.GetSize());
+    file.close();
+
+    print("FlatBuffer saved to 'tetrahedron.bin'");
+}
+
 int main() {
     tests();
-    solve<FloatInterval>(10, 2, 2);
+    // solve<FloatInterval>(10, 2, 2);
+    generate_example_data();
     return 0;
 }
