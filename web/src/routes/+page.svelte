@@ -81,12 +81,39 @@
 
 
     import {PaneGroup, Pane, PaneResizer} from "paneforge";
+
+    //print width and height of the window
+    console.log(window.innerWidth, window.innerHeight);
 </script>
 
 
-<PaneGroup class="h-full w-full">
-    <Pane defaultSize={50}>
-        <div style="padding: 1px; background-color: #00ff00; height: 100%; box-sizing: border-box;">
+<PaneGroup class="h-full w-full" direction="horizontal">
+    <Pane defaultSize={2}>
+        <PaneGroup class="h-full w-full" direction="vertical">
+            <Pane defaultSize={1}>
+                <div id="pane">
+                    <div id="duck-image"></div>
+                </div>
+            </Pane>
+
+            <PaneResizer>
+                <div id="vertical-resizer" style="height: 10px; width: 100%;"></div>
+            </PaneResizer>
+
+            <Pane defaultSize={1}>
+                <div id="pane">
+                    <div id="duck-image"></div>
+                </div>
+            </Pane>
+        </PaneGroup>
+    </Pane>
+
+    <PaneResizer>
+        <div id="horizontal-resizer" style="width: 10px; height: 100%;"></div>
+    </PaneResizer>
+
+    <Pane defaultSize={3}>
+        <div id="pane">
             <ThreeEmbed
                     onInit={setup}
                     onResize={resize}
@@ -94,21 +121,43 @@
                     onTick={draw}/>
         </div>
     </Pane>
+
     <PaneResizer>
-        <div style="width: 5px; background-color: #666666; height: 100%; box-sizing: border-box; cursor: col-resize;"></div>
+        <div id="horizontal-resizer" style="width: 10px; height: 100%;"></div>
     </PaneResizer>
-    <Pane defaultSize={50}>
-        <div style="padding: 1px; background-color: #00ff00; height: 100%; box-sizing: border-box;">
-            <div id="duck-image" style="height: 100%"></div>
+
+    <Pane defaultSize={3}>
+        <div id="pane">
+            <div id="duck-image"></div>
         </div>
     </Pane>
 </PaneGroup>
 
 
 <style>
+    #pane {
+        padding: 2px;
+        background-color: #00ff00;
+        height: 100%;
+        box-sizing: border-box;
+    }
+
+    #horizontal-resizer {
+        background-color: #666666;
+        cursor: col-resize;
+        box-sizing: border-box;
+    }
+
+    #vertical-resizer {
+        background-color: #666666;
+        cursor: row-resize;
+        box-sizing: border-box;
+    }
+
     #duck-image {
         background-image: url(./duck.webp);
         background-size: cover;
-        background-position: center
+        background-position: center;
+        height: 100%;
     }
 </style>
