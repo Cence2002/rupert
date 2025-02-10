@@ -26,6 +26,7 @@
     "vitest": "^3.0.0"
   },
   "dependencies": {
+    "@sveltejs/adapter-static": "^3.0.8",
     "flatbuffers": "^25.1.24",
     "lucide-svelte": "^0.475.0",
     "paneforge": "^0.0.6",
