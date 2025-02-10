@@ -44,7 +44,7 @@
         const cubeFrame = new LineSegments(edges, edgeMaterial);
         scene.add(cubeFrame);
 
-        camera.position.set(1.5,1.5,3);
+        camera.position.set(1.5, 1.5, 3);
 
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableRotate = true;

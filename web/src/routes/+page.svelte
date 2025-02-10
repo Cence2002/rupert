@@ -1,12 +1,17 @@
 <script lang="ts">
     import {PaneGroup, Pane, PaneResizer} from "paneforge";
 
-    import Parameter3d from "$lib/Parameter3d.svelte";
-    import Parameter2d from "$lib/Parameter2d.svelte";
+    import Parameter3 from "$lib/Parameter3.svelte";
+    import Parameter2 from "$lib/Parameter2.svelte";
 
-    import {loadData} from "$lib/loadData";
 
-    loadData("/test.bin").then(data => console.log(data.description()));
+    import {onMount} from 'svelte';
+    import {loadData} from "$lib/loader";
+
+    onMount(async () => {
+        let data = await loadData("/test.bin");
+        console.log(data);
+    });
 </script>
 
 
@@ -15,7 +20,7 @@
         <PaneGroup class="h-full w-full" direction="vertical">
             <Pane defaultSize={1}>
                 <div id="pane">
-                    <Parameter3d/>
+                    <Parameter3/>
                 </div>
             </Pane>
 
@@ -25,7 +30,7 @@
 
             <Pane defaultSize={1}>
                 <div id="pane">
-                    <Parameter2d/>
+                    <Parameter2/>
                 </div>
             </Pane>
         </PaneGroup>
@@ -37,7 +42,7 @@
 
     <Pane defaultSize={3}>
         <div id="pane">
-            <Parameter3d/>
+            <Parameter3/>
         </div>
     </Pane>
 
@@ -47,7 +52,7 @@
 
     <Pane defaultSize={3}>
         <div id="pane">
-            <Parameter2d/>
+            <Parameter2/>
         </div>
     </Pane>
 </PaneGroup>

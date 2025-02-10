@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {onMount} from "svelte";
+    import {onMount, onDestroy} from "svelte";
     import {watchResize} from "svelte-watch-resize";
 
     export let setup: (width: number, height: number) => HTMLCanvasElement;
@@ -7,9 +7,10 @@
     export let resize: (width: number, height: number) => void;
 
     let container: HTMLDivElement;
+    let canvas: HTMLCanvasElement;
 
     onMount(() => {
-        const canvas = setup(container.clientWidth, container.clientHeight);
+        canvas = setup(container.clientWidth, container.clientHeight);
         container.appendChild(canvas);
 
         function animate() {
@@ -23,6 +24,10 @@
     function updateContainerSize() {
         resize(container.clientWidth, container.clientHeight);
     }
+
+    onDestroy(() => {
+        container.removeChild(canvas);
+    });
 </script>
 
 <div style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;"
