@@ -3,6 +3,8 @@
 import * as flatbuffers from 'flatbuffers';
 
 import { IdInterval } from '../flat-buffers/id-interval';
+import { Polygon } from '../flat-buffers/polygon';
+import { Projection } from '../flat-buffers/projection';
 
 
 export class Box3 {
@@ -14,49 +16,84 @@ export class Box3 {
   return this;
 }
 
+static getRootAsBox3(bb:flatbuffers.ByteBuffer, obj?:Box3):Box3 {
+  return (obj || new Box3()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+static getSizePrefixedRootAsBox3(bb:flatbuffers.ByteBuffer, obj?:Box3):Box3 {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new Box3()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
 phi(obj?:IdInterval):IdInterval|null {
-  return (obj || new IdInterval()).__init(this.bb_pos, this.bb!);
+  const offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? (obj || new IdInterval()).__init(this.bb_pos + offset, this.bb!) : null;
 }
 
 theta(obj?:IdInterval):IdInterval|null {
-  return (obj || new IdInterval()).__init(this.bb_pos + 32, this.bb!);
+  const offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? (obj || new IdInterval()).__init(this.bb_pos + offset, this.bb!) : null;
 }
 
 alpha(obj?:IdInterval):IdInterval|null {
-  return (obj || new IdInterval()).__init(this.bb_pos + 64, this.bb!);
+  const offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? (obj || new IdInterval()).__init(this.bb_pos + offset, this.bb!) : null;
 }
 
-static sizeOf():number {
-  return 96;
+projections(index: number, obj?:Projection):Projection|null {
+  const offset = this.bb!.__offset(this.bb_pos, 10);
+  return offset ? (obj || new Projection()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
 }
 
-static createBox3(builder:flatbuffers.Builder, phi_id_bits: bigint, phi_id_depth: number, phi_interval_min: number, phi_interval_max: number, theta_id_bits: bigint, theta_id_depth: number, theta_interval_min: number, theta_interval_max: number, alpha_id_bits: bigint, alpha_id_depth: number, alpha_interval_min: number, alpha_interval_max: number):flatbuffers.Offset {
-  builder.prep(8, 96);
-  builder.prep(8, 32);
-  builder.prep(8, 16);
-  builder.writeFloat64(alpha_interval_max);
-  builder.writeFloat64(alpha_interval_min);
-  builder.prep(8, 16);
-  builder.pad(7);
-  builder.writeInt8(alpha_id_depth);
-  builder.writeInt64(alpha_id_bits);
-  builder.prep(8, 32);
-  builder.prep(8, 16);
-  builder.writeFloat64(theta_interval_max);
-  builder.writeFloat64(theta_interval_min);
-  builder.prep(8, 16);
-  builder.pad(7);
-  builder.writeInt8(theta_id_depth);
-  builder.writeInt64(theta_id_bits);
-  builder.prep(8, 32);
-  builder.prep(8, 16);
-  builder.writeFloat64(phi_interval_max);
-  builder.writeFloat64(phi_interval_min);
-  builder.prep(8, 16);
-  builder.pad(7);
-  builder.writeInt8(phi_id_depth);
-  builder.writeInt64(phi_id_bits);
-  return builder.offset();
+projectionsLength():number {
+  const offset = this.bb!.__offset(this.bb_pos, 10);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+}
+
+projection(obj?:Polygon):Polygon|null {
+  const offset = this.bb!.__offset(this.bb_pos, 12);
+  return offset ? (obj || new Polygon()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+}
+
+static startBox3(builder:flatbuffers.Builder) {
+  builder.startObject(5);
+}
+
+static addPhi(builder:flatbuffers.Builder, phiOffset:flatbuffers.Offset) {
+  builder.addFieldStruct(0, phiOffset, 0);
+}
+
+static addTheta(builder:flatbuffers.Builder, thetaOffset:flatbuffers.Offset) {
+  builder.addFieldStruct(1, thetaOffset, 0);
+}
+
+static addAlpha(builder:flatbuffers.Builder, alphaOffset:flatbuffers.Offset) {
+  builder.addFieldStruct(2, alphaOffset, 0);
+}
+
+static addProjections(builder:flatbuffers.Builder, projectionsOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(3, projectionsOffset, 0);
+}
+
+static createProjectionsVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (let i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]!);
+  }
+  return builder.endVector();
+}
+
+static startProjectionsVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
+}
+
+static addProjection(builder:flatbuffers.Builder, projectionOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(4, projectionOffset, 0);
+}
+
+static endBox3(builder:flatbuffers.Builder):flatbuffers.Offset {
+  const offset = builder.endObject();
+  return offset;
 }
 
 }

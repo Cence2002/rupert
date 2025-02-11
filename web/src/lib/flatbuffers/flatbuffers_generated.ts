@@ -8,6 +8,8 @@ export { Id } from './flat-buffers/id';
 export { IdInterval } from './flat-buffers/id-interval';
 export { Interval } from './flat-buffers/interval';
 export { Line } from './flat-buffers/line';
+export { Polygon } from './flat-buffers/polygon';
 export { Polyhedron } from './flat-buffers/polyhedron';
+export { Projection } from './flat-buffers/projection';
 export { Vector2 } from './flat-buffers/vector2';
 export { Vector3 } from './flat-buffers/vector3';

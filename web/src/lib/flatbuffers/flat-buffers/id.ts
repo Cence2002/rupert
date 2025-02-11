@@ -11,23 +11,23 @@ export class Id {
   return this;
 }
 
-bits():bigint {
-  return this.bb!.readUint64(this.bb_pos);
+bits():number {
+  return this.bb!.readUint32(this.bb_pos);
 }
 
 depth():number {
-  return this.bb!.readUint8(this.bb_pos + 8);
+  return this.bb!.readUint8(this.bb_pos + 4);
 }
 
 static sizeOf():number {
-  return 16;
+  return 8;
 }
 
-static createId(builder:flatbuffers.Builder, bits: bigint, depth: number):flatbuffers.Offset {
-  builder.prep(8, 16);
-  builder.pad(7);
+static createId(builder:flatbuffers.Builder, bits: number, depth: number):flatbuffers.Offset {
+  builder.prep(4, 8);
+  builder.pad(3);
   builder.writeInt8(depth);
-  builder.writeInt64(bits);
+  builder.writeInt32(bits);
   return builder.offset();
 }
 

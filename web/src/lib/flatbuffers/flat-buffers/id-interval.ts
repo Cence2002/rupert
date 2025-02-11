@@ -20,22 +20,22 @@ id(obj?:Id):Id|null {
 }
 
 interval(obj?:Interval):Interval|null {
-  return (obj || new Interval()).__init(this.bb_pos + 16, this.bb!);
+  return (obj || new Interval()).__init(this.bb_pos + 8, this.bb!);
 }
 
 static sizeOf():number {
-  return 32;
+  return 24;
 }
 
-static createIdInterval(builder:flatbuffers.Builder, id_bits: bigint, id_depth: number, interval_min: number, interval_max: number):flatbuffers.Offset {
-  builder.prep(8, 32);
+static createIdInterval(builder:flatbuffers.Builder, id_bits: number, id_depth: number, interval_min: number, interval_max: number):flatbuffers.Offset {
+  builder.prep(8, 24);
   builder.prep(8, 16);
   builder.writeFloat64(interval_max);
   builder.writeFloat64(interval_min);
-  builder.prep(8, 16);
-  builder.pad(7);
+  builder.prep(4, 8);
+  builder.pad(3);
   builder.writeInt8(id_depth);
-  builder.writeInt64(id_bits);
+  builder.writeInt32(id_bits);
   return builder.offset();
 }
 

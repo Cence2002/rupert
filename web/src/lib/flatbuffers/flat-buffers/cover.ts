@@ -24,44 +24,83 @@ static getSizePrefixedRootAsCover(bb:flatbuffers.ByteBuffer, obj?:Cover):Cover {
   return (obj || new Cover()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-full():boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : false;
-}
-
 box3(obj?:Box3):Box3|null {
-  const offset = this.bb!.__offset(this.bb_pos, 6);
-  return offset ? (obj || new Box3()).__init(this.bb_pos + offset, this.bb!) : null;
+  const offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? (obj || new Box3()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 }
 
 box2s(index: number, obj?:Box2):Box2|null {
-  const offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? (obj || new Box2()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 64, this.bb!) : null;
+  const offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? (obj || new Box2()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
 }
 
 box2sLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 8);
+  const offset = this.bb!.__offset(this.bb_pos, 6);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-static startCover(builder:flatbuffers.Builder) {
-  builder.startObject(3);
+complete():boolean {
+  const offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : false;
 }
 
-static addFull(builder:flatbuffers.Builder, full:boolean) {
-  builder.addFieldInt8(0, +full, +false);
+in_(index: number):number|null {
+  const offset = this.bb!.__offset(this.bb_pos, 10);
+  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
+}
+
+inLength():number {
+  const offset = this.bb!.__offset(this.bb_pos, 10);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+}
+
+inArray():Uint8Array|null {
+  const offset = this.bb!.__offset(this.bb_pos, 10);
+  return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
+}
+
+static startCover(builder:flatbuffers.Builder) {
+  builder.startObject(4);
 }
 
 static addBox3(builder:flatbuffers.Builder, box3Offset:flatbuffers.Offset) {
-  builder.addFieldStruct(1, box3Offset, 0);
+  builder.addFieldOffset(0, box3Offset, 0);
 }
 
 static addBox2s(builder:flatbuffers.Builder, box2sOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(2, box2sOffset, 0);
+  builder.addFieldOffset(1, box2sOffset, 0);
+}
+
+static createBox2sVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (let i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]!);
+  }
+  return builder.endVector();
 }
 
 static startBox2sVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(64, numElems, 8);
+  builder.startVector(4, numElems, 4);
+}
+
+static addComplete(builder:flatbuffers.Builder, complete:boolean) {
+  builder.addFieldInt8(2, +complete, +false);
+}
+
+static addIn(builder:flatbuffers.Builder, in_Offset:flatbuffers.Offset) {
+  builder.addFieldOffset(3, in_Offset, 0);
+}
+
+static createInVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
+  builder.startVector(1, data.length, 1);
+  for (let i = data.length - 1; i >= 0; i--) {
+    builder.addInt8(data[i]!);
+  }
+  return builder.endVector();
+}
+
+static startInVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(1, numElems, 1);
 }
 
 static endCover(builder:flatbuffers.Builder):flatbuffers.Offset {
@@ -69,4 +108,12 @@ static endCover(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 }
 
+static createCover(builder:flatbuffers.Builder, box3Offset:flatbuffers.Offset, box2sOffset:flatbuffers.Offset, complete:boolean, in_Offset:flatbuffers.Offset):flatbuffers.Offset {
+  Cover.startCover(builder);
+  Cover.addBox3(builder, box3Offset);
+  Cover.addBox2s(builder, box2sOffset);
+  Cover.addComplete(builder, complete);
+  Cover.addIn(builder, in_Offset);
+  return Cover.endCover(builder);
+}
 }

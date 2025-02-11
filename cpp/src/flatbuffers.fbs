@@ -24,36 +24,45 @@ table Polyhedron {
   vertices: [Vector3];
 }
 
+struct Id {
+  bits: uint32;
+  depth: uint8;
+}
+
 struct Interval {
   min: double;
   max: double;
 }
 
-struct Id {
-  bits: ulong;
-  depth: ubyte;
-}
-
 struct IdInterval {
   id: Id;
-  interval: Interval;
+  interval: Interval; // helper
 }
 
-struct Box2 {
+table Projection { // helper
+  vertices: [Vector2];
+}
+
+table Box2 {
   phi: IdInterval;
   theta: IdInterval;
+  projections: [Projection]; // helper
+  out: [uint8]; // helper
 }
 
-struct Box3 {
+table Box3 {
   phi: IdInterval;
   theta: IdInterval;
   alpha: IdInterval;
+  projections: [Projection]; // helper
+  projection: Polygon; // helper
 }
 
 table Cover {
-  full: bool;
   box3: Box3;
   box2s: [Box2];
+  complete: bool; // helper
+  in: [uint8]; // helper
 }
 
 table Data {
