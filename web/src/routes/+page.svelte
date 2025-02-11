@@ -3,6 +3,8 @@
 
     import Parameter3 from "$lib/Parameter3.svelte";
     import Parameter2 from "$lib/Parameter2.svelte";
+    import Geometry3 from "$lib/Geometry3.svelte";
+    import Geometry2 from "$lib/Geometry2.svelte";
 
 
     import {onMount} from 'svelte';
@@ -42,7 +44,7 @@
 
     <Pane defaultSize={3}>
         <div id="pane">
-            <Parameter3/>
+            <Geometry3/>
         </div>
     </Pane>
 
@@ -52,7 +54,7 @@
 
     <Pane defaultSize={3}>
         <div id="pane">
-            <Parameter2/>
+            <Geometry2/>
         </div>
     </Pane>
 </PaneGroup>

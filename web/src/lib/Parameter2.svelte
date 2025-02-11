@@ -58,6 +58,7 @@
         controls.enableZoom = true;
         controls.enablePan = true;
         controls.screenSpacePanning = true;
+        controls.zoomToCursor = true;
 
         return renderer.domElement;
     }

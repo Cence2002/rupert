@@ -1,0 +1,122 @@
+<script lang="ts">
+    import ThreeElement from "$lib/ThreeElement.svelte";
+    import { Scene, WebGLRenderer, OrthographicCamera, Vector2, Vector3, Shape, ShapeGeometry, MeshBasicMaterial, Mesh, EdgesGeometry, LineBasicMaterial, LineSegments } from "three";
+    import { MapControls } from "three/addons/controls/MapControls.js";
+
+    let camera: OrthographicCamera;
+    let scene: Scene;
+    let renderer: WebGLRenderer;
+
+    const viewSize = 2;
+    const numPoints = 20;
+
+    function setup(width: number, height: number) {
+        scene = new Scene();
+
+        const aspect = width / height;
+        camera = new OrthographicCamera(
+            -aspect * viewSize, aspect * viewSize,
+            viewSize, -viewSize,
+            -1, 1
+        );
+        camera.position.set(0, 0, 1);
+        camera.lookAt(0, 0, 0);
+
+        renderer = new WebGLRenderer({ antialias: true });
+        renderer.setSize(width, height);
+
+        // Generate random points
+        let points: Vector2[] = [];
+        for (let i = 0; i < numPoints; i++) {
+            points.push(new Vector2(Math.random() * 2 - 1, Math.random() * 2 - 1));
+        }
+
+        // Compute and display the convex hull
+        if (points.length > 2) {
+            addConvexHull(points);
+        }
+
+        // Controls
+        const controls = new MapControls(camera, renderer.domElement);
+        controls.enableRotate = false;
+        controls.enableZoom = true;
+        controls.enablePan = true;
+        controls.screenSpacePanning = true;
+        controls.zoomToCursor = true;
+
+        return renderer.domElement;
+    }
+
+    function draw() {
+        renderer.render(scene, camera);
+    }
+
+    function resize(width: number, height: number) {
+        const aspect = width / height;
+        camera.left = -aspect * viewSize;
+        camera.right = aspect * viewSize;
+        camera.top = viewSize;
+        camera.bottom = -viewSize;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
+    }
+
+    function addConvexHull(points: Vector2[]) {
+        // Compute convex hull using Graham scan
+        const hull = computeConvexHull(points);
+        if (hull.length < 3) return; // Must have at least 3 points
+
+        // Create filled polygon
+        const shape = new Shape(hull);
+        const geometry = new ShapeGeometry(shape);
+        const material = new MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.2, side: 2 });
+        const mesh = new Mesh(geometry, material);
+        scene.add(mesh);
+
+        // Draw hull edges
+        const edges = new EdgesGeometry(geometry);
+        const edgeMaterial = new LineBasicMaterial({ color: 0x00ffff });
+        const edgeLines = new LineSegments(edges, edgeMaterial);
+        scene.add(edgeLines);
+
+        // Draw points
+        const pointMaterial = new MeshBasicMaterial({ color: 0x00ffff });
+        for (let p of points) {
+            const pointGeometry = new ShapeGeometry(new Shape([p]));
+            const pointMesh = new Mesh(pointGeometry, pointMaterial);
+            pointMesh.position.set(p.x, p.y, 0);
+            scene.add(pointMesh);
+        }
+    }
+
+    function computeConvexHull(points: Vector2[]): Vector2[] {
+        // Sort points lexicographically
+        points.sort((a, b) => a.x - b.x || a.y - b.y);
+
+        const cross = (o: Vector2, a: Vector2, b: Vector2) =>
+            (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+
+        let lower: Vector2[] = [];
+        for (let p of points) {
+            while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) {
+                lower.pop();
+            }
+            lower.push(p);
+        }
+
+        let upper: Vector2[] = [];
+        for (let i = points.length - 1; i >= 0; i--) {
+            let p = points[i];
+            while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) {
+                upper.pop();
+            }
+            upper.push(p);
+        }
+
+        upper.pop();
+        lower.pop();
+        return lower.concat(upper);
+    }
+</script>
+
+<ThreeElement {setup} {resize} {draw} />
