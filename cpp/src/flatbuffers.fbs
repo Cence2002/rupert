@@ -24,18 +24,14 @@ table Polyhedron {
   vertices: [Vector3];
 }
 
-struct Id {
-  bits: uint32;
-  depth: uint8;
-}
-
 struct Interval {
   min: double;
   max: double;
 }
 
-struct IdInterval {
-  id: Id;
+struct Id {
+  bits: uint32;
+  depth: uint8;
   interval: Interval; // helper
 }
 
@@ -44,32 +40,28 @@ table Projection { // helper
 }
 
 table Box2 {
-  phi: IdInterval;
-  theta: IdInterval;
+  phi: Id;
+  theta: Id;
   projections: [Projection]; // helper
   out: [uint8]; // helper
 }
 
 table Box3 {
-  phi: IdInterval;
-  theta: IdInterval;
-  alpha: IdInterval;
+  phi: Id;
+  theta: Id;
+  alpha: Id;
   projections: [Projection]; // helper
   projection: Polygon; // helper
-}
-
-table Cover {
-  box3: Box3;
   box2s: [Box2];
   complete: bool; // helper
   in: [uint8]; // helper
 }
 
-table Data {
+table Cover {
   description: string;
   hole: Polyhedron;
   plug: Polyhedron;
-  covers: [Cover];
+  box3s: [Box3];
 }
 
-root_type Data;
+root_type Cover;

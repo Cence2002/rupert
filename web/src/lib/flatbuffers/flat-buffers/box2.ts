@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { IdInterval } from '../flat-buffers/id-interval';
+import { Id } from '../flat-buffers/id';
 import { Projection } from '../flat-buffers/projection';
 
 
@@ -24,14 +24,14 @@ static getSizePrefixedRootAsBox2(bb:flatbuffers.ByteBuffer, obj?:Box2):Box2 {
   return (obj || new Box2()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-phi(obj?:IdInterval):IdInterval|null {
+phi(obj?:Id):Id|null {
   const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? (obj || new IdInterval()).__init(this.bb_pos + offset, this.bb!) : null;
+  return offset ? (obj || new Id()).__init(this.bb_pos + offset, this.bb!) : null;
 }
 
-theta(obj?:IdInterval):IdInterval|null {
+theta(obj?:Id):Id|null {
   const offset = this.bb!.__offset(this.bb_pos, 6);
-  return offset ? (obj || new IdInterval()).__init(this.bb_pos + offset, this.bb!) : null;
+  return offset ? (obj || new Id()).__init(this.bb_pos + offset, this.bb!) : null;
 }
 
 projections(index: number, obj?:Projection):Projection|null {

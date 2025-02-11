@@ -3,9 +3,7 @@
 export { Box2 } from './flat-buffers/box2';
 export { Box3 } from './flat-buffers/box3';
 export { Cover } from './flat-buffers/cover';
-export { Data } from './flat-buffers/data';
 export { Id } from './flat-buffers/id';
-export { IdInterval } from './flat-buffers/id-interval';
 export { Interval } from './flat-buffers/interval';
 export { Line } from './flat-buffers/line';
 export { Polygon } from './flat-buffers/polygon';

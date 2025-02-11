@@ -2,6 +2,9 @@
 
 import * as flatbuffers from 'flatbuffers';
 
+import { Interval } from '../flat-buffers/interval';
+
+
 export class Id {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
@@ -19,12 +22,19 @@ depth():number {
   return this.bb!.readUint8(this.bb_pos + 4);
 }
 
-static sizeOf():number {
-  return 8;
+interval(obj?:Interval):Interval|null {
+  return (obj || new Interval()).__init(this.bb_pos + 8, this.bb!);
 }
 
-static createId(builder:flatbuffers.Builder, bits: number, depth: number):flatbuffers.Offset {
-  builder.prep(4, 8);
+static sizeOf():number {
+  return 24;
+}
+
+static createId(builder:flatbuffers.Builder, bits: number, depth: number, interval_min: number, interval_max: number):flatbuffers.Offset {
+  builder.prep(8, 24);
+  builder.prep(8, 16);
+  builder.writeFloat64(interval_max);
+  builder.writeFloat64(interval_min);
   builder.pad(3);
   builder.writeInt8(depth);
   builder.writeInt32(bits);

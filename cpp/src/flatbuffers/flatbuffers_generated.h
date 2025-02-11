@@ -27,11 +27,9 @@ struct PolygonBuilder;
 struct Polyhedron;
 struct PolyhedronBuilder;
 
-struct Id;
-
 struct Interval;
 
-struct IdInterval;
+struct Id;
 
 struct Projection;
 struct ProjectionBuilder;
@@ -44,9 +42,6 @@ struct Box3Builder;
 
 struct Cover;
 struct CoverBuilder;
-
-struct Data;
-struct DataBuilder;
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vector2 FLATBUFFERS_FINAL_CLASS {
  private:
@@ -123,38 +118,6 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Line FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(Line, 32);
 
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Id FLATBUFFERS_FINAL_CLASS {
- private:
-  uint32_t bits_;
-  uint8_t depth_;
-  int8_t padding0__;  int16_t padding1__;
-
- public:
-  Id()
-      : bits_(0),
-        depth_(0),
-        padding0__(0),
-        padding1__(0) {
-    (void)padding0__;
-    (void)padding1__;
-  }
-  Id(uint32_t _bits, uint8_t _depth)
-      : bits_(flatbuffers::EndianScalar(_bits)),
-        depth_(flatbuffers::EndianScalar(_depth)),
-        padding0__(0),
-        padding1__(0) {
-    (void)padding0__;
-    (void)padding1__;
-  }
-  uint32_t bits() const {
-    return flatbuffers::EndianScalar(bits_);
-  }
-  uint8_t depth() const {
-    return flatbuffers::EndianScalar(depth_);
-  }
-};
-FLATBUFFERS_STRUCT_END(Id, 8);
-
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Interval FLATBUFFERS_FINAL_CLASS {
  private:
   double min_;
@@ -178,28 +141,43 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Interval FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(Interval, 16);
 
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) IdInterval FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Id FLATBUFFERS_FINAL_CLASS {
  private:
-  FlatBuffers::Id id_;
+  uint32_t bits_;
+  uint8_t depth_;
+  int8_t padding0__;  int16_t padding1__;
   FlatBuffers::Interval interval_;
 
  public:
-  IdInterval()
-      : id_(),
+  Id()
+      : bits_(0),
+        depth_(0),
+        padding0__(0),
+        padding1__(0),
         interval_() {
+    (void)padding0__;
+    (void)padding1__;
   }
-  IdInterval(const FlatBuffers::Id &_id, const FlatBuffers::Interval &_interval)
-      : id_(_id),
+  Id(uint32_t _bits, uint8_t _depth, const FlatBuffers::Interval &_interval)
+      : bits_(flatbuffers::EndianScalar(_bits)),
+        depth_(flatbuffers::EndianScalar(_depth)),
+        padding0__(0),
+        padding1__(0),
         interval_(_interval) {
+    (void)padding0__;
+    (void)padding1__;
   }
-  const FlatBuffers::Id &id() const {
-    return id_;
+  uint32_t bits() const {
+    return flatbuffers::EndianScalar(bits_);
+  }
+  uint8_t depth() const {
+    return flatbuffers::EndianScalar(depth_);
   }
   const FlatBuffers::Interval &interval() const {
     return interval_;
   }
 };
-FLATBUFFERS_STRUCT_END(IdInterval, 24);
+FLATBUFFERS_STRUCT_END(Id, 24);
 
 struct Polygon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef PolygonBuilder Builder;
@@ -362,11 +340,11 @@ struct Box2 FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_PROJECTIONS = 8,
     VT_OUT = 10
   };
-  const FlatBuffers::IdInterval *phi() const {
-    return GetStruct<const FlatBuffers::IdInterval *>(VT_PHI);
+  const FlatBuffers::Id *phi() const {
+    return GetStruct<const FlatBuffers::Id *>(VT_PHI);
   }
-  const FlatBuffers::IdInterval *theta() const {
-    return GetStruct<const FlatBuffers::IdInterval *>(VT_THETA);
+  const FlatBuffers::Id *theta() const {
+    return GetStruct<const FlatBuffers::Id *>(VT_THETA);
   }
   const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Projection>> *projections() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Projection>> *>(VT_PROJECTIONS);
@@ -376,8 +354,8 @@ struct Box2 FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<FlatBuffers::IdInterval>(verifier, VT_PHI, 8) &&
-           VerifyField<FlatBuffers::IdInterval>(verifier, VT_THETA, 8) &&
+           VerifyField<FlatBuffers::Id>(verifier, VT_PHI, 8) &&
+           VerifyField<FlatBuffers::Id>(verifier, VT_THETA, 8) &&
            VerifyOffset(verifier, VT_PROJECTIONS) &&
            verifier.VerifyVector(projections()) &&
            verifier.VerifyVectorOfTables(projections()) &&
@@ -391,10 +369,10 @@ struct Box2Builder {
   typedef Box2 Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_phi(const FlatBuffers::IdInterval *phi) {
+  void add_phi(const FlatBuffers::Id *phi) {
     fbb_.AddStruct(Box2::VT_PHI, phi);
   }
-  void add_theta(const FlatBuffers::IdInterval *theta) {
+  void add_theta(const FlatBuffers::Id *theta) {
     fbb_.AddStruct(Box2::VT_THETA, theta);
   }
   void add_projections(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Projection>>> projections) {
@@ -416,8 +394,8 @@ struct Box2Builder {
 
 inline flatbuffers::Offset<Box2> CreateBox2(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const FlatBuffers::IdInterval *phi = nullptr,
-    const FlatBuffers::IdInterval *theta = nullptr,
+    const FlatBuffers::Id *phi = nullptr,
+    const FlatBuffers::Id *theta = nullptr,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Projection>>> projections = 0,
     flatbuffers::Offset<flatbuffers::Vector<uint8_t>> out = 0) {
   Box2Builder builder_(_fbb);
@@ -430,8 +408,8 @@ inline flatbuffers::Offset<Box2> CreateBox2(
 
 inline flatbuffers::Offset<Box2> CreateBox2Direct(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const FlatBuffers::IdInterval *phi = nullptr,
-    const FlatBuffers::IdInterval *theta = nullptr,
+    const FlatBuffers::Id *phi = nullptr,
+    const FlatBuffers::Id *theta = nullptr,
     const std::vector<flatbuffers::Offset<FlatBuffers::Projection>> *projections = nullptr,
     const std::vector<uint8_t> *out = nullptr) {
   auto projections__ = projections ? _fbb.CreateVector<flatbuffers::Offset<FlatBuffers::Projection>>(*projections) : 0;
@@ -451,16 +429,19 @@ struct Box3 FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_THETA = 6,
     VT_ALPHA = 8,
     VT_PROJECTIONS = 10,
-    VT_PROJECTION = 12
+    VT_PROJECTION = 12,
+    VT_BOX2S = 14,
+    VT_COMPLETE = 16,
+    VT_IN = 18
   };
-  const FlatBuffers::IdInterval *phi() const {
-    return GetStruct<const FlatBuffers::IdInterval *>(VT_PHI);
+  const FlatBuffers::Id *phi() const {
+    return GetStruct<const FlatBuffers::Id *>(VT_PHI);
   }
-  const FlatBuffers::IdInterval *theta() const {
-    return GetStruct<const FlatBuffers::IdInterval *>(VT_THETA);
+  const FlatBuffers::Id *theta() const {
+    return GetStruct<const FlatBuffers::Id *>(VT_THETA);
   }
-  const FlatBuffers::IdInterval *alpha() const {
-    return GetStruct<const FlatBuffers::IdInterval *>(VT_ALPHA);
+  const FlatBuffers::Id *alpha() const {
+    return GetStruct<const FlatBuffers::Id *>(VT_ALPHA);
   }
   const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Projection>> *projections() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Projection>> *>(VT_PROJECTIONS);
@@ -468,16 +449,31 @@ struct Box3 FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const FlatBuffers::Polygon *projection() const {
     return GetPointer<const FlatBuffers::Polygon *>(VT_PROJECTION);
   }
+  const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box2>> *box2s() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box2>> *>(VT_BOX2S);
+  }
+  bool complete() const {
+    return GetField<uint8_t>(VT_COMPLETE, 0) != 0;
+  }
+  const flatbuffers::Vector<uint8_t> *in() const {
+    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_IN);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<FlatBuffers::IdInterval>(verifier, VT_PHI, 8) &&
-           VerifyField<FlatBuffers::IdInterval>(verifier, VT_THETA, 8) &&
-           VerifyField<FlatBuffers::IdInterval>(verifier, VT_ALPHA, 8) &&
+           VerifyField<FlatBuffers::Id>(verifier, VT_PHI, 8) &&
+           VerifyField<FlatBuffers::Id>(verifier, VT_THETA, 8) &&
+           VerifyField<FlatBuffers::Id>(verifier, VT_ALPHA, 8) &&
            VerifyOffset(verifier, VT_PROJECTIONS) &&
            verifier.VerifyVector(projections()) &&
            verifier.VerifyVectorOfTables(projections()) &&
            VerifyOffset(verifier, VT_PROJECTION) &&
            verifier.VerifyTable(projection()) &&
+           VerifyOffset(verifier, VT_BOX2S) &&
+           verifier.VerifyVector(box2s()) &&
+           verifier.VerifyVectorOfTables(box2s()) &&
+           VerifyField<uint8_t>(verifier, VT_COMPLETE, 1) &&
+           VerifyOffset(verifier, VT_IN) &&
+           verifier.VerifyVector(in()) &&
            verifier.EndTable();
   }
 };
@@ -486,13 +482,13 @@ struct Box3Builder {
   typedef Box3 Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_phi(const FlatBuffers::IdInterval *phi) {
+  void add_phi(const FlatBuffers::Id *phi) {
     fbb_.AddStruct(Box3::VT_PHI, phi);
   }
-  void add_theta(const FlatBuffers::IdInterval *theta) {
+  void add_theta(const FlatBuffers::Id *theta) {
     fbb_.AddStruct(Box3::VT_THETA, theta);
   }
-  void add_alpha(const FlatBuffers::IdInterval *alpha) {
+  void add_alpha(const FlatBuffers::Id *alpha) {
     fbb_.AddStruct(Box3::VT_ALPHA, alpha);
   }
   void add_projections(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Projection>>> projections) {
@@ -500,6 +496,15 @@ struct Box3Builder {
   }
   void add_projection(flatbuffers::Offset<FlatBuffers::Polygon> projection) {
     fbb_.AddOffset(Box3::VT_PROJECTION, projection);
+  }
+  void add_box2s(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box2>>> box2s) {
+    fbb_.AddOffset(Box3::VT_BOX2S, box2s);
+  }
+  void add_complete(bool complete) {
+    fbb_.AddElement<uint8_t>(Box3::VT_COMPLETE, static_cast<uint8_t>(complete), 0);
+  }
+  void add_in(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> in) {
+    fbb_.AddOffset(Box3::VT_IN, in);
   }
   explicit Box3Builder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -514,67 +519,82 @@ struct Box3Builder {
 
 inline flatbuffers::Offset<Box3> CreateBox3(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const FlatBuffers::IdInterval *phi = nullptr,
-    const FlatBuffers::IdInterval *theta = nullptr,
-    const FlatBuffers::IdInterval *alpha = nullptr,
+    const FlatBuffers::Id *phi = nullptr,
+    const FlatBuffers::Id *theta = nullptr,
+    const FlatBuffers::Id *alpha = nullptr,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Projection>>> projections = 0,
-    flatbuffers::Offset<FlatBuffers::Polygon> projection = 0) {
+    flatbuffers::Offset<FlatBuffers::Polygon> projection = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box2>>> box2s = 0,
+    bool complete = false,
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> in = 0) {
   Box3Builder builder_(_fbb);
+  builder_.add_in(in);
+  builder_.add_box2s(box2s);
   builder_.add_projection(projection);
   builder_.add_projections(projections);
   builder_.add_alpha(alpha);
   builder_.add_theta(theta);
   builder_.add_phi(phi);
+  builder_.add_complete(complete);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<Box3> CreateBox3Direct(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const FlatBuffers::IdInterval *phi = nullptr,
-    const FlatBuffers::IdInterval *theta = nullptr,
-    const FlatBuffers::IdInterval *alpha = nullptr,
+    const FlatBuffers::Id *phi = nullptr,
+    const FlatBuffers::Id *theta = nullptr,
+    const FlatBuffers::Id *alpha = nullptr,
     const std::vector<flatbuffers::Offset<FlatBuffers::Projection>> *projections = nullptr,
-    flatbuffers::Offset<FlatBuffers::Polygon> projection = 0) {
+    flatbuffers::Offset<FlatBuffers::Polygon> projection = 0,
+    const std::vector<flatbuffers::Offset<FlatBuffers::Box2>> *box2s = nullptr,
+    bool complete = false,
+    const std::vector<uint8_t> *in = nullptr) {
   auto projections__ = projections ? _fbb.CreateVector<flatbuffers::Offset<FlatBuffers::Projection>>(*projections) : 0;
+  auto box2s__ = box2s ? _fbb.CreateVector<flatbuffers::Offset<FlatBuffers::Box2>>(*box2s) : 0;
+  auto in__ = in ? _fbb.CreateVector<uint8_t>(*in) : 0;
   return FlatBuffers::CreateBox3(
       _fbb,
       phi,
       theta,
       alpha,
       projections__,
-      projection);
+      projection,
+      box2s__,
+      complete,
+      in__);
 }
 
 struct Cover FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef CoverBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_BOX3 = 4,
-    VT_BOX2S = 6,
-    VT_COMPLETE = 8,
-    VT_IN = 10
+    VT_DESCRIPTION = 4,
+    VT_HOLE = 6,
+    VT_PLUG = 8,
+    VT_BOX3S = 10
   };
-  const FlatBuffers::Box3 *box3() const {
-    return GetPointer<const FlatBuffers::Box3 *>(VT_BOX3);
+  const flatbuffers::String *description() const {
+    return GetPointer<const flatbuffers::String *>(VT_DESCRIPTION);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box2>> *box2s() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box2>> *>(VT_BOX2S);
+  const FlatBuffers::Polyhedron *hole() const {
+    return GetPointer<const FlatBuffers::Polyhedron *>(VT_HOLE);
   }
-  bool complete() const {
-    return GetField<uint8_t>(VT_COMPLETE, 0) != 0;
+  const FlatBuffers::Polyhedron *plug() const {
+    return GetPointer<const FlatBuffers::Polyhedron *>(VT_PLUG);
   }
-  const flatbuffers::Vector<uint8_t> *in() const {
-    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_IN);
+  const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box3>> *box3s() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box3>> *>(VT_BOX3S);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_BOX3) &&
-           verifier.VerifyTable(box3()) &&
-           VerifyOffset(verifier, VT_BOX2S) &&
-           verifier.VerifyVector(box2s()) &&
-           verifier.VerifyVectorOfTables(box2s()) &&
-           VerifyField<uint8_t>(verifier, VT_COMPLETE, 1) &&
-           VerifyOffset(verifier, VT_IN) &&
-           verifier.VerifyVector(in()) &&
+           VerifyOffset(verifier, VT_DESCRIPTION) &&
+           verifier.VerifyString(description()) &&
+           VerifyOffset(verifier, VT_HOLE) &&
+           verifier.VerifyTable(hole()) &&
+           VerifyOffset(verifier, VT_PLUG) &&
+           verifier.VerifyTable(plug()) &&
+           VerifyOffset(verifier, VT_BOX3S) &&
+           verifier.VerifyVector(box3s()) &&
+           verifier.VerifyVectorOfTables(box3s()) &&
            verifier.EndTable();
   }
 };
@@ -583,17 +603,17 @@ struct CoverBuilder {
   typedef Cover Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_box3(flatbuffers::Offset<FlatBuffers::Box3> box3) {
-    fbb_.AddOffset(Cover::VT_BOX3, box3);
+  void add_description(flatbuffers::Offset<flatbuffers::String> description) {
+    fbb_.AddOffset(Cover::VT_DESCRIPTION, description);
   }
-  void add_box2s(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box2>>> box2s) {
-    fbb_.AddOffset(Cover::VT_BOX2S, box2s);
+  void add_hole(flatbuffers::Offset<FlatBuffers::Polyhedron> hole) {
+    fbb_.AddOffset(Cover::VT_HOLE, hole);
   }
-  void add_complete(bool complete) {
-    fbb_.AddElement<uint8_t>(Cover::VT_COMPLETE, static_cast<uint8_t>(complete), 0);
+  void add_plug(flatbuffers::Offset<FlatBuffers::Polyhedron> plug) {
+    fbb_.AddOffset(Cover::VT_PLUG, plug);
   }
-  void add_in(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> in) {
-    fbb_.AddOffset(Cover::VT_IN, in);
+  void add_box3s(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box3>>> box3s) {
+    fbb_.AddOffset(Cover::VT_BOX3S, box3s);
   }
   explicit CoverBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -608,153 +628,61 @@ struct CoverBuilder {
 
 inline flatbuffers::Offset<Cover> CreateCover(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<FlatBuffers::Box3> box3 = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box2>>> box2s = 0,
-    bool complete = false,
-    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> in = 0) {
-  CoverBuilder builder_(_fbb);
-  builder_.add_in(in);
-  builder_.add_box2s(box2s);
-  builder_.add_box3(box3);
-  builder_.add_complete(complete);
-  return builder_.Finish();
-}
-
-inline flatbuffers::Offset<Cover> CreateCoverDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<FlatBuffers::Box3> box3 = 0,
-    const std::vector<flatbuffers::Offset<FlatBuffers::Box2>> *box2s = nullptr,
-    bool complete = false,
-    const std::vector<uint8_t> *in = nullptr) {
-  auto box2s__ = box2s ? _fbb.CreateVector<flatbuffers::Offset<FlatBuffers::Box2>>(*box2s) : 0;
-  auto in__ = in ? _fbb.CreateVector<uint8_t>(*in) : 0;
-  return FlatBuffers::CreateCover(
-      _fbb,
-      box3,
-      box2s__,
-      complete,
-      in__);
-}
-
-struct Data FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef DataBuilder Builder;
-  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_DESCRIPTION = 4,
-    VT_HOLE = 6,
-    VT_PLUG = 8,
-    VT_COVERS = 10
-  };
-  const flatbuffers::String *description() const {
-    return GetPointer<const flatbuffers::String *>(VT_DESCRIPTION);
-  }
-  const FlatBuffers::Polyhedron *hole() const {
-    return GetPointer<const FlatBuffers::Polyhedron *>(VT_HOLE);
-  }
-  const FlatBuffers::Polyhedron *plug() const {
-    return GetPointer<const FlatBuffers::Polyhedron *>(VT_PLUG);
-  }
-  const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Cover>> *covers() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Cover>> *>(VT_COVERS);
-  }
-  bool Verify(flatbuffers::Verifier &verifier) const {
-    return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_DESCRIPTION) &&
-           verifier.VerifyString(description()) &&
-           VerifyOffset(verifier, VT_HOLE) &&
-           verifier.VerifyTable(hole()) &&
-           VerifyOffset(verifier, VT_PLUG) &&
-           verifier.VerifyTable(plug()) &&
-           VerifyOffset(verifier, VT_COVERS) &&
-           verifier.VerifyVector(covers()) &&
-           verifier.VerifyVectorOfTables(covers()) &&
-           verifier.EndTable();
-  }
-};
-
-struct DataBuilder {
-  typedef Data Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_description(flatbuffers::Offset<flatbuffers::String> description) {
-    fbb_.AddOffset(Data::VT_DESCRIPTION, description);
-  }
-  void add_hole(flatbuffers::Offset<FlatBuffers::Polyhedron> hole) {
-    fbb_.AddOffset(Data::VT_HOLE, hole);
-  }
-  void add_plug(flatbuffers::Offset<FlatBuffers::Polyhedron> plug) {
-    fbb_.AddOffset(Data::VT_PLUG, plug);
-  }
-  void add_covers(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Cover>>> covers) {
-    fbb_.AddOffset(Data::VT_COVERS, covers);
-  }
-  explicit DataBuilder(flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb) {
-    start_ = fbb_.StartTable();
-  }
-  flatbuffers::Offset<Data> Finish() {
-    const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<Data>(end);
-    return o;
-  }
-};
-
-inline flatbuffers::Offset<Data> CreateData(
-    flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> description = 0,
     flatbuffers::Offset<FlatBuffers::Polyhedron> hole = 0,
     flatbuffers::Offset<FlatBuffers::Polyhedron> plug = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Cover>>> covers = 0) {
-  DataBuilder builder_(_fbb);
-  builder_.add_covers(covers);
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box3>>> box3s = 0) {
+  CoverBuilder builder_(_fbb);
+  builder_.add_box3s(box3s);
   builder_.add_plug(plug);
   builder_.add_hole(hole);
   builder_.add_description(description);
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<Data> CreateDataDirect(
+inline flatbuffers::Offset<Cover> CreateCoverDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *description = nullptr,
     flatbuffers::Offset<FlatBuffers::Polyhedron> hole = 0,
     flatbuffers::Offset<FlatBuffers::Polyhedron> plug = 0,
-    const std::vector<flatbuffers::Offset<FlatBuffers::Cover>> *covers = nullptr) {
+    const std::vector<flatbuffers::Offset<FlatBuffers::Box3>> *box3s = nullptr) {
   auto description__ = description ? _fbb.CreateString(description) : 0;
-  auto covers__ = covers ? _fbb.CreateVector<flatbuffers::Offset<FlatBuffers::Cover>>(*covers) : 0;
-  return FlatBuffers::CreateData(
+  auto box3s__ = box3s ? _fbb.CreateVector<flatbuffers::Offset<FlatBuffers::Box3>>(*box3s) : 0;
+  return FlatBuffers::CreateCover(
       _fbb,
       description__,
       hole,
       plug,
-      covers__);
+      box3s__);
 }
 
-inline const FlatBuffers::Data *GetData(const void *buf) {
-  return flatbuffers::GetRoot<FlatBuffers::Data>(buf);
+inline const FlatBuffers::Cover *GetCover(const void *buf) {
+  return flatbuffers::GetRoot<FlatBuffers::Cover>(buf);
 }
 
-inline const FlatBuffers::Data *GetSizePrefixedData(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<FlatBuffers::Data>(buf);
+inline const FlatBuffers::Cover *GetSizePrefixedCover(const void *buf) {
+  return flatbuffers::GetSizePrefixedRoot<FlatBuffers::Cover>(buf);
 }
 
-inline bool VerifyDataBuffer(
+inline bool VerifyCoverBuffer(
     flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<FlatBuffers::Data>(nullptr);
+  return verifier.VerifyBuffer<FlatBuffers::Cover>(nullptr);
 }
 
-inline bool VerifySizePrefixedDataBuffer(
+inline bool VerifySizePrefixedCoverBuffer(
     flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<FlatBuffers::Data>(nullptr);
+  return verifier.VerifySizePrefixedBuffer<FlatBuffers::Cover>(nullptr);
 }
 
-inline void FinishDataBuffer(
+inline void FinishCoverBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<FlatBuffers::Data> root) {
+    flatbuffers::Offset<FlatBuffers::Cover> root) {
   fbb.Finish(root);
 }
 
-inline void FinishSizePrefixedDataBuffer(
+inline void FinishSizePrefixedCoverBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<FlatBuffers::Data> root) {
+    flatbuffers::Offset<FlatBuffers::Cover> root) {
   fbb.FinishSizePrefixed(root);
 }
 

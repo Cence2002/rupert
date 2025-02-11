@@ -2,7 +2,8 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { IdInterval } from '../flat-buffers/id-interval';
+import { Box2 } from '../flat-buffers/box2';
+import { Id } from '../flat-buffers/id';
 import { Polygon } from '../flat-buffers/polygon';
 import { Projection } from '../flat-buffers/projection';
 
@@ -25,19 +26,19 @@ static getSizePrefixedRootAsBox3(bb:flatbuffers.ByteBuffer, obj?:Box3):Box3 {
   return (obj || new Box3()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-phi(obj?:IdInterval):IdInterval|null {
+phi(obj?:Id):Id|null {
   const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? (obj || new IdInterval()).__init(this.bb_pos + offset, this.bb!) : null;
+  return offset ? (obj || new Id()).__init(this.bb_pos + offset, this.bb!) : null;
 }
 
-theta(obj?:IdInterval):IdInterval|null {
+theta(obj?:Id):Id|null {
   const offset = this.bb!.__offset(this.bb_pos, 6);
-  return offset ? (obj || new IdInterval()).__init(this.bb_pos + offset, this.bb!) : null;
+  return offset ? (obj || new Id()).__init(this.bb_pos + offset, this.bb!) : null;
 }
 
-alpha(obj?:IdInterval):IdInterval|null {
+alpha(obj?:Id):Id|null {
   const offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? (obj || new IdInterval()).__init(this.bb_pos + offset, this.bb!) : null;
+  return offset ? (obj || new Id()).__init(this.bb_pos + offset, this.bb!) : null;
 }
 
 projections(index: number, obj?:Projection):Projection|null {
@@ -55,8 +56,38 @@ projection(obj?:Polygon):Polygon|null {
   return offset ? (obj || new Polygon()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 }
 
+box2s(index: number, obj?:Box2):Box2|null {
+  const offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? (obj || new Box2()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+}
+
+box2sLength():number {
+  const offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+}
+
+complete():boolean {
+  const offset = this.bb!.__offset(this.bb_pos, 16);
+  return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : false;
+}
+
+in_(index: number):number|null {
+  const offset = this.bb!.__offset(this.bb_pos, 18);
+  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
+}
+
+inLength():number {
+  const offset = this.bb!.__offset(this.bb_pos, 18);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+}
+
+inArray():Uint8Array|null {
+  const offset = this.bb!.__offset(this.bb_pos, 18);
+  return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
+}
+
 static startBox3(builder:flatbuffers.Builder) {
-  builder.startObject(5);
+  builder.startObject(8);
 }
 
 static addPhi(builder:flatbuffers.Builder, phiOffset:flatbuffers.Offset) {
@@ -89,6 +120,42 @@ static startProjectionsVector(builder:flatbuffers.Builder, numElems:number) {
 
 static addProjection(builder:flatbuffers.Builder, projectionOffset:flatbuffers.Offset) {
   builder.addFieldOffset(4, projectionOffset, 0);
+}
+
+static addBox2s(builder:flatbuffers.Builder, box2sOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(5, box2sOffset, 0);
+}
+
+static createBox2sVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (let i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]!);
+  }
+  return builder.endVector();
+}
+
+static startBox2sVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
+}
+
+static addComplete(builder:flatbuffers.Builder, complete:boolean) {
+  builder.addFieldInt8(6, +complete, +false);
+}
+
+static addIn(builder:flatbuffers.Builder, in_Offset:flatbuffers.Offset) {
+  builder.addFieldOffset(7, in_Offset, 0);
+}
+
+static createInVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
+  builder.startVector(1, data.length, 1);
+  for (let i = data.length - 1; i >= 0; i--) {
+    builder.addInt8(data[i]!);
+  }
+  return builder.endVector();
+}
+
+static startInVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(1, numElems, 1);
 }
 
 static endBox3(builder:flatbuffers.Builder):flatbuffers.Offset {
