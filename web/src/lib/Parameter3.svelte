@@ -18,10 +18,10 @@
     });
 
     $effect(() => {
-        console.log(selectedBox3, "in parameter3");
+        createBox3Selection();
 
         return () => {
-            console.log(selectedBox3, "in parameter3 cleanup");
+            clearBox3Selection();
         };
     });
 
@@ -31,7 +31,12 @@
     let cubes: Mesh[] = [];
 
     function processCover() {
-        console.log("processing in parameter3", cover.description());
+    }
+
+    function createBox3Selection() {
+    }
+
+    function clearBox3Selection() {
     }
 
     function setup(width: number, height: number) {

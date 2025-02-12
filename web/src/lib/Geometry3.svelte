@@ -18,21 +18,40 @@
         }
     });
 
+    $effect(() => {
+        createBox3Selection();
+
+        return () => {
+            clearBox3Selection();
+        };
+    });
+
+    $effect(() => {
+        createBox2Selection();
+
+        return () => {
+            clearBox2Selection();
+        };
+    });
+
     let camera: PerspectiveCamera;
     let scene: Scene;
     let renderer: WebGLRenderer;
 
     function processCover() {
-        console.log("processing in geometry3", cover.description());
     }
 
-    $effect(() => {
-        console.log(selectedBox3, selectedBox2, "in geometry3");
+    function createBox3Selection() {
+    }
 
-        return () => {
-            console.log(selectedBox3, selectedBox2, "in geometry3 cleanup");
-        };
-    });
+    function clearBox3Selection() {
+    }
+
+    function createBox2Selection() {
+    }
+
+    function clearBox2Selection() {
+    }
 
     function setup(width: number, height: number) {
         scene = new Scene();

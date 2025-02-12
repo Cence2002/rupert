@@ -7,17 +7,16 @@
     let cover: Cover | undefined = $state();
 
     onMount(async () => {
-        console.log("fetching", cover);
         cover = await loadCover("/test.bin");
-        console.log("fetched", cover);
+        console.log("fetched", cover.description());
     });
 
     let selectedBox3: number | null = $state(null);
     let selectedBox2: number | null = $state(null);
 
     function selectBox3(index: number) {
-        selectedBox3 = index;
         selectedBox2 = null;
+        selectedBox3 = index;
     }
 
     function selectBox2(index: number) {

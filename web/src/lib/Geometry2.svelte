@@ -3,7 +3,7 @@
     import {Cover} from "$lib/flatbuffers/flat-buffers/cover";
 
     import {MapControls} from "three/addons/controls/MapControls.js";
-    import {Scene, WebGLRenderer, OrthographicCamera, Vector2, Vector3, Shape, ShapeGeometry, MeshBasicMaterial, Mesh, EdgesGeometry, LineBasicMaterial, LineSegments} from "three";
+    import {Scene, WebGLRenderer, OrthographicCamera, Vector2, Shape, ShapeGeometry, MeshBasicMaterial, Mesh, EdgesGeometry, LineBasicMaterial, LineSegments} from "three";
 
     let {cover, selectedBox3, selectedBox2} = $props<{
         cover: Cover | undefined,
@@ -17,21 +17,40 @@
         }
     });
 
+    $effect(() => {
+        createBox3Selection();
+
+        return () => {
+            clearBox3Selection();
+        };
+    });
+
+    $effect(() => {
+        createBox2Selection();
+
+        return () => {
+            clearBox2Selection();
+        };
+    });
+
     let camera: OrthographicCamera;
     let scene: Scene;
     let renderer: WebGLRenderer;
 
     function processCover() {
-        console.log("processing in geometry2", cover.description());
     }
 
-    $effect(() => {
-        console.log(selectedBox3, selectedBox2, "in geometry2");
+    function createBox3Selection() {
+    }
 
-        return () => {
-            console.log(selectedBox3, selectedBox2, "in geometry2 cleanup");
-        };
-    });
+    function clearBox3Selection() {
+    }
+
+    function createBox2Selection() {
+    }
+
+    function clearBox2Selection() {
+    }
 
     function setup(width: number, height: number) {
         scene = new Scene();

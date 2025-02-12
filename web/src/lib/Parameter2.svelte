@@ -5,7 +5,6 @@
     import {MapControls} from 'three/addons/controls/MapControls.js';
     import {PlaneGeometry, Mesh, MeshBasicMaterial, OrthographicCamera, Scene, WebGLRenderer, EdgesGeometry, LineBasicMaterial, LineSegments} from "three";
 
-
     let {cover, selectedBox3, selectedBox2, selectBox2} = $props<{
         cover: Cover | undefined,
         selectedBox3: number | null,
@@ -19,22 +18,41 @@
         }
     });
 
+    $effect(() => {
+        createBox3Selection();
+
+        return () => {
+            clearBox3Selection();
+        };
+    });
+
+    $effect(() => {
+        createBox2Selection();
+
+        return () => {
+            clearBox2Selection();
+        };
+    });
+
     let camera: OrthographicCamera;
     let scene: Scene;
     let renderer: WebGLRenderer;
     let squares: Mesh[] = [];
 
     function processCover() {
-        console.log("processing in parameter2", cover.description());
-
-        return () => {
-            console.log("cleaning up in parameter2", cover.description());
-        };
     }
 
-    $effect(() => {
-        console.log(selectedBox3, selectedBox2, "in parameter2");
-    });
+    function createBox3Selection() {
+    }
+
+    function clearBox3Selection() {
+    }
+
+    function createBox2Selection() {
+    }
+
+    function clearBox2Selection() {
+    }
 
     function setup(width: number, height: number) {
         scene = new Scene();
