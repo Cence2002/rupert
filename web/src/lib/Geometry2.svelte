@@ -1,6 +1,7 @@
 <script lang="ts">
     import ThreeElement from "$lib/ThreeElement.svelte";
     import {Cover} from "$lib/flatbuffers/flat-buffers/cover";
+    import {Selection} from "$lib/state.svelte";
 
     import {MapControls} from "three/addons/controls/MapControls.js";
     import {Scene, WebGLRenderer, OrthographicCamera, Vector2, Shape, ShapeGeometry, MeshBasicMaterial, Mesh, EdgesGeometry, LineBasicMaterial, LineSegments, AxesHelper} from "three";
@@ -11,45 +12,30 @@
         selectedBox2: number | null,
     }>();
 
-    $effect(() => {
-        if (cover) {
-            processCover();
-        }
-    });
+    $effect(onCover);
 
-    $effect(() => {
-        createBox3Selection();
+    $effect(onSelectBox3);
 
-        return () => {
-            clearBox3Selection();
-        };
-    });
-
-    $effect(() => {
-        createBox2Selection();
-
-        return () => {
-            clearBox2Selection();
-        };
-    });
+    $effect(onSelectBox2);
 
     let camera: OrthographicCamera;
     let scene: Scene;
     let renderer: WebGLRenderer;
 
-    function processCover() {
+    function onCover() {
+        if (!cover) {
+            return;
+        }
     }
 
-    function createBox3Selection() {
+    function onSelectBox3() {
+        return () => {
+        };
     }
 
-    function clearBox3Selection() {
-    }
-
-    function createBox2Selection() {
-    }
-
-    function clearBox2Selection() {
+    function onSelectBox2() {
+        return () => {
+        };
     }
 
     function setCameraBounds(width: number, height: number, zoom: number = 2) {

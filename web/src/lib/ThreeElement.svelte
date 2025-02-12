@@ -5,15 +5,24 @@
     export let setup: (width: number, height: number) => HTMLCanvasElement;
     export let draw: () => void;
     export let resize: (width: number, height: number) => void;
+    export let onClick: (width: number, height: number) => void = () => {};
 
     let container: HTMLDivElement;
     let canvas: HTMLCanvasElement;
     let animationFrame: number;
     let running = true;
 
+    function handleClick(event: MouseEvent) {
+        const x = event.offsetX / container.offsetWidth
+        const y = event.offsetY / container.offsetHeight;
+        onClick(x, y);
+    }
+
     onMount(() => {
         canvas = setup(container.clientWidth, container.clientHeight);
         container.appendChild(canvas);
+
+        canvas.addEventListener("click", handleClick);
 
         function animate() {
             if (!running) {

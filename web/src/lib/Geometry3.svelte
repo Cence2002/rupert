@@ -1,45 +1,32 @@
 <script lang="ts">
     import ThreeElement from "$lib/ThreeElement.svelte";
     import {Cover} from "$lib/flatbuffers/flat-buffers/cover";
+    import {Selection} from "$lib/state.svelte";
 
     import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
     import {Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRenderer, EdgesGeometry, LineBasicMaterial, LineSegments, Vector3} from "three";
     import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
     import {AxesHelper} from "three";
 
-    let {cover, selectedBox3, selectedBox2} = $props<{
+    let {cover, selection} = $props<{
         cover: Cover | undefined,
-        selectedBox3: number | null,
-        selectedBox2: number | null,
+        selection: Selection,
     }>();
 
-    $effect(() => {
-        if (cover) {
-            processCover();
-        }
-    });
+    $effect(onCover);
 
-    $effect(() => {
-        createBox3Selection();
+    $effect(onSelectBox3);
 
-        return () => {
-            clearBox3Selection();
-        };
-    });
-
-    $effect(() => {
-        createBox2Selection();
-
-        return () => {
-            clearBox2Selection();
-        };
-    });
+    $effect(onSelectBox2);
 
     let camera: PerspectiveCamera;
     let scene: Scene;
     let renderer: WebGLRenderer;
 
-    function processCover() {
+    function onCover() {
+        if (!cover) {
+            return;
+        }
         {
             const coverHole = cover!.hole();
             let vertices = [];
@@ -79,16 +66,14 @@
         }
     }
 
-    function createBox3Selection() {
+    function onSelectBox3() {
+        return () => {
+        };
     }
 
-    function clearBox3Selection() {
-    }
-
-    function createBox2Selection() {
-    }
-
-    function clearBox2Selection() {
+    function onSelectBox2() {
+        return () => {
+        };
     }
 
     function setup(width: number, height: number) {

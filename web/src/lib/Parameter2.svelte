@@ -1,56 +1,77 @@
 <script lang="ts">
     import ThreeElement from "$lib/ThreeElement.svelte";
     import {Cover} from "$lib/flatbuffers/flatbuffers_generated";
+    import {Selection} from "$lib/state.svelte";
 
     import {MapControls} from 'three/addons/controls/MapControls.js';
-    import {PlaneGeometry, Mesh, MeshBasicMaterial, OrthographicCamera, Scene, WebGLRenderer, EdgesGeometry, LineBasicMaterial, LineSegments, AxesHelper} from "three";
+    import {PlaneGeometry, Mesh, MeshBasicMaterial, OrthographicCamera, Scene, WebGLRenderer, EdgesGeometry, LineBasicMaterial, LineSegments, AxesHelper, Group} from "three";
 
-    let {cover, selectedBox3, selectedBox2, selectBox2} = $props<{
+    let {cover, selection} = $props<{
         cover: Cover | undefined,
-        selectedBox3: number | null,
-        selectedBox2: number | null,
-        selectBox2: (index: number) => void
+        selection: Selection,
     }>();
 
-    $effect(() => {
-        if (cover) {
-            processCover();
-        }
-    });
+    $effect(onCover);
 
-    $effect(() => {
-        createBox3Selection();
+    $effect(onSelectBox3);
 
-        return () => {
-            clearBox3Selection();
-        };
-    });
-
-    $effect(() => {
-        createBox2Selection();
-
-        return () => {
-            clearBox2Selection();
-        };
-    });
+    $effect(onSelectBox2);
 
     let camera: OrthographicCamera;
     let scene: Scene;
     let renderer: WebGLRenderer;
+    let box2s: Map<number, Group> = new Map();
 
-    function processCover() {
+    function onCover() {
+        if (!cover) {
+            return;
+        }
     }
 
-    function createBox3Selection() {
+    function onSelectBox3() {
+        if (selection.selectedBox3 === null) {
+            return;
+        }
+        {
+            let box3 = cover!.box3s(selection.selectedBox3)
+            for (let index = 0; index < box3.box2sLength(); index++) {
+                const box2 = box3.box2s(index);
+
+                const phi = box2.phi().interval();
+                const theta = box2.theta().interval();
+
+                const box2Geometry = new PlaneGeometry((phi.max() - phi.min()) / (2 * Math.PI), (theta.max() - theta.min()) / Math.PI);
+                const box2Material = new MeshBasicMaterial({color: 0x0000ff, transparent: true, opacity: 0.5});
+                const box2Mesh = new Mesh(box2Geometry, box2Material);
+                box2Mesh.position.set((phi.min() + phi.max()) / (2 * Math.PI) / 2, (theta.min() + theta.max()) / Math.PI / 2, 0);
+
+                const box2EdgesGeometry = new EdgesGeometry(box2Geometry);
+                const box2EdgesMaterial = new LineBasicMaterial({color: 0x00ffff});
+                const box2Edges = new LineSegments(box2EdgesGeometry, box2EdgesMaterial);
+                box2Edges.position.set((phi.min() + phi.max()) / (2 * Math.PI) / 2, (theta.min() + theta.max()) / Math.PI / 2, 0);
+
+                const box2Group = new Group();
+                box2Group.add(box2Mesh);
+                box2Group.add(box2Edges);
+
+                box2s.set(index, box2Group);
+            }
+        }
+        {
+            for (const box2 of box2s.values()) {
+                scene.add(box2);
+            }
+        }
+        return () => {
+        };
     }
 
-    function clearBox3Selection() {
-    }
-
-    function createBox2Selection() {
-    }
-
-    function clearBox2Selection() {
+    function onSelectBox2() {
+        if (selection.selectedBox2 === null) {
+            return;
+        }
+        return () => {
+        };
     }
 
     function setCameraBounds(width: number, height: number, zoom: number = 2) {
