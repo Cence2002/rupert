@@ -117,7 +117,6 @@ void solve(const int num_threads = 10, const int iterations = 10000, const int r
     mpfr_free_cache();
 }
 
-
 int main() {
     tests();
     // solve<FloatInterval>(10, 2, 2);

@@ -28,6 +28,7 @@
     }
 
     import {PaneGroup, Pane, PaneResizer} from "paneforge";
+
     import Parameter3 from "$lib/Parameter3.svelte";
     import Parameter2 from "$lib/Parameter2.svelte";
     import Geometry3 from "$lib/Geometry3.svelte";
