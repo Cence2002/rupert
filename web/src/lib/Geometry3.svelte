@@ -40,6 +40,43 @@
     let renderer: WebGLRenderer;
 
     function processCover() {
+        {
+            const coverHole = cover!.hole();
+            let vertices = [];
+            for (let index = 0; index < coverHole.verticesLength(); index++) {
+                const vertex = coverHole.vertices(index);
+                vertices.push(new Vector3(vertex.x(), vertex.y(), vertex.z() + 1));
+            }
+
+            const hole = new ConvexGeometry(vertices);
+            const holeMaterial = new MeshBasicMaterial({color: 0x00ffff, transparent: true, opacity: 0.25});
+            const holeMesh = new Mesh(hole, holeMaterial);
+            scene.add(holeMesh);
+
+            const holeEdges = new EdgesGeometry(hole);
+            const holeEdgesMaterial = new LineBasicMaterial({color: 0x00ffff});
+            const holeEdgesMesh = new LineSegments(holeEdges, holeEdgesMaterial);
+            scene.add(holeEdgesMesh);
+        }
+
+        {
+            const coverPlug = cover!.plug();
+            let vertices = [];
+            for (let index = 0; index < coverPlug.verticesLength(); index++) {
+                const vertex = coverPlug.vertices(index);
+                vertices.push(new Vector3(vertex.x(), vertex.y(), vertex.z()+2));
+            }
+
+            const plug = new ConvexGeometry(vertices);
+            const plugMaterial = new MeshBasicMaterial({color: 0x00ffff, transparent: true, opacity: 0.25});
+            const plugMesh = new Mesh(plug, plugMaterial);
+            scene.add(plugMesh);
+
+            const plugEdges = new EdgesGeometry(plug);
+            const plugEdgesMaterial = new LineBasicMaterial({color: 0x00ffff});
+            const plugEdgesMesh = new LineSegments(plugEdges, plugEdgesMaterial);
+            scene.add(plugEdgesMesh);
+        }
     }
 
     function createBox3Selection() {
@@ -62,7 +99,7 @@
 
         {
             camera = new PerspectiveCamera(60, width / height, 0.1, 1000);
-            camera.up.set(0, 0, 2);
+            camera.up.set(0, 0, 1);
             camera.lookAt(0, 0, 2);
             camera.position.set(0, -8, 2);
         }
@@ -86,26 +123,6 @@
             const axesHelper = new AxesHelper(10);
             scene.add(axesHelper);
         }
-
-        const n = 100;
-        let points: Vector3[] = [];
-        for (let i = 0; i < n; i++) {
-            points.push(new Vector3(
-                Math.random() * 2 - 1,
-                Math.random() * 2 - 1,
-                (Math.random() * 2 - 1) / 2 + 2
-            ));
-        }
-
-        const polyhedron = new ConvexGeometry(points);
-        const polyhedronMaterial = new MeshBasicMaterial({color: 0x00ffff, transparent: true, opacity: 0.25});
-        const polyhedronMesh = new Mesh(polyhedron, polyhedronMaterial);
-        scene.add(polyhedronMesh);
-
-        const polyhedronEdges = new EdgesGeometry(polyhedron);
-        const polyhedronEdgesMaterial = new LineBasicMaterial({color: 0x00ffff});
-        const polyhedronEdgesMesh = new LineSegments(polyhedronEdges, polyhedronEdgesMaterial);
-        scene.add(polyhedronEdgesMesh);
 
         return renderer.domElement;
     }

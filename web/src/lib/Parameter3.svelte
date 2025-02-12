@@ -31,6 +31,27 @@
     let renderer: WebGLRenderer;
 
     function processCover() {
+        {
+            for (let index = 0; index < cover!.box3sLength(); index++) {
+                const box3 = cover!.box3s(index);
+
+                const phi = box3.phi().interval();
+                const theta = box3.theta().interval();
+                const alpha = box3.alpha().interval();
+
+                const box3Geometry = new BoxGeometry((phi.max() - phi.min()) / (2 * Math.PI), (theta.max() - theta.min()) / Math.PI, (alpha.max() - alpha.min()) / (2 * Math.PI));
+                const box3Material = new MeshBasicMaterial({color: 0x0000ff, transparent: true, opacity: 0.25});
+                const box3Mesh = new Mesh(box3Geometry, box3Material);
+                box3Mesh.position.set((phi.min() + phi.max()) / (2 * Math.PI) / 2, (theta.min() + theta.max()) / Math.PI / 2, (alpha.min() + alpha.max()) / (2 * Math.PI) / 2);
+                scene.add(box3Mesh);
+
+                const box3EdgesGeometry = new EdgesGeometry(box3Geometry);
+                const box3EdgesMaterial = new LineBasicMaterial({color: 0x00ffff});
+                const box3Edges = new LineSegments(box3EdgesGeometry, box3EdgesMaterial);
+                box3Edges.position.set((phi.min() + phi.max()) / (2 * Math.PI) / 2, (theta.min() + theta.max()) / Math.PI / 2, (alpha.min() + alpha.max()) / (2 * Math.PI) / 2);
+                scene.add(box3Edges);
+            }
+        }
     }
 
     function createBox3Selection() {
