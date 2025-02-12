@@ -1,12 +1,38 @@
 <script lang="ts">
     import ThreeElement from "$lib/ThreeElement.svelte";
-    import {BoxGeometry, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRenderer, EdgesGeometry, LineBasicMaterial, LineSegments} from "three";
+    import {Cover} from "$lib/flatbuffers/flat-buffers/cover";
+
     import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+    import {BoxGeometry, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRenderer, EdgesGeometry, LineBasicMaterial, LineSegments} from "three";
+
+    let {cover, selectedBox3, selectBox3} = $props<{
+        cover: Cover | undefined,
+        selectedBox3: number | null,
+        selectBox3: (index: number) => void
+    }>();
+
+    $effect(() => {
+        if (cover) {
+            processCover();
+        }
+    });
+
+    $effect(() => {
+        console.log(selectedBox3, "in parameter3");
+
+        return () => {
+            console.log(selectedBox3, "in parameter3 cleanup");
+        };
+    });
 
     let camera: PerspectiveCamera;
     let scene: Scene;
     let renderer: WebGLRenderer;
     let cubes: Mesh[] = [];
+
+    function processCover() {
+        console.log("processing in parameter3", cover.description());
+    }
 
     function setup(width: number, height: number) {
         scene = new Scene();

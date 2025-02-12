@@ -1,28 +1,51 @@
 <script lang="ts">
-    import {PaneGroup, Pane, PaneResizer} from "paneforge";
+    import {Cover} from '$lib/flatbuffers/flatbuffers_generated';
 
+    import {onMount} from 'svelte';
+    import {loadCover} from "$lib/loader";
+
+    let cover: Cover | undefined = $state();
+
+    onMount(async () => {
+        console.log("fetching", cover);
+        cover = await loadCover("/test.bin");
+        console.log("fetched", cover);
+    });
+
+    let selectedBox3: number | null = $state(null);
+    let selectedBox2: number | null = $state(null);
+
+    function selectBox3(index: number) {
+        selectedBox3 = index;
+        selectedBox2 = null;
+    }
+
+    function selectBox2(index: number) {
+        if (selectedBox3 === null) {
+            return;
+        }
+        selectedBox2 = index;
+    }
+
+    import {PaneGroup, Pane, PaneResizer} from "paneforge";
     import Parameter3 from "$lib/Parameter3.svelte";
     import Parameter2 from "$lib/Parameter2.svelte";
     import Geometry3 from "$lib/Geometry3.svelte";
     import Geometry2 from "$lib/Geometry2.svelte";
-
-
-    import {onMount} from 'svelte';
-    import {loadData} from "$lib/loader";
-
-    onMount(async () => {
-        let data = await loadData("/test.bin");
-        console.log(data);
-    });
 </script>
 
+
+<button onclick={() => selectBox3(selectedBox3 === null ? 1 : selectedBox3 + 1)}>Increment Box3</button>
+<button onclick={() => selectBox2(selectedBox2 === null ? 1 : selectedBox2 + 1)}>Increment Box2</button>
+<p>Selected Box3 Index: {selectedBox3 === null ? "null" : selectedBox3}</p>
+<p>Selected Box2 Index: {selectedBox2 === null ? "null" : selectedBox2}</p>
 
 <PaneGroup class="h-full w-full" direction="horizontal">
     <Pane defaultSize={2}>
         <PaneGroup class="h-full w-full" direction="vertical">
             <Pane defaultSize={1}>
                 <div id="pane">
-                    <Parameter3/>
+                    <Parameter3 bind:cover bind:selectedBox3 {selectBox3}/>
                 </div>
             </Pane>
 
@@ -32,7 +55,7 @@
 
             <Pane defaultSize={1}>
                 <div id="pane">
-                    <Parameter2/>
+                    <Parameter2 bind:cover bind:selectedBox3 bind:selectedBox2 {selectBox2}/>
                 </div>
             </Pane>
         </PaneGroup>
@@ -44,7 +67,7 @@
 
     <Pane defaultSize={3}>
         <div id="pane">
-            <Geometry3/>
+            <Geometry3 bind:cover bind:selectedBox3 bind:selectedBox2/>
         </div>
     </Pane>
 
@@ -54,7 +77,7 @@
 
     <Pane defaultSize={3}>
         <div id="pane">
-            <Geometry2/>
+            <Geometry2 bind:cover bind:selectedBox3 bind:selectedBox2/>
         </div>
     </Pane>
 </PaneGroup>
@@ -77,12 +100,5 @@
         background-color: #666666;
         cursor: row-resize;
         box-sizing: border-box;
-    }
-
-    #duck-image {
-        background-image: url(./duck.webp);
-        background-size: cover;
-        background-position: center;
-        height: 100%;
     }
 </style>

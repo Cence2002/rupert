@@ -8,13 +8,18 @@
 
     let container: HTMLDivElement;
     let canvas: HTMLCanvasElement;
+    let animationFrame: number;
+    let running = true;
 
     onMount(() => {
         canvas = setup(container.clientWidth, container.clientHeight);
         container.appendChild(canvas);
 
         function animate() {
-            requestAnimationFrame(animate);
+            if (!running) {
+                return;
+            }
+            animationFrame = requestAnimationFrame(animate);
             draw();
         }
 
@@ -26,7 +31,12 @@
     }
 
     onDestroy(() => {
-        container.removeChild(canvas);
+        running = false;
+        cancelAnimationFrame(animationFrame);
+        if (container && canvas && container.contains(canvas)) {
+            container.removeChild(canvas);
+        }
+        location.reload();
     });
 </script>
 

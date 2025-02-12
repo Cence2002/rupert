@@ -1,33 +1,56 @@
 <script lang="ts">
     import ThreeElement from "$lib/ThreeElement.svelte";
-    import { Scene, WebGLRenderer, OrthographicCamera, Vector2, Vector3, Shape, ShapeGeometry, MeshBasicMaterial, Mesh, EdgesGeometry, LineBasicMaterial, LineSegments } from "three";
-    import { MapControls } from "three/addons/controls/MapControls.js";
+    import {Cover} from "$lib/flatbuffers/flat-buffers/cover";
+
+    import {MapControls} from "three/addons/controls/MapControls.js";
+    import {Scene, WebGLRenderer, OrthographicCamera, Vector2, Vector3, Shape, ShapeGeometry, MeshBasicMaterial, Mesh, EdgesGeometry, LineBasicMaterial, LineSegments} from "three";
+
+    let {cover, selectedBox3, selectedBox2} = $props<{
+        cover: Cover | undefined,
+        selectedBox3: number | null,
+        selectedBox2: number | null,
+    }>();
+
+    $effect(() => {
+        if (cover) {
+            processCover();
+        }
+    });
 
     let camera: OrthographicCamera;
     let scene: Scene;
     let renderer: WebGLRenderer;
 
-    const viewSize = 2;
-    const numPoints = 20;
+    function processCover() {
+        console.log("processing in geometry2", cover.description());
+    }
+
+    $effect(() => {
+        console.log(selectedBox3, selectedBox2, "in geometry2");
+
+        return () => {
+            console.log(selectedBox3, selectedBox2, "in geometry2 cleanup");
+        };
+    });
 
     function setup(width: number, height: number) {
         scene = new Scene();
 
         const aspect = width / height;
         camera = new OrthographicCamera(
-            -aspect * viewSize, aspect * viewSize,
-            viewSize, -viewSize,
+            -aspect, aspect,
+            1, -1,
             -1, 1
         );
         camera.position.set(0, 0, 1);
         camera.lookAt(0, 0, 0);
 
-        renderer = new WebGLRenderer({ antialias: true });
+        renderer = new WebGLRenderer({antialias: true});
         renderer.setSize(width, height);
 
         // Generate random points
         let points: Vector2[] = [];
-        for (let i = 0; i < numPoints; i++) {
+        for (let i = 0; i < 20; i++) {
             points.push(new Vector2(Math.random() * 2 - 1, Math.random() * 2 - 1));
         }
 
@@ -53,10 +76,10 @@
 
     function resize(width: number, height: number) {
         const aspect = width / height;
-        camera.left = -aspect * viewSize;
-        camera.right = aspect * viewSize;
-        camera.top = viewSize;
-        camera.bottom = -viewSize;
+        camera.left = -aspect;
+        camera.right = aspect;
+        camera.top = 1;
+        camera.bottom = -1;
         camera.updateProjectionMatrix();
         renderer.setSize(width, height);
     }
@@ -69,18 +92,18 @@
         // Create filled polygon
         const shape = new Shape(hull);
         const geometry = new ShapeGeometry(shape);
-        const material = new MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.2, side: 2 });
+        const material = new MeshBasicMaterial({color: 0x00ffff, transparent: true, opacity: 0.2, side: 2});
         const mesh = new Mesh(geometry, material);
         scene.add(mesh);
 
         // Draw hull edges
         const edges = new EdgesGeometry(geometry);
-        const edgeMaterial = new LineBasicMaterial({ color: 0x00ffff });
+        const edgeMaterial = new LineBasicMaterial({color: 0x00ffff});
         const edgeLines = new LineSegments(edges, edgeMaterial);
         scene.add(edgeLines);
 
         // Draw points
-        const pointMaterial = new MeshBasicMaterial({ color: 0x00ffff });
+        const pointMaterial = new MeshBasicMaterial({color: 0x00ffff});
         for (let p of points) {
             const pointGeometry = new ShapeGeometry(new Shape([p]));
             const pointMesh = new Mesh(pointGeometry, pointMaterial);
@@ -119,4 +142,4 @@
     }
 </script>
 
-<ThreeElement {setup} {resize} {draw} />
+<ThreeElement {setup} {resize} {draw}/>

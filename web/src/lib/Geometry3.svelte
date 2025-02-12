@@ -1,12 +1,38 @@
 <script lang="ts">
     import ThreeElement from "$lib/ThreeElement.svelte";
+    import {Cover} from "$lib/flatbuffers/flat-buffers/cover";
+
+    import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
     import {Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRenderer, EdgesGeometry, LineBasicMaterial, LineSegments, Vector3} from "three";
     import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
-    import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
+    let {cover, selectedBox3, selectedBox2} = $props<{
+        cover: Cover | undefined,
+        selectedBox3: number | null,
+        selectedBox2: number | null,
+    }>();
+
+    $effect(() => {
+        if (cover) {
+            processCover();
+        }
+    });
 
     let camera: PerspectiveCamera;
     let scene: Scene;
     let renderer: WebGLRenderer;
+
+    function processCover() {
+        console.log("processing in geometry3", cover.description());
+    }
+
+    $effect(() => {
+        console.log(selectedBox3, selectedBox2, "in geometry3");
+
+        return () => {
+            console.log(selectedBox3, selectedBox2, "in geometry3 cleanup");
+        };
+    });
 
     function setup(width: number, height: number) {
         scene = new Scene();
@@ -22,7 +48,7 @@
             points.push(new Vector3(
                 Math.random() * 2 - 1,
                 Math.random() * 2 - 1,
-                (Math.random() * 2 - 1)/2
+                (Math.random() * 2 - 1) / 2
             ));
         }
 
