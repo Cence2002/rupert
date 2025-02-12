@@ -35,10 +35,10 @@
 </script>
 
 
-<button onclick={() => selectBox3(selectedBox3 === null ? 1 : selectedBox3 + 1)}>Increment Box3</button>
-<button onclick={() => selectBox2(selectedBox2 === null ? 1 : selectedBox2 + 1)}>Increment Box2</button>
-<p>Selected Box3 Index: {selectedBox3 === null ? "null" : selectedBox3}</p>
-<p>Selected Box2 Index: {selectedBox2 === null ? "null" : selectedBox2}</p>
+<!--<button onclick={() => selectBox3(selectedBox3 === null ? 1 : selectedBox3 + 1)}>Increment Box3</button>-->
+<!--<button onclick={() => selectBox2(selectedBox2 === null ? 1 : selectedBox2 + 1)}>Increment Box2</button>-->
+<!--<p>Selected Box3 Index: {selectedBox3 === null ? "null" : selectedBox3}</p>-->
+<!--<p>Selected Box2 Index: {selectedBox2 === null ? "null" : selectedBox2}</p>-->
 
 <PaneGroup class="h-full w-full" direction="horizontal">
     <Pane defaultSize={2}>

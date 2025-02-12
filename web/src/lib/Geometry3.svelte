@@ -5,6 +5,7 @@
     import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
     import {Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRenderer, EdgesGeometry, LineBasicMaterial, LineSegments, Vector3} from "three";
     import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
+    import {AxesHelper} from "three";
 
     let {cover, selectedBox3, selectedBox2} = $props<{
         cover: Cover | undefined,
@@ -54,12 +55,37 @@
     }
 
     function setup(width: number, height: number) {
-        scene = new Scene();
-        scene.up.set(0, 0, 1);
-        camera = new PerspectiveCamera(60, width / height, 0.1, 1000);
-        renderer = new WebGLRenderer({antialias: true});
-        renderer.setSize(width, height);
+        {
+            scene = new Scene();
+            scene.up.set(0, 0, 1);
+        }
 
+        {
+            camera = new PerspectiveCamera(60, width / height, 0.1, 1000);
+            camera.up.set(0, 0, 2);
+            camera.lookAt(0, 0, 2);
+            camera.position.set(0, -8, 2);
+        }
+
+        {
+            renderer = new WebGLRenderer({antialias: true});
+            renderer.setSize(width, height);
+        }
+
+        {
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableRotate = true;
+            controls.enableZoom = true;
+            controls.enablePan = false;
+            controls.enableDamping = false;
+            controls.target.set(0, 0, 2);
+            controls.update();
+        }
+
+        {
+            const axesHelper = new AxesHelper(10);
+            scene.add(axesHelper);
+        }
 
         const n = 100;
         let points: Vector3[] = [];
@@ -67,7 +93,7 @@
             points.push(new Vector3(
                 Math.random() * 2 - 1,
                 Math.random() * 2 - 1,
-                (Math.random() * 2 - 1) / 2
+                (Math.random() * 2 - 1) / 2 + 2
             ));
         }
 
@@ -76,19 +102,10 @@
         const polyhedronMesh = new Mesh(polyhedron, polyhedronMaterial);
         scene.add(polyhedronMesh);
 
-        const edges = new EdgesGeometry(polyhedron);
-        const edgesMaterial = new LineBasicMaterial({color: 0x00ffff});
-        const edgesMesh = new LineSegments(edges, edgesMaterial);
-        scene.add(edgesMesh);
-
-        camera.up.set(0, 0, 1);
-        camera.position.set(0, 4, 0);
-
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableRotate = true;
-        controls.enableZoom = true;
-        controls.enablePan = false;
-        controls.enableDamping = false;
+        const polyhedronEdges = new EdgesGeometry(polyhedron);
+        const polyhedronEdgesMaterial = new LineBasicMaterial({color: 0x00ffff});
+        const polyhedronEdgesMesh = new LineSegments(polyhedronEdges, polyhedronEdgesMaterial);
+        scene.add(polyhedronEdgesMesh);
 
         return renderer.domElement;
     }

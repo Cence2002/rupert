@@ -3,7 +3,7 @@
     import {Cover} from "$lib/flatbuffers/flatbuffers_generated";
 
     import {MapControls} from 'three/addons/controls/MapControls.js';
-    import {PlaneGeometry, Mesh, MeshBasicMaterial, OrthographicCamera, Scene, WebGLRenderer, EdgesGeometry, LineBasicMaterial, LineSegments} from "three";
+    import {PlaneGeometry, Mesh, MeshBasicMaterial, OrthographicCamera, Scene, WebGLRenderer, EdgesGeometry, LineBasicMaterial, LineSegments, AxesHelper} from "three";
 
     let {cover, selectedBox3, selectedBox2, selectBox2} = $props<{
         cover: Cover | undefined,
@@ -37,7 +37,6 @@
     let camera: OrthographicCamera;
     let scene: Scene;
     let renderer: WebGLRenderer;
-    let squares: Mesh[] = [];
 
     function processCover() {
     }
@@ -54,55 +53,56 @@
     function clearBox2Selection() {
     }
 
-    function setup(width: number, height: number) {
-        scene = new Scene();
-
+    function setCameraBounds(width: number, height: number, zoom: number = 2) {
         const aspect = width / height;
-        camera = new OrthographicCamera(
-            -aspect, aspect,
-            1, -1,
-            -1, 1
-        );
-        camera.position.set(0, 0, 1);
-        camera.lookAt(0, 0, 0);
+        camera.left = (1 - zoom * aspect) / 2;
+        camera.right = (1 + zoom * aspect) / 2;
+        camera.top = (1 + zoom) / 2;
+        camera.bottom = (1 - zoom) / 2;
+        camera.updateProjectionMatrix();
+    }
 
-        renderer = new WebGLRenderer({antialias: true});
-        renderer.setSize(width, height);
-
-        const material = new MeshBasicMaterial({color: 0x00ffff, transparent: true, opacity: 0.7});
-
-        const n = 20;
-        for (let x = 0; x < n; x++) {
-            for (let y = 0; y < n; y++) {
-                const geometry = new PlaneGeometry(2 / n, 2 / n);
-                const square = new Mesh(geometry, material);
-                square.position.set(
-                    x / n * 2 - 1 + 1 / n,
-                    y / n * 2 - 1 + 1 / n,
-                    0
-                );
-
-                if (square.position.length() > 0.9 || square.position.x ** 2 < 0.2) {
-                    continue;
-                }
-
-                scene.add(square);
-                squares.push(square);
-            }
+    function setup(width: number, height: number) {
+        {
+            scene = new Scene();
+            scene.up.set(0, 1, 0);
         }
 
-        const frameGeometry = new PlaneGeometry(2, 2);
-        const edges = new EdgesGeometry(frameGeometry);
-        const edgeMaterial = new LineBasicMaterial({color: 0xff0000});
-        const squareFrame = new LineSegments(edges, edgeMaterial);
-        scene.add(squareFrame);
+        {
+            camera = new OrthographicCamera(0, 0, 0, 0, -1, 1);
+            setCameraBounds(width, height);
+            camera.up.set(0, 1, 0);
+            camera.lookAt(0.5, 0.5, 0);
+        }
 
-        const controls = new MapControls(camera, renderer.domElement);
-        controls.enableRotate = false;
-        controls.enableZoom = true;
-        controls.enablePan = true;
-        controls.screenSpacePanning = true;
-        controls.zoomToCursor = true;
+        {
+            renderer = new WebGLRenderer({antialias: true});
+            renderer.setSize(width, height);
+        }
+
+        {
+            const controls = new MapControls(camera, renderer.domElement);
+            controls.enablePan = true;
+            controls.enableZoom = true;
+            controls.enableRotate = false;
+            controls.screenSpacePanning = true;
+            controls.zoomToCursor = true;
+            controls.update();
+        }
+
+        {
+            const axesHelper = new AxesHelper(10);
+            scene.add(axesHelper);
+        }
+
+        {
+            const domainGeometry = new PlaneGeometry(1, 1);
+            const domainEdgesGeometry = new EdgesGeometry(domainGeometry);
+            const domainEdgeMaterial = new LineBasicMaterial({color: 0x7f7f7f});
+            const domainEdges = new LineSegments(domainEdgesGeometry, domainEdgeMaterial);
+            domainEdges.position.set(0.5, 0.5, 0);
+            scene.add(domainEdges);
+        }
 
         return renderer.domElement;
     }
@@ -112,14 +112,8 @@
     }
 
     function resize(width: number, height: number) {
-        const aspect = width / height;
-        camera.left = -aspect;
-        camera.right = aspect;
-        camera.top = 1;
-        camera.bottom = -1;
-        camera.updateProjectionMatrix();
+        setCameraBounds(width, height);
         renderer.setSize(width, height);
-        if (height > width) selectBox2(1);
     }
 </script>
 

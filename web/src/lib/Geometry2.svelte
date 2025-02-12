@@ -3,7 +3,7 @@
     import {Cover} from "$lib/flatbuffers/flat-buffers/cover";
 
     import {MapControls} from "three/addons/controls/MapControls.js";
-    import {Scene, WebGLRenderer, OrthographicCamera, Vector2, Shape, ShapeGeometry, MeshBasicMaterial, Mesh, EdgesGeometry, LineBasicMaterial, LineSegments} from "three";
+    import {Scene, WebGLRenderer, OrthographicCamera, Vector2, Shape, ShapeGeometry, MeshBasicMaterial, Mesh, EdgesGeometry, LineBasicMaterial, LineSegments, AxesHelper} from "three";
 
     let {cover, selectedBox3, selectedBox2} = $props<{
         cover: Cover | undefined,
@@ -52,39 +52,95 @@
     function clearBox2Selection() {
     }
 
-    function setup(width: number, height: number) {
-        scene = new Scene();
-
+    function setCameraBounds(width: number, height: number, zoom: number = 2) {
         const aspect = width / height;
-        camera = new OrthographicCamera(
-            -aspect, aspect,
-            1, -1,
-            -1, 1
-        );
-        camera.position.set(0, 0, 1);
-        camera.lookAt(0, 0, 0);
+        camera.left = -zoom * aspect / 2;
+        camera.right = zoom * aspect / 2;
+        camera.top = zoom / 2;
+        camera.bottom = -zoom / 2;
+        camera.updateProjectionMatrix();
+    }
 
-        renderer = new WebGLRenderer({antialias: true});
-        renderer.setSize(width, height);
+    function setup(width: number, height: number) {
+        // scene = new Scene();
+        //
+        // const aspect = width / height;
+        // camera = new OrthographicCamera(
+        //     -aspect, aspect,
+        //     1, -1,
+        //     -1, 1
+        // );
+        // camera.position.set(0, 0, 1);
+        // camera.lookAt(0, 0, 0);
+        //
+        // renderer = new WebGLRenderer({antialias: true});
+        // renderer.setSize(width, height);
+        //
+        // // Generate random points
+        // let points: Vector2[] = [];
+        // for (let i = 0; i < 20; i++) {
+        //     points.push(new Vector2(Math.random() * 2 - 1, Math.random() * 2 - 1));
+        // }
+        //
+        // // Compute and display the convex hull
+        // if (points.length > 2) {
+        //     addConvexHull(points);
+        // }
+        //
+        // // Controls
+        // const controls = new MapControls(camera, renderer.domElement);
+        // controls.enableRotate = false;
+        // controls.enableZoom = true;
+        // controls.enablePan = true;
+        // controls.screenSpacePanning = true;
+        // controls.zoomToCursor = true;
+        //
+        // return renderer.domElement;
 
-        // Generate random points
-        let points: Vector2[] = [];
-        for (let i = 0; i < 20; i++) {
-            points.push(new Vector2(Math.random() * 2 - 1, Math.random() * 2 - 1));
+        {
+            scene = new Scene();
+            scene.up.set(0, 1, 0);
         }
 
-        // Compute and display the convex hull
+        {
+            camera = new OrthographicCamera(0, 0, 0, 0, -1, 1);
+            setCameraBounds(width, height);
+            camera.up.set(0, 1, 0);
+            camera.lookAt(0, 0, 0);
+        }
+
+        {
+            renderer = new WebGLRenderer({antialias: true});
+            renderer.setSize(width, height);
+        }
+
+        {
+            const controls = new MapControls(camera, renderer.domElement);
+            controls.enablePan = true;
+            controls.enableZoom = true;
+            controls.enableRotate = false;
+            controls.screenSpacePanning = true;
+            controls.zoomToCursor = true;
+            controls.update();
+        }
+
+        {
+            const axesHelper = new AxesHelper(10);
+            scene.add(axesHelper);
+        }
+
+        const n = 100;
+        let points: Vector2[] = [];
+        for (let i = 0; i < n; i++) {
+            points.push(new Vector2(
+                (Math.random() * 2 - 1) / 4,
+                (Math.random() * 2 - 1) / 4
+            ));
+        }
+
         if (points.length > 2) {
             addConvexHull(points);
         }
-
-        // Controls
-        const controls = new MapControls(camera, renderer.domElement);
-        controls.enableRotate = false;
-        controls.enableZoom = true;
-        controls.enablePan = true;
-        controls.screenSpacePanning = true;
-        controls.zoomToCursor = true;
 
         return renderer.domElement;
     }
