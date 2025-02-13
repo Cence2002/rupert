@@ -4,7 +4,7 @@
     import {Selection} from "$lib/state.svelte";
 
     import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
-    import {Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRenderer, EdgesGeometry, LineBasicMaterial, LineSegments, Vector3} from "three";
+    import {Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRenderer, EdgesGeometry, LineBasicMaterial, LineSegments, Vector3, Group} from "three";
     import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
     import {AxesHelper} from "three";
 
@@ -22,47 +22,68 @@
     let camera: PerspectiveCamera;
     let scene: Scene;
     let renderer: WebGLRenderer;
+    let holeGroup: Group | undefined;
+    let plugGroup: Group | undefined;
+
+    const holeColor = new Vector3(0, 0, 1);
+    const plugColor = new Vector3(0, 1, 0);
+    const edgeColor = new Vector3(0.5, 0.5, 0.5);
 
     function onCover() {
         if (!cover) {
             return;
         }
+        let holeRadius: number;
         {
             const coverHole = cover!.hole();
-            let vertices = [];
+            let vertices: Vector3[] = [];
             for (let index = 0; index < coverHole.verticesLength(); index++) {
                 const vertex = coverHole.vertices(index);
-                vertices.push(new Vector3(vertex.x(), vertex.y(), vertex.z() + 1));
+                vertices.push(new Vector3(vertex.x(), vertex.y(), vertex.z()));
             }
+            holeRadius = Math.max(...vertices.map(v => v.length()));
 
             const hole = new ConvexGeometry(vertices);
-            const holeMaterial = new MeshBasicMaterial({color: 0x00ffff, transparent: true, opacity: 0.25});
+            const holeMaterial = new MeshBasicMaterial({transparent: true, opacity: 0.5});
+            holeMaterial.color.setFromVector3(holeColor);
             const holeMesh = new Mesh(hole, holeMaterial);
-            scene.add(holeMesh);
 
             const holeEdges = new EdgesGeometry(hole);
-            const holeEdgesMaterial = new LineBasicMaterial({color: 0x00ffff});
+            const holeEdgesMaterial = new LineBasicMaterial();
+            holeEdgesMaterial.color.setFromVector3(edgeColor);
             const holeEdgesMesh = new LineSegments(holeEdges, holeEdgesMaterial);
-            scene.add(holeEdgesMesh);
-        }
 
+            holeGroup = new Group();
+            holeGroup.add(holeMesh);
+            holeGroup.add(holeEdgesMesh);
+            holeGroup.position.set(0, 0, holeRadius);
+            scene.add(holeGroup);
+        }
+        let plugRadius: number;
         {
             const coverPlug = cover!.plug();
             let vertices = [];
             for (let index = 0; index < coverPlug.verticesLength(); index++) {
                 const vertex = coverPlug.vertices(index);
-                vertices.push(new Vector3(vertex.x(), vertex.y(), vertex.z()+2));
+                vertices.push(new Vector3(vertex.x(), vertex.y(), vertex.z()));
             }
+            plugRadius = Math.max(...vertices.map(v => v.length()));
 
             const plug = new ConvexGeometry(vertices);
-            const plugMaterial = new MeshBasicMaterial({color: 0x00ffff, transparent: true, opacity: 0.25});
-            const plugMesh = new Mesh(plug, plugMaterial);
-            scene.add(plugMesh);
+            const plugMaterial = new MeshBasicMaterial({transparent: true, opacity: 0.5});
+            plugMaterial.color.setFromVector3(plugColor);
+            let plugMesh = new Mesh(plug, plugMaterial);
 
             const plugEdges = new EdgesGeometry(plug);
-            const plugEdgesMaterial = new LineBasicMaterial({color: 0x00ffff});
-            const plugEdgesMesh = new LineSegments(plugEdges, plugEdgesMaterial);
-            scene.add(plugEdgesMesh);
+            const plugEdgesMaterial = new LineBasicMaterial();
+            plugEdgesMaterial.color.setFromVector3(edgeColor);
+            let plugEdgesMesh = new LineSegments(plugEdges, plugEdgesMaterial);
+
+            plugGroup = new Group();
+            plugGroup.add(plugMesh);
+            plugGroup.add(plugEdgesMesh);
+            plugGroup.position.set(0, 0, 2 * holeRadius + plugRadius);
+            scene.add(plugGroup);
         }
     }
 
@@ -114,6 +135,16 @@
 
     function draw() {
         renderer.render(scene, camera);
+        if (holeGroup) {
+            holeGroup.rotation.x += 0.001;
+            holeGroup.rotation.y += 0.002
+            holeGroup.rotation.z += 0.003;
+        }
+        if (plugGroup) {
+            plugGroup.rotation.x -= 0.001;
+            plugGroup.rotation.y -= 0.002
+            plugGroup.rotation.z -= 0.003;
+        }
     }
 
     function resize(width: number, height: number) {

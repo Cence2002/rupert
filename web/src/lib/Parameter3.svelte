@@ -4,8 +4,22 @@
     import {Selection} from "$lib/state.svelte";
 
     import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
-    import {BoxGeometry, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRenderer, EdgesGeometry, LineBasicMaterial, LineSegments, Vector2, Raycaster, Group} from "three";
-    import {AxesHelper} from "three";
+    import {
+        BoxGeometry,
+        Mesh,
+        MeshBasicMaterial,
+        PerspectiveCamera,
+        Scene,
+        WebGLRenderer,
+        EdgesGeometry,
+        LineBasicMaterial,
+        LineSegments,
+        Vector2,
+        AxesHelper,
+        Raycaster,
+        Group,
+        Vector3,
+    } from "three";
 
     let {cover, selection} = $props<{
         cover: Cover | undefined,
@@ -19,7 +33,11 @@
     let camera: PerspectiveCamera;
     let scene: Scene;
     let renderer: WebGLRenderer;
-    let box3s: Map<number, Group> = new Map();
+    const box3Groups: Map<number, Group> = new Map();
+
+    const defaultColor = new Vector3(0, 0, 1);
+    const selectedColor = new Vector3(1, 0, 0);
+    const edgeColor = new Vector3(0.5, 0.5, 0.5);
 
     function onCover() {
         if (!cover) {
@@ -34,12 +52,14 @@
                 const alpha = box3.alpha().interval();
 
                 const box3Geometry = new BoxGeometry((phi.max() - phi.min()) / (2 * Math.PI), (theta.max() - theta.min()) / Math.PI, (alpha.max() - alpha.min()) / (2 * Math.PI));
-                const box3Material = new MeshBasicMaterial({color: 0x0000ff, transparent: true, opacity: 0.5});
+                const box3Material = new MeshBasicMaterial({transparent: true, opacity: 0.5});
+                box3Material.color.setFromVector3(defaultColor);
                 const box3Mesh = new Mesh(box3Geometry, box3Material);
                 box3Mesh.position.set((phi.min() + phi.max()) / (2 * Math.PI) / 2, (theta.min() + theta.max()) / Math.PI / 2, (alpha.min() + alpha.max()) / (2 * Math.PI) / 2);
 
                 const box3EdgesGeometry = new EdgesGeometry(box3Geometry);
-                const box3EdgesMaterial = new LineBasicMaterial({color: 0x00ffff});
+                const box3EdgesMaterial = new LineBasicMaterial();
+                box3EdgesMaterial.color.setFromVector3(edgeColor);
                 const box3Edges = new LineSegments(box3EdgesGeometry, box3EdgesMaterial);
                 box3Edges.position.set((phi.min() + phi.max()) / (2 * Math.PI) / 2, (theta.min() + theta.max()) / Math.PI / 2, (alpha.min() + alpha.max()) / (2 * Math.PI) / 2);
 
@@ -47,12 +67,12 @@
                 box3Group.add(box3Mesh);
                 box3Group.add(box3Edges);
 
-                box3s.set(index, box3Group);
+                box3Groups.set(index, box3Group);
             }
         }
         {
-            for (const box3 of box3s.values()) {
-                scene.add(box3);
+            for (const box3Group of box3Groups.values()) {
+                scene.add(box3Group);
             }
         }
     }
@@ -61,14 +81,39 @@
         if (selection.selectedBox3 === null) {
             return;
         }
-        const selectedBox = box3s.get(selection.selectedBox3)!;
-        const mesh = selectedBox.children[0] as Mesh;
+        const box3Group = box3Groups.get(selection.selectedBox3)!;
+        const box3 = box3Group.children[0] as Mesh;
 
-        if (mesh && mesh.material instanceof MeshBasicMaterial) {
-            mesh.material.color.setRGB(1, 0, 0);
-        }
+        const box3Material = box3.material as MeshBasicMaterial;
+        box3Material.color.setFromVector3(selectedColor);
         return () => {
+            for (const box3Group of box3Groups.values()) {
+                const box3 = box3Group.children[0] as Mesh;
+                const box3Material = box3.material as MeshBasicMaterial;
+                box3Material.color.setFromVector3(defaultColor);
+            }
         };
+    }
+
+    function onClick(mouse: Vector2) {
+        const raycaster = new Raycaster();
+        raycaster.setFromCamera(mouse, camera);
+
+        for (const [index, box3Group] of box3Groups.entries()) {
+            const box3 = box3Group.children[0] as Mesh;
+            const intersections = raycaster.intersectObject(box3, false);
+
+            if (intersections.length > 0) {
+                if (selection.selectedBox3 === index) {
+                    selection.selectBox3(null);
+                } else {
+                    selection.selectBox3(index);
+                }
+                return;
+            }
+        }
+
+        selection.selectBox3(null);
     }
 
     function setup(width: number, height: number) {
@@ -124,28 +169,6 @@
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
         renderer.setSize(width, height);
-    }
-
-    function onClick(x: number, y: number) {
-
-        const mouse = new Vector2(
-            2 * x - 1,
-            1 - 2 * y
-        );
-        console.log('Mouse clicked!', mouse);
-
-        const raycaster = new Raycaster();
-        raycaster.setFromCamera(mouse, camera);
-
-        for (const [index, box3] of box3s) {
-            const intersects = raycaster.intersectObjects(box3.children);
-
-            if (intersects.length > 0) {
-                // box3.children[0].material.color.set(0xff0000);
-            }
-        }
-
-        selection.selectBox3(0);
     }
 </script>
 

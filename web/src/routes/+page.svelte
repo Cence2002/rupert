@@ -16,7 +16,7 @@
 
     onMount(async () => {
         cover = await loadCover("/test.bin");
-        console.log("fetched", cover.description());
+        console.log("fetched", cover!.description());
     });
 </script>
 

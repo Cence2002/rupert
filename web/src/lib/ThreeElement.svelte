@@ -1,11 +1,14 @@
 <script lang="ts">
     import {onMount, onDestroy} from "svelte";
     import {watchResize} from "svelte-watch-resize";
+    import {Vector2} from "three";
+    import {lerp} from "three/src/math/MathUtils.js";
 
     export let setup: (width: number, height: number) => HTMLCanvasElement;
     export let draw: () => void;
     export let resize: (width: number, height: number) => void;
-    export let onClick: (width: number, height: number) => void = () => {};
+    export let onClick: (mouse: Vector2) => void = () => {
+    };
 
     let container: HTMLDivElement;
     let canvas: HTMLCanvasElement;
@@ -13,9 +16,11 @@
     let running = true;
 
     function handleClick(event: MouseEvent) {
-        const x = event.offsetX / container.offsetWidth
-        const y = event.offsetY / container.offsetHeight;
-        onClick(x, y);
+        const mouse = new Vector2(
+            lerp(-1, 1, event.offsetX / container.offsetWidth),
+            lerp(1, -1, event.offsetY / container.offsetHeight)
+        );
+        onClick(mouse);
     }
 
     onMount(() => {
