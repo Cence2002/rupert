@@ -19,6 +19,14 @@ public:
 
     Id& operator=(const Id& other) = default;
 
+    uint64_t bits() const {
+        return bits_;
+    }
+
+    uint8_t depth() const {
+        return depth_;
+    }
+
     double len() const {
         return 1.0 / static_cast<double>(1ull << depth_);
     }
@@ -72,6 +80,14 @@ public:
 
     explicit Box2(const Id& phi_id, const Id& theta_id) : phi_id_(phi_id), theta_id_(theta_id) {}
 
+    Id phi_id() const {
+        return phi_id_;
+    }
+
+    Id theta_id() const {
+        return theta_id_;
+    }
+
     std::array<Box2, 4> split() const {
         const auto [phi_id_min, phi_id_max] = phi_id_.split();
         const auto [theta_id_min, theta_id_max] = theta_id_.split();
@@ -112,6 +128,18 @@ public:
     explicit Box3() : phi_id_(), theta_id_(), alpha_id_() {}
 
     explicit Box3(const Id& phi_id, const Id& theta_id, const Id& alpha_id) : phi_id_(phi_id), theta_id_(theta_id), alpha_id_(alpha_id) {}
+
+    Id phi_id() const {
+        return phi_id_;
+    }
+
+    Id theta_id() const {
+        return theta_id_;
+    }
+
+    Id alpha_id() const {
+        return alpha_id_;
+    }
 
     std::array<Box3, 8> split() const {
         const auto [phi_id_min, phi_id_max] = phi_id_.split();
@@ -187,6 +215,11 @@ private:
 
 public:
     explicit Queue3() : queue(), mutex() {
+        // push(Box3(
+        //     Id(0b0, 5),
+        //     Id(0b0100, 4),
+        //     Id(0b0, 5)
+        // ));
         push(Box3());
     }
 

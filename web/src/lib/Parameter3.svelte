@@ -33,7 +33,7 @@
     let camera: PerspectiveCamera;
     let scene: Scene;
     let renderer: WebGLRenderer;
-    const box3Groups: Map<number, Group> = new Map();
+    const box3Groups: Group[] = [];
 
     const defaultColor = new Vector3(0, 0, 1);
     const selectedColor = new Vector3(1, 0, 0);
@@ -51,27 +51,27 @@
                 const theta = box3.theta().interval();
                 const alpha = box3.alpha().interval();
 
-                const box3Geometry = new BoxGeometry((phi.max() - phi.min()) / (2 * Math.PI), (theta.max() - theta.min()) / Math.PI, (alpha.max() - alpha.min()) / (2 * Math.PI));
-                const box3Material = new MeshBasicMaterial({transparent: true, opacity: 0.5});
+                const box3Geometry = new BoxGeometry(phi.max() - phi.min(), theta.max() - theta.min(), alpha.max() - alpha.min());
+                const box3Material = new MeshBasicMaterial({transparent: true, opacity: 0.1, depthWrite: false});
                 box3Material.color.setFromVector3(defaultColor);
                 const box3Mesh = new Mesh(box3Geometry, box3Material);
-                box3Mesh.position.set((phi.min() + phi.max()) / (2 * Math.PI) / 2, (theta.min() + theta.max()) / Math.PI / 2, (alpha.min() + alpha.max()) / (2 * Math.PI) / 2);
+                box3Mesh.position.set((phi.min() + phi.max()) / 2, (theta.min() + theta.max()) / 2, (alpha.min() + alpha.max()) / 2);
 
                 const box3EdgesGeometry = new EdgesGeometry(box3Geometry);
                 const box3EdgesMaterial = new LineBasicMaterial();
                 box3EdgesMaterial.color.setFromVector3(edgeColor);
                 const box3Edges = new LineSegments(box3EdgesGeometry, box3EdgesMaterial);
-                box3Edges.position.set((phi.min() + phi.max()) / (2 * Math.PI) / 2, (theta.min() + theta.max()) / Math.PI / 2, (alpha.min() + alpha.max()) / (2 * Math.PI) / 2);
+                box3Edges.position.set((phi.min() + phi.max()) / 2, (theta.min() + theta.max()) / 2, (alpha.min() + alpha.max()) / 2);
 
                 const box3Group = new Group();
                 box3Group.add(box3Mesh);
                 box3Group.add(box3Edges);
 
-                box3Groups.set(index, box3Group);
+                box3Groups.push(box3Group);
             }
         }
         {
-            for (const box3Group of box3Groups.values()) {
+            for (const box3Group of box3Groups) {
                 scene.add(box3Group);
             }
         }
@@ -81,16 +81,18 @@
         if (selection.selectedBox3 === null) {
             return;
         }
-        const box3Group = box3Groups.get(selection.selectedBox3)!;
+        const box3Group = box3Groups[selection.selectedBox3];
         const box3 = box3Group.children[0] as Mesh;
-
         const box3Material = box3.material as MeshBasicMaterial;
         box3Material.color.setFromVector3(selectedColor);
+        box3Material.opacity = 0.9;
+
         return () => {
-            for (const box3Group of box3Groups.values()) {
+            for (const box3Group of box3Groups) {
                 const box3 = box3Group.children[0] as Mesh;
                 const box3Material = box3.material as MeshBasicMaterial;
                 box3Material.color.setFromVector3(defaultColor);
+                box3Material.opacity = 0.1;
             }
         };
     }
@@ -99,21 +101,37 @@
         const raycaster = new Raycaster();
         raycaster.setFromCamera(mouse, camera);
 
-        for (const [index, box3Group] of box3Groups.entries()) {
-            const box3 = box3Group.children[0] as Mesh;
-            const intersections = raycaster.intersectObject(box3, false);
+        const intersections = raycaster.intersectObjects(box3Groups.map(group => group.children[0] as Mesh), false);
 
-            if (intersections.length > 0) {
-                if (selection.selectedBox3 === index) {
-                    selection.selectBox3(null);
-                } else {
-                    selection.selectBox3(index);
-                }
-                return;
-            }
+        function getVolume(geometry: BoxGeometry) {
+            const {width, height, depth} = geometry.parameters;
+            return width * height * depth;
         }
 
-        selection.selectBox3(null);
+        intersections.sort((intersection, otherIntersection) => {
+            const volume = getVolume((intersection.object as Mesh).geometry as BoxGeometry);
+            const volumeSize = getVolume((otherIntersection.object as Mesh).geometry as BoxGeometry);
+            const volumeDifference = volume - volumeSize;
+            const distanceDifference = intersection.distance - otherIntersection.distance;
+            return distanceDifference - volumeDifference / 1000;
+        });
+
+        if (intersections.length === 0) {
+            selection.selectBox3(null);
+            return;
+        }
+
+        if (selection.selectedBox3 === null) {
+            selection.selectBox3(box3Groups.findIndex(group => group.children[0] === intersections[0].object));
+            return;
+        }
+
+        const selectedBox3 = box3Groups[selection.selectedBox3].children[0] as Mesh;
+        const selectedBox3Index = intersections.findIndex(intersection => intersection.object === selectedBox3);
+        const newSelectedBox3Index = selectedBox3Index === -1 ? 0 : (selectedBox3Index + 1) % intersections.length;
+        const newSelectedBox3 = intersections[newSelectedBox3Index].object as Mesh;
+        const newSelectedBox3IndexInGroups = box3Groups.findIndex(group => group.children[0] === newSelectedBox3);
+        selection.selectBox3(newSelectedBox3IndexInGroups);
     }
 
     function setup(width: number, height: number) {

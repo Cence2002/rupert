@@ -12,6 +12,10 @@ private:
 public:
     explicit Polygon(const std::vector<Line<I>>& lines) : lines_(lines) {}
 
+    std::vector<Line<I>> lines() const {
+        return lines_;
+    }
+
     bool is_inside(const Vector2<I>& vector2) const {
         bool all_counter_clockwise = true;
         for(const Line<I>& line: lines_) {

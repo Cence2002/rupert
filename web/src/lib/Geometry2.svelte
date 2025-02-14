@@ -4,7 +4,7 @@
     import {Selection} from "$lib/state.svelte";
 
     import {MapControls} from "three/addons/controls/MapControls.js";
-    import {Scene, WebGLRenderer, OrthographicCamera, Vector2, Shape, ShapeGeometry, MeshBasicMaterial, Mesh, EdgesGeometry, LineBasicMaterial, LineSegments, AxesHelper} from "three";
+    import {Scene, WebGLRenderer, OrthographicCamera, Vector2, Shape, ShapeGeometry, MeshBasicMaterial, Mesh, EdgesGeometry, LineBasicMaterial, LineSegments, AxesHelper, FrontSide} from "three";
 
     let {cover, selectedBox3, selectedBox2} = $props<{
         cover: Cover | undefined,
@@ -48,41 +48,6 @@
     }
 
     function setup(width: number, height: number) {
-        // scene = new Scene();
-        //
-        // const aspect = width / height;
-        // camera = new OrthographicCamera(
-        //     -aspect, aspect,
-        //     1, -1,
-        //     -1, 1
-        // );
-        // camera.position.set(0, 0, 1);
-        // camera.lookAt(0, 0, 0);
-        //
-        // renderer = new WebGLRenderer({antialias: true});
-        // renderer.setSize(width, height);
-        //
-        // // Generate random points
-        // let points: Vector2[] = [];
-        // for (let i = 0; i < 20; i++) {
-        //     points.push(new Vector2(Math.random() * 2 - 1, Math.random() * 2 - 1));
-        // }
-        //
-        // // Compute and display the convex hull
-        // if (points.length > 2) {
-        //     addConvexHull(points);
-        // }
-        //
-        // // Controls
-        // const controls = new MapControls(camera, renderer.domElement);
-        // controls.enableRotate = false;
-        // controls.enableZoom = true;
-        // controls.enablePan = true;
-        // controls.screenSpacePanning = true;
-        // controls.zoomToCursor = true;
-        //
-        // return renderer.domElement;
-
         {
             scene = new Scene();
             scene.up.set(0, 1, 0);
@@ -153,7 +118,7 @@
         // Create filled polygon
         const shape = new Shape(hull);
         const geometry = new ShapeGeometry(shape);
-        const material = new MeshBasicMaterial({color: 0x00ffff, transparent: true, opacity: 0.2, side: 2});
+        const material = new MeshBasicMaterial({color: 0x00ffff, transparent: true, opacity: 0.2, side: FrontSide, depthWrite: false});
         const mesh = new Mesh(geometry, material);
         scene.add(mesh);
 

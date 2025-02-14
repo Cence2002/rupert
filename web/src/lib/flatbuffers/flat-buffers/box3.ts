@@ -71,19 +71,9 @@ complete():boolean {
   return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : false;
 }
 
-in_(index: number):number|null {
+in_():number {
   const offset = this.bb!.__offset(this.bb_pos, 18);
-  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
-}
-
-inLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 18);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-inArray():Uint8Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 18);
-  return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
 }
 
 static startBox3(builder:flatbuffers.Builder) {
@@ -142,20 +132,8 @@ static addComplete(builder:flatbuffers.Builder, complete:boolean) {
   builder.addFieldInt8(6, +complete, +false);
 }
 
-static addIn(builder:flatbuffers.Builder, in_Offset:flatbuffers.Offset) {
-  builder.addFieldOffset(7, in_Offset, 0);
-}
-
-static createInVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
-  builder.startVector(1, data.length, 1);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addInt8(data[i]!);
-  }
-  return builder.endVector();
-}
-
-static startInVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(1, numElems, 1);
+static addIn(builder:flatbuffers.Builder, in_:number) {
+  builder.addFieldInt32(7, in_, 0);
 }
 
 static endBox3(builder:flatbuffers.Builder):flatbuffers.Offset {

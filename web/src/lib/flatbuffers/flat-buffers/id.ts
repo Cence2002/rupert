@@ -14,30 +14,30 @@ export class Id {
   return this;
 }
 
-bits():number {
-  return this.bb!.readUint32(this.bb_pos);
+bits():bigint {
+  return this.bb!.readUint64(this.bb_pos);
 }
 
 depth():number {
-  return this.bb!.readUint8(this.bb_pos + 4);
+  return this.bb!.readUint8(this.bb_pos + 8);
 }
 
 interval(obj?:Interval):Interval|null {
-  return (obj || new Interval()).__init(this.bb_pos + 8, this.bb!);
+  return (obj || new Interval()).__init(this.bb_pos + 16, this.bb!);
 }
 
 static sizeOf():number {
-  return 24;
+  return 32;
 }
 
-static createId(builder:flatbuffers.Builder, bits: number, depth: number, interval_min: number, interval_max: number):flatbuffers.Offset {
-  builder.prep(8, 24);
+static createId(builder:flatbuffers.Builder, bits: bigint, depth: number, interval_min: number, interval_max: number):flatbuffers.Offset {
+  builder.prep(8, 32);
   builder.prep(8, 16);
   builder.writeFloat64(interval_max);
   builder.writeFloat64(interval_min);
-  builder.pad(3);
+  builder.pad(7);
   builder.writeInt8(depth);
-  builder.writeInt32(bits);
+  builder.writeInt64(bits);
   return builder.offset();
 }
 

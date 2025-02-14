@@ -30,7 +30,7 @@ struct Interval {
 }
 
 struct Id {
-  bits: uint32;
+  bits: uint64;
   depth: uint8;
   interval: Interval; // helper
 }
@@ -54,7 +54,7 @@ table Box3 {
   projection: Polygon; // helper
   box2s: [Box2];
   complete: bool; // helper
-  in: [uint8]; // helper
+  in: int32; // helper
 }
 
 table Cover {

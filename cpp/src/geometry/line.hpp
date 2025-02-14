@@ -13,6 +13,14 @@ public:
 
     explicit Line(const Vector2<Interval>& direction) : point_(Vector2<Interval>(0, 0)), direction_(direction) {}
 
+    Vector2<Interval> point() const {
+        return point_;
+    }
+
+    Vector2<Interval> direction() const {
+        return direction_;
+    }
+
     static Line from_two_points(const Vector2<Interval>& point, const Vector2<Interval>& other_point) {
         return DirectedLine(point, other_point - point);
     }

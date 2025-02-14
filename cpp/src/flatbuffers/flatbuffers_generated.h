@@ -143,9 +143,9 @@ FLATBUFFERS_STRUCT_END(Interval, 16);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Id FLATBUFFERS_FINAL_CLASS {
  private:
-  uint32_t bits_;
+  uint64_t bits_;
   uint8_t depth_;
-  int8_t padding0__;  int16_t padding1__;
+  int8_t padding0__;  int16_t padding1__;  int32_t padding2__;
   FlatBuffers::Interval interval_;
 
  public:
@@ -154,20 +154,24 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Id FLATBUFFERS_FINAL_CLASS {
         depth_(0),
         padding0__(0),
         padding1__(0),
+        padding2__(0),
         interval_() {
     (void)padding0__;
     (void)padding1__;
+    (void)padding2__;
   }
-  Id(uint32_t _bits, uint8_t _depth, const FlatBuffers::Interval &_interval)
+  Id(uint64_t _bits, uint8_t _depth, const FlatBuffers::Interval &_interval)
       : bits_(flatbuffers::EndianScalar(_bits)),
         depth_(flatbuffers::EndianScalar(_depth)),
         padding0__(0),
         padding1__(0),
+        padding2__(0),
         interval_(_interval) {
     (void)padding0__;
     (void)padding1__;
+    (void)padding2__;
   }
-  uint32_t bits() const {
+  uint64_t bits() const {
     return flatbuffers::EndianScalar(bits_);
   }
   uint8_t depth() const {
@@ -177,7 +181,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Id FLATBUFFERS_FINAL_CLASS {
     return interval_;
   }
 };
-FLATBUFFERS_STRUCT_END(Id, 24);
+FLATBUFFERS_STRUCT_END(Id, 32);
 
 struct Polygon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef PolygonBuilder Builder;
@@ -455,8 +459,8 @@ struct Box3 FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool complete() const {
     return GetField<uint8_t>(VT_COMPLETE, 0) != 0;
   }
-  const flatbuffers::Vector<uint8_t> *in() const {
-    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_IN);
+  int32_t in() const {
+    return GetField<int32_t>(VT_IN, 0);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -472,8 +476,7 @@ struct Box3 FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVector(box2s()) &&
            verifier.VerifyVectorOfTables(box2s()) &&
            VerifyField<uint8_t>(verifier, VT_COMPLETE, 1) &&
-           VerifyOffset(verifier, VT_IN) &&
-           verifier.VerifyVector(in()) &&
+           VerifyField<int32_t>(verifier, VT_IN, 4) &&
            verifier.EndTable();
   }
 };
@@ -503,8 +506,8 @@ struct Box3Builder {
   void add_complete(bool complete) {
     fbb_.AddElement<uint8_t>(Box3::VT_COMPLETE, static_cast<uint8_t>(complete), 0);
   }
-  void add_in(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> in) {
-    fbb_.AddOffset(Box3::VT_IN, in);
+  void add_in(int32_t in) {
+    fbb_.AddElement<int32_t>(Box3::VT_IN, in, 0);
   }
   explicit Box3Builder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -526,7 +529,7 @@ inline flatbuffers::Offset<Box3> CreateBox3(
     flatbuffers::Offset<FlatBuffers::Polygon> projection = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box2>>> box2s = 0,
     bool complete = false,
-    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> in = 0) {
+    int32_t in = 0) {
   Box3Builder builder_(_fbb);
   builder_.add_in(in);
   builder_.add_box2s(box2s);
@@ -548,10 +551,9 @@ inline flatbuffers::Offset<Box3> CreateBox3Direct(
     flatbuffers::Offset<FlatBuffers::Polygon> projection = 0,
     const std::vector<flatbuffers::Offset<FlatBuffers::Box2>> *box2s = nullptr,
     bool complete = false,
-    const std::vector<uint8_t> *in = nullptr) {
+    int32_t in = 0) {
   auto projections__ = projections ? _fbb.CreateVector<flatbuffers::Offset<FlatBuffers::Projection>>(*projections) : 0;
   auto box2s__ = box2s ? _fbb.CreateVector<flatbuffers::Offset<FlatBuffers::Box2>>(*box2s) : 0;
-  auto in__ = in ? _fbb.CreateVector<uint8_t>(*in) : 0;
   return FlatBuffers::CreateBox3(
       _fbb,
       phi,
@@ -561,7 +563,7 @@ inline flatbuffers::Offset<Box3> CreateBox3Direct(
       projection,
       box2s__,
       complete,
-      in__);
+      in);
 }
 
 struct Cover FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
