@@ -136,14 +136,14 @@
     function draw() {
         renderer.render(scene, camera);
         if (holeGroup) {
-            holeGroup.rotation.x += 0.001;
-            holeGroup.rotation.y += 0.002
-            holeGroup.rotation.z += 0.003;
+            holeGroup.rotation.x += 0.002;
+            holeGroup.rotation.y += 0.004;
+            holeGroup.rotation.z += 0.006;
         }
         if (plugGroup) {
-            plugGroup.rotation.x -= 0.001;
-            plugGroup.rotation.y -= 0.002
-            plugGroup.rotation.z -= 0.003;
+            plugGroup.rotation.x -= 0.002;
+            plugGroup.rotation.y -= 0.004;
+            plugGroup.rotation.z -= 0.006;
         }
     }
 

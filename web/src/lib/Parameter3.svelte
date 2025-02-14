@@ -116,10 +116,10 @@
             return distanceDifference - volumeDifference / 1000;
         });
 
-        if (intersections.length === 0) {
-            selection.selectBox3(null);
-            return;
-        }
+        // if (intersections.length === 0) {
+        //     selection.selectBox3(null);
+        //     return;
+        // }
 
         if (selection.selectedBox3 === null) {
             selection.selectBox3(box3Groups.findIndex(group => group.children[0] === intersections[0].object));

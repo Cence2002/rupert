@@ -8,10 +8,23 @@ Exporter exporter;
 
 template<IntervalType Interval>
 bool is_box2_terminal(const Box2& box2, const Polygon<Interval>& hole, const Polyhedron<Interval>& plug) {
-    return std::ranges::any_of(plug.vertices(), [&](const Vector3<Interval>& plug_vertex) {
-        const Vector2<Interval> projected_plug_vertex = plug_vertex.project(Interval(box2.phi<Interval>()), Interval(box2.theta<Interval>()));
-        return hole.is_outside(projected_plug_vertex);
-    });
+    // return std::ranges::any_of(plug.vertices(), [&](const Vector3<Interval>& plug_vertex) {
+    //     const Vector2<Interval> projected_plug_vertex = plug_vertex.project(Interval(box2.phi<Interval>()), Interval(box2.theta<Interval>()));
+    //     return hole.is_outside(projected_plug_vertex);
+    // });
+    bool is_terminal = false;
+    for(int i = 0; i < plug.vertices().size(); i++) {
+        const Vector2<Interval> projected_plug_vertex = plug.vertices()[i].project(Interval(box2.phi<Interval>()), Interval(box2.theta<Interval>()));
+        exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(Vector2<Interval>(Interval(projected_plug_vertex.x().min()), Interval(projected_plug_vertex.y().min())));
+        exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(Vector2<Interval>(Interval(projected_plug_vertex.x().min()), Interval(projected_plug_vertex.y().max())));
+        exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(Vector2<Interval>(Interval(projected_plug_vertex.x().max()), Interval(projected_plug_vertex.y().min())));
+        exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(Vector2<Interval>(Interval(projected_plug_vertex.x().max()), Interval(projected_plug_vertex.y().max())));
+        exporter.cover_builder.box3_builder.box2_builder.add_projection(exporter.builder);
+        if(hole.is_outside(projected_plug_vertex)) {
+            is_terminal = true;
+        }
+    }
+    return is_terminal;
 }
 
 template<IntervalType Interval>

@@ -55,9 +55,9 @@
         {
             let box3 = cover!.box3s(selection.selectedBox3)
             for (let index = 0; index < box3.box2sLength(); index++) {
-                if (index === 1000) {
-                    break;
-                }
+                // if (index === 1000) {
+                //     break;
+                // }
                 const box2 = box3.box2s(index);
 
                 const phi = box2.phi().interval();
@@ -126,17 +126,16 @@
         }
 
         intersections.sort((intersection, otherIntersection) => {
-            console.log(intersection, otherIntersection);
             const area = getArea((intersection.object as Mesh).geometry as PlaneGeometry);
             const areaSize = getArea((otherIntersection.object as Mesh).geometry as PlaneGeometry);
             const areaDifference = area - areaSize;
             return -areaDifference;
         });
 
-        if (intersections.length === 0) {
-            selection.selectBox2(null);
-            return;
-        }
+        // if (intersections.length === 0) {
+        //     selection.selectBox2(null);
+        //     return;
+        // }
 
         if (selection.selectedBox2 === null) {
             selection.selectBox2(box2Groups.findIndex(group => group.children[0] === intersections[0].object));

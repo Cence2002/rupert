@@ -4,12 +4,28 @@
     import {Selection} from "$lib/state.svelte";
 
     import {MapControls} from "three/addons/controls/MapControls.js";
-    import {Scene, WebGLRenderer, OrthographicCamera, Vector2, Shape, ShapeGeometry, MeshBasicMaterial, Mesh, EdgesGeometry, LineBasicMaterial, LineSegments, AxesHelper, FrontSide} from "three";
+    import {
+        Scene,
+        WebGLRenderer,
+        OrthographicCamera,
+        Vector2,
+        Shape,
+        ShapeGeometry,
+        MeshBasicMaterial,
+        Mesh,
+        EdgesGeometry,
+        LineBasicMaterial,
+        LineSegments,
+        AxesHelper,
+        FrontSide,
+        Group,
+        Vector3,
+        Line, BufferGeometry
+    } from "three";
 
-    let {cover, selectedBox3, selectedBox2} = $props<{
+    let {cover, selection} = $props<{
         cover: Cover | undefined,
-        selectedBox3: number | null,
-        selectedBox2: number | null,
+        selection: Selection,
     }>();
 
     $effect(onCover);
@@ -21,6 +37,9 @@
     let camera: OrthographicCamera;
     let scene: Scene;
     let renderer: WebGLRenderer;
+    let projectionLines: Line[] = [];
+    let projections: Group[] = [];
+    let box2Projections: Group[] = [];
 
     function onCover() {
         if (!cover) {
@@ -29,16 +48,110 @@
     }
 
     function onSelectBox3() {
+        if (selection.selectedBox3 === null) {
+            return;
+        }
+        const box3 = cover!.box3s(selection.selectedBox3);
+
+        for (let index = 0; index < box3.projectionsLength(); index++) {
+            const projection = box3.projections(index);
+            const vertices: Vector2[] = [];
+            for (let index2 = 0; index2 < projection.verticesLength(); index2++) {
+                const vertex = projection.vertices(index2);
+                vertices.push(new Vector2(vertex.x(), vertex.y()));
+            }
+
+            const hull = new Shape(computeConvexHull(vertices));
+            const hullGeometry = new ShapeGeometry(hull);
+            const hullMaterial = new MeshBasicMaterial({color: 0x0000ff, transparent: true, opacity: 0.25, side: FrontSide, depthWrite: false});
+            const hullMesh = new Mesh(hullGeometry, hullMaterial);
+
+            const hullEdgesGeometry = new EdgesGeometry(hullGeometry);
+            const hullEdgesMaterial = new LineBasicMaterial({color: 0x0000ff});
+            const hullEdges = new LineSegments(hullEdgesGeometry, hullEdgesMaterial);
+
+            const group = new Group();
+            group.add(hullMesh);
+            group.add(hullEdges);
+
+            projections.push(group);
+        }
+        for (let group of projections) {
+            scene.add(group);
+        }
+
+        const projection = box3.projection();
+        for (let index = 0; index < projection.linesLength(); index++) {
+            const line = projection.lines(index);
+            const point = new Vector2(line.point().x(), line.point().y());
+            const direction = new Vector2(line.direction().x(), line.direction().y());
+            const lineGeometry = new BufferGeometry().setFromPoints([
+                new Vector3(point.x, point.y, 0),
+                new Vector3(point.x + direction.x, point.y + direction.y, 0)]);
+            const lineMaterial = new LineBasicMaterial({color: 0x7f7f7f});
+            const lineMesh = new Line(lineGeometry, lineMaterial);
+            projectionLines.push(lineMesh);
+        }
+
+        for (let projectionLine of projectionLines) {
+            scene.add(projectionLine);
+        }
+
         return () => {
+            for (let group of projections) {
+                scene.remove(group);
+            }
+            projections = [];
+            for (let arrow of projectionLines) {
+                scene.remove(arrow);
+            }
+            projectionLines = [];
         };
     }
 
     function onSelectBox2() {
+        if (selection.selectedBox2 === null) {
+            return;
+        }
+        const box3 = cover!.box3s(selection.selectedBox3);
+        const box2 = box3.box2s(selection.selectedBox2);
+
+        for (let index = 0; index < box2.projectionsLength(); index++) {
+            const projection = box2.projections(index);
+            const vertices: Vector2[] = [];
+            for (let index2 = 0; index2 < projection.verticesLength(); index2++) {
+                const vertex = projection.vertices(index2);
+                vertices.push(new Vector2(vertex.x(), vertex.y()));
+            }
+
+            const hull = new Shape(computeConvexHull(vertices));
+            const hullGeometry = new ShapeGeometry(hull);
+            const hullMaterial = new MeshBasicMaterial({color: 0x00ff00, transparent: true, opacity: 0.25, side: FrontSide, depthWrite: false});
+            const hullMesh = new Mesh(hullGeometry, hullMaterial);
+
+            const hullEdgesGeometry = new EdgesGeometry(hullGeometry);
+            const hullEdgesMaterial = new LineBasicMaterial({color: 0x00ff00});
+            const hullEdges = new LineSegments(hullEdgesGeometry, hullEdgesMaterial);
+
+            const group = new Group();
+            group.add(hullMesh);
+            group.add(hullEdges);
+
+            box2Projections.push(group);
+        }
+        for (let group of box2Projections) {
+            scene.add(group);
+        }
+
         return () => {
+            for (let group of box2Projections) {
+                scene.remove(group);
+            }
+            box2Projections = [];
         };
     }
 
-    function setCameraBounds(width: number, height: number, zoom: number = 2) {
+    function setCameraBounds(width: number, height: number, zoom: number = 8) {
         const aspect = width / height;
         camera.left = -zoom * aspect / 2;
         camera.right = zoom * aspect / 2;
@@ -80,19 +193,6 @@
             scene.add(axesHelper);
         }
 
-        const n = 100;
-        let points: Vector2[] = [];
-        for (let i = 0; i < n; i++) {
-            points.push(new Vector2(
-                (Math.random() * 2 - 1) / 4,
-                (Math.random() * 2 - 1) / 4
-            ));
-        }
-
-        if (points.length > 2) {
-            addConvexHull(points);
-        }
-
         return renderer.domElement;
     }
 
@@ -101,45 +201,11 @@
     }
 
     function resize(width: number, height: number) {
-        const aspect = width / height;
-        camera.left = -aspect;
-        camera.right = aspect;
-        camera.top = 1;
-        camera.bottom = -1;
-        camera.updateProjectionMatrix();
+        setCameraBounds(width, height);
         renderer.setSize(width, height);
     }
 
-    function addConvexHull(points: Vector2[]) {
-        // Compute convex hull using Graham scan
-        const hull = computeConvexHull(points);
-        if (hull.length < 3) return; // Must have at least 3 points
-
-        // Create filled polygon
-        const shape = new Shape(hull);
-        const geometry = new ShapeGeometry(shape);
-        const material = new MeshBasicMaterial({color: 0x00ffff, transparent: true, opacity: 0.2, side: FrontSide, depthWrite: false});
-        const mesh = new Mesh(geometry, material);
-        scene.add(mesh);
-
-        // Draw hull edges
-        const edges = new EdgesGeometry(geometry);
-        const edgeMaterial = new LineBasicMaterial({color: 0x00ffff});
-        const edgeLines = new LineSegments(edges, edgeMaterial);
-        scene.add(edgeLines);
-
-        // Draw points
-        const pointMaterial = new MeshBasicMaterial({color: 0x00ffff});
-        for (let p of points) {
-            const pointGeometry = new ShapeGeometry(new Shape([p]));
-            const pointMesh = new Mesh(pointGeometry, pointMaterial);
-            pointMesh.position.set(p.x, p.y, 0);
-            scene.add(pointMesh);
-        }
-    }
-
     function computeConvexHull(points: Vector2[]): Vector2[] {
-        // Sort points lexicographically
         points.sort((a, b) => a.x - b.x || a.y - b.y);
 
         const cross = (o: Vector2, a: Vector2, b: Vector2) =>
