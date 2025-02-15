@@ -157,8 +157,8 @@ public:
         complete_ = complete;
     }
 
-    void set_in(const int32_t in) {
-        in_ = in;
+    void save_in() {
+        in_ = static_cast<int32_t>(box2s_.size()) - 1;
     }
 
     auto build(flatbuffers::FlatBufferBuilder& builder) {
@@ -175,6 +175,8 @@ public:
         );
         projections_.clear();
         box2s_.clear();
+        complete_ = false;
+        in_ = -1;
         return box3;
     }
 };

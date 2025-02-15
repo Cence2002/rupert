@@ -88,11 +88,11 @@ bool is_box3_terminal(const Box3& box3, const Polyhedron<Interval>& hole, const 
         exporter.cover_builder.box3_builder.box2_builder.set_theta(box2.theta_id());
         if(is_box2_terminal(box2, projected_hole, plug)) {
             exporter.cover_builder.box3_builder.add_box2(exporter.builder);
-            exporter.cover_builder.box3_builder.save_in();
             continue;
         }
         if(is_box3_nonterminal(box2, projected_hole, plug)) {
             exporter.cover_builder.box3_builder.add_box2(exporter.builder);
+            exporter.cover_builder.box3_builder.save_in();
             return false;
         }
         exporter.cover_builder.box3_builder.add_box2(exporter.builder);
@@ -159,8 +159,8 @@ int main() {
             Vector3<Interval>(1, -1, 0),
             Vector3<Interval>(-1, -1, 0),
             Vector3<Interval>(-1, 1, 0),
-            Vector3<Interval>(0, 0, BoostInterval(1) / 10),
-            Vector3<Interval>(0, 0, -BoostInterval(1) / 10),
+            Vector3<Interval>(0, 0, BoostInterval(1) / 2),
+            Vector3<Interval>(0, 0, -BoostInterval(1) / 2),
         }
     ));
 
@@ -170,7 +170,7 @@ int main() {
     exporter.cover_builder.set_hole(exporter.builder, hole);
     exporter.cover_builder.set_plug(exporter.builder, plug);
 
-    solve<Interval>(hole, plug, 1, 100, 10000);
+    solve<Interval>(hole, plug, 1, 1000, 10000);
 
     exporter.save("../../web/static/test.bin");
 

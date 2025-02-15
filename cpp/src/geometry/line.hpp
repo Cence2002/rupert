@@ -65,11 +65,11 @@ public:
     }
 
     bool avoids(const Vector2<Interval>& vector2) const {
-        if (orientation(vector2) != Orientation::COLLINEAR) {
+        if(orientation(vector2) != Orientation::COLLINEAR) {
             return true;
         }
         const Interval dot = direction_.dot(vector2 - point_);
-        return dot.is_neg() || dot > direction_.len().sqr();
+        return dot.is_neg() || dot > direction_.dot(direction_);
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Line& line) {

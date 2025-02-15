@@ -54,6 +54,7 @@
         }
         {
             const box3 = cover!.box3s(selection.selectedBox3)
+            console.log(box3.in_(), box3.box2sLength())
             for (let index = 0; index < box3.box2sLength(); index++) {
                 const box2 = box3.box2s(index);
 
