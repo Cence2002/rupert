@@ -167,6 +167,7 @@
                 scene.remove(group);
             }
             box2Projections = [];
+            box2Out = [];
         };
     }
 
