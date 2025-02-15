@@ -33,7 +33,7 @@ public:
         bool any_clockwise = false;
         for(const Line<I>& line: lines_) {
             const Orientation orientation = line.orientation(vector2);
-            if(orientation == Orientation::COLLINEAR) {
+            if(!line.avoids(vector2)) {
                 return false;
             }
             const bool clockwise = orientation == Orientation::CLOCKWISE;

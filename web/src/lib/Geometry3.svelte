@@ -107,7 +107,7 @@
             camera = new PerspectiveCamera(60, width / height, 0.1, 1000);
             camera.up.set(0, 0, 1);
             camera.lookAt(0, 0, 2);
-            camera.position.set(0, -8, 2);
+            camera.position.set(0, -8, 3);
         }
 
         {
@@ -121,7 +121,7 @@
             controls.enableZoom = true;
             controls.enablePan = false;
             controls.enableDamping = false;
-            controls.target.set(0, 0, 2);
+            controls.target.set(0, 0, 3);
             controls.update();
         }
 

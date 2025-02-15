@@ -52,7 +52,11 @@
                 const alpha = box3.alpha().interval();
 
                 const box3Geometry = new BoxGeometry(phi.max() - phi.min(), theta.max() - theta.min(), alpha.max() - alpha.min());
-                const box3Material = new MeshBasicMaterial({transparent: true, opacity: 0.1, depthWrite: false});
+                const box3Material = new MeshBasicMaterial({
+                    transparent: true,
+                    opacity: box3.complete() ? 0.5 : 0,
+                    depthWrite: false
+                });
                 box3Material.color.setFromVector3(defaultColor);
                 const box3Mesh = new Mesh(box3Geometry, box3Material);
                 box3Mesh.position.set((phi.min() + phi.max()) / 2, (theta.min() + theta.max()) / 2, (alpha.min() + alpha.max()) / 2);
@@ -84,16 +88,14 @@
         const box3Group = box3Groups[selection.selectedBox3];
         const box3 = box3Group.children[0] as Mesh;
         const box3Material = box3.material as MeshBasicMaterial;
+        const originalColor = box3Material.color.clone();
         box3Material.color.setFromVector3(selectedColor);
+        const box3MaterialOpacity = box3Material.opacity;
         box3Material.opacity = 0.9;
 
         return () => {
-            for (const box3Group of box3Groups) {
-                const box3 = box3Group.children[0] as Mesh;
-                const box3Material = box3.material as MeshBasicMaterial;
-                box3Material.color.setFromVector3(defaultColor);
-                box3Material.opacity = 0.1;
-            }
+            box3Material.color.copy(originalColor);
+            box3Material.opacity = box3MaterialOpacity;
         };
     }
 
@@ -116,10 +118,10 @@
             return distanceDifference - volumeDifference / 1000;
         });
 
-        // if (intersections.length === 0) {
-        //     selection.selectBox3(null);
-        //     return;
-        // }
+        if (intersections.length === 0) {
+            // selection.selectBox3(null);
+            return;
+        }
 
         if (selection.selectedBox3 === null) {
             selection.selectBox3(box3Groups.findIndex(group => group.children[0] === intersections[0].object));

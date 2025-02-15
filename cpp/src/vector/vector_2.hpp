@@ -81,6 +81,10 @@ public:
         );
     }
 
+    Interval dot(const Vector2& vector2) const {
+        return x_ * vector2.x() + y_ * vector2.y();
+    }
+
     Interval cross(const Vector2& vector2) const {
         return x_ * vector2.y() - y_ * vector2.x();
     }

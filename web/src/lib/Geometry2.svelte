@@ -40,6 +40,7 @@
     let projectionLines: Line[] = [];
     let projections: Group[] = [];
     let box2Projections: Group[] = [];
+    let box2Out: number[] = [];
 
     function onCover() {
         if (!cover) {
@@ -63,7 +64,13 @@
 
             const hull = new Shape(computeConvexHull(vertices));
             const hullGeometry = new ShapeGeometry(hull);
-            const hullMaterial = new MeshBasicMaterial({color: 0x0000ff, transparent: true, opacity: 0.25, side: FrontSide, depthWrite: false});
+            const hullMaterial = new MeshBasicMaterial({
+                color: 0x0000ff,
+                transparent: true,
+                opacity: 0.25,
+                side: FrontSide,
+                depthWrite: false
+            });
             const hullMesh = new Mesh(hullGeometry, hullMaterial);
 
             const hullEdgesGeometry = new EdgesGeometry(hullGeometry);
@@ -116,6 +123,10 @@
         const box3 = cover!.box3s(selection.selectedBox3);
         const box2 = box3.box2s(selection.selectedBox2);
 
+        for (let index = 0; index < box2.outLength(); index++) {
+            box2Out.push(box2.out(index));
+        }
+
         for (let index = 0; index < box2.projectionsLength(); index++) {
             const projection = box2.projections(index);
             const vertices: Vector2[] = [];
@@ -126,11 +137,17 @@
 
             const hull = new Shape(computeConvexHull(vertices));
             const hullGeometry = new ShapeGeometry(hull);
-            const hullMaterial = new MeshBasicMaterial({color: 0x00ff00, transparent: true, opacity: 0.25, side: FrontSide, depthWrite: false});
+            const hullMaterial = new MeshBasicMaterial({
+                color: 0x00ff00,
+                transparent: true,
+                opacity: box2Out.includes(index) ? 0.5 : 0.25,
+                side: FrontSide,
+                depthWrite: false,
+            });
             const hullMesh = new Mesh(hullGeometry, hullMaterial);
 
             const hullEdgesGeometry = new EdgesGeometry(hullGeometry);
-            const hullEdgesMaterial = new LineBasicMaterial({color: 0x00ff00});
+            const hullEdgesMaterial = new LineBasicMaterial({color: 0x7f7f7f});
             const hullEdges = new LineSegments(hullEdgesGeometry, hullEdgesMaterial);
 
             const group = new Group();

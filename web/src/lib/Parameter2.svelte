@@ -53,18 +53,20 @@
             return;
         }
         {
-            let box3 = cover!.box3s(selection.selectedBox3)
+            const box3 = cover!.box3s(selection.selectedBox3)
             for (let index = 0; index < box3.box2sLength(); index++) {
-                // if (index === 1000) {
-                //     break;
-                // }
                 const box2 = box3.box2s(index);
 
                 const phi = box2.phi().interval();
                 const theta = box2.theta().interval();
 
                 const box2Geometry = new PlaneGeometry(phi.max() - phi.min(), theta.max() - theta.min());
-                const box2Material = new MeshBasicMaterial({transparent: true, opacity: 0.1, side: FrontSide, depthWrite: false});
+                const box2Material = new MeshBasicMaterial({
+                    transparent: true,
+                    opacity: (index == box3.in_()) ? 1 : (box2.outLength() > 0 ? 0.25 : 0),
+                    side: FrontSide,
+                    depthWrite: false
+                });
                 box2Material.color.setFromVector3(defaultColor);
                 const box2Mesh = new Mesh(box2Geometry, box2Material);
                 box2Mesh.position.set((phi.min() + phi.max()) / 2, (theta.min() + theta.max()) / 2, 0);
@@ -102,15 +104,13 @@
         const box2Group = box2Groups[selection.selectedBox2];
         const box2 = box2Group.children[0] as Mesh;
         const box2Material = box2.material as MeshBasicMaterial;
+        const originalColor = box2Material.color.clone();
         box2Material.color.setFromVector3(selectedColor);
+        const originalOpacity = box2Material.opacity;
         box2Material.opacity = 0.9;
         return () => {
-            for (const box2Group of box2Groups) {
-                const box2 = box2Group.children[0] as Mesh;
-                const box2Material = box2.material as MeshBasicMaterial;
-                box2Material.color.setFromVector3(defaultColor);
-                box2Material.opacity = 0.1;
-            }
+            box2Material.color.copy(originalColor);
+            box2Material.opacity = originalOpacity;
         };
     }
 
@@ -132,10 +132,10 @@
             return -areaDifference;
         });
 
-        // if (intersections.length === 0) {
-        //     selection.selectBox2(null);
-        //     return;
-        // }
+        if (intersections.length === 0) {
+            // selection.selectBox2(null);
+            return;
+        }
 
         if (selection.selectedBox2 === null) {
             selection.selectBox2(box2Groups.findIndex(group => group.children[0] === intersections[0].object));

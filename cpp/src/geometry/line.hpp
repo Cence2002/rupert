@@ -36,6 +36,42 @@ public:
         return Orientation::COLLINEAR;
     }
 
+    bool intersects(const Line& line) const {
+        const Orientation orientation_0_0 = orientation(line.point_);
+        const Orientation orientation_0_1 = orientation(line.point_ + line.direction_);
+        const Orientation orientation_1_0 = line.orientation(point_);
+        const Orientation orientation_1_1 = line.orientation(point_ + direction_);
+        if(orientation_0_0 == Orientation::COLLINEAR ||
+           orientation_0_1 == Orientation::COLLINEAR ||
+           orientation_1_0 == Orientation::COLLINEAR ||
+           orientation_1_1 == Orientation::COLLINEAR) {
+            return false;
+        }
+        return (orientation_0_0 != orientation_0_1) && (orientation_1_0 != orientation_1_1);
+    }
+
+    bool avoids(const Line& line) const {
+        const Orientation orientation_0_0 = orientation(line.point_);
+        const Orientation orientation_0_1 = orientation(line.point_ + line.direction_);
+        const Orientation orientation_1_0 = line.orientation(point_);
+        const Orientation orientation_1_1 = line.orientation(point_ + direction_);
+        if(orientation_0_0 == Orientation::COLLINEAR ||
+           orientation_0_1 == Orientation::COLLINEAR ||
+           orientation_1_0 == Orientation::COLLINEAR ||
+           orientation_1_1 == Orientation::COLLINEAR) {
+            return false;
+        }
+        return (orientation_0_0 == orientation_0_1) && (orientation_1_0 == orientation_1_1);
+    }
+
+    bool avoids(const Vector2<Interval>& vector2) const {
+        if (orientation(vector2) != Orientation::COLLINEAR) {
+            return true;
+        }
+        const Interval dot = direction_.dot(vector2 - point_);
+        return dot.is_neg() || dot > direction_.len().sqr();
+    }
+
     friend std::ostream& operator<<(std::ostream& os, const Line& line) {
         return os << line.point_ << " @ " << line.direction_;
     }

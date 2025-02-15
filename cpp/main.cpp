@@ -13,14 +13,15 @@ bool is_box2_terminal(const Box2& box2, const Polygon<Interval>& hole, const Pol
     //     return hole.is_outside(projected_plug_vertex);
     // });
     bool is_terminal = false;
-    for(int i = 0; i < plug.vertices().size(); i++) {
-        const Vector2<Interval> projected_plug_vertex = plug.vertices()[i].project(Interval(box2.phi<Interval>()), Interval(box2.theta<Interval>()));
+    for(int vertex_index = 0; vertex_index < plug.vertices().size(); vertex_index++) {
+        const Vector2<Interval> projected_plug_vertex = plug.vertices()[vertex_index].project(Interval(box2.phi<Interval>()), Interval(box2.theta<Interval>()));
         exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(Vector2<Interval>(Interval(projected_plug_vertex.x().min()), Interval(projected_plug_vertex.y().min())));
         exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(Vector2<Interval>(Interval(projected_plug_vertex.x().min()), Interval(projected_plug_vertex.y().max())));
         exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(Vector2<Interval>(Interval(projected_plug_vertex.x().max()), Interval(projected_plug_vertex.y().min())));
         exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(Vector2<Interval>(Interval(projected_plug_vertex.x().max()), Interval(projected_plug_vertex.y().max())));
         exporter.cover_builder.box3_builder.box2_builder.add_projection(exporter.builder);
         if(hole.is_outside(projected_plug_vertex)) {
+            exporter.cover_builder.box3_builder.box2_builder.add_out(vertex_index);
             is_terminal = true;
         }
     }
@@ -38,8 +39,8 @@ bool is_box3_nonterminal(const Box2& box2, const Polygon<Interval>& hole, const 
 template<IntervalType Interval>
 std::vector<Interval> split(const Interval& interval, const int parts) {
     std::vector<Interval> sub_intervals;
-    for(int i = 0; i < parts; i++) {
-        const Interval sub_interval = Interval(i, i + 1) * interval.len() / parts + interval.min();
+    for(int part_index = 0; part_index < parts; part_index++) {
+        const Interval sub_interval = Interval(part_index, part_index + 1) * interval.len() / parts + interval.min();
         sub_intervals.push_back(sub_interval);
     }
     return sub_intervals;
@@ -78,26 +79,28 @@ bool is_box3_terminal(const Box3& box3, const Polyhedron<Interval>& hole, const 
     for(int iteration2 = 0; iterations2 == 0 || iteration2 < iterations2; iteration2++) {
         const std::optional<Box2> optional_box2 = queue2.pop();
         if(!optional_box2.has_value()) {
+            exporter.cover_builder.box3_builder.set_complete(true);
             return true;
         }
 
         const Box2& box2 = optional_box2.value();
         exporter.cover_builder.box3_builder.box2_builder.set_phi(box2.phi_id());
         exporter.cover_builder.box3_builder.box2_builder.set_theta(box2.theta_id());
+        if(is_box2_terminal(box2, projected_hole, plug)) {
+            exporter.cover_builder.box3_builder.add_box2(exporter.builder);
+            exporter.cover_builder.box3_builder.save_in();
+            continue;
+        }
         if(is_box3_nonterminal(box2, projected_hole, plug)) {
             exporter.cover_builder.box3_builder.add_box2(exporter.builder);
             return false;
-        }
-        if(is_box2_terminal(box2, projected_hole, plug)) {
-            exporter.cover_builder.box3_builder.add_box2(exporter.builder);
-            continue;
         }
         exporter.cover_builder.box3_builder.add_box2(exporter.builder);
         for(const Box2& sub_box2: box2.split()) {
             queue2.push(sub_box2);
         }
     }
-    return queue2.empty();
+    return false;
 }
 
 template<IntervalType Interval>
@@ -167,7 +170,7 @@ int main() {
     exporter.cover_builder.set_hole(exporter.builder, hole);
     exporter.cover_builder.set_plug(exporter.builder, plug);
 
-    solve<Interval>(hole, plug, 1, 73, 10000);
+    solve<Interval>(hole, plug, 1, 100, 10000);
 
     exporter.save("../../web/static/test.bin");
 
