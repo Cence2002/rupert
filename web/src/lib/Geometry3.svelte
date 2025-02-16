@@ -42,6 +42,7 @@
     let camera: PerspectiveCamera;
     let scene: Scene;
     let renderer: WebGLRenderer;
+    let controls: OrbitControls;
 
     let holeGroup: Group;
     let holeRadius: number;
@@ -58,9 +59,12 @@
     let box2Projections: Group[] = [];
     let box2Out: number[] = [];
 
-    let phi_t = 0;
-    let theta_t = 0;
-    let alpha_t = 0;
+    let hole_phi_t = 0;
+    let hole_theta_t = 0;
+    let hole_alpha_t = 0;
+
+    let plug_phi_t = 0;
+    let plug_theta_t = 0;
 
     function onCover() {
         if (!cover) {
@@ -74,6 +78,8 @@
                 vertices.push(new Vector3(vertex.x(), vertex.y(), vertex.z()));
             }
             holeRadius = Math.max(...vertices.map(v => v.length()));
+            camera.position.setZ(2 * holeRadius);
+            controls.target.setZ(2 * holeRadius);
 
             const hole = new ConvexGeometry(vertices);
             const holeMaterial = new MeshBasicMaterial({
@@ -378,7 +384,7 @@
             camera = new PerspectiveCamera(60, width / height, 0.001, 1000);
             camera.up.set(0, 0, 1);
             camera.lookAt(0, 0, 2);
-            camera.position.set(0, -10, 0);
+            camera.position.set(0, -12, 0);
         }
 
         {
@@ -387,7 +393,7 @@
         }
 
         {
-            const controls = new OrbitControls(camera, renderer.domElement);
+            controls = new OrbitControls(camera, renderer.domElement);
             controls.enableRotate = true;
             controls.enableZoom = true;
             controls.enablePan = false;
@@ -415,16 +421,16 @@
             const alpha_interval = box3.alpha().interval();
 
             holeGroup.quaternion.copy(projection_rotation_quaternion(
-                lerp(phi_interval.min(), phi_interval.max(), (Math.sin(phi_t) + 1) / 2),
-                lerp(theta_interval.min(), theta_interval.max(), (Math.sin(theta_t) + 1) / 2),
-                lerp(alpha_interval.min(), alpha_interval.max(), (Math.sin(alpha_t) + 1) / 2)
+                lerp(phi_interval.min(), phi_interval.max(), (Math.sin(hole_phi_t) + 1) / 2),
+                lerp(theta_interval.min(), theta_interval.max(), (Math.sin(hole_theta_t) + 1) / 2),
+                lerp(alpha_interval.min(), alpha_interval.max(), (Math.sin(hole_alpha_t) + 1) / 2)
             ));
 
-            phi_t += 0.1;
-            theta_t += 0.1 * Math.sqrt(2);
-            alpha_t += 0.1 * Math.sqrt(3);
+            hole_phi_t += 0.1;
+            hole_theta_t += 0.1 * Math.sqrt(2);
+            hole_alpha_t += 0.1 * Math.sqrt(3);
         }
-        if (plugGroup && selection.selectedBox3 !== null) {
+        if (plugGroup && selection.selectedBox3 !== null && selection.selectedBox2 !== null) {
             const box3 = cover!.box3s(selection.selectedBox3);
             const box2 = box3.box2s(selection.selectedBox2);
 
@@ -432,10 +438,13 @@
             const theta_interval = box2.theta().interval();
 
             plugGroup.quaternion.copy(projection_rotation_quaternion(
-                lerp(phi_interval.min(), phi_interval.max(), (Math.sin(phi_t) + 1) / 2),
-                lerp(theta_interval.min(), theta_interval.max(), (Math.sin(theta_t) + 1) / 2),
+                lerp(phi_interval.min(), phi_interval.max(), (Math.sin(plug_phi_t) + 1) / 2),
+                lerp(theta_interval.min(), theta_interval.max(), (Math.sin(plug_theta_t) + 1) / 2),
                 0
             ));
+
+            plug_phi_t += 0.1;
+            plug_theta_t += 0.1 * Math.sqrt(2);
         }
     }
 
