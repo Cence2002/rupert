@@ -36,26 +36,21 @@ private:
 public:
     ProjectionBuilder projection_builder;
 
-    void set_phi(const Id& phi) {
-        const auto phi_interval = phi.to_interval<FloatInterval>();
+    void set_box2(const Box2& box2) {
         phi_ = FlatBuffers::Id(
-            phi.bits(),
-            phi.depth(),
+            box2.phi_id().bits(),
+            box2.phi_id().depth(),
             FlatBuffers::Interval(
-                phi_interval.min().float_value(),
-                phi_interval.max().float_value()
+                box2.phi<FloatInterval>(true).min().float_value(),
+                box2.phi<FloatInterval>(true).max().float_value()
             )
         );
-    }
-
-    void set_theta(const Id& theta) {
-        const auto theta_interval = theta.to_interval<FloatInterval>();
         theta_ = FlatBuffers::Id(
-            theta.bits(),
-            theta.depth(),
+            box2.theta_id().bits(),
+            box2.theta_id().depth(),
             FlatBuffers::Interval(
-                theta_interval.min().float_value(),
-                theta_interval.max().float_value()
+                box2.theta<FloatInterval>(true).min().float_value(),
+                box2.theta<FloatInterval>(true).max().float_value()
             )
         );
     }
@@ -97,38 +92,29 @@ public:
     ProjectionBuilder projection_builder;
     Box2Builder box2_builder;
 
-    void set_phi(const Id& phi) {
-        const auto phi_interval = phi.to_interval<FloatInterval>();
+    void set_box3(const Box3& box3) {
         phi_ = FlatBuffers::Id(
-            phi.bits(),
-            phi.depth(),
+            box3.phi_id().bits(),
+            box3.phi_id().depth(),
             FlatBuffers::Interval(
-                phi_interval.min().float_value(),
-                phi_interval.max().float_value()
+                box3.phi<FloatInterval>(true).min().float_value(),
+                box3.phi<FloatInterval>(true).max().float_value()
             )
         );
-    }
-
-    void set_theta(const Id& theta) {
-        const auto theta_interval = theta.to_interval<FloatInterval>();
         theta_ = FlatBuffers::Id(
-            theta.bits(),
-            theta.depth(),
+            box3.theta_id().bits(),
+            box3.theta_id().depth(),
             FlatBuffers::Interval(
-                theta_interval.min().float_value(),
-                theta_interval.max().float_value()
+                box3.theta<FloatInterval>(true).min().float_value(),
+                box3.theta<FloatInterval>(true).max().float_value()
             )
         );
-    }
-
-    void set_alpha(const Id& alpha) {
-        const auto alpha_interval = alpha.to_interval<FloatInterval>();
         alpha_ = FlatBuffers::Id(
-            alpha.bits(),
-            alpha.depth(),
+            box3.alpha_id().bits(),
+            box3.alpha_id().depth(),
             FlatBuffers::Interval(
-                alpha_interval.min().float_value(),
-                alpha_interval.max().float_value()
+                box3.alpha<FloatInterval>(true).min().float_value(),
+                box3.alpha<FloatInterval>(true).max().float_value()
             )
         );
     }

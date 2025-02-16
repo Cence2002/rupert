@@ -104,13 +104,19 @@ public:
     }
 
     template<IntervalType Interval>
-    Interval phi() const {
-        return phi_id_.to_interval<Interval>();
+    Interval phi(const bool raw = false) const {
+        if(raw) {
+            return phi_id_.to_interval<Interval>();
+        }
+        return phi_id_.to_interval<Interval>() * 2 * Interval::pi();
     }
 
     template<IntervalType Interval>
-    Interval theta() const {
-        return theta_id_.to_interval<Interval>();
+    Interval theta(const bool raw = false) const {
+        if(raw) {
+            return theta_id_.to_interval<Interval>();
+        }
+        return theta_id_.to_interval<Interval>() * Interval::pi();
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Box2& box2) {
@@ -162,18 +168,27 @@ public:
     }
 
     template<IntervalType Interval>
-    Interval phi() const {
-        return phi_id_.to_interval<Interval>();
+    Interval phi(const bool raw = false) const {
+        if(raw) {
+            return phi_id_.to_interval<Interval>();
+        }
+        return phi_id_.to_interval<Interval>() * 2 * Interval::pi();
     }
 
     template<IntervalType Interval>
-    Interval theta() const {
-        return theta_id_.to_interval<Interval>();
+    Interval theta(const bool raw = false) const {
+        if(raw) {
+            return theta_id_.to_interval<Interval>();
+        }
+        return theta_id_.to_interval<Interval>() * Interval::pi();
     }
 
     template<IntervalType Interval>
-    Interval alpha() const {
-        return alpha_id_.to_interval<Interval>();
+    Interval alpha(const bool raw = false) const {
+        if(raw) {
+            return alpha_id_.to_interval<Interval>();
+        }
+        return alpha_id_.to_interval<Interval>() * 2 * Interval::pi();
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Box3& box3) {
@@ -215,11 +230,6 @@ private:
 
 public:
     explicit Queue3() : queue(), mutex() {
-        // push(Box3(
-        //     Id(0b0, 5),
-        //     Id(0b0100, 4),
-        //     Id(0b0, 5)
-        // ));
         push(Box3());
     }
 

@@ -84,8 +84,7 @@ bool is_box3_terminal(const Box3& box3, const Polyhedron<Interval>& hole, const 
         }
 
         const Box2& box2 = optional_box2.value();
-        exporter.cover_builder.box3_builder.box2_builder.set_phi(box2.phi_id());
-        exporter.cover_builder.box3_builder.box2_builder.set_theta(box2.theta_id());
+        exporter.cover_builder.box3_builder.box2_builder.set_box2(box2);
         if(is_box2_terminal(box2, projected_hole, plug)) {
             exporter.cover_builder.box3_builder.add_box2(exporter.builder);
             continue;
@@ -111,9 +110,7 @@ void step(Queue3& queue3, const Polyhedron<Interval>& hole, const Polyhedron<Int
         return;
     }
     const Box3& box3 = optional_box3.value();
-    exporter.cover_builder.box3_builder.set_phi(box3.phi_id());
-    exporter.cover_builder.box3_builder.set_theta(box3.theta_id());
-    exporter.cover_builder.box3_builder.set_alpha(box3.alpha_id());
+    exporter.cover_builder.box3_builder.set_box3(box3);
     const bool is_terminal = is_box3_terminal(box3, hole, plug, iterations2, resolution);
     exporter.cover_builder.box3_builder.set_complete(is_terminal);
     if(!is_terminal) {
@@ -170,7 +167,7 @@ int main() {
     exporter.cover_builder.set_hole(exporter.builder, hole);
     exporter.cover_builder.set_plug(exporter.builder, plug);
 
-    solve<Interval>(hole, plug, 1, 1000, 10000);
+    solve<Interval>(hole, plug, 1, 1001, 10000);
 
     exporter.save("../../web/static/test.bin");
 
