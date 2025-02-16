@@ -20,7 +20,7 @@
         FrontSide,
         Group,
         Vector3,
-        Line, BufferGeometry
+        Line, BufferGeometry, Color
     } from "three";
 
     let {cover, selection} = $props<{
@@ -65,7 +65,7 @@
             const hull = new Shape(computeConvexHull(vertices));
             const hullGeometry = new ShapeGeometry(hull);
             const hullMaterial = new MeshBasicMaterial({
-                color: 0x0000ff,
+                color: new Color(0, 0, 1),
                 transparent: true,
                 opacity: 0.25,
                 side: FrontSide,
@@ -74,7 +74,9 @@
             const hullMesh = new Mesh(hullGeometry, hullMaterial);
 
             const hullEdgesGeometry = new EdgesGeometry(hullGeometry);
-            const hullEdgesMaterial = new LineBasicMaterial({color: 0x0000ff});
+            const hullEdgesMaterial = new LineBasicMaterial({
+                color: new Color(0.5, 0.5, 0.5),
+            });
             const hullEdges = new LineSegments(hullEdgesGeometry, hullEdgesMaterial);
 
             const group = new Group();
@@ -95,7 +97,9 @@
             const lineGeometry = new BufferGeometry().setFromPoints([
                 new Vector3(point.x, point.y, 0),
                 new Vector3(point.x + direction.x, point.y + direction.y, 0)]);
-            const lineMaterial = new LineBasicMaterial({color: 0x7f7f7f});
+            const lineMaterial = new LineBasicMaterial({
+                color: new Color(1, 1, 1),
+            });
             const lineMesh = new Line(lineGeometry, lineMaterial);
             projectionLines.push(lineMesh);
         }
@@ -138,7 +142,7 @@
             const hull = new Shape(computeConvexHull(vertices));
             const hullGeometry = new ShapeGeometry(hull);
             const hullMaterial = new MeshBasicMaterial({
-                color: 0x00ff00,
+                color: new Color(0, 1, 0),
                 transparent: true,
                 // TODO: fix so that it's the bo2's index that is checked
                 // opacity: (index == box3.in_()) ? 0.25 : (box2Out.includes(index) ? 0.5 : 0),
@@ -149,7 +153,9 @@
             const hullMesh = new Mesh(hullGeometry, hullMaterial);
 
             const hullEdgesGeometry = new EdgesGeometry(hullGeometry);
-            const hullEdgesMaterial = new LineBasicMaterial({color: 0x7f7f7f});
+            const hullEdgesMaterial = new LineBasicMaterial({
+                color: new Color(0.5, 0.5, 0.5),
+            });
             const hullEdges = new LineSegments(hullEdgesGeometry, hullEdgesMaterial);
 
             const group = new Group();

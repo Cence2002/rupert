@@ -19,7 +19,7 @@
         Vector3,
         Vector2,
         Raycaster,
-        FrontSide
+        FrontSide, Color
     } from "three";
 
     let {cover, selection} = $props<{
@@ -38,10 +38,6 @@
     let renderer: WebGLRenderer;
     let box2Groups: Group[] = [];
 
-    const defaultColor = new Vector3(0, 1, 0);
-    const selectedColor = new Vector3(1, 0, 0);
-    const edgeColor = new Vector3(0.5, 0.5, 0.5);
-
     function onCover() {
         if (!cover) {
             return;
@@ -52,45 +48,44 @@
         if (selection.selectedBox3 === null) {
             return;
         }
-        {
-            const box3 = cover!.box3s(selection.selectedBox3)
-            for (let index = 0; index < box3.box2sLength(); index++) {
-                const box2 = box3.box2s(index);
+        const box3 = cover!.box3s(selection.selectedBox3)
+        for (let index = 0; index < box3.box2sLength(); index++) {
+            const box2 = box3.box2s(index);
 
-                const phi = box2.phi().interval();
-                const theta = box2.theta().interval();
+            const phi = box2.phi().interval();
+            const theta = box2.theta().interval();
 
-                const box2Geometry = new PlaneGeometry(phi.max() - phi.min(), theta.max() - theta.min());
-                const box2Material = new MeshBasicMaterial({
-                    transparent: true,
-                    opacity: (index == box3.in_()) ? 0.75 : (box2.outLength() > 0 ? 0.25 : 0),
-                    side: FrontSide,
-                    depthWrite: false
-                });
-                box2Material.color.setFromVector3(defaultColor);
-                const box2Mesh = new Mesh(box2Geometry, box2Material);
-                box2Mesh.position.set((phi.min() + phi.max()) / 2, (theta.min() + theta.max()) / 2, 0);
+            const box2Geometry = new PlaneGeometry(phi.max() - phi.min(), theta.max() - theta.min());
+            const box2Material = new MeshBasicMaterial({
+                color: new Color(0, 1, 0),
+                transparent: true,
+                opacity: (index == box3.in_()) ? 0.75 : (box2.outLength() > 0 ? 0.25 : 0),
+                side: FrontSide,
+                depthWrite: false
+            });
+            const box2Mesh = new Mesh(box2Geometry, box2Material);
+            box2Mesh.position.set((phi.min() + phi.max()) / 2, (theta.min() + theta.max()) / 2, 0);
 
-                const box2EdgesGeometry = new EdgesGeometry(box2Geometry);
-                const box2EdgesMaterial = new LineBasicMaterial();
-                box2EdgesMaterial.color.setFromVector3(edgeColor);
-                const box2Edges = new LineSegments(box2EdgesGeometry, box2EdgesMaterial);
-                box2Edges.position.set((phi.min() + phi.max()) / 2, (theta.min() + theta.max()) / 2, 0);
+            const box2EdgesGeometry = new EdgesGeometry(box2Geometry);
+            const box2EdgesMaterial = new LineBasicMaterial({
+                color: new Color(0.5, 0.5, 0.5),
+            });
+            const box2Edges = new LineSegments(box2EdgesGeometry, box2EdgesMaterial);
+            box2Edges.position.set((phi.min() + phi.max()) / 2, (theta.min() + theta.max()) / 2, 0);
 
-                const box2Group = new Group();
-                box2Group.add(box2Mesh);
-                if (box2.outLength() > 0) {
-                    box2Group.add(box2Edges);
-                }
-
-                box2Groups.push(box2Group);
+            const box2Group = new Group();
+            box2Group.add(box2Mesh);
+            if (box2.outLength() > 0) {
+                box2Group.add(box2Edges);
             }
+
+            box2Groups.push(box2Group);
         }
-        {
-            for (const box2Group of box2Groups.values()) {
-                scene.add(box2Group);
-            }
+
+        for (const box2Group of box2Groups.values()) {
+            scene.add(box2Group);
         }
+
         return () => {
             for (const box2Group of box2Groups.values()) {
                 scene.remove(box2Group);
@@ -107,7 +102,7 @@
         const box2 = box2Group.children[0] as Mesh;
         const box2Material = box2.material as MeshBasicMaterial;
         const originalColor = box2Material.color.clone();
-        box2Material.color.setFromVector3(selectedColor);
+        box2Material.color.copy(new Color(1, 0, 0));
         const originalOpacity = box2Material.opacity;
         box2Material.opacity = 0.9;
         return () => {

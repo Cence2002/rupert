@@ -19,6 +19,7 @@
         Raycaster,
         Group,
         Vector3,
+        Color,
     } from "three";
 
     let {cover, selection} = $props<{
@@ -35,10 +36,6 @@
     let renderer: WebGLRenderer;
     const box3Groups: Group[] = [];
 
-    const defaultColor = new Vector3(0, 0, 1);
-    const selectedColor = new Vector3(1, 0, 0);
-    const edgeColor = new Vector3(0.5, 0.5, 0.5);
-
     function onCover() {
         if (!cover) {
             return;
@@ -53,17 +50,18 @@
 
                 const box3Geometry = new BoxGeometry(phi.max() - phi.min(), theta.max() - theta.min(), alpha.max() - alpha.min());
                 const box3Material = new MeshBasicMaterial({
+                    color: new Color(0, 0, 1),
                     transparent: true,
                     opacity: box3.complete() ? 0.5 : 0,
                     depthWrite: false
                 });
-                box3Material.color.setFromVector3(defaultColor);
                 const box3Mesh = new Mesh(box3Geometry, box3Material);
                 box3Mesh.position.set((phi.min() + phi.max()) / 2, (theta.min() + theta.max()) / 2, (alpha.min() + alpha.max()) / 2);
 
                 const box3EdgesGeometry = new EdgesGeometry(box3Geometry);
-                const box3EdgesMaterial = new LineBasicMaterial();
-                box3EdgesMaterial.color.setFromVector3(edgeColor);
+                const box3EdgesMaterial = new LineBasicMaterial({
+                    color: new Color(0.5, 0.5, 0.5),
+                });
                 const box3Edges = new LineSegments(box3EdgesGeometry, box3EdgesMaterial);
                 box3Edges.position.set((phi.min() + phi.max()) / 2, (theta.min() + theta.max()) / 2, (alpha.min() + alpha.max()) / 2);
 
@@ -91,7 +89,7 @@
         const box3 = box3Group.children[0] as Mesh;
         const box3Material = box3.material as MeshBasicMaterial;
         const originalColor = box3Material.color.clone();
-        box3Material.color.setFromVector3(selectedColor);
+        box3Material.color.copy(new Color(1, 0, 0));
         const box3MaterialOpacity = box3Material.opacity;
         box3Material.opacity = 0.9;
 
@@ -145,7 +143,7 @@
         }
 
         {
-            camera = new PerspectiveCamera(60, width / height, 0.1, 1000);
+            camera = new PerspectiveCamera(60, width / height, 0.001, 1000);
             camera.up.set(0, 0, 1);
             camera.lookAt(0.5, 0.5, 0.5);
             camera.position.set(0.5, -1.5, 0.5);
