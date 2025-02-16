@@ -58,6 +58,10 @@
     let box2Projections: Group[] = [];
     let box2Out: number[] = [];
 
+    let phi_t = 0;
+    let theta_t = 0;
+    let alpha_t = 0;
+
     function onCover() {
         if (!cover) {
             return;
@@ -127,22 +131,6 @@
             return;
         }
         const box3 = cover!.box3s(selection.selectedBox3);
-
-        // {
-        //     const phi_mid = (box3.phi().interval().min() + box3.phi().interval().max()) / 2 * (2 * Math.PI);
-        //     const theta_mid = (box3.theta().interval().min() + box3.theta().interval().max()) / 2 * Math.PI;
-        //     const alpha_mid = (box3.alpha().interval().min() + box3.alpha().interval().max()) / 2 * (2 * Math.PI);
-        //
-        //     const q_init_0 = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI);
-        //     const q_init_1 = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI / 2);
-        //     const q_phi = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), -phi_mid);
-        //     const q_theta = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -theta_mid);
-        //     const q_alpha = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), -alpha_mid);
-        //     const q_total = new Quaternion();
-        //     q_total.copy(q_alpha).multiply(q_theta).multiply(q_phi).multiply(q_init_0);
-        //     holeGroup.quaternion.copy(q_total);
-        // }
-
 
         for (let index = 0; index < box3.projectionsLength(); index++) {
             const projection = box3.projections(index);
@@ -369,6 +357,17 @@
         );
     }
 
+    function projection_rotation_quaternion(phi: number, theta: number, alpha: number): Quaternion {
+        const q_init_0 = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI);
+        const q_init_1 = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI / 2);
+        const q_phi = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), phi * 2 * Math.PI);
+        const q_theta = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -theta * Math.PI);
+        const q_alpha = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), alpha * 2 * Math.PI);
+        const q_total = new Quaternion();
+        q_total.copy(q_alpha).multiply(q_theta).multiply(q_phi).multiply(q_init_1).multiply(q_init_0);
+        return q_total;
+    }
+
     function setup(width: number, height: number) {
         {
             scene = new Scene();
@@ -407,15 +406,36 @@
 
     function draw() {
         renderer.render(scene, camera);
-        if (holeGroup) {
-            // holeGroup.rotation.x += 0.01;
-            // holeGroup.rotation.y += 0.01;
-            // holeGroup.rotation.z += 0.01;
+
+        if (holeGroup && selection.selectedBox3 !== null) {
+            const box3 = cover!.box3s(selection.selectedBox3);
+
+            const phi_interval = box3.phi().interval();
+            const theta_interval = box3.theta().interval();
+            const alpha_interval = box3.alpha().interval();
+
+            holeGroup.quaternion.copy(projection_rotation_quaternion(
+                lerp(phi_interval.min(), phi_interval.max(), (Math.sin(phi_t) + 1) / 2),
+                lerp(theta_interval.min(), theta_interval.max(), (Math.sin(theta_t) + 1) / 2),
+                lerp(alpha_interval.min(), alpha_interval.max(), (Math.sin(alpha_t) + 1) / 2)
+            ));
+
+            phi_t += 0.1;
+            theta_t += 0.1 * Math.sqrt(2);
+            alpha_t += 0.1 * Math.sqrt(3);
         }
-        if (plugGroup) {
-            // plugGroup.rotation.x -= 0.01;
-            // plugGroup.rotation.y -= 0.01;
-            // plugGroup.rotation.z -= 0.01;
+        if (plugGroup && selection.selectedBox3 !== null) {
+            const box3 = cover!.box3s(selection.selectedBox3);
+            const box2 = box3.box2s(selection.selectedBox2);
+
+            const phi_interval = box2.phi().interval();
+            const theta_interval = box2.theta().interval();
+
+            plugGroup.quaternion.copy(projection_rotation_quaternion(
+                lerp(phi_interval.min(), phi_interval.max(), (Math.sin(phi_t) + 1) / 2),
+                lerp(theta_interval.min(), theta_interval.max(), (Math.sin(theta_t) + 1) / 2),
+                0
+            ));
         }
     }
 
