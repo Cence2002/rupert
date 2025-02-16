@@ -20,7 +20,9 @@
         FrontSide,
         Group,
         Vector3,
-        Line, BufferGeometry, Color
+        Line,
+        BufferGeometry,
+        Color
     } from "three";
 
     let {cover, selection} = $props<{

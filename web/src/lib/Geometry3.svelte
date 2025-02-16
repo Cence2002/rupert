@@ -18,7 +18,11 @@
         Color,
         Vector2,
         Shape,
-        ShapeGeometry, FrontSide, BufferGeometry, Line
+        ShapeGeometry,
+        DoubleSide,
+        BufferGeometry,
+        Line,
+        Quaternion
     } from "three";
     import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
     import {AxesHelper} from "three";
@@ -84,7 +88,7 @@
             holeGroup = new Group();
             holeGroup.add(holeMesh);
             holeGroup.add(holeEdgesMesh);
-            holeGroup.position.set(0, 0, -holeRadius);
+            holeGroup.position.set(0, 0, holeRadius);
             scene.add(holeGroup);
         }
         {
@@ -113,7 +117,7 @@
             plugGroup = new Group();
             plugGroup.add(plugMesh);
             plugGroup.add(plugEdgesMesh);
-            plugGroup.position.set(0, 0, -(2 * holeRadius + plugRadius));
+            plugGroup.position.set(0, 0, 2 * holeRadius + plugRadius);
             scene.add(plugGroup);
         }
     }
@@ -123,6 +127,21 @@
             return;
         }
         const box3 = cover!.box3s(selection.selectedBox3);
+
+        // {
+        //     const phi_mid = (box3.phi().interval().min() + box3.phi().interval().max()) / 2 * (2 * Math.PI);
+        //     const theta_mid = (box3.theta().interval().min() + box3.theta().interval().max()) / 2 * Math.PI;
+        //     const alpha_mid = (box3.alpha().interval().min() + box3.alpha().interval().max()) / 2 * (2 * Math.PI);
+        //
+        //     const q_init_0 = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI);
+        //     const q_init_1 = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI / 2);
+        //     const q_phi = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), -phi_mid);
+        //     const q_theta = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -theta_mid);
+        //     const q_alpha = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), -alpha_mid);
+        //     const q_total = new Quaternion();
+        //     q_total.copy(q_alpha).multiply(q_theta).multiply(q_phi).multiply(q_init_0);
+        //     holeGroup.quaternion.copy(q_total);
+        // }
 
 
         for (let index = 0; index < box3.projectionsLength(); index++) {
@@ -139,7 +158,7 @@
                 color: new Color(0, 0, 1),
                 transparent: true,
                 opacity: 0.25,
-                side: FrontSide,
+                side: DoubleSide,
                 depthWrite: false
             });
             const hullMesh = new Mesh(hullGeometry, hullMaterial);
@@ -260,7 +279,7 @@
                 // TODO: fix so that it's the bo2's index that is checked
                 // opacity: (index == box3.in_()) ? 0.25 : (box2Out.includes(index) ? 0.5 : 0),
                 opacity: (box2Out.includes(index) ? 0.5 : 0),
-                side: FrontSide,
+                side: DoubleSide,
                 depthWrite: false,
             });
             const hullMesh = new Mesh(hullGeometry, hullMaterial);
@@ -389,14 +408,14 @@
     function draw() {
         renderer.render(scene, camera);
         if (holeGroup) {
-            holeGroup.rotation.x += 0.01;
-            holeGroup.rotation.y += 0.01;
-            holeGroup.rotation.z += 0.01;
+            // holeGroup.rotation.x += 0.01;
+            // holeGroup.rotation.y += 0.01;
+            // holeGroup.rotation.z += 0.01;
         }
         if (plugGroup) {
-            plugGroup.rotation.x -= 0.01;
-            plugGroup.rotation.y -= 0.01;
-            plugGroup.rotation.z -= 0.01;
+            // plugGroup.rotation.x -= 0.01;
+            // plugGroup.rotation.y -= 0.01;
+            // plugGroup.rotation.z -= 0.01;
         }
     }
 
