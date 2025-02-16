@@ -69,7 +69,9 @@
 
                 const box3Group = new Group();
                 box3Group.add(box3Mesh);
-                box3Group.add(box3Edges);
+                if (box3.complete()) {
+                    box3Group.add(box3Edges);
+                }
 
                 box3Groups.push(box3Group);
             }

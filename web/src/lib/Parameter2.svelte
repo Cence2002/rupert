@@ -54,7 +54,6 @@
         }
         {
             const box3 = cover!.box3s(selection.selectedBox3)
-            console.log(box3.in_(), box3.box2sLength())
             for (let index = 0; index < box3.box2sLength(); index++) {
                 const box2 = box3.box2s(index);
 
@@ -64,7 +63,7 @@
                 const box2Geometry = new PlaneGeometry(phi.max() - phi.min(), theta.max() - theta.min());
                 const box2Material = new MeshBasicMaterial({
                     transparent: true,
-                    opacity: (index == box3.in_()) ? 1 : (box2.outLength() > 0 ? 0.25 : 0),
+                    opacity: (index == box3.in_()) ? 0.75 : (box2.outLength() > 0 ? 0.25 : 0),
                     side: FrontSide,
                     depthWrite: false
                 });
@@ -80,7 +79,9 @@
 
                 const box2Group = new Group();
                 box2Group.add(box2Mesh);
-                box2Group.add(box2Edges);
+                if (box2.outLength() > 0) {
+                    box2Group.add(box2Edges);
+                }
 
                 box2Groups.push(box2Group);
             }
