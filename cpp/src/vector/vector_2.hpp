@@ -81,6 +81,33 @@ public:
         );
     }
 
+    std::vector<Vector2> rotate_hull(const Interval& alpha) const {
+        const Interval cos_alpha_min = Interval(alpha.min()).cos();
+        const Interval cos_alpha_mid = Interval(alpha.mid()).cos();
+        const Interval cos_alpha_max = Interval(alpha.max()).cos();
+
+        const Interval sin_alpha_min = Interval(alpha.min()).sin();
+        const Interval sin_alpha_mid = Interval(alpha.mid()).sin();
+        const Interval sin_alpha_max = Interval(alpha.max()).sin();
+
+        const Interval cos_alpha_rad = Interval(alpha.rad()).cos();
+
+        return std::vector<Vector2>{
+                Vector2(
+                    x_ * cos_alpha_min - y_ * sin_alpha_min,
+                    x_ * sin_alpha_min + y_ * cos_alpha_min
+                ),
+                Vector2(
+                    x_ * cos_alpha_max - y_ * sin_alpha_max,
+                    x_ * sin_alpha_max + y_ * cos_alpha_max
+                ),
+                Vector2(
+                    (x_ * cos_alpha_mid - y_ * sin_alpha_mid) / cos_alpha_rad,
+                    (x_ * sin_alpha_mid + y_ * cos_alpha_mid) / cos_alpha_rad
+                )
+            };
+    }
+
     Interval dot(const Vector2& vector2) const {
         return x_ * vector2.x() + y_ * vector2.y();
     }

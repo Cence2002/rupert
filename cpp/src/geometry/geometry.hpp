@@ -29,20 +29,19 @@ Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vertices) {
         visited[from_index] = true;
 
         const Vector2<Interval> from = vertices[from_index];
-        size_t most_clockwise_index = (from_index + 1) % vertices.size();
+        size_t most_clockwise_index = -1;
         for(size_t clockwise_index = 0; clockwise_index < vertices.size(); clockwise_index++) {
-            if(clockwise_index == from_index) {
-                continue;
+            if(most_clockwise_index == -1 && (vertices[clockwise_index] - from).len().is_pos()) {
+                most_clockwise_index = clockwise_index;
             }
-            const Vector2<Interval> to = vertices[clockwise_index];
-            if(Line<Interval>(from, vertices[most_clockwise_index] - from).orientation(to) == Orientation::CLOCKWISE) {
+            if(Line<Interval>(from, vertices[most_clockwise_index] - from).orientation(vertices[clockwise_index]) == Orientation::CLOCKWISE) {
                 most_clockwise_index = clockwise_index;
             }
         }
 
         std::vector<size_t> to_indices;
         for(size_t to_index = 0; to_index < vertices.size(); to_index++) {
-            if(to_index == from_index) {
+            if(!(vertices[to_index] - from).len().is_pos()) {
                 continue;
             }
             const Vector2<Interval> to = vertices[to_index];

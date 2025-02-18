@@ -103,4 +103,21 @@ public:
             (x_ * cos_phi + y_ * sin_phi) * cos_theta - z_ * sin_theta
         );
     }
+
+    std::vector<Vector2<Interval>> project_hull(const Interval& phi, const Interval& theta) const {
+        const Interval cos_phi = phi.cos();
+        const Interval sin_phi = phi.sin();
+        const Interval cos_theta = theta.cos();
+        const Interval sin_theta = theta.sin();
+        const Vector2<Interval> projection = Vector2<Interval>(
+            -x_ * sin_phi + y_ * cos_phi,
+            (x_ * cos_phi + y_ * sin_phi) * cos_theta - z_ * sin_theta
+        );
+        return std::vector<Vector2<Interval>>{
+            Vector2<Interval>(Interval(projection.x().min()), Interval(projection.y().min())),
+            Vector2<Interval>(Interval(projection.x().min()), Interval(projection.y().max())),
+            Vector2<Interval>(Interval(projection.x().max()), Interval(projection.y().min())),
+            Vector2<Interval>(Interval(projection.x().max()), Interval(projection.y().max()))
+        };
+    }
 };

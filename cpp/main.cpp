@@ -24,6 +24,19 @@ bool is_box2_terminal(const Box2& box2, const Polygon<Interval>& hole, const Pol
             exporter.cover_builder.box3_builder.box2_builder.add_out(vertex_index);
             is_terminal = true;
         }
+        // const std::vector<Vector2<Interval>> projected_plug_vertices = plug.vertices()[vertex_index].project(Interval(box2.phi<Interval>()), Interval(box2.theta<Interval>()));
+        // bool is_all_outside = true;
+        // for(const Vector2<Interval>& projected_plug_vertex: projected_plug_vertices) {
+        //     // exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(projected_plug_vertex);
+        //     if(!hole.is_outside(projected_plug_vertex)) {
+        //         is_all_outside = false;
+        //     }
+        // }
+        // // exporter.cover_builder.box3_builder.box2_builder.add_projection(exporter.builder);
+        // if(is_all_outside) {
+        //     // exporter.cover_builder.box3_builder.box2_builder.add_out(vertex_index);
+        //     is_terminal = true;
+        // }
     }
     return is_terminal;
 }
@@ -31,6 +44,10 @@ bool is_box2_terminal(const Box2& box2, const Polygon<Interval>& hole, const Pol
 template<IntervalType Interval>
 bool is_box3_nonterminal(const Box2& box2, const Polygon<Interval>& hole, const Polyhedron<Interval>& plug) {
     return std::ranges::all_of(plug.vertices(), [&](const Vector3<Interval>& plug_vertex) {
+        // const std::vector<Vector2<Interval>> projected_plug_vertices = plug_vertex.project(Interval(box2.phi<Interval>().mid()), Interval(box2.theta<Interval>().mid()));
+        // return std::ranges::all_of(projected_plug_vertices, [&](const Vector2<Interval>& projected_plug_vertex) {
+        //     return hole.is_inside(projected_plug_vertex);
+        // });
         const Vector2<Interval> projected_plug_vertex = plug_vertex.project(Interval(box2.phi<Interval>().mid()), Interval(box2.theta<Interval>().mid()));
         return hole.is_inside(projected_plug_vertex);
     });
@@ -40,7 +57,8 @@ template<IntervalType Interval>
 std::vector<Interval> split(const Interval& interval, const int parts) {
     std::vector<Interval> sub_intervals;
     for(int part_index = 0; part_index < parts; part_index++) {
-        const Interval sub_interval = Interval(part_index, part_index + 1) * interval.len() / parts + interval.min();
+        // TODO make valid (min rounds down, so we need smarter calculation of parts)
+        const Interval sub_interval = interval.min() + Interval(part_index, part_index + 1) * interval.len() / parts;
         sub_intervals.push_back(sub_interval);
     }
     return sub_intervals;
@@ -48,32 +66,32 @@ std::vector<Interval> split(const Interval& interval, const int parts) {
 
 template<IntervalType Interval>
 Polygon<Interval> project_hole(const Box3& box3, const Polyhedron<Interval>& hole, const int resolution) {
-    std::vector<Vector2<Interval>> projected_hole_vertices;
+    std::vector<Vector2<Interval>> all_projected_hole_vertices;
     for(const Vector3<Interval>& hole_vertex: hole.vertices()) {
         for(const Interval& sub_phi: split(box3.phi<Interval>(), resolution)) {
             for(const Interval& sub_theta: split(box3.theta<Interval>(), resolution)) {
-                for(const Interval& sub_alpha: split(box3.alpha<Interval>(), resolution)) {
-                    const Vector2<Interval> projected_hole_vertex = hole_vertex.project(sub_phi, sub_theta).rotate(sub_alpha);
-                    projected_hole_vertices.emplace_back(Interval(projected_hole_vertex.x().min()), Interval(projected_hole_vertex.y().min()));
-                    projected_hole_vertices.emplace_back(Interval(projected_hole_vertex.x().min()), Interval(projected_hole_vertex.y().max()));
-                    projected_hole_vertices.emplace_back(Interval(projected_hole_vertex.x().max()), Interval(projected_hole_vertex.y().min()));
-                    projected_hole_vertices.emplace_back(Interval(projected_hole_vertex.x().max()), Interval(projected_hole_vertex.y().max()));
-                    exporter.cover_builder.box3_builder.projection_builder.add_vertex(Vector2<Interval>(Interval(projected_hole_vertex.x().min()), Interval(projected_hole_vertex.y().min())));
-                    exporter.cover_builder.box3_builder.projection_builder.add_vertex(Vector2<Interval>(Interval(projected_hole_vertex.x().min()), Interval(projected_hole_vertex.y().max())));
-                    exporter.cover_builder.box3_builder.projection_builder.add_vertex(Vector2<Interval>(Interval(projected_hole_vertex.x().max()), Interval(projected_hole_vertex.y().min())));
-                    exporter.cover_builder.box3_builder.projection_builder.add_vertex(Vector2<Interval>(Interval(projected_hole_vertex.x().max()), Interval(projected_hole_vertex.y().max())));
+                const std::vector<Vector2<Interval>> projected_hole_vertices = hole_vertex.project_hull(sub_phi, sub_theta);
+                for(const Vector2<Interval>& projected_hole_vertex: projected_hole_vertices) {
+                    for(const Interval& sub_alpha: split(box3.alpha<Interval>(), resolution)) {
+                        const std::vector<Vector2<Interval>> rotated_projected_hole_vertices = projected_hole_vertex.rotate_hull(sub_alpha);
+                        for(const Vector2<Interval>& rotated_projected_hole_vertex: rotated_projected_hole_vertices) {
+                            all_projected_hole_vertices.push_back(rotated_projected_hole_vertex);
+                            exporter.cover_builder.box3_builder.projection_builder.add_vertex(rotated_projected_hole_vertex);
+                        }
+                    }
                 }
             }
         }
         exporter.cover_builder.box3_builder.add_projection(exporter.builder);
     }
-    return convex_hull(projected_hole_vertices);
+    return convex_hull(all_projected_hole_vertices);
 }
 
 template<IntervalType Interval>
 bool is_box3_terminal(const Box3& box3, const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug,
                       const int iterations2, const int resolution) {
     Polygon<Interval> projected_hole = project_hole(box3, hole, resolution);
+    // print(projected_hole);
     exporter.cover_builder.box3_builder.set_projection(exporter.builder, projected_hole);
     Queue2 queue2;
     for(int iteration2 = 0; iterations2 == 0 || iteration2 < iterations2; iteration2++) {
@@ -149,15 +167,15 @@ void solve(const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug,
 int main() {
     tests();
 
-    using Interval = BoostInterval;
+    using Interval = FloatInterval;
     const Polyhedron<Interval> hole = Polyhedron<Interval>(std::vector<Vector3<Interval>>(
         {
             Vector3<Interval>(1, 1, 0),
             Vector3<Interval>(1, -1, 0),
             Vector3<Interval>(-1, -1, 0),
             Vector3<Interval>(-1, 1, 0),
-            Vector3<Interval>(0, 0, BoostInterval(1) / 2),
-            Vector3<Interval>(0, 0, -BoostInterval(1) / 2),
+            Vector3<Interval>(0, 0, Interval(1) / 2),
+            Vector3<Interval>(0, 0, -Interval(1) / 2),
         }
     ));
 
@@ -167,7 +185,7 @@ int main() {
     exporter.cover_builder.set_hole(exporter.builder, hole);
     exporter.cover_builder.set_plug(exporter.builder, plug);
 
-    solve<Interval>(hole, plug, 1, 1001, 10000);
+    solve<Interval>(hole, plug, 1, 2000, 10000, 3);
 
     exporter.save("../../web/static/test.bin");
 
