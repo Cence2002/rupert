@@ -115,7 +115,10 @@
         const raycaster = new Raycaster();
         raycaster.setFromCamera(mouse, camera);
 
-        const intersections = raycaster.intersectObjects(box2Groups.map(group => group.children[0] as Mesh), false);
+        const intersections = raycaster.intersectObjects(box2Groups
+                .map(group => group.children[0] as Mesh)
+                .filter(mesh => (mesh.material as MeshBasicMaterial).opacity > 0),
+            false);
 
         function getArea(geometry: PlaneGeometry) {
             const vertices = geometry.parameters;

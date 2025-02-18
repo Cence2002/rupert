@@ -22,7 +22,8 @@
         DoubleSide,
         BufferGeometry,
         Line,
-        Quaternion
+        Quaternion,
+        OrthographicCamera,
     } from "three";
     import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
     import {AxesHelper} from "three";
@@ -39,7 +40,7 @@
 
     $effect(onSelectBox2);
 
-    let camera: PerspectiveCamera;
+    let camera: OrthographicCamera;
     let scene: Scene;
     let renderer: WebGLRenderer;
     let controls: OrbitControls;
@@ -53,6 +54,7 @@
     const resolution = 8;
     let rotatedHoleVertexGroups: Group[] = [];
     let rotatedPlugVertexGroups: Group[] = [];
+    let rotatedHoleVerticesGroup: Group;
 
     let projectionLines: Line[] = [];
     let projections: Group[] = [];
@@ -146,7 +148,8 @@
                 vertices.push(new Vector2(vertex.x(), vertex.y()));
             }
 
-            const hull = new Shape(computeConvexHull(vertices));
+            const convexHull = computeConvexHull(vertices);
+            const hull = new Shape(convexHull);
             const hullGeometry = new ShapeGeometry(hull);
             const hullMaterial = new MeshBasicMaterial({
                 color: new Color(0, 0, 1),
@@ -193,6 +196,7 @@
         }
 
         const coverHole = cover!.hole();
+        const allVertices = [];
         for (let index = 0; index < coverHole.verticesLength(); index++) {
             const vertex = coverHole.vertices(index);
             let vertices = [];
@@ -204,8 +208,9 @@
                     const projected = project(new Vector3(vertex.x(), vertex.y(), vertex.z()), phi, theta);
                     for (let alpha_index = 0; alpha_index <= resolution; alpha_index++) {
                         const alpha = lerp(box3.alpha().interval().min(), box3.alpha().interval().max(), alpha_index / resolution);
-                        const rotated = rotate(projected, alpha);
-                        vertices.push(rotated);
+                        const rotated_projected = rotate(projected, alpha);
+                        vertices.push(rotated_projected);
+                        allVertices.push(rotated_projected);
                     }
                 }
             }
@@ -230,6 +235,25 @@
         for (let group of rotatedHoleVertexGroups) {
             scene.add(group);
         }
+        {
+            const rotatedHoleVertex = new ConvexGeometry(allVertices);
+            const rotatedHoleVertexMaterial = new MeshBasicMaterial({
+                color: new Color(0, 0, 1),
+                transparent: true,
+                opacity: 0.5
+            });
+            const rotatedHoleVertexMesh = new Mesh(rotatedHoleVertex, rotatedHoleVertexMaterial);
+            const rotatedHoleVertexEdges = new EdgesGeometry(rotatedHoleVertex);
+            const rotatedHoleVertexEdgesMaterial = new LineBasicMaterial({
+                color: new Color(0.5, 0.5, 0.5)
+            });
+            const rotatedHoleVertexEdgesMesh = new LineSegments(rotatedHoleVertexEdges, rotatedHoleVertexEdgesMaterial);
+            rotatedHoleVerticesGroup = new Group();
+            rotatedHoleVerticesGroup.add(rotatedHoleVertexMesh);
+            // rotatedHoleVerticesGroup.add(rotatedHoleVertexEdgesMesh);
+            rotatedHoleVerticesGroup.position.set(0, 0, holeRadius);
+        }
+        scene.add(rotatedHoleVerticesGroup);
         return () => {
             for (let group of projections) {
                 scene.remove(group);
@@ -243,6 +267,7 @@
                 scene.remove(group);
             }
             rotatedHoleVertexGroups = [];
+            scene.remove(rotatedHoleVerticesGroup);
         };
     }
 
@@ -303,7 +328,8 @@
                 const phi = lerp(phi_interval.min(), phi_interval.max(), phi_index / resolution);
                 for (let theta_index = 0; theta_index <= resolution; theta_index++) {
                     const theta = lerp(box2.theta().interval().min(), box2.theta().interval().max(), theta_index / resolution);
-                    const projected = project(new Vector3(vertex.x(), vertex.y(), vertex.z()), phi, theta);
+                    const raw_vertex = new Vector3(vertex.x(), vertex.y(), vertex.z());
+                    const projected = project(raw_vertex, phi, theta);
                     vertices.push(projected);
                 }
             }
@@ -374,6 +400,15 @@
         return q_total;
     }
 
+    function setCameraBounds(width: number, height: number, zoom: number = 8) {
+        const aspect = width / height;
+        camera.left = -zoom * aspect / 2;
+        camera.right = zoom * aspect / 2;
+        camera.top = zoom / 2;
+        camera.bottom = -zoom / 2;
+        camera.updateProjectionMatrix();
+    }
+
     function setup(width: number, height: number) {
         {
             scene = new Scene();
@@ -381,7 +416,8 @@
         }
 
         {
-            camera = new PerspectiveCamera(60, width / height, 0.001, 1000);
+            // camera = new PerspectiveCamera(60, width / height, 0.001, 1000);
+            camera = new OrthographicCamera(-4, 4, 4, -4, 0.001, 1000);
             camera.up.set(0, 0, 1);
             camera.lookAt(0, 0, 2);
             camera.position.set(0, -12, 0);
@@ -449,8 +485,10 @@
     }
 
     function resize(width: number, height: number) {
-        camera.aspect = width / height;
-        camera.updateProjectionMatrix();
+        // camera.aspect = width / height;
+        // camera.updateProjectionMatrix();
+        // renderer.setSize(width, height);
+        setCameraBounds(width, height);
         renderer.setSize(width, height);
     }
 

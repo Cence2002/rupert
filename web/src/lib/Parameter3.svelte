@@ -103,9 +103,10 @@
         const raycaster = new Raycaster();
         raycaster.setFromCamera(mouse, camera);
 
-        const intersections = raycaster.intersectObjects(
-            box3Groups.map(group => group.children[0] as Mesh).filter(mesh => (mesh.material as MeshBasicMaterial).opacity > 0)
-            , false);
+        const intersections = raycaster.intersectObjects(box3Groups
+                .map(group => group.children[0] as Mesh)
+                .filter(mesh => (mesh.material as MeshBasicMaterial).opacity > 0),
+            false);
 
         function getVolume(geometry: BoxGeometry) {
             const {width, height, depth} = geometry.parameters;
