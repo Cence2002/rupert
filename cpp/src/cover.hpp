@@ -57,9 +57,9 @@ public:
         Interval interval = Interval::unit();
         for(uint8_t i = 0; i < depth_; i++) {
             if(bits_ & (1ull << (depth_ - 1 - i))) {
-                interval = (interval - interval.max()) / 2 + interval.max();
+                interval = Interval(interval.mid(), interval.max());
             } else {
-                interval = (interval - interval.min()) / 2 + interval.min();
+                interval = Interval(interval.min(), interval.mid());
             }
         }
         return interval;
