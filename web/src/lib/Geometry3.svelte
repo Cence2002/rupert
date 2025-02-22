@@ -56,7 +56,7 @@
     let rotatedPlugVertexGroups: Group[] = [];
     let rotatedHoleVerticesGroup: Group;
 
-    let projectionLines: Line[] = [];
+    let projectionEdges: Edge[] = [];
     let projections: Group[] = [];
     let box2Projections: Group[] = [];
     let box2Out: number[] = [];
@@ -177,22 +177,22 @@
         }
 
         const projection = box3.projection();
-        for (let index = 0; index < projection.linesLength(); index++) {
-            const line = projection.lines(index);
-            const point = new Vector2(line.point().x(), line.point().y());
-            const direction = new Vector2(line.direction().x(), line.direction().y());
-            const lineGeometry = new BufferGeometry().setFromPoints([
+        for (let index = 0; index < projection.edgesLength(); index++) {
+            const edge = projection.edges(index);
+            const point = new Vector2(edge.point().x(), edge.point().y());
+            const direction = new Vector2(edge.direction().x(), edge.direction().y());
+            const edgeGeometry = new BufferGeometry().setFromPoints([
                 new Vector3(point.x, point.y, 0),
                 new Vector3(point.x + direction.x, point.y + direction.y, 0)]);
-            const lineMaterial = new LineBasicMaterial({
+            const edgeMaterial = new LineBasicMaterial({
                 color: new Color(1, 1, 1),
             });
-            const lineMesh = new Line(lineGeometry, lineMaterial);
-            projectionLines.push(lineMesh);
+            const edgeMesh = new Line(edgeGeometry, edgeMaterial);
+            projectionEdges.push(edgeMesh);
         }
 
-        for (let projectionLine of projectionLines) {
-            scene.add(projectionLine);
+        for (let projectionEdge of projectionEdges) {
+            scene.add(projectionEdge);
         }
 
         const coverHole = cover!.hole();
@@ -259,10 +259,10 @@
                 scene.remove(group);
             }
             projections = [];
-            for (let line of projectionLines) {
-                scene.remove(line);
+            for (let edge of projectionEdges) {
+                scene.remove(edge);
             }
-            projectionLines = [];
+            projectionEdges = [];
             for (let group of rotatedHoleVertexGroups) {
                 scene.remove(group);
             }

@@ -125,14 +125,14 @@ public:
 
     template<IntervalType Interval>
     void set_projection(flatbuffers::FlatBufferBuilder& builder, const Polygon<Interval>& polygon) {
-        std::vector<FlatBuffers::Line> lines;
-        for(const auto& line: polygon.lines()) {
-            lines.emplace_back(
-                FlatBuffers::Vector2(line.point().x().mid().float_value(), line.point().y().mid().float_value()),
-                FlatBuffers::Vector2(line.direction().x().mid().float_value(), line.direction().y().mid().float_value())
+        std::vector<FlatBuffers::Edge> edges;
+        for(const auto& edge: polygon.edges()) {
+            edges.emplace_back(
+                FlatBuffers::Vector2(edge.point().x().mid().float_value(), edge.point().y().mid().float_value()),
+                FlatBuffers::Vector2(edge.direction().x().mid().float_value(), edge.direction().y().mid().float_value())
             );
         }
-        projection_ = FlatBuffers::CreatePolygon(builder, builder.CreateVectorOfStructs(lines));
+        projection_ = FlatBuffers::CreatePolygon(builder, builder.CreateVectorOfStructs(edges));
     }
 
     void add_box2(flatbuffers::FlatBufferBuilder& builder) {

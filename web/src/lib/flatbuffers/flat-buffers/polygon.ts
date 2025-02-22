@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Line } from '../flat-buffers/line';
+import { Edge } from '../flat-buffers/edge';
 
 
 export class Polygon {
@@ -23,12 +23,12 @@ static getSizePrefixedRootAsPolygon(bb:flatbuffers.ByteBuffer, obj?:Polygon):Pol
   return (obj || new Polygon()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-lines(index: number, obj?:Line):Line|null {
+edges(index: number, obj?:Edge):Edge|null {
   const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? (obj || new Line()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 32, this.bb!) : null;
+  return offset ? (obj || new Edge()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 32, this.bb!) : null;
 }
 
-linesLength():number {
+edgesLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 4);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
@@ -37,11 +37,11 @@ static startPolygon(builder:flatbuffers.Builder) {
   builder.startObject(1);
 }
 
-static addLines(builder:flatbuffers.Builder, linesOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(0, linesOffset, 0);
+static addEdges(builder:flatbuffers.Builder, edgesOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(0, edgesOffset, 0);
 }
 
-static startLinesVector(builder:flatbuffers.Builder, numElems:number) {
+static startEdgesVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(32, numElems, 8);
 }
 
@@ -50,9 +50,9 @@ static endPolygon(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 }
 
-static createPolygon(builder:flatbuffers.Builder, linesOffset:flatbuffers.Offset):flatbuffers.Offset {
+static createPolygon(builder:flatbuffers.Builder, edgesOffset:flatbuffers.Offset):flatbuffers.Offset {
   Polygon.startPolygon(builder);
-  Polygon.addLines(builder, linesOffset);
+  Polygon.addEdges(builder, edgesOffset);
   return Polygon.endPolygon(builder);
 }
 }

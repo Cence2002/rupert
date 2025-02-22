@@ -1,13 +1,13 @@
 #pragma once
 
-#include "geometry/line.hpp"
+#include "geometry/edge.hpp"
 #include "geometry/polygon.hpp"
 #include "geometry/polyhedron.hpp"
 #include <queue>
 
 template<IntervalType Interval>
 Polygon<Interval> convex_hull(const std::vector<IntervalVector2<Interval>>& vertices) {
-    std::vector<Line<Interval>> edges;
+    std::vector<Edge<Interval>> edges;
 
     std::vector<bool> visited(vertices.size(), false);
 
@@ -33,7 +33,7 @@ Polygon<Interval> convex_hull(const std::vector<IntervalVector2<Interval>>& vert
             if(most_clockwise_index == -1 && (vertices[clockwise_index] - from).len().is_pos()) {
                 most_clockwise_index = clockwise_index;
             }
-            if(Line<Interval>(from, vertices[most_clockwise_index] - from).orientation(vertices[clockwise_index]) == Orientation::CLOCKWISE) {
+            if(Edge<Interval>(from, vertices[most_clockwise_index] - from).orientation(vertices[clockwise_index]) == Orientation::CLOCKWISE) {
                 most_clockwise_index = clockwise_index;
             }
         }
@@ -44,7 +44,7 @@ Polygon<Interval> convex_hull(const std::vector<IntervalVector2<Interval>>& vert
                 continue;
             }
             const IntervalVector2<Interval> to = vertices[to_index];
-            if(Line<Interval>(from, vertices[most_clockwise_index] - from).orientation(to) == Orientation::COUNTERCLOCKWISE) {
+            if(Edge<Interval>(from, vertices[most_clockwise_index] - from).orientation(to) == Orientation::COUNTERCLOCKWISE) {
                 continue;
             }
             bool most_clockwise = true;
@@ -52,7 +52,7 @@ Polygon<Interval> convex_hull(const std::vector<IntervalVector2<Interval>>& vert
                 if(clockwise_index == from_index || clockwise_index == to_index) {
                     continue;
                 }
-                if(Line<Interval>(from, to - from).orientation(vertices[clockwise_index]) == Orientation::CLOCKWISE) {
+                if(Edge<Interval>(from, to - from).orientation(vertices[clockwise_index]) == Orientation::CLOCKWISE) {
                     most_clockwise = false;
                     break;
                 }

@@ -10,15 +10,15 @@ enum class Orientation {
 };
 
 template<IntervalType Interval>
-struct Line {
+struct Edge {
 private:
     IntervalVector2<Interval> point_;
     IntervalVector2<Interval> direction_;
 
 public:
-    explicit Line(const IntervalVector2<Interval>& point, const IntervalVector2<Interval>& direction) : point_(point), direction_(direction) {}
+    explicit Edge(const IntervalVector2<Interval>& point, const IntervalVector2<Interval>& direction) : point_(point), direction_(direction) {}
 
-    explicit Line(const IntervalVector2<Interval>& direction) : point_(IntervalVector2<Interval>(0, 0)), direction_(direction) {}
+    explicit Edge(const IntervalVector2<Interval>& direction) : point_(IntervalVector2<Interval>(0, 0)), direction_(direction) {}
 
     IntervalVector2<Interval> point() const {
         return point_;
@@ -28,7 +28,7 @@ public:
         return direction_;
     }
 
-    static Line from_two_points(const IntervalVector2<Interval>& point, const IntervalVector2<Interval>& other_point) {
+    static Edge from_two_points(const IntervalVector2<Interval>& point, const IntervalVector2<Interval>& other_point) {
         return DirectedLine(point, other_point - point);
     }
 
@@ -43,11 +43,11 @@ public:
         return Orientation::COLLINEAR;
     }
 
-    bool intersects(const Line& line) const {
-        const Orientation orientation_0_0 = orientation(line.point_);
-        const Orientation orientation_0_1 = orientation(line.point_ + line.direction_);
-        const Orientation orientation_1_0 = line.orientation(point_);
-        const Orientation orientation_1_1 = line.orientation(point_ + direction_);
+    bool intersects(const Edge& edge) const {
+        const Orientation orientation_0_0 = orientation(edge.point_);
+        const Orientation orientation_0_1 = orientation(edge.point_ + edge.direction_);
+        const Orientation orientation_1_0 = edge.orientation(point_);
+        const Orientation orientation_1_1 = edge.orientation(point_ + direction_);
         if(orientation_0_0 == Orientation::COLLINEAR ||
            orientation_0_1 == Orientation::COLLINEAR ||
            orientation_1_0 == Orientation::COLLINEAR ||
@@ -57,11 +57,11 @@ public:
         return (orientation_0_0 != orientation_0_1) && (orientation_1_0 != orientation_1_1);
     }
 
-    bool avoids(const Line& line) const {
-        const Orientation orientation_0_0 = orientation(line.point_);
-        const Orientation orientation_0_1 = orientation(line.point_ + line.direction_);
-        const Orientation orientation_1_0 = line.orientation(point_);
-        const Orientation orientation_1_1 = line.orientation(point_ + direction_);
+    bool avoids(const Edge& edge) const {
+        const Orientation orientation_0_0 = orientation(edge.point_);
+        const Orientation orientation_0_1 = orientation(edge.point_ + edge.direction_);
+        const Orientation orientation_1_0 = edge.orientation(point_);
+        const Orientation orientation_1_1 = edge.orientation(point_ + direction_);
         if(orientation_0_0 == Orientation::COLLINEAR ||
            orientation_0_1 == Orientation::COLLINEAR ||
            orientation_1_0 == Orientation::COLLINEAR ||
@@ -79,7 +79,7 @@ public:
         return dot.is_neg() || dot > direction_.dot(direction_);
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const Line& line) {
-        return os << line.point_ << " @ " << line.direction_;
+    friend std::ostream& operator<<(std::ostream& os, const Edge& edge) {
+        return os << edge.point_ << " @ " << edge.direction_;
     }
 };
