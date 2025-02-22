@@ -214,7 +214,7 @@ public:
     }
 
     FloatInterval operator/(const FloatInterval& interval) const {
-        if(interval.min_ <= 0 && 0 <= interval.max_) {
+        if(!interval.is_pos() && !interval.is_neg()) {
             return nan();
         }
         const double min_min = min_ / interval.min_;
@@ -235,7 +235,7 @@ public:
     }
 
     friend FloatInterval operator/(const Number& number, const FloatInterval& interval) {
-        if(interval.min_ <= 0 && 0 <= interval.max_) {
+        if(!interval.is_pos() && !interval.is_neg()) {
             return nan();
         }
         const double min = number.value() / interval.min_;
@@ -255,7 +255,7 @@ public:
 
     template<IntegerType Integer>
     friend FloatInterval operator/(const Integer integer, const FloatInterval& interval) {
-        if(interval.min_ <= 0 && 0 <= interval.max_) {
+        if(!interval.is_pos() && !interval.is_neg()) {
             return nan();
         }
         const double min = static_cast<double>(integer) / interval.min_;
@@ -264,7 +264,7 @@ public:
     }
 
     FloatInterval inv() const {
-        if(min_ <= 0 && 0 <= max_) {
+        if(!is_pos() && !is_neg()) {
             return nan();
         }
         return FloatInterval(1.0 / max_, 1.0 / min_);
@@ -284,7 +284,7 @@ public:
     }
 
     FloatInterval sqrt() const {
-        if(min_ < 0) {
+        if(min() < 0) {
             return nan();
         }
         return FloatInterval(std::sqrt(min_), std::sqrt(max_));
