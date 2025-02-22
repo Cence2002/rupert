@@ -16,10 +16,10 @@ public:
         return lines_;
     }
 
-    bool is_inside(const IntervalVector2<I>& vector2) const {
+    bool is_inside(const IntervalVector2<I>& interval_vector2) const {
         bool all_counter_clockwise = true;
         for(const Line<I>& line: lines_) {
-            const Orientation orientation = line.orientation(vector2);
+            const Orientation orientation = line.orientation(interval_vector2);
             if(orientation == Orientation::COLLINEAR) {
                 return false;
             }
@@ -29,11 +29,11 @@ public:
         return all_counter_clockwise;
     }
 
-    bool is_outside(const IntervalVector2<I>& vector2) const {
+    bool is_outside(const IntervalVector2<I>& interval_vector2) const {
         bool any_clockwise = false;
         for(const Line<I>& line: lines_) {
-            const Orientation orientation = line.orientation(vector2);
-            if(!line.avoids(vector2)) {
+            const Orientation orientation = line.orientation(interval_vector2);
+            if(!line.avoids(interval_vector2)) {
                 return false;
             }
             const bool clockwise = orientation == Orientation::CLOCKWISE;

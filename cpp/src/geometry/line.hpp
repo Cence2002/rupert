@@ -25,8 +25,8 @@ public:
         return DirectedLine(point, other_point - point);
     }
 
-    Orientation orientation(const IntervalVector2<Interval>& vector2) const {
-        const Interval cross = direction_.cross(vector2 - point_);
+    Orientation orientation(const IntervalVector2<Interval>& interval_vector2) const {
+        const Interval cross = direction_.cross(interval_vector2 - point_);
         if(cross.is_pos()) {
             return Orientation::COUNTERCLOCKWISE;
         }
@@ -64,11 +64,11 @@ public:
         return (orientation_0_0 == orientation_0_1) && (orientation_1_0 == orientation_1_1);
     }
 
-    bool avoids(const IntervalVector2<Interval>& vector2) const {
-        if(orientation(vector2) != Orientation::COLLINEAR) {
+    bool avoids(const IntervalVector2<Interval>& interval_vector2) const {
+        if(orientation(interval_vector2) != Orientation::COLLINEAR) {
             return true;
         }
-        const Interval dot = direction_.dot(vector2 - point_);
+        const Interval dot = direction_.dot(interval_vector2 - point_);
         return dot.is_neg() || dot > direction_.dot(direction_);
     }
 

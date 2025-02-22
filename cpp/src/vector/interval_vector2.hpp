@@ -11,13 +11,13 @@ public:
 
     ~IntervalVector2() = default;
 
-    IntervalVector2(const IntervalVector2& vector2) = default;
+    IntervalVector2(const IntervalVector2& interval_vector2) = default;
 
-    IntervalVector2& operator=(const IntervalVector2& vector2) = default;
+    IntervalVector2& operator=(const IntervalVector2& interval_vector2) = default;
 
-    IntervalVector2(IntervalVector2&& vector2) = default;
+    IntervalVector2(IntervalVector2&& interval_vector2) = default;
 
-    IntervalVector2& operator=(IntervalVector2&& vector2) = default;
+    IntervalVector2& operator=(IntervalVector2&& interval_vector2) = default;
 
     explicit IntervalVector2(const Interval& x, const Interval& y) : x_(x), y_(y) {}
 
@@ -45,20 +45,20 @@ public:
         return IntervalVector2(-x_, -y_);
     }
 
-    IntervalVector2 operator+(const IntervalVector2& vector2) const {
-        return IntervalVector2(x_ + vector2.x_, y_ + vector2.y_);
+    IntervalVector2 operator+(const IntervalVector2& interval_vector2) const {
+        return IntervalVector2(x_ + interval_vector2.x_, y_ + interval_vector2.y_);
     }
 
-    IntervalVector2 operator-(const IntervalVector2& vector2) const {
-        return IntervalVector2(x_ - vector2.x_, y_ - vector2.y_);
+    IntervalVector2 operator-(const IntervalVector2& interval_vector2) const {
+        return IntervalVector2(x_ - interval_vector2.x_, y_ - interval_vector2.y_);
     }
 
     Interval len() const {
         return (x_.sqr() + y_.sqr()).sqrt();
     }
 
-    friend std::ostream& operator<<(std::ostream& ostream, const IntervalVector2& vector2) {
-        return ostream << "(" << vector2.x_ << " | " << vector2.y_ << ")";
+    friend std::ostream& operator<<(std::ostream& ostream, const IntervalVector2& interval_vector2) {
+        return ostream << "(" << interval_vector2.x_ << " | " << interval_vector2.y_ << ")";
     }
 
     IntervalVector2 rotate(const Interval& alpha) const {
@@ -97,11 +97,11 @@ public:
             };
     }
 
-    Interval dot(const IntervalVector2& vector2) const {
-        return x_ * vector2.x() + y_ * vector2.y();
+    Interval dot(const IntervalVector2& interval_vector2) const {
+        return x_ * interval_vector2.x() + y_ * interval_vector2.y();
     }
 
-    Interval cross(const IntervalVector2& vector2) const {
-        return x_ * vector2.y() - y_ * vector2.x();
+    Interval cross(const IntervalVector2& interval_vector2) const {
+        return x_ * interval_vector2.y() - y_ * interval_vector2.x();
     }
 };
