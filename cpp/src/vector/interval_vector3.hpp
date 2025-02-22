@@ -1,26 +1,26 @@
 #pragma once
 
 template<IntervalType Interval>
-struct Vector3 {
+struct IntervalVector3 {
 private:
     Interval x_;
     Interval y_;
     Interval z_;
 
 public:
-    explicit Vector3() = default;
+    explicit IntervalVector3() = default;
 
-    ~Vector3() = default;
+    ~IntervalVector3() = default;
 
-    Vector3(const Vector3& vector3) = default;
+    IntervalVector3(const IntervalVector3& vector3) = default;
 
-    Vector3& operator=(const Vector3& vector3) = default;
+    IntervalVector3& operator=(const IntervalVector3& vector3) = default;
 
-    Vector3(Vector3&& vector3) = default;
+    IntervalVector3(IntervalVector3&& vector3) = default;
 
-    Vector3& operator=(Vector3&& vector3) = default;
+    IntervalVector3& operator=(IntervalVector3&& vector3) = default;
 
-    explicit Vector3(const Interval& x, const Interval& y, const Interval& z) : x_(x), y_(y), z_(z) {}
+    explicit IntervalVector3(const Interval& x, const Interval& y, const Interval& z) : x_(x), y_(y), z_(z) {}
 
     Interval& x() {
         return x_;
@@ -46,55 +46,55 @@ public:
         return z_;
     }
 
-    Vector3 operator+() const {
-        return Vector3(+x_, +y_, +z_);
+    IntervalVector3 operator+() const {
+        return IntervalVector3(+x_, +y_, +z_);
     }
 
-    Vector3 operator-() const {
-        return Vector3(-x_, -y_, -z_);
+    IntervalVector3 operator-() const {
+        return IntervalVector3(-x_, -y_, -z_);
     }
 
-    Vector3 operator+(const Vector3& vector3) const {
-        return Vector3(x_ + vector3.x_, y_ + vector3.y_, z_ + vector3.z_);
+    IntervalVector3 operator+(const IntervalVector3& vector3) const {
+        return IntervalVector3(x_ + vector3.x_, y_ + vector3.y_, z_ + vector3.z_);
     }
 
-    Vector3 operator-(const Vector3& vector3) const {
-        return Vector3(x_ - vector3.x_, y_ - vector3.y_, z_ - vector3.z_);
+    IntervalVector3 operator-(const IntervalVector3& vector3) const {
+        return IntervalVector3(x_ - vector3.x_, y_ - vector3.y_, z_ - vector3.z_);
     }
 
     Interval len() const {
         return (x_.sqr() + y_.sqr() + z_.sqr()).sqrt();
     }
 
-    friend std::ostream& operator<<(std::ostream& ostream, const Vector3& vector3) {
+    friend std::ostream& operator<<(std::ostream& ostream, const IntervalVector3& vector3) {
         return ostream << "(" << vector3.x_ << " | " << vector3.y_ << " | " << vector3.z_ << ")";
     }
 
-    Vector2<Interval> project(const Interval& phi, const Interval& theta) const {
+    IntervalVector2<Interval> project(const Interval& phi, const Interval& theta) const {
         const Interval& cos_phi = phi.cos();
         const Interval& sin_phi = phi.sin();
         const Interval& cos_theta = theta.cos();
         const Interval& sin_theta = theta.sin();
-        return Vector2<Interval>(
+        return IntervalVector2<Interval>(
             -x_ * sin_phi + y_ * cos_phi,
             (x_ * cos_phi + y_ * sin_phi) * cos_theta - z_ * sin_theta
         );
     }
 
-    std::vector<Vector2<Interval>> project_hull(const Interval& phi, const Interval& theta) const {
+    std::vector<IntervalVector2<Interval>> project_hull(const Interval& phi, const Interval& theta) const {
         const Interval cos_phi = phi.cos();
         const Interval sin_phi = phi.sin();
         const Interval cos_theta = theta.cos();
         const Interval sin_theta = theta.sin();
-        const Vector2<Interval> projection = Vector2<Interval>(
+        const IntervalVector2<Interval> projection = IntervalVector2<Interval>(
             -x_ * sin_phi + y_ * cos_phi,
             (x_ * cos_phi + y_ * sin_phi) * cos_theta - z_ * sin_theta
         );
-        return std::vector<Vector2<Interval>>{
-            Vector2<Interval>(Interval(projection.x().min()), Interval(projection.y().min())),
-            Vector2<Interval>(Interval(projection.x().min()), Interval(projection.y().max())),
-            Vector2<Interval>(Interval(projection.x().max()), Interval(projection.y().min())),
-            Vector2<Interval>(Interval(projection.x().max()), Interval(projection.y().max()))
+        return std::vector<IntervalVector2<Interval>>{
+            IntervalVector2<Interval>(Interval(projection.x().min()), Interval(projection.y().min())),
+            IntervalVector2<Interval>(Interval(projection.x().min()), Interval(projection.y().max())),
+            IntervalVector2<Interval>(Interval(projection.x().max()), Interval(projection.y().min())),
+            IntervalVector2<Interval>(Interval(projection.x().max()), Interval(projection.y().max()))
         };
     }
 };

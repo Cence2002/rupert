@@ -7,7 +7,7 @@
 #include <queue>
 
 template<IntervalType Interval>
-Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vertices) {
+Polygon<Interval> convex_hull(const std::vector<IntervalVector2<Interval>>& vertices) {
     std::vector<Line<Interval>> edges;
 
     std::vector<bool> visited(vertices.size(), false);
@@ -28,7 +28,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vertices) {
         }
         visited[from_index] = true;
 
-        const Vector2<Interval> from = vertices[from_index];
+        const IntervalVector2<Interval> from = vertices[from_index];
         size_t most_clockwise_index = -1;
         for(size_t clockwise_index = 0; clockwise_index < vertices.size(); clockwise_index++) {
             if(most_clockwise_index == -1 && (vertices[clockwise_index] - from).len().is_pos()) {
@@ -44,7 +44,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vertices) {
             if(!(vertices[to_index] - from).len().is_pos()) {
                 continue;
             }
-            const Vector2<Interval> to = vertices[to_index];
+            const IntervalVector2<Interval> to = vertices[to_index];
             if(Line<Interval>(from, vertices[most_clockwise_index] - from).orientation(to) == Orientation::COUNTERCLOCKWISE) {
                 continue;
             }
