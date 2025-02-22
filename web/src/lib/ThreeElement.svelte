@@ -27,7 +27,7 @@
         canvas = setup(container.clientWidth, container.clientHeight);
         container.appendChild(canvas);
 
-        canvas.addEventListener("click", handleClick);
+        canvas.addEventListener("dblclick", handleClick);
 
         function animate() {
             if (!running) {
