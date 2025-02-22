@@ -11,13 +11,13 @@ struct Vector3 {
   z: double;
 }
 
-struct Line {
+struct Edge {
   point: Vector2;
   direction: Vector2;
 }
 
 table Polygon {
-  lines: [Line];
+  edges: [Edge];
 }
 
 table Polyhedron {

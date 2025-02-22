@@ -19,7 +19,7 @@ struct Vector2;
 
 struct Vector3;
 
-struct Line;
+struct Edge;
 
 struct Polygon;
 struct PolygonBuilder;
@@ -95,17 +95,17 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vector3 FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(Vector3, 24);
 
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Line FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Edge FLATBUFFERS_FINAL_CLASS {
  private:
   FlatBuffers::Vector2 point_;
   FlatBuffers::Vector2 direction_;
 
  public:
-  Line()
+  Edge()
       : point_(),
         direction_() {
   }
-  Line(const FlatBuffers::Vector2 &_point, const FlatBuffers::Vector2 &_direction)
+  Edge(const FlatBuffers::Vector2 &_point, const FlatBuffers::Vector2 &_direction)
       : point_(_point),
         direction_(_direction) {
   }
@@ -116,7 +116,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Line FLATBUFFERS_FINAL_CLASS {
     return direction_;
   }
 };
-FLATBUFFERS_STRUCT_END(Line, 32);
+FLATBUFFERS_STRUCT_END(Edge, 32);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Interval FLATBUFFERS_FINAL_CLASS {
  private:
@@ -186,15 +186,15 @@ FLATBUFFERS_STRUCT_END(Id, 32);
 struct Polygon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef PolygonBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_LINES = 4
+    VT_EDGES = 4
   };
-  const flatbuffers::Vector<const FlatBuffers::Line *> *lines() const {
-    return GetPointer<const flatbuffers::Vector<const FlatBuffers::Line *> *>(VT_LINES);
+  const flatbuffers::Vector<const FlatBuffers::Edge *> *edges() const {
+    return GetPointer<const flatbuffers::Vector<const FlatBuffers::Edge *> *>(VT_EDGES);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_LINES) &&
-           verifier.VerifyVector(lines()) &&
+           VerifyOffset(verifier, VT_EDGES) &&
+           verifier.VerifyVector(edges()) &&
            verifier.EndTable();
   }
 };
@@ -203,8 +203,8 @@ struct PolygonBuilder {
   typedef Polygon Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_lines(flatbuffers::Offset<flatbuffers::Vector<const FlatBuffers::Line *>> lines) {
-    fbb_.AddOffset(Polygon::VT_LINES, lines);
+  void add_edges(flatbuffers::Offset<flatbuffers::Vector<const FlatBuffers::Edge *>> edges) {
+    fbb_.AddOffset(Polygon::VT_EDGES, edges);
   }
   explicit PolygonBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -219,19 +219,19 @@ struct PolygonBuilder {
 
 inline flatbuffers::Offset<Polygon> CreatePolygon(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<const FlatBuffers::Line *>> lines = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<const FlatBuffers::Edge *>> edges = 0) {
   PolygonBuilder builder_(_fbb);
-  builder_.add_lines(lines);
+  builder_.add_edges(edges);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<Polygon> CreatePolygonDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<FlatBuffers::Line> *lines = nullptr) {
-  auto lines__ = lines ? _fbb.CreateVectorOfStructs<FlatBuffers::Line>(*lines) : 0;
+    const std::vector<FlatBuffers::Edge> *edges = nullptr) {
+  auto edges__ = edges ? _fbb.CreateVectorOfStructs<FlatBuffers::Edge>(*edges) : 0;
   return FlatBuffers::CreatePolygon(
       _fbb,
-      lines__);
+      edges__);
 }
 
 struct Polyhedron FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
