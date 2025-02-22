@@ -14,29 +14,15 @@ bool is_box2_terminal(const Box2& box2, const Polygon<Interval>& hole, const Pol
     // });
     bool is_terminal = false;
     for(int vertex_index = 0; vertex_index < plug.vertices().size(); vertex_index++) {
-        const IntervalVector2<Interval> projected_plug_vertex = plug.vertices()[vertex_index].project(Interval(box2.phi<Interval>()), Interval(box2.theta<Interval>()));
-        exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(IntervalVector2<Interval>(Interval(projected_plug_vertex.x().min()), Interval(projected_plug_vertex.y().min())));
-        exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(IntervalVector2<Interval>(Interval(projected_plug_vertex.x().min()), Interval(projected_plug_vertex.y().max())));
-        exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(IntervalVector2<Interval>(Interval(projected_plug_vertex.x().max()), Interval(projected_plug_vertex.y().min())));
-        exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(IntervalVector2<Interval>(Interval(projected_plug_vertex.x().max()), Interval(projected_plug_vertex.y().max())));
+        const IntervalVector2<Interval> projected_plug_vertex = projection(plug.vertices()[vertex_index], Interval(box2.phi<Interval>()), Interval(box2.theta<Interval>()));
+        for(const IntervalVector2<Interval>& projected_plug_vertex: projection_hull_trivial(plug.vertices()[vertex_index], box2.phi<Interval>(), box2.theta<Interval>())) {
+            exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(projected_plug_vertex);
+        }
         exporter.cover_builder.box3_builder.box2_builder.add_projection(exporter.builder);
         if(hole.is_outside(projected_plug_vertex)) {
             exporter.cover_builder.box3_builder.box2_builder.add_out(vertex_index);
             is_terminal = true;
         }
-        // const std::vector<Vector2<Interval>> projected_plug_vertices = plug.vertices()[vertex_index].project(Interval(box2.phi<Interval>()), Interval(box2.theta<Interval>()));
-        // bool is_all_outside = true;
-        // for(const Vector2<Interval>& projected_plug_vertex: projected_plug_vertices) {
-        //     // exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(projected_plug_vertex);
-        //     if(!hole.is_outside(projected_plug_vertex)) {
-        //         is_all_outside = false;
-        //     }
-        // }
-        // // exporter.cover_builder.box3_builder.box2_builder.add_projection(exporter.builder);
-        // if(is_all_outside) {
-        //     // exporter.cover_builder.box3_builder.box2_builder.add_out(vertex_index);
-        //     is_terminal = true;
-        // }
     }
     return is_terminal;
 }
@@ -44,11 +30,7 @@ bool is_box2_terminal(const Box2& box2, const Polygon<Interval>& hole, const Pol
 template<IntervalType Interval>
 bool is_box3_nonterminal(const Box2& box2, const Polygon<Interval>& hole, const Polyhedron<Interval>& plug) {
     return std::ranges::all_of(plug.vertices(), [&](const IntervalVector3<Interval>& plug_vertex) {
-        // const std::vector<Vector2<Interval>> projected_plug_vertices = plug_vertex.project(Interval(box2.phi<Interval>().mid()), Interval(box2.theta<Interval>().mid()));
-        // return std::ranges::all_of(projected_plug_vertices, [&](const Vector2<Interval>& projected_plug_vertex) {
-        //     return hole.is_inside(projected_plug_vertex);
-        // });
-        const IntervalVector2<Interval> projected_plug_vertex = plug_vertex.project(Interval(box2.phi<Interval>().mid()), Interval(box2.theta<Interval>().mid()));
+        const IntervalVector2<Interval> projected_plug_vertex = projection(plug_vertex, Interval(box2.phi<Interval>().mid()), Interval(box2.theta<Interval>().mid()));
         return hole.is_inside(projected_plug_vertex);
     });
 }
@@ -70,10 +52,10 @@ Polygon<Interval> project_hole(const Box3& box3, const Polyhedron<Interval>& hol
     for(const IntervalVector3<Interval>& hole_vertex: hole.vertices()) {
         for(const Interval& sub_phi: split(box3.phi<Interval>(), resolution)) {
             for(const Interval& sub_theta: split(box3.theta<Interval>(), resolution)) {
-                const std::vector<IntervalVector2<Interval>> projected_hole_vertices = hole_vertex.project_hull(sub_phi, sub_theta);
+                const std::vector<IntervalVector2<Interval>> projected_hole_vertices = projection_hull_trivial(hole_vertex, sub_phi, sub_theta);
                 for(const IntervalVector2<Interval>& projected_hole_vertex: projected_hole_vertices) {
                     for(const Interval& sub_alpha: split(box3.alpha<Interval>(), resolution)) {
-                        const std::vector<IntervalVector2<Interval>> rotated_projected_hole_vertices = projected_hole_vertex.rotate_hull(sub_alpha);
+                        const std::vector<IntervalVector2<Interval>> rotated_projected_hole_vertices = rotation_hull_triangle(projected_hole_vertex, sub_alpha);
                         for(const IntervalVector2<Interval>& rotated_projected_hole_vertex: rotated_projected_hole_vertices) {
                             all_projected_hole_vertices.push_back(rotated_projected_hole_vertex);
                             exporter.cover_builder.box3_builder.projection_builder.add_vertex(rotated_projected_hole_vertex);

@@ -33,7 +33,7 @@ public:
     }
 
     Orientation orientation(const IntervalVector2<Interval>& interval_vector2) const {
-        const Interval cross = direction_.cross(interval_vector2 - point_);
+        const Interval cross = IntervalVector2<Interval>::cross(direction_, interval_vector2 - point_);
         if(cross.is_pos()) {
             return Orientation::COUNTERCLOCKWISE;
         }
@@ -75,8 +75,8 @@ public:
         if(orientation(interval_vector2) != Orientation::COLLINEAR) {
             return true;
         }
-        const Interval dot = direction_.dot(interval_vector2 - point_);
-        return dot.is_neg() || dot > direction_.dot(direction_);
+        const Interval dot = IntervalVector2<Interval>::dot(direction_, interval_vector2 - point_);
+        return dot.is_neg() || dot > IntervalVector2<Interval>::dot(direction_, direction_);
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Edge& edge) {

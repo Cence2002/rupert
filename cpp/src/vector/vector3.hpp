@@ -71,32 +71,4 @@ public:
     friend std::ostream& operator<<(std::ostream& ostream, const IntervalVector3& interval_vector3) {
         return ostream << "(" << interval_vector3.x_ << " | " << interval_vector3.y_ << " | " << interval_vector3.z_ << ")";
     }
-
-    IntervalVector2<Interval> project(const Interval& phi, const Interval& theta) const {
-        const Interval& cos_phi = phi.cos();
-        const Interval& sin_phi = phi.sin();
-        const Interval& cos_theta = theta.cos();
-        const Interval& sin_theta = theta.sin();
-        return IntervalVector2<Interval>(
-            -x_ * sin_phi + y_ * cos_phi,
-            (x_ * cos_phi + y_ * sin_phi) * cos_theta - z_ * sin_theta
-        );
-    }
-
-    std::vector<IntervalVector2<Interval>> project_hull(const Interval& phi, const Interval& theta) const {
-        const Interval cos_phi = phi.cos();
-        const Interval sin_phi = phi.sin();
-        const Interval cos_theta = theta.cos();
-        const Interval sin_theta = theta.sin();
-        const IntervalVector2<Interval> projection = IntervalVector2<Interval>(
-            -x_ * sin_phi + y_ * cos_phi,
-            (x_ * cos_phi + y_ * sin_phi) * cos_theta - z_ * sin_theta
-        );
-        return std::vector<IntervalVector2<Interval>>{
-            IntervalVector2<Interval>(Interval(projection.x().min()), Interval(projection.y().min())),
-            IntervalVector2<Interval>(Interval(projection.x().min()), Interval(projection.y().max())),
-            IntervalVector2<Interval>(Interval(projection.x().max()), Interval(projection.y().min())),
-            IntervalVector2<Interval>(Interval(projection.x().max()), Interval(projection.y().max()))
-        };
-    }
 };

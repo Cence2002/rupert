@@ -59,52 +59,16 @@ public:
         return (x_.sqr() + y_.sqr()).sqrt();
     }
 
+    static Interval dot(const IntervalVector2& interval_vector2, const IntervalVector2& other_interval_vector2) {
+        return interval_vector2.x() * other_interval_vector2.x() + interval_vector2.y() * other_interval_vector2.y();
+    }
+
+    static Interval cross(const IntervalVector2& interval_vector2, const IntervalVector2& other_interval_vector2) {
+        return interval_vector2.x() * other_interval_vector2.y() - interval_vector2.y() * other_interval_vector2.x();
+    }
+
     friend std::ostream& operator<<(std::ostream& ostream, const IntervalVector2& interval_vector2) {
         return ostream << "(" << interval_vector2.x_ << " | " << interval_vector2.y_ << ")";
-    }
-
-    IntervalVector2 rotate(const Interval& alpha) const {
-        const Interval& cos_alpha = alpha.cos();
-        const Interval& sin_alpha = alpha.sin();
-        return IntervalVector2(
-            x_ * cos_alpha - y_ * sin_alpha,
-            x_ * sin_alpha + y_ * cos_alpha
-        );
-    }
-
-    std::vector<IntervalVector2> rotate_hull(const Interval& alpha) const {
-        const Interval cos_alpha_min = Interval(alpha.min()).cos();
-        const Interval cos_alpha_mid = Interval(alpha.mid()).cos();
-        const Interval cos_alpha_max = Interval(alpha.max()).cos();
-
-        const Interval sin_alpha_min = Interval(alpha.min()).sin();
-        const Interval sin_alpha_mid = Interval(alpha.mid()).sin();
-        const Interval sin_alpha_max = Interval(alpha.max()).sin();
-
-        const Interval cos_alpha_rad = Interval(alpha.rad()).cos();
-
-        return std::vector<IntervalVector2>{
-                IntervalVector2(
-                    x_ * cos_alpha_min - y_ * sin_alpha_min,
-                    x_ * sin_alpha_min + y_ * cos_alpha_min
-                ),
-                IntervalVector2(
-                    x_ * cos_alpha_max - y_ * sin_alpha_max,
-                    x_ * sin_alpha_max + y_ * cos_alpha_max
-                ),
-                IntervalVector2(
-                    (x_ * cos_alpha_mid - y_ * sin_alpha_mid) / cos_alpha_rad,
-                    (x_ * sin_alpha_mid + y_ * cos_alpha_mid) / cos_alpha_rad
-                )
-            };
-    }
-
-    Interval dot(const IntervalVector2& interval_vector2) const {
-        return x_ * interval_vector2.x() + y_ * interval_vector2.y();
-    }
-
-    Interval cross(const IntervalVector2& interval_vector2) const {
-        return x_ * interval_vector2.y() - y_ * interval_vector2.x();
     }
 };
 
@@ -130,6 +94,8 @@ public:
     NumberVector2& operator=(NumberVector2&& number_vector2) = default;
 
     explicit NumberVector2(const Number& x, const Number& y) : x_(x), y_(y) {}
+
+    explicit NumberVector2(const IntervalVector2<Interval>& interval_vector2) : x_(interval_vector2.x()), y_(interval_vector2.y()) {}
 
     Number& x() {
         return x_;
