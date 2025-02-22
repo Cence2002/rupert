@@ -1,6 +1,6 @@
 #pragma once
 
-#include "util.hpp"
+#include "vector/interval_vector3.hpp"
 #include <vector>
 
 template<IntervalType Interval>

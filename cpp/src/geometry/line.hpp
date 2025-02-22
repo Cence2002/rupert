@@ -1,6 +1,13 @@
 #pragma once
 
-#include "geometry/util.hpp"
+#include "interval/interval.hpp"
+#include "vector/interval_vector2.hpp"
+
+enum class Orientation {
+    COUNTERCLOCKWISE,
+    CLOCKWISE,
+    COLLINEAR
+};
 
 template<IntervalType Interval>
 struct Line {

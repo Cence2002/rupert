@@ -1,6 +1,5 @@
 #pragma once
 
-#include "geometry/util.hpp"
 #include "geometry/line.hpp"
 #include "geometry/polygon.hpp"
 #include "geometry/polyhedron.hpp"
