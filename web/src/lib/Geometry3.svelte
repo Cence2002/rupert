@@ -3,11 +3,9 @@
     import {Cover} from "$lib/flatbuffers/flat-buffers/cover";
     import {Selection} from "$lib/state.svelte";
 
-    import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
     import {
         Mesh,
         MeshBasicMaterial,
-        PerspectiveCamera,
         Scene,
         WebGLRenderer,
         EdgesGeometry,
@@ -25,7 +23,9 @@
         Quaternion,
         OrthographicCamera,
     } from "three";
+    import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
     import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
+    import {ParametricGeometry} from 'three/addons/geometries/ParametricGeometry.js';
     import {AxesHelper} from "three";
     import {lerp} from "three/src/math/MathUtils.js";
 
@@ -40,10 +40,20 @@
 
     $effect(onSelectBox2);
 
-    let camera: OrthographicCamera;
-    let scene: Scene;
-    let renderer: WebGLRenderer;
-    let controls: OrbitControls;
+    const scene = new Scene();
+    scene.up.set(0, 0, 1);
+
+    const camera = new OrthographicCamera(-4, 4, 4, -4, 0.001, 1000);
+    camera.up.set(0, 0, 1);
+    camera.lookAt(0, 0, 2);
+    camera.position.set(0, -10, 0);
+
+    const renderer = new WebGLRenderer({antialias: true});
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableRotate = true;
+    controls.enableZoom = true;
+    controls.enablePan = false;
 
     let holeGroup: Group;
     let holeRadius: number;
@@ -56,7 +66,7 @@
     let rotatedPlugVertexGroups: Group[] = [];
     let rotatedHoleVerticesGroup: Group;
 
-    let projectionEdges: Edge[] = [];
+    let projectionEdges: Line[] = [];
     let projections: Group[] = [];
     let box2Projections: Group[] = [];
     let box2Out: number[] = [];
@@ -400,47 +410,34 @@
         return q_total;
     }
 
-    function setCameraBounds(width: number, height: number, zoom: number = 8) {
-        const aspect = width / height;
-        camera.left = -zoom * aspect / 2;
-        camera.right = zoom * aspect / 2;
-        camera.top = zoom / 2;
-        camera.bottom = -zoom / 2;
-        camera.updateProjectionMatrix();
-    }
 
     function setup(width: number, height: number) {
-        {
-            scene = new Scene();
-            scene.up.set(0, 0, 1);
-        }
-
-        {
-            // camera = new PerspectiveCamera(60, width / height, 0.001, 1000);
-            camera = new OrthographicCamera(-4, 4, 4, -4, 0.001, 1000);
-            camera.up.set(0, 0, 1);
-            camera.lookAt(0, 0, 2);
-            camera.position.set(0, -12, 0);
-        }
-
-        {
-            renderer = new WebGLRenderer({antialias: true});
-            renderer.setSize(width, height);
-        }
-
-        {
-            controls = new OrbitControls(camera, renderer.domElement);
-            controls.enableRotate = true;
-            controls.enableZoom = true;
-            controls.enablePan = false;
-            controls.enableDamping = false;
-            controls.target.set(0, 0, 0);
-            controls.update();
-        }
+        resize(width, height);
 
         {
             const axesHelper = new AxesHelper(10);
             scene.add(axesHelper);
+        }
+
+        {
+            function parametric(u: number, v: number, target: Vector3) {
+                const phi = lerp(-Math.PI, Math.PI, u) / 3;
+                const theta = lerp(-Math.PI / 2, Math.PI / 2, v) / 3;
+                const x = Math.cos(phi) * Math.cos(theta);
+                const y = Math.sin(phi) * Math.cos(theta);
+                const z = Math.sin(theta);
+                target.set(x, y, z);
+            }
+
+            const parametricGeometry = new ParametricGeometry(parametric, 10, 10);
+            const parametricMaterial = new MeshBasicMaterial({
+                color: new Color(0.5, 0.5, 0.5),
+                transparent: true,
+                opacity: 0.5,
+                side: DoubleSide,
+            });
+            const parametricMesh = new Mesh(parametricGeometry, parametricMaterial);
+            scene.add(parametricMesh);
         }
 
         return renderer.domElement;
@@ -484,12 +481,15 @@
         }
     }
 
-    function resize(width: number, height: number) {
-        // camera.aspect = width / height;
-        // camera.updateProjectionMatrix();
-        // renderer.setSize(width, height);
-        setCameraBounds(width, height);
+    function resize(width: number, height: number, zoom: number = 10) {
+        const aspect = width / height;
+        camera.left = -zoom * aspect / 2;
+        camera.right = zoom * aspect / 2;
+        camera.top = zoom / 2;
+        camera.bottom = -zoom / 2;
+        camera.updateProjectionMatrix();
         renderer.setSize(width, height);
+        controls.update();
     }
 
     function computeConvexHull(points: Vector2[]): Vector2[] {

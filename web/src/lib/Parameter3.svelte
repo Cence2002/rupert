@@ -31,9 +31,22 @@
 
     $effect(onSelectBox3);
 
-    let camera: PerspectiveCamera;
-    let scene: Scene;
-    let renderer: WebGLRenderer;
+    const scene = new Scene();
+    scene.up.set(0, 0, 1);
+
+    const camera = new PerspectiveCamera(60, 1, 0.001, 1000);
+    camera.up.set(0, 0, 1);
+    camera.lookAt(0.5, 0.5, 0.5);
+    camera.position.set(0.5, -1.5, 0.5);
+
+    const renderer = new WebGLRenderer({antialias: true});
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableRotate = true;
+    controls.enableZoom = true;
+    controls.enablePan = false;
+    controls.target.set(0.5, 0.5, 0.5);
+
     const box3Groups: Group[] = [];
 
     function onCover() {
@@ -140,32 +153,7 @@
     }
 
     function setup(width: number, height: number) {
-        {
-            scene = new Scene();
-            scene.up.set(0, 0, 1);
-        }
-
-        {
-            camera = new PerspectiveCamera(60, width / height, 0.001, 1000);
-            camera.up.set(0, 0, 1);
-            camera.lookAt(0.5, 0.5, 0.5);
-            camera.position.set(0.5, -1.5, 0.5);
-        }
-
-        {
-            renderer = new WebGLRenderer({antialias: true});
-            renderer.setSize(width, height);
-        }
-
-        {
-            const controls = new OrbitControls(camera, renderer.domElement);
-            controls.enableRotate = true;
-            controls.enableZoom = true;
-            controls.enablePan = false;
-            controls.enableDamping = false;
-            controls.target.set(0.5, 0.5, 0.5);
-            controls.update();
-        }
+        resize(width, height);
 
         {
             const axesHelper = new AxesHelper(10);
@@ -175,8 +163,8 @@
         {
             const domainGeometry = new BoxGeometry(1, 1, 1);
             const domainEdgesGeometry = new EdgesGeometry(domainGeometry);
-            const domainEdgeMaterial = new LineBasicMaterial({color: 0x7f7f7f});
-            const domainEdges = new LineSegments(domainEdgesGeometry, domainEdgeMaterial);
+            const domainEdgesMaterial = new LineBasicMaterial({color: 0x7f7f7f});
+            const domainEdges = new LineSegments(domainEdgesGeometry, domainEdgesMaterial);
             domainEdges.position.set(0.5, 0.5, 0.5);
             scene.add(domainEdges);
         }
@@ -192,6 +180,7 @@
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
         renderer.setSize(width, height);
+        controls.update();
     }
 </script>
 
