@@ -184,7 +184,7 @@ int main() {
     exporter.cover_builder.set_hole(exporter.builder, hole);
     exporter.cover_builder.set_plug(exporter.builder, plug);
 
-    solve<Interval>(hole, plug, 1, 2000, 10000, 3);
+    solve<Interval>(hole, plug, 1, 30, 10000, 3);
 
     exporter.save("../../web/static/test.bin");
 
