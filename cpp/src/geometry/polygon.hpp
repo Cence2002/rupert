@@ -15,10 +15,10 @@ public:
         return edges_;
     }
 
-    bool is_inside(const IntervalVector2<Interval>& interval_vector2) const {
+    bool is_inside(const IntervalVector2<Interval>& intervalvector2) const {
         bool all_counter_clockwise = true;
         for(const Edge<Interval>& edge: edges_) {
-            const Orientation orientation = edge.orientation(interval_vector2);
+            const Orientation orientation = edge.orientation(intervalvector2);
             if(orientation == Orientation::COLLINEAR) {
                 return false;
             }
@@ -28,11 +28,11 @@ public:
         return all_counter_clockwise;
     }
 
-    bool is_outside(const IntervalVector2<Interval>& interval_vector2) const {
+    bool is_outside(const IntervalVector2<Interval>& intervalvector2) const {
         bool any_clockwise = false;
         for(const Edge<Interval>& edge: edges_) {
-            const Orientation orientation = edge.orientation(interval_vector2);
-            if(!edge.avoids(interval_vector2)) {
+            const Orientation orientation = edge.orientation(intervalvector2);
+            if(!edge.avoids(intervalvector2)) {
                 return false;
             }
             const bool clockwise = orientation == Orientation::CLOCKWISE;

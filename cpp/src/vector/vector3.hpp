@@ -14,13 +14,13 @@ public:
 
     ~IntervalVector3() = default;
 
-    IntervalVector3(const IntervalVector3& interval_vector3) = default;
+    IntervalVector3(const IntervalVector3& intervalvector3) = default;
 
-    IntervalVector3& operator=(const IntervalVector3& interval_vector3) = default;
+    IntervalVector3& operator=(const IntervalVector3& intervalvector3) = default;
 
-    IntervalVector3(IntervalVector3&& interval_vector3) = default;
+    IntervalVector3(IntervalVector3&& intervalvector3) = default;
 
-    IntervalVector3& operator=(IntervalVector3&& interval_vector3) = default;
+    IntervalVector3& operator=(IntervalVector3&& intervalvector3) = default;
 
     explicit IntervalVector3(const Interval& x, const Interval& y, const Interval& z) : x_(x), y_(y), z_(z) {}
 
@@ -56,19 +56,19 @@ public:
         return IntervalVector3(-x_, -y_, -z_);
     }
 
-    IntervalVector3 operator+(const IntervalVector3& interval_vector3) const {
-        return IntervalVector3(x_ + interval_vector3.x_, y_ + interval_vector3.y_, z_ + interval_vector3.z_);
+    IntervalVector3 operator+(const IntervalVector3& intervalvector3) const {
+        return IntervalVector3(x_ + intervalvector3.x_, y_ + intervalvector3.y_, z_ + intervalvector3.z_);
     }
 
-    IntervalVector3 operator-(const IntervalVector3& interval_vector3) const {
-        return IntervalVector3(x_ - interval_vector3.x_, y_ - interval_vector3.y_, z_ - interval_vector3.z_);
+    IntervalVector3 operator-(const IntervalVector3& intervalvector3) const {
+        return IntervalVector3(x_ - intervalvector3.x_, y_ - intervalvector3.y_, z_ - intervalvector3.z_);
     }
 
     Interval len() const {
         return (x_.sqr() + y_.sqr() + z_.sqr()).sqrt();
     }
 
-    friend std::ostream& operator<<(std::ostream& ostream, const IntervalVector3& interval_vector3) {
-        return ostream << "(" << interval_vector3.x_ << " | " << interval_vector3.y_ << " | " << interval_vector3.z_ << ")";
+    friend std::ostream& operator<<(std::ostream& ostream, const IntervalVector3& intervalvector3) {
+        return ostream << "(" << intervalvector3.x_ << " | " << intervalvector3.y_ << " | " << intervalvector3.z_ << ")";
     }
 };

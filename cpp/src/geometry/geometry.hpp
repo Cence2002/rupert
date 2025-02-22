@@ -6,12 +6,12 @@
 #include <queue>
 
 template<IntervalType Interval>
-std::vector<IntervalVector2<Interval>> interval_vector2_hull(const IntervalVector2<Interval>& interval_vector2) {
+std::vector<IntervalVector2<Interval>> intervalvector2_hull(const IntervalVector2<Interval>& intervalvector2) {
     return std::vector<IntervalVector2<Interval>>{
-            IntervalVector2<Interval>(Interval(interval_vector2.x().min()), Interval(interval_vector2.y().min())),
-            IntervalVector2<Interval>(Interval(interval_vector2.x().min()), Interval(interval_vector2.y().max())),
-            IntervalVector2<Interval>(Interval(interval_vector2.x().max()), Interval(interval_vector2.y().min())),
-            IntervalVector2<Interval>(Interval(interval_vector2.x().max()), Interval(interval_vector2.y().max()))
+            IntervalVector2<Interval>(Interval(intervalvector2.x().min()), Interval(intervalvector2.y().min())),
+            IntervalVector2<Interval>(Interval(intervalvector2.x().min()), Interval(intervalvector2.y().max())),
+            IntervalVector2<Interval>(Interval(intervalvector2.x().max()), Interval(intervalvector2.y().min())),
+            IntervalVector2<Interval>(Interval(intervalvector2.x().max()), Interval(intervalvector2.y().max()))
         };
 }
 
@@ -28,11 +28,11 @@ IntervalVector2<Interval> rotation(const IntervalVector2<Interval>& projected_ve
 template<IntervalType Interval>
 std::vector<IntervalVector2<Interval>> rotation_hull_trivial(const IntervalVector2<Interval>& projected_vertex, const Interval& alpha) {
     const IntervalVector2<Interval> rotated_vertex = rotation(projected_vertex, alpha);
-    return interval_vector2_hull(rotated_vertex);
+    return intervalvector2_hull(rotated_vertex);
 }
 
 template<IntervalType Interval>
-std::vector<IntervalVector2<Interval>> rotation_hull_triangle(const IntervalVector2<Interval>& interval_vector2, const Interval& alpha) {
+std::vector<IntervalVector2<Interval>> rotation_hull_triangle(const IntervalVector2<Interval>& intervalvector2, const Interval& alpha) {
     if(!(alpha.len() < Interval::pi() / 2)) {
         throw std::invalid_argument("rotation_hull_triangle only supports alpha < pi/2");
     }
@@ -49,16 +49,16 @@ std::vector<IntervalVector2<Interval>> rotation_hull_triangle(const IntervalVect
 
     return std::vector<IntervalVector2<Interval>>{
             IntervalVector2(
-                interval_vector2.x() * cos_alpha_min - interval_vector2.y() * sin_alpha_min,
-                interval_vector2.x() * sin_alpha_min + interval_vector2.y() * cos_alpha_min
+                intervalvector2.x() * cos_alpha_min - intervalvector2.y() * sin_alpha_min,
+                intervalvector2.x() * sin_alpha_min + intervalvector2.y() * cos_alpha_min
             ),
             IntervalVector2(
-                interval_vector2.x() * cos_alpha_max - interval_vector2.y() * sin_alpha_max,
-                interval_vector2.x() * sin_alpha_max + interval_vector2.y() * cos_alpha_max
+                intervalvector2.x() * cos_alpha_max - intervalvector2.y() * sin_alpha_max,
+                intervalvector2.x() * sin_alpha_max + intervalvector2.y() * cos_alpha_max
             ),
             IntervalVector2(
-                (interval_vector2.x() * cos_alpha_mid - interval_vector2.y() * sin_alpha_mid) / cos_alpha_rad,
-                (interval_vector2.x() * sin_alpha_mid + interval_vector2.y() * cos_alpha_mid) / cos_alpha_rad
+                (intervalvector2.x() * cos_alpha_mid - intervalvector2.y() * sin_alpha_mid) / cos_alpha_rad,
+                (intervalvector2.x() * sin_alpha_mid + intervalvector2.y() * cos_alpha_mid) / cos_alpha_rad
             )
         };
 }
@@ -78,7 +78,7 @@ IntervalVector2<Interval> projection(const IntervalVector3<Interval>& vertex, co
 template<IntervalType Interval>
 std::vector<IntervalVector2<Interval>> projection_hull_trivial(const IntervalVector3<Interval>& vertex, const Interval& phi, const Interval& theta) {
     const IntervalVector2<Interval> projected_vertex = projection(vertex, phi, theta);
-    return interval_vector2_hull(projected_vertex);
+    return intervalvector2_hull(projected_vertex);
 }
 
 template<IntervalType Interval>
