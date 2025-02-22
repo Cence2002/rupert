@@ -91,7 +91,6 @@ template<IntervalType Interval>
 bool is_box3_terminal(const Box3& box3, const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug,
                       const int iterations2, const int resolution) {
     Polygon<Interval> projected_hole = project_hole(box3, hole, resolution);
-    // print(projected_hole);
     exporter.cover_builder.box3_builder.set_projection(exporter.builder, projected_hole);
     Queue2 queue2;
     for(int iteration2 = 0; iterations2 == 0 || iteration2 < iterations2; iteration2++) {
