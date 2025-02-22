@@ -1,7 +1,7 @@
 #pragma once
 
 #include "interval/interval.hpp"
-#include "vector/interval_vector2.hpp"
+#include "vector.hpp"
 
 enum class Orientation {
     COUNTERCLOCKWISE,

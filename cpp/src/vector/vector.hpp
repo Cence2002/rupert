@@ -1,4 +1,4 @@
 #pragma once
 
-#include "vector/interval_vector2.hpp"
-#include "vector/interval_vector3.hpp"
+#include "vector/vector2.hpp"
+#include "vector/vector3.hpp"

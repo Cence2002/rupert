@@ -33,6 +33,14 @@ concept NumberType =
     requires(const Number number, const Number other_number, const int integer) {
         { number.float_value() } -> std::same_as<double>;
 
+        { number == other_number } -> std::same_as<bool>;
+        { number == integer } -> std::same_as<bool>;
+        { integer == number } -> std::same_as<bool>;
+
+        { number != other_number } -> std::same_as<bool>;
+        { number != integer } -> std::same_as<bool>;
+        { integer != number } -> std::same_as<bool>;
+
         { number > other_number } -> std::same_as<bool>;
         { number > integer } -> std::same_as<bool>;
         { integer > number } -> std::same_as<bool>;

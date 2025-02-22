@@ -1,5 +1,7 @@
 #pragma once
 
+#include "interval/interval.hpp"
+
 template<IntervalType Interval>
 struct IntervalVector2 {
 private:
@@ -103,5 +105,57 @@ public:
 
     Interval cross(const IntervalVector2& interval_vector2) const {
         return x_ * interval_vector2.y() - y_ * interval_vector2.x();
+    }
+};
+
+template<IntervalType Interval>
+struct NumberVector2 {
+private:
+    using Number = typename Interval::Number;
+
+    Number x_;
+    Number y_;
+
+public:
+    explicit NumberVector2() : x_(), y_() {}
+
+    ~NumberVector2() = default;
+
+    NumberVector2(const NumberVector2& number_vector2) = default;
+
+    NumberVector2& operator=(const NumberVector2& number_vector2) = default;
+
+    NumberVector2(NumberVector2&& number_vector2) = default;
+
+    NumberVector2& operator=(NumberVector2&& number_vector2) = default;
+
+    explicit NumberVector2(const Number& x, const Number& y) : x_(x), y_(y) {}
+
+    Number& x() {
+        return x_;
+    }
+
+    Number& y() {
+        return y_;
+    }
+
+    const Number& x() const {
+        return x_;
+    }
+
+    const Number& y() const {
+        return y_;
+    }
+
+    bool operator==(const NumberVector2& number_vector2) const {
+        return x_ == number_vector2.x_ && y_ == number_vector2.y_;
+    }
+
+    bool operator!=(const NumberVector2& number_vector2) const {
+        return x_ != number_vector2.x_ || y_ != number_vector2.y_;
+    }
+
+    friend std::ostream& operator<<(std::ostream& ostream, const NumberVector2& number_vector2) {
+        return ostream << "(" << number_vector2.x_ << " | " << number_vector2.y_ << ")";
     }
 };

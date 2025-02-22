@@ -1,5 +1,7 @@
 #pragma once
 
+#include "interval/interval.hpp"
+
 template<IntervalType Interval>
 struct IntervalVector3 {
 private:
