@@ -169,12 +169,12 @@ int main() {
     using Interval = FloatInterval;
     const Polyhedron<Interval> hole = Polyhedron<Interval>(std::vector<Vector3<Interval>>(
         {
-            Vector3<Interval>(1, 1, 0),
-            Vector3<Interval>(1, -1, 0),
-            Vector3<Interval>(-1, -1, 0),
-            Vector3<Interval>(-1, 1, 0),
-            Vector3<Interval>(0, 0, Interval(1) / 2),
-            Vector3<Interval>(0, 0, -Interval(1) / 2),
+            Vector3<Interval>(Interval(1), Interval(1), Interval(0)),
+            Vector3<Interval>(Interval(1), Interval(-1), Interval(0)),
+            Vector3<Interval>(Interval(-1), Interval(-1), Interval(0)),
+            Vector3<Interval>(Interval(-1), Interval(1), Interval(0)),
+            Vector3<Interval>(Interval(0), Interval(0), Interval(1) / 2),
+            Vector3<Interval>(Interval(0), Interval(0), -Interval(1) / 2),
         }
     ));
 

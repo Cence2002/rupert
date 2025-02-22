@@ -127,9 +127,9 @@ public:
         print_precision_ = print_precision;
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const MpfrNumber& number) {
-        std::vector<char> str(static_cast<size_t>(print_precision_ + 10));
-        mpfr_sprintf(str.data(), "%.*Rg", print_precision_, number.value());
-        return os << str.data();
+    friend std::ostream& operator<<(std::ostream& ostream, const MpfrNumber& number) {
+        std::vector<char> number_str(static_cast<size_t>(print_precision_ + 10));
+        mpfr_sprintf(number_str.data(), "%.*Rg", print_precision_, number.value());
+        return ostream << number_str.data();
     }
 };

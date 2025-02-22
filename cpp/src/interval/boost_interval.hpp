@@ -294,13 +294,13 @@ public:
         print_mode_ = print_mode;
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const BoostInterval& interval) {
+    friend std::ostream& operator<<(std::ostream& ostream, const BoostInterval& interval) {
         switch(print_mode_) {
             case IntervalPrintMode::MIN_AND_MAX: {
-                return os << "[" << interval.min().value() << " : " << interval.max().value() << "]";
+                return ostream << "[" << interval.min().value() << " : " << interval.max().value() << "]";
             }
             case IntervalPrintMode::MID_AND_RAD: {
-                return os << "[" << interval.mid().value() << " ~ " << interval.rad().value() << "]";
+                return ostream << "[" << interval.mid().value() << " ~ " << interval.rad().value() << "]";
             }
             default: throw std::invalid_argument("Invalid print type");
         }

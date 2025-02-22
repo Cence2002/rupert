@@ -90,10 +90,10 @@ public:
         print_precision_ = print_precision;
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const FloatNumber& number) {
-        std::ostringstream ss;
-        ss.precision(print_precision_);
-        ss << number.value_;
-        return os << ss.str();
+    friend std::ostream& operator<<(std::ostream& ostream, const FloatNumber& number) {
+        std::ostringstream number_str;
+        number_str.precision(print_precision_);
+        number_str << number.value_;
+        return ostream << number_str.str();
     }
 };

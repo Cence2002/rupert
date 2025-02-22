@@ -1,7 +1,5 @@
 #pragma once
 
-#include "vector/vector_type.hpp"
-
 template<IntervalType Interval>
 struct Vector2 {
 private:
@@ -22,15 +20,6 @@ public:
     Vector2& operator=(Vector2&& vector2) = default;
 
     explicit Vector2(const Interval& x, const Interval& y) : x_(x), y_(y) {}
-
-    template<IntegerType Int>
-    explicit Vector2(const Interval& x, const Int y) : x_(x), y_(Interval(y)) {}
-
-    template<IntegerType Int>
-    explicit Vector2(const Int x, const Interval& y) : x_(Interval(x)), y_(y) {}
-
-    template<IntegerType Int>
-    explicit Vector2(const Int x, const Int y) : x_(Interval(x)), y_(Interval(y)) {}
 
     Interval& x() {
         return x_;
@@ -68,8 +57,8 @@ public:
         return (x_.sqr() + y_.sqr()).sqrt();
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const Vector2& vector2) {
-        return os << "(" << vector2.x_ << " | " << vector2.y_ << ")";
+    friend std::ostream& operator<<(std::ostream& ostream, const Vector2& vector2) {
+        return ostream << "(" << vector2.x_ << " | " << vector2.y_ << ")";
     }
 
     Vector2 rotate(const Interval& alpha) const {

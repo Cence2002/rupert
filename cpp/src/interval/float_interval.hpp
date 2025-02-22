@@ -9,7 +9,7 @@ private:
     double min_;
     double max_;
 
-    static inline IntervalPrintMode print_mode = IntervalPrintMode::MIN_AND_MAX;
+    static inline IntervalPrintMode print_mode_ = IntervalPrintMode::MIN_AND_MAX;
 
     explicit FloatInterval(const double min, const double max) : min_(min), max_(max) {}
 
@@ -345,20 +345,20 @@ public:
         Number::set_print_precision(print_precision);
     }
 
-    static void set_print_mode(const IntervalPrintMode interval_print_mode) {
-        print_mode = interval_print_mode;
+    static void set_print_mode(const IntervalPrintMode print_mode) {
+        print_mode_ = print_mode;
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const FloatInterval& interval) {
-        switch(print_mode) {
+    friend std::ostream& operator<<(std::ostream& ostream, const FloatInterval& interval) {
+        switch(print_mode_) {
             case IntervalPrintMode::MIN_AND_MAX: {
-                return os << "[" << interval.min().value() << " : " << interval.max().value() << "]";
+                return ostream << "[" << interval.min().value() << " : " << interval.max().value() << "]";
             }
             case IntervalPrintMode::MID_AND_RAD: {
-                return os << "[" << interval.mid().value() << " ~ " << interval.rad().value() << "]";
+                return ostream << "[" << interval.mid().value() << " ~ " << interval.rad().value() << "]";
             }
             default: {
-                return os;
+                return ostream;
             }
         }
     }

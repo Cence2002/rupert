@@ -1,7 +1,5 @@
 #pragma once
 
-#include "vector/vector_type.hpp"
-
 template<IntervalType Interval>
 struct Vector3 {
 private:
@@ -23,27 +21,6 @@ public:
     Vector3& operator=(Vector3&& vector3) = default;
 
     explicit Vector3(const Interval& x, const Interval& y, const Interval& z) : x_(x), y_(y), z_(z) {}
-
-    template<IntegerType Int>
-    explicit Vector3(const Interval& x, const Interval& y, const Int z) : x_(x), y_(y), z_(Interval(z)) {}
-
-    template<IntegerType Int>
-    explicit Vector3(const Interval& x, const Int y, const Interval& z) : x_(x), y_(Interval(y)), z_(z) {}
-
-    template<IntegerType Int>
-    explicit Vector3(const Interval& x, const Int y, const Int z) : x_(x), y_(Interval(y)), z_(Interval(z)) {}
-
-    template<IntegerType Int>
-    explicit Vector3(const Int x, const Interval& y, const Interval& z) : x_(Interval(x)), y_(y), z_(z) {}
-
-    template<IntegerType Int>
-    explicit Vector3(const Int x, const Interval& y, const Int z) : x_(Interval(x)), y_(y), z_(Interval(z)) {}
-
-    template<IntegerType Int>
-    explicit Vector3(const Int x, const Int y, const Interval& z) : x_(Interval(x)), y_(Interval(y)), z_(z) {}
-
-    template<IntegerType Int>
-    explicit Vector3(const Int x, const Int y, const Int z) : x_(Interval(x)), y_(Interval(y)), z_(Interval(z)) {}
 
     Interval& x() {
         return x_;
@@ -89,8 +66,8 @@ public:
         return (x_.sqr() + y_.sqr() + z_.sqr()).sqrt();
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const Vector3& vector3) {
-        return os << "(" << vector3.x_ << " | " << vector3.y_ << " | " << vector3.z_ << ")";
+    friend std::ostream& operator<<(std::ostream& ostream, const Vector3& vector3) {
+        return ostream << "(" << vector3.x_ << " | " << vector3.y_ << " | " << vector3.z_ << ")";
     }
 
     Vector2<Interval> project(const Interval& phi, const Interval& theta) const {

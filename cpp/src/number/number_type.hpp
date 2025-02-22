@@ -52,6 +52,6 @@ concept NumberType =
         { Number::set_print_precision(print_precision) } -> std::same_as<void>;
     } &&
 
-    requires(const Number number, std::ostream& os) {
-        { os << number } -> std::same_as<std::ostream&>;
+    requires(std::ostream& ostream, const Number number) {
+        { ostream << number } -> std::same_as<std::ostream&>;
     };

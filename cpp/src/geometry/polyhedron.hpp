@@ -74,29 +74,29 @@ private:
 
 public:
     static Polyhedron cube() {
-        return Polyhedron(flips(Vector3<Interval>(1, 1, 1), true, true, true));
+        return Polyhedron(flips(Vector3<Interval>(Interval(1), Interval(1), Interval(1)), true, true, true));
     }
 
-    static Polyhedron octahedron() {
-        return Polyhedron(rotations(flips(Vector3<Interval>(0, 0, 1), false, false, true)));
-    }
-
-    static Polyhedron dodecahedron() {
-        return Polyhedron(combine({
-                flips(Vector3<Interval>(1, 1, 1), true, true, true),
-                rotations(flips(Vector3<Interval>(0, 1 / phi, phi), false, true, true))
-            }));
-    }
-
-    static Polyhedron icosahedron() {
-        return Polyhedron(rotations(flips(Vector3<Interval>(0, phi, 1), false, true, true)));
-    }
-
-    static Polyhedron rhombicosidodecahedron() {
-        return Polyhedron(rotations(combine({
-                flips(Vector3<Interval>(1, 1, phi * phi * phi), true, true, true),
-                flips(Vector3<Interval>(phi * phi, phi, 2 * phi), true, true, true),
-                flips(Vector3<Interval>(phi + 2, 0, phi * phi), true, false, true)
-            })));
-    }
+    // static Polyhedron octahedron() {
+    //     return Polyhedron(rotations(flips(Vector3<Interval>(0, 0, 1), false, false, true)));
+    // }
+    //
+    // static Polyhedron dodecahedron() {
+    //     return Polyhedron(combine({
+    //             flips(Vector3<Interval>(1, 1, 1), true, true, true),
+    //             rotations(flips(Vector3<Interval>(0, 1 / phi, phi), false, true, true))
+    //         }));
+    // }
+    //
+    // static Polyhedron icosahedron() {
+    //     return Polyhedron(rotations(flips(Vector3<Interval>(0, phi, 1), false, true, true)));
+    // }
+    //
+    // static Polyhedron rhombicosidodecahedron() {
+    //     return Polyhedron(rotations(combine({
+    //             flips(Vector3<Interval>(1, 1, phi * phi * phi), true, true, true),
+    //             flips(Vector3<Interval>(phi * phi, phi, 2 * phi), true, true, true),
+    //             flips(Vector3<Interval>(phi + 2, 0, phi * phi), true, false, true)
+    //         })));
+    // }
 };

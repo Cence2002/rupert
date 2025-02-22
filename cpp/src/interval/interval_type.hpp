@@ -98,6 +98,6 @@ concept IntervalType =
         { Interval::set_print_mode(print_mode) };
     } &&
 
-    requires(const Interval interval, std::ostream& os) {
-        { os << interval } -> std::same_as<std::ostream&>;
+    requires(std::ostream& ostream, const Interval interval) {
+        { ostream << interval } -> std::same_as<std::ostream&>;
     };
