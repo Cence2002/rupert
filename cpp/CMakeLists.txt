@@ -11,7 +11,7 @@ add_compile_options(
         -Wall                              # Enable all common warnings
         -Wextra                            # Enable extra warnings
         -Wpedantic                         # Enforce strict ISO C++
-#        -Werror                            # Treat warnings as errors # TODO: Uncomment this line when I figure out how to ignore the flatbuffers header warnings
+        # -Werror                            # Treat warnings as errors # TODO: Uncomment this line when I figure out how to ignore the flatbuffers header warnings
         -Weffc++                           # Warnings for violations of Effective C++ guidelines
         -Wconversion                       # Warn about implicit conversions
         -Wsign-conversion                  # Warn about sign conversions
@@ -50,9 +50,9 @@ add_compile_options(
         -fPIE                              # Position Independent Executable
 
         # Sanitizers
-        #        -fsanitize=address                 # Enable AddressSanitizer
-        #        -fsanitize=undefined               # Enable UndefinedBehaviorSanitizer
-        #        -fsanitize=leak                    # Enable LeakSanitizer
+        # -fsanitize=address                 # Enable AddressSanitizer
+        # -fsanitize=undefined               # Enable UndefinedBehaviorSanitizer
+        # -fsanitize=leak                    # Enable LeakSanitizer
 
         # Standards and ABI
         -std=c++20                         # Use C++17 standard (adjust as needed)
