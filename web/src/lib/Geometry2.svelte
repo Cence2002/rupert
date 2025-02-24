@@ -94,11 +94,11 @@
         const projection = box3.projection();
         for (let index = 0; index < projection.edgesLength(); index++) {
             const edge = projection.edges(index);
-            const point = new Vector2(edge.point().x(), edge.point().y());
-            const direction = new Vector2(edge.direction().x(), edge.direction().y());
+            const from = new Vector2(edge.from().x(), edge.from().y());
+            const to = new Vector2(edge.to().x(), edge.to().y());
             const edgeGeometry = new BufferGeometry().setFromPoints([
-                new Vector3(point.x, point.y, 0),
-                new Vector3(point.x + direction.x, point.y + direction.y, 0)]);
+                new Vector3(from.x, from.y, 0),
+                new Vector3(to.x, to.y, 0)]);
             const edgeMaterial = new LineBasicMaterial({
                 color: new Color(1, 1, 1),
             });

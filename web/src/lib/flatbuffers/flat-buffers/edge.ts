@@ -14,11 +14,11 @@ export class Edge {
   return this;
 }
 
-point(obj?:Vector2):Vector2|null {
+from(obj?:Vector2):Vector2|null {
   return (obj || new Vector2()).__init(this.bb_pos, this.bb!);
 }
 
-direction(obj?:Vector2):Vector2|null {
+to(obj?:Vector2):Vector2|null {
   return (obj || new Vector2()).__init(this.bb_pos + 16, this.bb!);
 }
 
@@ -26,14 +26,14 @@ static sizeOf():number {
   return 32;
 }
 
-static createEdge(builder:flatbuffers.Builder, point_x: number, point_y: number, direction_x: number, direction_y: number):flatbuffers.Offset {
+static createEdge(builder:flatbuffers.Builder, from_x: number, from_y: number, to_x: number, to_y: number):flatbuffers.Offset {
   builder.prep(8, 32);
   builder.prep(8, 16);
-  builder.writeFloat64(direction_y);
-  builder.writeFloat64(direction_x);
+  builder.writeFloat64(to_y);
+  builder.writeFloat64(to_x);
   builder.prep(8, 16);
-  builder.writeFloat64(point_y);
-  builder.writeFloat64(point_x);
+  builder.writeFloat64(from_y);
+  builder.writeFloat64(from_x);
   return builder.offset();
 }
 
