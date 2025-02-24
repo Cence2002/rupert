@@ -458,8 +458,8 @@
             ));
 
             hole_theta_t += 0.1;
-            hole_phi_t += 0.1 * Math.sqrt(2);
-            hole_alpha_t += 0.1 * Math.sqrt(3);
+            hole_phi_t += 0.1 / Math.sqrt(2);
+            hole_alpha_t += 0.1 / Math.sqrt(3);
         }
         if (plugGroup && selection.selectedBox3 !== null && selection.selectedBox2 !== null) {
             const box3 = cover!.box3s(selection.selectedBox3);
@@ -475,7 +475,7 @@
             ));
 
             plug_theta_t += 0.1;
-            plug_phi_t += 0.1 * Math.sqrt(2);
+            plug_phi_t += 0.1 / Math.sqrt(2);
         }
     }
 
