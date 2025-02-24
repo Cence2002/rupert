@@ -48,7 +48,7 @@ Polygon<Interval> project_hole(const Box3& box3, const Polyhedron<Interval>& hol
     for(const IntervalVector3<Interval>& hole_vertex: hole.vertices()) {
         for(const Interval& sub_theta: split(box3.theta<Interval>(), resolution)) {
             for(const Interval& sub_phi: split(box3.phi<Interval>(), resolution)) {
-                const std::vector<Vector2Interval<Interval>> projected_hole_vertices = projection_hull_trivial(hole_vertex, sub_theta, sub_phi);
+                const std::vector<Vector2Interval<Interval>> projected_hole_vertices = projection_hull_triangle(hole_vertex, sub_theta, sub_phi);
                 for(const Vector2Interval<Interval>& projected_hole_vertex: projected_hole_vertices) {
                     for(const Interval& sub_alpha: split(box3.alpha<Interval>(), resolution)) {
                         const std::vector<Vector2Interval<Interval>> rotated_projected_hole_vertices = rotation_hull_triangle(projected_hole_vertex, sub_alpha);

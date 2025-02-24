@@ -34,7 +34,7 @@ std::vector<Vector2Interval<Interval>> rotation_hull_trivial(const Vector2Interv
 template<IntervalType Interval>
 std::vector<Vector2Interval<Interval>> rotation_hull_triangle(const Vector2Interval<Interval>& vector2, const Interval& alpha) {
     if(!(alpha.len() < Interval::pi() / 2)) {
-        throw std::invalid_argument("rotation_hull_triangle only supports alpha < pi/2");
+        throw std::invalid_argument("rotation_hull_triangle only supports |alpha| < pi/2");
     }
 
     const Interval cos_alpha_min = Interval(alpha.min()).cos();
@@ -47,19 +47,22 @@ std::vector<Vector2Interval<Interval>> rotation_hull_triangle(const Vector2Inter
 
     const Interval cos_alpha_rad = Interval(alpha.rad()).cos();
 
+    Vector2Interval<Interval> min_rotated_vertex(
+        vector2.x() * cos_alpha_min - vector2.y() * sin_alpha_min,
+        vector2.x() * sin_alpha_min + vector2.y() * cos_alpha_min
+    );
+    Vector2Interval<Interval> max_rotated_vertex(
+        vector2.x() * cos_alpha_max - vector2.y() * sin_alpha_max,
+        vector2.x() * sin_alpha_max + vector2.y() * cos_alpha_max
+    );
+    Vector2Interval<Interval> mid_rotated_vertex(
+        (vector2.x() * cos_alpha_mid - vector2.y() * sin_alpha_mid) / cos_alpha_rad,
+        (vector2.x() * sin_alpha_mid + vector2.y() * cos_alpha_mid) / cos_alpha_rad
+    );
     return std::vector<Vector2Interval<Interval>>{
-            Vector2Interval(
-                vector2.x() * cos_alpha_min - vector2.y() * sin_alpha_min,
-                vector2.x() * sin_alpha_min + vector2.y() * cos_alpha_min
-            ),
-            Vector2Interval(
-                vector2.x() * cos_alpha_max - vector2.y() * sin_alpha_max,
-                vector2.x() * sin_alpha_max + vector2.y() * cos_alpha_max
-            ),
-            Vector2Interval(
-                (vector2.x() * cos_alpha_mid - vector2.y() * sin_alpha_mid) / cos_alpha_rad,
-                (vector2.x() * sin_alpha_mid + vector2.y() * cos_alpha_mid) / cos_alpha_rad
-            )
+            min_rotated_vertex,
+            max_rotated_vertex,
+            mid_rotated_vertex
         };
 }
 
@@ -79,6 +82,64 @@ template<IntervalType Interval>
 std::vector<Vector2Interval<Interval>> projection_hull_trivial(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
     const Vector2Interval<Interval> projected_vertex = projection(vertex, theta, phi);
     return vector2_hull(projected_vertex);
+}
+
+template<IntervalType Interval>
+std::vector<Vector2Interval<Interval>> projection_hull_triangle(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
+    if(!(phi.len() < Interval::pi() / 2)) {
+        throw std::invalid_argument("rotation_hull_triangle only supports |phi| < pi/2");
+    }
+
+    const Vector2Interval<Interval> reflected_vertex = Vector2Interval<Interval>(vertex.x(), -vertex.y());
+    const Interval shifted_phi = phi + Interval::pi() / 2;
+
+    const Interval cos_shifted_phi_min = Interval(shifted_phi.min()).cos();
+    const Interval cos_shifted_phi_max = Interval(shifted_phi.max()).cos();
+    const Interval cos_shifted_phi_mid = Interval(shifted_phi.mid()).cos();
+
+    const Interval sin_shifted_phi_min = Interval(shifted_phi.min()).sin();
+    const Interval sin_shifted_phi_max = Interval(shifted_phi.max()).sin();
+    const Interval sin_shifted_phi_mid = Interval(shifted_phi.mid()).sin();
+
+    const Interval cos_shifted_phi_rad = Interval(shifted_phi.rad()).cos();
+
+    const Vector2Interval<Interval> min_rotated_reflected_vertex(
+        reflected_vertex.x() * cos_shifted_phi_min - reflected_vertex.y() * sin_shifted_phi_min,
+        reflected_vertex.x() * sin_shifted_phi_min + reflected_vertex.y() * cos_shifted_phi_min
+    );
+    const Vector2Interval<Interval> max_rotated_reflected_vertex(
+        reflected_vertex.x() * cos_shifted_phi_max - reflected_vertex.y() * sin_shifted_phi_max,
+        reflected_vertex.x() * sin_shifted_phi_max + reflected_vertex.y() * cos_shifted_phi_max
+    );
+    const Vector2Interval<Interval> mid_rotated_reflected_vertex(
+        (reflected_vertex.x() * cos_shifted_phi_mid - reflected_vertex.y() * sin_shifted_phi_mid) / cos_shifted_phi_rad,
+        (reflected_vertex.x() * sin_shifted_phi_mid + reflected_vertex.y() * cos_shifted_phi_mid) / cos_shifted_phi_rad
+    );
+
+    const Interval cos_theta = theta.cos();
+    const Interval sin_theta = theta.sin();
+
+    const Vector2Interval<Interval> scaled_min_rotated_reflected_vertex(
+        min_rotated_reflected_vertex.x(),
+        min_rotated_reflected_vertex.y() * cos_theta - vertex.z() * sin_theta
+    );
+    const Vector2Interval<Interval> scaled_max_rotated_reflected_vertex(
+        max_rotated_reflected_vertex.x(),
+        max_rotated_reflected_vertex.y() * cos_theta - vertex.z() * sin_theta
+    );
+    const Vector2Interval<Interval> scaled_mid_rotated_reflected_vertex(
+        mid_rotated_reflected_vertex.x(),
+        mid_rotated_reflected_vertex.y() * cos_theta - vertex.z() * sin_theta
+    );
+
+    return std::vector<Vector2Interval<Interval>>{
+            Vector2Interval<Interval>(scaled_min_rotated_reflected_vertex.x(), Interval(scaled_min_rotated_reflected_vertex.y().min())),
+            Vector2Interval<Interval>(scaled_min_rotated_reflected_vertex.x(), Interval(scaled_min_rotated_reflected_vertex.y().max())),
+            Vector2Interval<Interval>(scaled_max_rotated_reflected_vertex.x(), Interval(scaled_max_rotated_reflected_vertex.y().min())),
+            Vector2Interval<Interval>(scaled_max_rotated_reflected_vertex.x(), Interval(scaled_max_rotated_reflected_vertex.y().max())),
+            Vector2Interval<Interval>(scaled_mid_rotated_reflected_vertex.x(), Interval(scaled_mid_rotated_reflected_vertex.y().min())),
+            Vector2Interval<Interval>(scaled_mid_rotated_reflected_vertex.x(), Interval(scaled_mid_rotated_reflected_vertex.y().max()))
+        };
 }
 
 template<IntervalType Interval>
