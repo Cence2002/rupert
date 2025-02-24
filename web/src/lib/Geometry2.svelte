@@ -161,9 +161,7 @@
             const hullMaterial = new MeshBasicMaterial({
                 color: new Color(0, 1, 0),
                 transparent: true,
-                // TODO: fix so that it's the bo2's index that is checked
-                // opacity: (index == box3.in_()) ? 0.25 : (box2Out.includes(index) ? 0.5 : 0),
-                opacity: (box2Out.includes(index) ? 0.5 : 0),
+                opacity: (selection.selectedBox2 == box3.in_()) ? 0.25 : (box2Out.includes(index) ? 0.5 : 0),
                 side: FrontSide,
                 depthWrite: false,
             });

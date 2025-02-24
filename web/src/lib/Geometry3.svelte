@@ -62,9 +62,8 @@
     let plugRadius: number;
 
     const resolution = 8;
-    let rotatedHoleVertexGroups: Group[] = [];
-    let rotatedPlugVertexGroups: Group[] = [];
-    let rotatedHoleVerticesGroup: Group;
+    let rotatedProjectedHoleVertices: Mesh[] = [];
+    let projectedPlugVertices: Mesh[] = [];
 
     let projectionEdges: Line[] = [];
     let projections: Group[] = [];
@@ -206,63 +205,44 @@
         }
 
         const coverHole = cover!.hole();
-        const allVertices = [];
-        for (let index = 0; index < coverHole.verticesLength(); index++) {
+        for (let index = 4; index < coverHole.verticesLength(); index++) {
             const vertex = coverHole.vertices(index);
-            let vertices = [];
-            for (let theta_index = 0; theta_index <= resolution; theta_index++) {
-                const theta = lerp(box3.theta().interval().min(), box3.theta().interval().max(), theta_index / resolution);
-                for (let phi_index = 0; phi_index <= resolution; phi_index++) {
-                    const phi = lerp(box3.phi().interval().min(), box3.phi().interval().max(), phi_index / resolution);
-                    const projected = project(new Vector3(vertex.x(), vertex.y(), vertex.z()), theta, phi);
-                    for (let alpha_index = 0; alpha_index <= resolution; alpha_index++) {
-                        const alpha = lerp(box3.alpha().interval().min(), box3.alpha().interval().max(), alpha_index / resolution);
-                        const rotated_projected = rotate(projected, alpha);
-                        vertices.push(rotated_projected);
-                        allVertices.push(rotated_projected);
-                    }
-                }
+
+            function project(theta_t: number, phi_t: number, target: Vector3) {
+                const theta = lerp(box3.theta().interval().min(), box3.theta().interval().max(), theta_t);
+                const phi = lerp(box3.phi().interval().min(), box3.phi().interval().max(), phi_t);
+                const cos_theta = Math.cos(theta);
+                const sin_theta = Math.sin(theta);
+                const cos_phi = Math.cos(phi);
+                const sin_phi = Math.sin(phi);
+
+                //TODO: handle the case when vertex is on the z-axis, as the parametric surface will collapse to a line
+                target.set(
+                    -vertex.x() * sin_phi + vertex.y() * cos_phi,
+                    (vertex.x() * cos_phi + vertex.y() * sin_phi) * cos_theta - vertex.z() * sin_theta,
+                    -(vertex.x() * cos_phi + vertex.y() * sin_phi) * sin_theta - vertex.z() * cos_theta
+                );
             }
-            const rotatedHoleVertex = new ConvexGeometry(vertices);
-            const rotatedHoleVertexMaterial = new MeshBasicMaterial({
-                color: new Color(0, 0, 1),
-                transparent: true,
-                opacity: 0.5
+
+            const projectedHoleVertexGeometry = new ParametricGeometry(project, 16, 16);
+            const projectedHoleVertexMaterial = new MeshBasicMaterial({
+                color: new Color(0.0, 0.0, 1.0),
+                side: DoubleSide,
             });
-            const rotatedHoleVertexMesh = new Mesh(rotatedHoleVertex, rotatedHoleVertexMaterial);
-            const rotatedHoleVertexEdges = new EdgesGeometry(rotatedHoleVertex);
-            const rotatedHoleVertexEdgesMaterial = new LineBasicMaterial({
-                color: new Color(0.5, 0.5, 0.5)
-            });
-            const rotatedHoleVertexEdgesMesh = new LineSegments(rotatedHoleVertexEdges, rotatedHoleVertexEdgesMaterial);
-            const rotatedHoleVertexGroup = new Group();
-            rotatedHoleVertexGroup.add(rotatedHoleVertexMesh);
-            rotatedHoleVertexGroup.add(rotatedHoleVertexEdgesMesh);
-            rotatedHoleVertexGroup.position.set(0, 0, holeRadius);
-            rotatedHoleVertexGroups.push(rotatedHoleVertexGroup);
+
+            const alpha_resolution = 64;
+            for (let alpha_index = 0; alpha_index <= alpha_resolution; alpha_index++) {
+                const alpha = lerp(box3.alpha().interval().min(), box3.alpha().interval().max(), alpha_index / alpha_resolution);
+                const rotatedProjectedHoleVertex = new Mesh(projectedHoleVertexGeometry, projectedHoleVertexMaterial);
+                rotatedProjectedHoleVertex.position.set(0, 0, holeRadius);
+                rotatedProjectedHoleVertex.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), alpha);
+                rotatedProjectedHoleVertices.push(rotatedProjectedHoleVertex);
+            }
         }
-        for (let group of rotatedHoleVertexGroups) {
-            scene.add(group);
+        for (let mesh of rotatedProjectedHoleVertices) {
+            scene.add(mesh);
         }
-        {
-            const rotatedHoleVertex = new ConvexGeometry(allVertices);
-            const rotatedHoleVertexMaterial = new MeshBasicMaterial({
-                color: new Color(0, 0, 1),
-                transparent: true,
-                opacity: 0.5
-            });
-            const rotatedHoleVertexMesh = new Mesh(rotatedHoleVertex, rotatedHoleVertexMaterial);
-            const rotatedHoleVertexEdges = new EdgesGeometry(rotatedHoleVertex);
-            const rotatedHoleVertexEdgesMaterial = new LineBasicMaterial({
-                color: new Color(0.5, 0.5, 0.5)
-            });
-            const rotatedHoleVertexEdgesMesh = new LineSegments(rotatedHoleVertexEdges, rotatedHoleVertexEdgesMaterial);
-            rotatedHoleVerticesGroup = new Group();
-            rotatedHoleVerticesGroup.add(rotatedHoleVertexMesh);
-            rotatedHoleVerticesGroup.add(rotatedHoleVertexEdgesMesh);
-            rotatedHoleVerticesGroup.position.set(0, 0, holeRadius);
-        }
-        scene.add(rotatedHoleVerticesGroup);
+
         return () => {
             for (let group of projections) {
                 scene.remove(group);
@@ -272,11 +252,10 @@
                 scene.remove(edge);
             }
             projectionEdges = [];
-            for (let group of rotatedHoleVertexGroups) {
-                scene.remove(group);
+            for (let mesh of rotatedProjectedHoleVertices) {
+                scene.remove(mesh);
             }
-            rotatedHoleVertexGroups = [];
-            scene.remove(rotatedHoleVerticesGroup);
+            rotatedProjectedHoleVertices = [];
         };
     }
 
@@ -304,9 +283,7 @@
             const hullMaterial = new MeshBasicMaterial({
                 color: new Color(0, 1, 0),
                 transparent: true,
-                // TODO: fix so that it's the bo2's index that is checked
-                // opacity: (index == box3.in_()) ? 0.25 : (box2Out.includes(index) ? 0.5 : 0),
-                opacity: (box2Out.includes(index) ? 0.5 : 0),
+                opacity: (selection.selectedBox2 == box3.in_()) ? 0.25 : (box2Out.includes(index) ? 0.5 : 0),
                 side: DoubleSide,
                 depthWrite: false,
             });
@@ -331,35 +308,31 @@
         const coverPlug = cover!.plug();
         for (let index = 0; index < coverPlug.verticesLength(); index++) {
             const vertex = coverPlug.vertices(index);
-            let vertices = [];
-            for (let theta_index = 0; theta_index <= resolution; theta_index++) {
-                const theta = lerp(box2.theta().interval().min(), box2.theta().interval().max(), theta_index / resolution);
-                for (let phi_index = 0; phi_index <= resolution; phi_index++) {
-                    const phi = lerp(box2.phi().interval().min(), box2.phi().interval().max(), phi_index / resolution);
-                    const raw_vertex = new Vector3(vertex.x(), vertex.y(), vertex.z());
-                    const projected = project(raw_vertex, theta, phi);
-                    vertices.push(projected);
-                }
+
+            function project(theta_t: number, phi_t: number, target: Vector3) {
+                const theta = lerp(box2.theta().interval().min(), box2.theta().interval().max(), theta_t);
+                const phi = lerp(box2.phi().interval().min(), box2.phi().interval().max(), phi_t);
+                const cos_theta = Math.cos(theta);
+                const sin_theta = Math.sin(theta);
+                const cos_phi = Math.cos(phi);
+                const sin_phi = Math.sin(phi);
+                target.set(
+                    -vertex.x() * sin_phi + vertex.y() * cos_phi,
+                    (vertex.x() * cos_phi + vertex.y() * sin_phi) * cos_theta - vertex.z() * sin_theta,
+                    -(vertex.x() * cos_phi + vertex.y() * sin_phi) * sin_theta - vertex.z() * cos_theta
+                );
             }
-            const rotatedPlugVertex = new ConvexGeometry(vertices);
-            const rotatedPlugVertexMaterial = new MeshBasicMaterial({
-                color: new Color(0, 1, 0),
-                transparent: true,
-                opacity: 0.5
+
+            const projectedPlugVertexGeometry = new ParametricGeometry(project, 16, 16);
+            const projectedPlugVertexMaterial = new MeshBasicMaterial({
+                color: new Color(0.0, 1.0, 0.0),
+                side: DoubleSide,
             });
-            const rotatedPlugVertexMesh = new Mesh(rotatedPlugVertex, rotatedPlugVertexMaterial);
-            const rotatedPlugVertexEdges = new EdgesGeometry(rotatedPlugVertex);
-            const rotatedPlugVertexEdgesMaterial = new LineBasicMaterial({
-                color: new Color(0.5, 0.5, 0.5)
-            });
-            const rotatedPlugVertexEdgesMesh = new LineSegments(rotatedPlugVertexEdges, rotatedPlugVertexEdgesMaterial);
-            const rotatedPlugVertexGroup = new Group();
-            rotatedPlugVertexGroup.add(rotatedPlugVertexMesh);
-            rotatedPlugVertexGroup.add(rotatedPlugVertexEdgesMesh);
-            rotatedPlugVertexGroup.position.set(0, 0, 2 * holeRadius + plugRadius);
-            rotatedPlugVertexGroups.push(rotatedPlugVertexGroup);
+            const projectedPlugVertex = new Mesh(projectedPlugVertexGeometry, projectedPlugVertexMaterial);
+            projectedPlugVertex.position.set(0, 0, 2 * holeRadius + plugRadius);
+            projectedPlugVertices.push(projectedPlugVertex);
         }
-        for (let group of rotatedPlugVertexGroups) {
+        for (let group of projectedPlugVertices) {
             scene.add(group);
         }
         return () => {
@@ -368,10 +341,10 @@
             }
             box2Projections = [];
             box2Out = [];
-            for (let group of rotatedPlugVertexGroups) {
+            for (let group of projectedPlugVertices) {
                 scene.remove(group);
             }
-            rotatedPlugVertexGroups = [];
+            projectedPlugVertices = [];
         };
     }
 
@@ -415,27 +388,6 @@
         {
             const axesHelper = new AxesHelper(10);
             scene.add(axesHelper);
-        }
-
-        {
-            function parametric(u: number, v: number, target: Vector3) {
-                const theta = lerp(-Math.PI / 2, Math.PI / 2, v) / 3;
-                const phi = lerp(-Math.PI, Math.PI, u) / 3;
-                const x = Math.cos(phi) * Math.cos(theta);
-                const y = Math.sin(phi) * Math.cos(theta);
-                const z = Math.sin(theta);
-                target.set(x, y, z);
-            }
-
-            const parametricGeometry = new ParametricGeometry(parametric, 10, 10);
-            const parametricMaterial = new MeshBasicMaterial({
-                color: new Color(0.5, 0.5, 0.5),
-                transparent: true,
-                opacity: 0.5,
-                side: DoubleSide,
-            });
-            const parametricMesh = new Mesh(parametricGeometry, parametricMaterial);
-            scene.add(parametricMesh);
         }
 
         return renderer.domElement;
