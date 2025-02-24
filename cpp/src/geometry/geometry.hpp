@@ -64,11 +64,11 @@ std::vector<IntervalVector2<Interval>> rotation_hull_triangle(const IntervalVect
 }
 
 template<IntervalType Interval>
-IntervalVector2<Interval> projection(const IntervalVector3<Interval>& vertex, const Interval& phi, const Interval& theta) {
-    const Interval& cos_phi = phi.cos();
-    const Interval& sin_phi = phi.sin();
-    const Interval& cos_theta = theta.cos();
-    const Interval& sin_theta = theta.sin();
+IntervalVector2<Interval> projection(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
+    const Interval cos_theta = theta.cos();
+    const Interval sin_theta = theta.sin();
+    const Interval cos_phi = phi.cos();
+    const Interval sin_phi = phi.sin();
     return IntervalVector2<Interval>(
         -vertex.x() * sin_phi + vertex.y() * cos_phi,
         (vertex.x() * cos_phi + vertex.y() * sin_phi) * cos_theta - vertex.z() * sin_theta
@@ -76,8 +76,8 @@ IntervalVector2<Interval> projection(const IntervalVector3<Interval>& vertex, co
 }
 
 template<IntervalType Interval>
-std::vector<IntervalVector2<Interval>> projection_hull_trivial(const IntervalVector3<Interval>& vertex, const Interval& phi, const Interval& theta) {
-    const IntervalVector2<Interval> projected_vertex = projection(vertex, phi, theta);
+std::vector<IntervalVector2<Interval>> projection_hull_trivial(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
+    const IntervalVector2<Interval> projected_vertex = projection(vertex, theta, phi);
     return intervalvector2_hull(projected_vertex);
 }
 
@@ -104,12 +104,12 @@ Polygon<Interval> convex_hull(const std::vector<IntervalVector2<Interval>>& vert
         visited[from_index] = true;
 
         const IntervalVector2<Interval> from = vertices[from_index];
-        size_t most_clockwise_index = -1;
+        int most_clockwise_index = -1;
         for(size_t clockwise_index = 0; clockwise_index < vertices.size(); clockwise_index++) {
             if(most_clockwise_index == -1 && (vertices[clockwise_index] - from).len().is_pos()) {
                 most_clockwise_index = clockwise_index;
             }
-            if(Edge<Interval>(from, vertices[most_clockwise_index] - from).orientation(vertices[clockwise_index]) == Orientation::CLOCKWISE) {
+            if(most_clockwise_index != -1 && Edge<Interval>(from, vertices[most_clockwise_index] - from).orientation(vertices[clockwise_index]) == Orientation::CLOCKWISE) {
                 most_clockwise_index = clockwise_index;
             }
         }

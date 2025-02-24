@@ -28,8 +28,8 @@ public:
 
 struct Box2Builder {
 private:
-    FlatBuffers::Id phi_;
     FlatBuffers::Id theta_;
+    FlatBuffers::Id phi_;
     std::vector<flatbuffers::Offset<FlatBuffers::Projection>> projections_;
     std::vector<uint8_t> out_;
 
@@ -37,20 +37,20 @@ public:
     ProjectionBuilder projection_builder;
 
     void set_box2(const Box2& box2) {
-        phi_ = FlatBuffers::Id(
-            box2.phi_id().bits(),
-            box2.phi_id().depth(),
-            FlatBuffers::Interval(
-                box2.phi<FloatInterval>(true).min().float_value(),
-                box2.phi<FloatInterval>(true).max().float_value()
-            )
-        );
         theta_ = FlatBuffers::Id(
             box2.theta_id().bits(),
             box2.theta_id().depth(),
             FlatBuffers::Interval(
-                box2.theta<FloatInterval>(true).min().float_value(),
-                box2.theta<FloatInterval>(true).max().float_value()
+                box2.theta<FloatInterval>().min().float_value(),
+                box2.theta<FloatInterval>().max().float_value()
+            )
+        );
+        phi_ = FlatBuffers::Id(
+            box2.phi_id().bits(),
+            box2.phi_id().depth(),
+            FlatBuffers::Interval(
+                box2.phi<FloatInterval>().min().float_value(),
+                box2.phi<FloatInterval>().max().float_value()
             )
         );
     }
@@ -66,8 +66,8 @@ public:
     auto build(flatbuffers::FlatBufferBuilder& builder) {
         const auto box2 = FlatBuffers::CreateBox2(
             builder,
-            &phi_,
             &theta_,
+            &phi_,
             builder.CreateVector(projections_),
             builder.CreateVector(out_)
         );
@@ -79,8 +79,8 @@ public:
 
 struct Box3Builder {
 private:
-    FlatBuffers::Id phi_;
     FlatBuffers::Id theta_;
+    FlatBuffers::Id phi_;
     FlatBuffers::Id alpha_;
     std::vector<flatbuffers::Offset<FlatBuffers::Projection>> projections_;
     flatbuffers::Offset<FlatBuffers::Polygon> projection_;
@@ -93,28 +93,28 @@ public:
     Box2Builder box2_builder;
 
     void set_box3(const Box3& box3) {
-        phi_ = FlatBuffers::Id(
-            box3.phi_id().bits(),
-            box3.phi_id().depth(),
-            FlatBuffers::Interval(
-                box3.phi<FloatInterval>(true).min().float_value(),
-                box3.phi<FloatInterval>(true).max().float_value()
-            )
-        );
         theta_ = FlatBuffers::Id(
             box3.theta_id().bits(),
             box3.theta_id().depth(),
             FlatBuffers::Interval(
-                box3.theta<FloatInterval>(true).min().float_value(),
-                box3.theta<FloatInterval>(true).max().float_value()
+                box3.theta<FloatInterval>().min().float_value(),
+                box3.theta<FloatInterval>().max().float_value()
+            )
+        );
+        phi_ = FlatBuffers::Id(
+            box3.phi_id().bits(),
+            box3.phi_id().depth(),
+            FlatBuffers::Interval(
+                box3.phi<FloatInterval>().min().float_value(),
+                box3.phi<FloatInterval>().max().float_value()
             )
         );
         alpha_ = FlatBuffers::Id(
             box3.alpha_id().bits(),
             box3.alpha_id().depth(),
             FlatBuffers::Interval(
-                box3.alpha<FloatInterval>(true).min().float_value(),
-                box3.alpha<FloatInterval>(true).max().float_value()
+                box3.alpha<FloatInterval>().min().float_value(),
+                box3.alpha<FloatInterval>().max().float_value()
             )
         );
     }
@@ -150,8 +150,8 @@ public:
     auto build(flatbuffers::FlatBufferBuilder& builder) {
         const auto box3 = FlatBuffers::CreateBox3(
             builder,
-            &phi_,
             &theta_,
+            &phi_,
             &alpha_,
             builder.CreateVector(projections_),
             projection_,
