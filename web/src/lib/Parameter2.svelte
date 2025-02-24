@@ -167,9 +167,6 @@
         selection.selectBox2(newSelectedBox2IndexInGroups);
     }
 
-    function setCameraBounds(width: number, height: number, zoom: number = 1.5) {
-    }
-
     function setup(width: number, height: number) {
         resize(width, height);
 

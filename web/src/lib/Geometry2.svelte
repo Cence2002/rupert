@@ -36,9 +36,24 @@
 
     $effect(onSelectBox2);
 
-    let camera: OrthographicCamera;
-    let scene: Scene;
-    let renderer: WebGLRenderer;
+
+    const scene = new Scene();
+    scene.up.set(0, 1, 0);
+
+    const camera = new OrthographicCamera(0, 0, 0, 0, -1, 1);
+    camera.up.set(0, 1, 0);
+    camera.lookAt(0.5, 0.5, 0);
+    camera.position.set(0, 0, 0);
+
+    const renderer = new WebGLRenderer({antialias: true});
+
+    const controls = new MapControls(camera, renderer.domElement);
+    controls.enablePan = true;
+    controls.enableZoom = true;
+    controls.enableRotate = false;
+    controls.screenSpacePanning = true;
+    controls.zoomToCursor = true;
+
     let projectionEdges: Line[] = [];
     let projections: Group[] = [];
     let box2Projections: Group[] = [];
@@ -179,42 +194,8 @@
         };
     }
 
-    function setCameraBounds(width: number, height: number, zoom: number = 8) {
-        const aspect = width / height;
-        camera.left = -zoom * aspect / 2;
-        camera.right = zoom * aspect / 2;
-        camera.top = zoom / 2;
-        camera.bottom = -zoom / 2;
-        camera.updateProjectionMatrix();
-    }
-
     function setup(width: number, height: number) {
-        {
-            scene = new Scene();
-            scene.up.set(0, 1, 0);
-        }
-
-        {
-            camera = new OrthographicCamera(0, 0, 0, 0, -1, 1);
-            setCameraBounds(width, height);
-            camera.up.set(0, 1, 0);
-            camera.lookAt(0, 0, 0);
-        }
-
-        {
-            renderer = new WebGLRenderer({antialias: true});
-            renderer.setSize(width, height);
-        }
-
-        {
-            const controls = new MapControls(camera, renderer.domElement);
-            controls.enablePan = true;
-            controls.enableZoom = true;
-            controls.enableRotate = false;
-            controls.screenSpacePanning = true;
-            controls.zoomToCursor = true;
-            controls.update();
-        }
+        resize(width, height);
 
         {
             const axesHelper = new AxesHelper(10);
@@ -228,9 +209,15 @@
         renderer.render(scene, camera);
     }
 
-    function resize(width: number, height: number) {
-        setCameraBounds(width, height);
+    function resize(width: number, height: number, zoom: number = 8) {
+        const aspect = width / height;
+        camera.left = -zoom * aspect / 2;
+        camera.right = zoom * aspect / 2;
+        camera.top = zoom / 2;
+        camera.bottom = -zoom / 2;
+        camera.updateProjectionMatrix();
         renderer.setSize(width, height);
+        controls.update();
     }
 
     function computeConvexHull(points: Vector2[]): Vector2[] {
