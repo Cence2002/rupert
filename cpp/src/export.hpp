@@ -12,7 +12,7 @@ private:
 
 public:
     template<IntervalType Interval>
-    void add_vertex(const IntervalVector2<Interval>& vertex) {
+    void add_vertex(const Vector2Interval<Interval>& vertex) {
         vertices_.emplace_back(
             vertex.x().mid().float_value(),
             vertex.y().mid().float_value()
@@ -128,8 +128,8 @@ public:
         std::vector<FlatBuffers::Edge> edges;
         for(const auto& edge: polygon.edges()) {
             edges.emplace_back(
-                FlatBuffers::Vector2(edge.point().x().mid().float_value(), edge.point().y().mid().float_value()),
-                FlatBuffers::Vector2(edge.direction().x().mid().float_value(), edge.direction().y().mid().float_value())
+                FlatBuffers::Vector2(edge.from().x().mid().float_value(), edge.from().y().mid().float_value()),
+                FlatBuffers::Vector2(edge.to().x().mid().float_value(), edge.to().y().mid().float_value())
             );
         }
         projection_ = FlatBuffers::CreatePolygon(builder, builder.CreateVectorOfStructs(edges));

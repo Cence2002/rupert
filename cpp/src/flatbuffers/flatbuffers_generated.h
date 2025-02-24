@@ -97,23 +97,23 @@ FLATBUFFERS_STRUCT_END(Vector3, 24);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Edge FLATBUFFERS_FINAL_CLASS {
  private:
-  FlatBuffers::Vector2 point_;
-  FlatBuffers::Vector2 direction_;
+  FlatBuffers::Vector2 from_;
+  FlatBuffers::Vector2 to_;
 
  public:
   Edge()
-      : point_(),
-        direction_() {
+      : from_(),
+        to_() {
   }
-  Edge(const FlatBuffers::Vector2 &_point, const FlatBuffers::Vector2 &_direction)
-      : point_(_point),
-        direction_(_direction) {
+  Edge(const FlatBuffers::Vector2 &_from, const FlatBuffers::Vector2 &_to)
+      : from_(_from),
+        to_(_to) {
   }
-  const FlatBuffers::Vector2 &point() const {
-    return point_;
+  const FlatBuffers::Vector2 &from() const {
+    return from_;
   }
-  const FlatBuffers::Vector2 &direction() const {
-    return direction_;
+  const FlatBuffers::Vector2 &to() const {
+    return to_;
   }
 };
 FLATBUFFERS_STRUCT_END(Edge, 32);

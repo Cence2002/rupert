@@ -12,8 +12,8 @@ struct Vector3 {
 }
 
 struct Edge {
-  point: Vector2;
-  direction: Vector2;
+  from: Vector2;
+  to: Vector2;
 }
 
 table Polygon {
