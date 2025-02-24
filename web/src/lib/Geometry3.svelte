@@ -205,37 +205,73 @@
         }
 
         const coverHole = cover!.hole();
-        for (let index = 4; index < coverHole.verticesLength(); index++) {
+        for (let index = 0; index < coverHole.verticesLength(); index++) {
             const vertex = coverHole.vertices(index);
+            const holeVertex = new Vector3(vertex.x(), vertex.y(), vertex.z());
 
-            function project(theta_t: number, phi_t: number, target: Vector3) {
-                const theta = lerp(box3.theta().interval().min(), box3.theta().interval().max(), theta_t);
-                const phi = lerp(box3.phi().interval().min(), box3.phi().interval().max(), phi_t);
-                const cos_theta = Math.cos(theta);
-                const sin_theta = Math.sin(theta);
-                const cos_phi = Math.cos(phi);
-                const sin_phi = Math.sin(phi);
+            const resolution = 8;
 
-                //TODO: handle the case when vertex is on the z-axis, as the parametric surface will collapse to a line
-                target.set(
-                    -vertex.x() * sin_phi + vertex.y() * cos_phi,
-                    (vertex.x() * cos_phi + vertex.y() * sin_phi) * cos_theta - vertex.z() * sin_theta,
-                    -(vertex.x() * cos_phi + vertex.y() * sin_phi) * sin_theta - vertex.z() * cos_theta
-                );
-            }
+            for (let theta_index = 0; theta_index <= resolution; theta_index++) {
+                const theta = lerp(box3.theta().interval().min(), box3.theta().interval().max(), theta_index / resolution);
 
-            const projectedHoleVertexGeometry = new ParametricGeometry(project, 16, 16);
-            const projectedHoleVertexMaterial = new MeshBasicMaterial({
-                color: new Color(0.0, 0.0, 1.0),
-                side: DoubleSide,
-            });
+                function parametric(phi_t: number, alpha_t: number, target: Vector3) {
+                    const phi = lerp(box3.phi().interval().min(), box3.phi().interval().max(), phi_t);
+                    const alpha = lerp(box3.alpha().interval().min(), box3.alpha().interval().max(), alpha_t);
 
-            const alpha_resolution = 64;
-            for (let alpha_index = 0; alpha_index <= alpha_resolution; alpha_index++) {
-                const alpha = lerp(box3.alpha().interval().min(), box3.alpha().interval().max(), alpha_index / alpha_resolution);
+                    const projected_vertex = project(holeVertex, theta, phi);
+                    const rotated_projected_vertex = rotate(projected_vertex, alpha);
+                    target.copy(rotated_projected_vertex);
+                }
+
+                const projectedHoleVertexGeometry = new ParametricGeometry(parametric, 8, 8);
+                const projectedHoleVertexMaterial = new MeshBasicMaterial({
+                    color: new Color(0.0, 0.0, 1.0),
+                    side: DoubleSide,
+                });
                 const rotatedProjectedHoleVertex = new Mesh(projectedHoleVertexGeometry, projectedHoleVertexMaterial);
                 rotatedProjectedHoleVertex.position.set(0, 0, holeRadius);
-                rotatedProjectedHoleVertex.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), alpha);
+                rotatedProjectedHoleVertices.push(rotatedProjectedHoleVertex);
+            }
+            for (let phi_index = 0; phi_index <= resolution; phi_index++) {
+                const phi = lerp(box3.phi().interval().min(), box3.phi().interval().max(), phi_index / resolution);
+
+                function parametric(theta_t: number, alpha_t: number, target: Vector3) {
+                    const theta = lerp(box3.theta().interval().min(), box3.theta().interval().max(), theta_t);
+                    const alpha = lerp(box3.alpha().interval().min(), box3.alpha().interval().max(), alpha_t);
+
+                    const projected_vertex = project(holeVertex, theta, phi);
+                    const rotated_projected_vertex = rotate(projected_vertex, alpha);
+                    target.copy(rotated_projected_vertex);
+                }
+
+                const projectedHoleVertexGeometry = new ParametricGeometry(parametric, 8, 8);
+                const projectedHoleVertexMaterial = new MeshBasicMaterial({
+                    color: new Color(0.0, 0.0, 1.0),
+                    side: DoubleSide,
+                });
+                const rotatedProjectedHoleVertex = new Mesh(projectedHoleVertexGeometry, projectedHoleVertexMaterial);
+                rotatedProjectedHoleVertex.position.set(0, 0, holeRadius);
+                rotatedProjectedHoleVertices.push(rotatedProjectedHoleVertex);
+            }
+            for (let alpha_index = 0; alpha_index <= resolution; alpha_index++) {
+                const alpha = lerp(box3.alpha().interval().min(), box3.alpha().interval().max(), alpha_index / resolution);
+
+                function parametric(theta_t: number, phi_t: number, target: Vector3) {
+                    const theta = lerp(box3.theta().interval().min(), box3.theta().interval().max(), theta_t);
+                    const phi = lerp(box3.phi().interval().min(), box3.phi().interval().max(), phi_t);
+
+                    const projected_vertex = project(holeVertex, theta, phi);
+                    const rotated_projected_vertex = rotate(projected_vertex, alpha);
+                    target.copy(rotated_projected_vertex);
+                }
+
+                const projectedHoleVertexGeometry = new ParametricGeometry(parametric, 8, 8);
+                const projectedHoleVertexMaterial = new MeshBasicMaterial({
+                    color: new Color(0.0, 0.0, 1.0),
+                    side: DoubleSide,
+                });
+                const rotatedProjectedHoleVertex = new Mesh(projectedHoleVertexGeometry, projectedHoleVertexMaterial);
+                rotatedProjectedHoleVertex.position.set(0, 0, holeRadius);
                 rotatedProjectedHoleVertices.push(rotatedProjectedHoleVertex);
             }
         }
@@ -308,22 +344,18 @@
         const coverPlug = cover!.plug();
         for (let index = 0; index < coverPlug.verticesLength(); index++) {
             const vertex = coverPlug.vertices(index);
+            const holeVertex = new Vector3(vertex.x(), vertex.y(), vertex.z());
 
-            function project(theta_t: number, phi_t: number, target: Vector3) {
+            function parametric(theta_t: number, phi_t: number, target: Vector3) {
                 const theta = lerp(box2.theta().interval().min(), box2.theta().interval().max(), theta_t);
                 const phi = lerp(box2.phi().interval().min(), box2.phi().interval().max(), phi_t);
-                const cos_theta = Math.cos(theta);
-                const sin_theta = Math.sin(theta);
-                const cos_phi = Math.cos(phi);
-                const sin_phi = Math.sin(phi);
-                target.set(
-                    -vertex.x() * sin_phi + vertex.y() * cos_phi,
-                    (vertex.x() * cos_phi + vertex.y() * sin_phi) * cos_theta - vertex.z() * sin_theta,
-                    -(vertex.x() * cos_phi + vertex.y() * sin_phi) * sin_theta - vertex.z() * cos_theta
-                );
+
+                //TODO: handle the case when vertex is on the z-axis, as the parametric surface will collapse to a line
+                const projected_vertex = project(holeVertex, theta, phi);
+                target.copy(projected_vertex);
             }
 
-            const projectedPlugVertexGeometry = new ParametricGeometry(project, 16, 16);
+            const projectedPlugVertexGeometry = new ParametricGeometry(parametric, 8, 8);
             const projectedPlugVertexMaterial = new MeshBasicMaterial({
                 color: new Color(0.0, 1.0, 0.0),
                 side: DoubleSide,
