@@ -26,12 +26,12 @@ static getSizePrefixedRootAsBox3(bb:flatbuffers.ByteBuffer, obj?:Box3):Box3 {
   return (obj || new Box3()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-phi(obj?:Id):Id|null {
+theta(obj?:Id):Id|null {
   const offset = this.bb!.__offset(this.bb_pos, 4);
   return offset ? (obj || new Id()).__init(this.bb_pos + offset, this.bb!) : null;
 }
 
-theta(obj?:Id):Id|null {
+phi(obj?:Id):Id|null {
   const offset = this.bb!.__offset(this.bb_pos, 6);
   return offset ? (obj || new Id()).__init(this.bb_pos + offset, this.bb!) : null;
 }
@@ -80,12 +80,12 @@ static startBox3(builder:flatbuffers.Builder) {
   builder.startObject(8);
 }
 
-static addPhi(builder:flatbuffers.Builder, phiOffset:flatbuffers.Offset) {
-  builder.addFieldStruct(0, phiOffset, 0);
+static addTheta(builder:flatbuffers.Builder, thetaOffset:flatbuffers.Offset) {
+  builder.addFieldStruct(0, thetaOffset, 0);
 }
 
-static addTheta(builder:flatbuffers.Builder, thetaOffset:flatbuffers.Offset) {
-  builder.addFieldStruct(1, thetaOffset, 0);
+static addPhi(builder:flatbuffers.Builder, phiOffset:flatbuffers.Offset) {
+  builder.addFieldStruct(1, phiOffset, 0);
 }
 
 static addAlpha(builder:flatbuffers.Builder, alphaOffset:flatbuffers.Offset) {

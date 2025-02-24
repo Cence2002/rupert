@@ -40,15 +40,15 @@ table Projection { // helper
 }
 
 table Box2 {
-  phi: Id;
   theta: Id;
+  phi: Id;
   projections: [Projection]; // helper
   out: [uint8]; // helper
 }
 
 table Box3 {
-  phi: Id;
   theta: Id;
+  phi: Id;
   alpha: Id;
   projections: [Projection]; // helper
   projection: Polygon; // helper
