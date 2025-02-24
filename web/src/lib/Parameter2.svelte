@@ -33,6 +33,9 @@
 
     $effect(onSelectBox2);
 
+    const PI = Math.PI;
+    const TWO_PI = 2 * Math.PI;
+
     const scene = new Scene();
     scene.up.set(0, 1, 0);
 
@@ -69,7 +72,7 @@
             const theta = box2.theta().interval();
             const phi = box2.phi().interval();
 
-            const box2Geometry = new PlaneGeometry(theta.max() - theta.min(), phi.max() - phi.min());
+            const box2Geometry = new PlaneGeometry((theta.max() - theta.min()) / PI, (phi.max() - phi.min()) / TWO_PI);
             const box2Material = new MeshBasicMaterial({
                 color: new Color(0, 1, 0),
                 transparent: true,
@@ -78,14 +81,14 @@
                 depthWrite: false
             });
             const box2Mesh = new Mesh(box2Geometry, box2Material);
-            box2Mesh.position.set((theta.min() + theta.max()) / 2, (phi.min() + phi.max()) / 2, 0);
+            box2Mesh.position.set((theta.min() + theta.max()) / 2 / PI, (phi.min() + phi.max()) / 2 / TWO_PI, 0);
 
             const box2EdgesGeometry = new EdgesGeometry(box2Geometry);
             const box2EdgesMaterial = new LineBasicMaterial({
                 color: new Color(0.5, 0.5, 0.5),
             });
             const box2Edges = new LineSegments(box2EdgesGeometry, box2EdgesMaterial);
-            box2Edges.position.set((theta.min() + theta.max()) / 2, (phi.min() + phi.max()) / 2, 0);
+            box2Edges.position.set((theta.min() + theta.max()) / 2 / PI, (phi.min() + phi.max()) / 2 / TWO_PI, 0);
 
             const box2Group = new Group();
             box2Group.add(box2Mesh);
