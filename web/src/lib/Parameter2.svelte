@@ -76,7 +76,7 @@
             const box2Material = new MeshBasicMaterial({
                 color: new Color(0, 1, 0),
                 transparent: true,
-                opacity: (index == box3.in_()) ? 0.75 : (box2.outLength() > 0 ? 0.25 : 0),
+                opacity: (index == box3.in_()) ? 0.75 : (box2.outLength() > 0 ? 0.25 : 0.0),
                 side: FrontSide,
                 depthWrite: false
             });
@@ -150,7 +150,7 @@
         });
 
         if (intersections.length === 0) {
-            // selection.selectBox2(null);
+            selection.selectBox2(null);
             return;
         }
 

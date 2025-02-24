@@ -69,7 +69,7 @@
                 const box3Material = new MeshBasicMaterial({
                     color: new Color(0, 0, 1),
                     transparent: true,
-                    opacity: box3.complete() ? 0.5 : 0.1,
+                    opacity: box3.complete() ? 0.5 : 0.0,
                     depthWrite: false
                 });
                 const box3Mesh = new Mesh(box3Geometry, box3Material);
@@ -139,7 +139,7 @@
         });
 
         if (intersections.length === 0) {
-            // selection.selectBox3(null);
+            selection.selectBox3(null);
             return;
         }
 
