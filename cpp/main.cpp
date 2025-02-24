@@ -12,7 +12,7 @@ bool is_box2_terminal(const Box2& box2, const Polygon<Interval>& hole, const Pol
     for(int vertex_index = 0; vertex_index < plug.vertices().size(); vertex_index++) {
         const IntervalVector2<Interval> projected_plug_vertex = projection(plug.vertices()[vertex_index], box2.theta<Interval>(), box2.phi<Interval>());
         for(const IntervalVector2<Interval>& projected_plug_vertex: projection_hull_trivial(plug.vertices()[vertex_index], box2.theta<Interval>(), box2.phi<Interval>())) {
-            // exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(projected_plug_vertex);
+            exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(projected_plug_vertex);
         }
         exporter.cover_builder.box3_builder.box2_builder.add_projection(exporter.builder);
         if(hole.is_outside(projected_plug_vertex)) {
@@ -162,7 +162,7 @@ int main() {
     exporter.cover_builder.set_hole(exporter.builder, hole);
     exporter.cover_builder.set_plug(exporter.builder, plug);
 
-    solve<Interval>(hole, plug, 1, 20, 10000, 3);
+    solve<Interval>(hole, plug, 1, 64, 10000, 3);
 
     exporter.save("../../web/static/test.bin");
 
