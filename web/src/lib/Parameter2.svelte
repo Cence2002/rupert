@@ -66,10 +66,10 @@
         for (let index = 0; index < box3.box2sLength(); index++) {
             const box2 = box3.box2s(index);
 
-            const phi = box2.phi().interval();
             const theta = box2.theta().interval();
+            const phi = box2.phi().interval();
 
-            const box2Geometry = new PlaneGeometry(phi.max() - phi.min(), theta.max() - theta.min());
+            const box2Geometry = new PlaneGeometry(theta.max() - theta.min(), phi.max() - phi.min());
             const box2Material = new MeshBasicMaterial({
                 color: new Color(0, 1, 0),
                 transparent: true,
@@ -78,14 +78,14 @@
                 depthWrite: false
             });
             const box2Mesh = new Mesh(box2Geometry, box2Material);
-            box2Mesh.position.set((phi.min() + phi.max()) / 2, (theta.min() + theta.max()) / 2, 0);
+            box2Mesh.position.set((theta.min() + theta.max()) / 2, (phi.min() + phi.max()) / 2, 0);
 
             const box2EdgesGeometry = new EdgesGeometry(box2Geometry);
             const box2EdgesMaterial = new LineBasicMaterial({
                 color: new Color(0.5, 0.5, 0.5),
             });
             const box2Edges = new LineSegments(box2EdgesGeometry, box2EdgesMaterial);
-            box2Edges.position.set((phi.min() + phi.max()) / 2, (theta.min() + theta.max()) / 2, 0);
+            box2Edges.position.set((theta.min() + theta.max()) / 2, (phi.min() + phi.max()) / 2, 0);
 
             const box2Group = new Group();
             box2Group.add(box2Mesh);

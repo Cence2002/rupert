@@ -57,26 +57,26 @@
             for (let index = 0; index < cover!.box3sLength(); index++) {
                 const box3 = cover!.box3s(index);
 
-                const phi = box3.phi().interval();
                 const theta = box3.theta().interval();
+                const phi = box3.phi().interval();
                 const alpha = box3.alpha().interval();
 
-                const box3Geometry = new BoxGeometry(phi.max() - phi.min(), theta.max() - theta.min(), alpha.max() - alpha.min());
+                const box3Geometry = new BoxGeometry(theta.max() - theta.min(), phi.max() - phi.min(), alpha.max() - alpha.min());
                 const box3Material = new MeshBasicMaterial({
                     color: new Color(0, 0, 1),
                     transparent: true,
-                    opacity: box3.complete() ? 0.5 : 0,
+                    opacity: box3.complete() ? 0.5 : 0.1,
                     depthWrite: false
                 });
                 const box3Mesh = new Mesh(box3Geometry, box3Material);
-                box3Mesh.position.set((phi.min() + phi.max()) / 2, (theta.min() + theta.max()) / 2, (alpha.min() + alpha.max()) / 2);
+                box3Mesh.position.set((theta.min() + theta.max()) / 2, (phi.min() + phi.max()) / 2, (alpha.min() + alpha.max()) / 2);
 
                 const box3EdgesGeometry = new EdgesGeometry(box3Geometry);
                 const box3EdgesMaterial = new LineBasicMaterial({
                     color: new Color(0.5, 0.5, 0.5),
                 });
                 const box3Edges = new LineSegments(box3EdgesGeometry, box3EdgesMaterial);
-                box3Edges.position.set((phi.min() + phi.max()) / 2, (theta.min() + theta.max()) / 2, (alpha.min() + alpha.max()) / 2);
+                box3Edges.position.set((theta.min() + theta.max()) / 2, (phi.min() + phi.max()) / 2, (alpha.min() + alpha.max()) / 2);
 
                 const box3Group = new Group();
                 box3Group.add(box3Mesh);
