@@ -120,7 +120,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector2Interval<Interval>>& vert
                 continue;
             }
             const Vector2Interval<Interval> to = vertices[to_index];
-            if(Edge<Interval>(from, vertices[most_clockwise_index] - from).orientation(to) == Orientation::COUNTERCLOCKWISE) {
+            if(Edge<Interval>(from, vertices[most_clockwise_index]).orientation(to) == Orientation::COUNTERCLOCKWISE) {
                 continue;
             }
             bool most_clockwise = true;
@@ -128,7 +128,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector2Interval<Interval>>& vert
                 if(clockwise_index == from_index || clockwise_index == to_index) {
                     continue;
                 }
-                if(Edge<Interval>(from, to - from).orientation(vertices[clockwise_index]) == Orientation::CLOCKWISE) {
+                if(Edge<Interval>(from, to).orientation(vertices[clockwise_index]) == Orientation::CLOCKWISE) {
                     most_clockwise = false;
                     break;
                 }
@@ -141,7 +141,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector2Interval<Interval>>& vert
             return (vertices[a] - from).len().mid() < (vertices[b] - from).len().mid();
         });
         for(const size_t to_index: to_indices) {
-            edges.emplace_back(vertices[from_index], vertices[to_index] - vertices[from_index]);
+            edges.emplace_back(vertices[from_index], vertices[to_index]);
             if(!visited[to_index]) {
                 queue.push(to_index);
             }
