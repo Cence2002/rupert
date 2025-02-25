@@ -9,14 +9,14 @@ Exporter exporter;
 template<IntervalType Interval>
 bool is_box2_terminal(const Box2& box2, const Polygon<Interval>& hole, const Polyhedron<Interval>& plug) {
     bool is_terminal = false;
-    for(int vertex_index = 0; vertex_index < plug.vertices().size(); vertex_index++) {
-        const Vector2Interval<Interval> projected_plug_vertex = projection(plug.vertices()[vertex_index], box2.theta<Interval>(), box2.phi<Interval>());
+    for(size_t vertex_index = 0; vertex_index < plug.vertices().size(); vertex_index++) {
         for(const Vector2Interval<Interval>& projected_plug_vertex: projection_hull_trivial(plug.vertices()[vertex_index], box2.theta<Interval>(), box2.phi<Interval>())) {
             exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(projected_plug_vertex);
         }
         exporter.cover_builder.box3_builder.box2_builder.add_projection(exporter.builder);
+        const Vector2Interval<Interval> projected_plug_vertex = projection(plug.vertices()[vertex_index], box2.theta<Interval>(), box2.phi<Interval>());
         if(hole.is_outside(projected_plug_vertex)) {
-            exporter.cover_builder.box3_builder.box2_builder.add_out(vertex_index);
+            exporter.cover_builder.box3_builder.box2_builder.add_out(static_cast<uint8_t>(vertex_index));
             is_terminal = true;
         }
     }

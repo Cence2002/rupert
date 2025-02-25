@@ -22,7 +22,7 @@ public:
 
     IntervalVector3& operator=(IntervalVector3&& intervalvector3) = default;
 
-    explicit IntervalVector3(const Interval& x, const Interval& y, const Interval& z) : x_(x), y_(y), z_(z) {}
+    explicit IntervalVector3(const Interval& x, const Interval& y, const Interval& z) noexcept: x_(x), y_(y), z_(z) {}
 
     Interval& x() {
         return x_;

@@ -168,10 +168,10 @@ Polygon<Interval> convex_hull(const std::vector<Vector2Interval<Interval>>& vert
         int most_clockwise_index = -1;
         for(size_t clockwise_index = 0; clockwise_index < vertices.size(); clockwise_index++) {
             if(most_clockwise_index == -1 && (vertices[clockwise_index] - from).len().is_pos()) {
-                most_clockwise_index = clockwise_index;
+                most_clockwise_index = static_cast<int>(clockwise_index);
             }
             if(most_clockwise_index != -1 && Edge<Interval>(from, vertices[most_clockwise_index]).orientation(vertices[clockwise_index]) == Orientation::CLOCKWISE) {
-                most_clockwise_index = clockwise_index;
+                most_clockwise_index = static_cast<int>(clockwise_index);
             }
         }
 

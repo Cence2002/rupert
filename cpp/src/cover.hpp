@@ -35,14 +35,14 @@ public:
         if(depth_ >= 64) {
             throw std::runtime_error("Id overflow");
         }
-        return Id(bits_ << 1, depth_ + 1);
+        return Id(bits_ << 1, static_cast<uint8_t>(depth_ + 1));
     }
 
     Id max() const {
         if(depth_ >= 64) {
             throw std::runtime_error("Id overflow");
         }
-        return Id((bits_ << 1) | 1ull, depth_ + 1);
+        return Id((bits_ << 1) | static_cast<uint64_t>(1), static_cast<uint8_t>(depth_ + 1));
     }
 
     std::pair<Id, Id> split() const {
@@ -56,7 +56,7 @@ public:
     Interval interval() const {
         Interval interval = Interval::unit();
         for(int shift = depth_ - 1; shift >= 0; shift--) {
-            if(bits_ & (1ull << shift)) {
+            if(bits_ & (static_cast<uint64_t>(1) << shift)) {
                 interval = Interval(interval.mid(), interval.max());
             } else {
                 interval = Interval(interval.min(), interval.mid());

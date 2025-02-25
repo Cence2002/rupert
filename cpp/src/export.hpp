@@ -1,16 +1,21 @@
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 #include "flatbuffers/flatbuffers_generated.h"
-#include <fstream>
+#pragma GCC diagnostic pop
 
 #include "geometry/geometry.hpp"
 #include "cover.hpp"
+#include <fstream>
 
 struct ProjectionBuilder {
 private:
     std::vector<FlatBuffers::Vector2> vertices_;
 
 public:
+    explicit ProjectionBuilder() : vertices_() {}
+
     template<IntervalType Interval>
     void add_vertex(const Vector2Interval<Interval>& vertex) {
         vertices_.emplace_back(
@@ -35,6 +40,8 @@ private:
 
 public:
     ProjectionBuilder projection_builder;
+
+    explicit Box2Builder() : theta_(), phi_(), projections_(), out_(), projection_builder() {}
 
     void set_box2(const Box2& box2) {
         theta_ = FlatBuffers::Id(
@@ -91,6 +98,8 @@ private:
 public:
     ProjectionBuilder projection_builder;
     Box2Builder box2_builder;
+
+    Box3Builder() : theta_(), phi_(), alpha_(), projections_(), projection_(), box2s_(), complete_(), in_(), projection_builder(), box2_builder() {}
 
     void set_box3(const Box3& box3) {
         theta_ = FlatBuffers::Id(
@@ -169,16 +178,18 @@ public:
 
 struct CoverBuilder {
 private:
-    std::string description;
-    flatbuffers::Offset<FlatBuffers::Polyhedron> hole;
-    flatbuffers::Offset<FlatBuffers::Polyhedron> plug;
-    std::vector<flatbuffers::Offset<FlatBuffers::Box3>> box3s;
+    std::string description_;
+    flatbuffers::Offset<FlatBuffers::Polyhedron> hole_;
+    flatbuffers::Offset<FlatBuffers::Polyhedron> plug_;
+    std::vector<flatbuffers::Offset<FlatBuffers::Box3>> box3s_;
 
 public:
     Box3Builder box3_builder;
 
+    explicit CoverBuilder() : description_(), hole_(), plug_(), box3s_(), box3_builder() {}
+
     void set_description(const std::string& description) {
-        this->description = description;
+        description_ = description;
     }
 
     template<IntervalType Interval>
@@ -191,7 +202,7 @@ public:
                 vertex.z().mid().float_value()
             );
         }
-        hole = FlatBuffers::CreatePolyhedron(builder, builder.CreateVectorOfStructs(vertices));
+        hole_ = FlatBuffers::CreatePolyhedron(builder, builder.CreateVectorOfStructs(vertices));
     }
 
     template<IntervalType Interval>
@@ -204,30 +215,31 @@ public:
                 vertex.z().mid().float_value()
             );
         }
-        plug = FlatBuffers::CreatePolyhedron(builder, builder.CreateVectorOfStructs(vertices));
+        plug_ = FlatBuffers::CreatePolyhedron(builder, builder.CreateVectorOfStructs(vertices));
     }
 
     void add_box3(flatbuffers::FlatBufferBuilder& builder) {
-        box3s.push_back(box3_builder.build(builder));
+        box3s_.push_back(box3_builder.build(builder));
     }
 
     void build(flatbuffers::FlatBufferBuilder& builder) {
-        const auto descriptionOffset = builder.CreateString(description);
+        const auto descriptionOffset = builder.CreateString(description_);
         const auto cover = FlatBuffers::CreateCover(
             builder,
             descriptionOffset,
-            hole,
-            plug,
-            builder.CreateVector(box3s)
+            hole_,
+            plug_,
+            builder.CreateVector(box3s_)
         );
         builder.Finish(cover);
     }
 };
 
 struct Exporter {
-public:
     flatbuffers::FlatBufferBuilder builder;
     CoverBuilder cover_builder;
+
+    explicit Exporter() : builder(), cover_builder() {}
 
     void save(const std::string& filename) {
         cover_builder.build(builder);
