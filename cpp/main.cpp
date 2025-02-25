@@ -15,7 +15,7 @@ bool is_box2_terminal(const Box2& box2, const Polygon<Interval>& hole, const Pol
         }
         exporter.cover_builder.box3_builder.box2_builder.add_projection(exporter.builder);
         const Vector2Interval<Interval> projected_plug_vertex = projection(plug.vertices()[vertex_index], box2.theta<Interval>(), box2.phi<Interval>());
-        if(hole.is_outside(projected_plug_vertex)) {
+        if(is_vector2_outside_polygon(projected_plug_vertex, hole)) {
             exporter.cover_builder.box3_builder.box2_builder.add_out(static_cast<uint8_t>(vertex_index));
             is_terminal = true;
         }
@@ -27,7 +27,7 @@ template<IntervalType Interval>
 bool is_box3_nonterminal(const Box2& box2, const Polygon<Interval>& hole, const Polyhedron<Interval>& plug) {
     return std::ranges::all_of(plug.vertices(), [&](const IntervalVector3<Interval>& plug_vertex) {
         const Vector2Interval<Interval> projected_plug_vertex = projection(plug_vertex, Interval(box2.theta<Interval>().mid()), Interval(box2.phi<Interval>().mid()));
-        return hole.is_inside(projected_plug_vertex);
+        return is_vector2_inside_polygon(projected_plug_vertex, hole);
     });
 }
 
@@ -35,7 +35,6 @@ template<IntervalType Interval>
 std::vector<Interval> split(const Interval& interval, const int parts) {
     std::vector<Interval> sub_intervals;
     for(int part_index = 0; part_index < parts; part_index++) {
-        // TODO make valid (min rounds down, so we need smarter calculation of parts)
         const Interval sub_interval = interval.min() + Interval(part_index, part_index + 1) / parts * interval.len();
         sub_intervals.push_back(sub_interval);
     }

@@ -143,6 +143,34 @@ std::vector<Vector2Interval<Interval>> projection_hull_triangle(const IntervalVe
 }
 
 template<IntervalType Interval>
+bool is_vector2_inside_polygon(const Vector2Interval<Interval>& vector2, const Polygon<Interval>& polygon) {
+    bool all_counter_clockwise = true;
+    for(const Edge<Interval>& edge: polygon.edges()) {
+        const Orientation orientation = edge.orientation(vector2);
+        if(orientation == Orientation::COLLINEAR) {
+            return false;
+        }
+        const bool counter_clockwise = orientation == Orientation::COUNTERCLOCKWISE;
+        all_counter_clockwise &= counter_clockwise;
+    }
+    return all_counter_clockwise;
+}
+
+template<IntervalType Interval>
+bool is_vector2_outside_polygon(const Vector2Interval<Interval>& vector2, const Polygon<Interval>& polygon) {
+    bool any_clockwise = false;
+    for(const Edge<Interval>& edge: polygon.edges()) {
+        const Orientation orientation = edge.orientation(vector2);
+        if(!edge.avoids(vector2)) {
+            return false;
+        }
+        const bool clockwise = orientation == Orientation::CLOCKWISE;
+        any_clockwise |= clockwise;
+    }
+    return any_clockwise;
+}
+
+template<IntervalType Interval>
 Polygon<Interval> convex_hull(const std::vector<Vector2Interval<Interval>>& vertices) {
     std::vector<Edge<Interval>> edges;
 

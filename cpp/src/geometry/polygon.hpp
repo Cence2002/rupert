@@ -15,30 +15,7 @@ public:
         return edges_;
     }
 
-    bool is_inside(const Vector2Interval<Interval>& vector2) const {
-        bool all_counter_clockwise = true;
-        for(const Edge<Interval>& edge: edges_) {
-            const Orientation orientation = edge.orientation(vector2);
-            if(orientation == Orientation::COLLINEAR) {
-                return false;
-            }
-            const bool counter_clockwise = orientation == Orientation::COUNTERCLOCKWISE;
-            all_counter_clockwise &= counter_clockwise;
-        }
-        return all_counter_clockwise;
-    }
-
     bool is_outside(const Vector2Interval<Interval>& vector2) const {
-        bool any_clockwise = false;
-        for(const Edge<Interval>& edge: edges_) {
-            const Orientation orientation = edge.orientation(vector2);
-            if(!edge.avoids(vector2)) {
-                return false;
-            }
-            const bool clockwise = orientation == Orientation::CLOCKWISE;
-            any_clockwise |= clockwise;
-        }
-        return any_clockwise;
     }
 
     friend std::ostream& operator<<(std::ostream& ostream, const Polygon& polygon) {
