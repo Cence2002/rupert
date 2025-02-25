@@ -13,7 +13,7 @@ add_compile_options(
         -Werror
 
         -fsyntax-only
-        #-Wfatal-errors
+        -Wfatal-errors
         -Wpedantic
         -Wall
         -Wextra
@@ -46,7 +46,6 @@ add_compile_options(
         -Wduplicated-branches
         -Wduplicated-cond
         -Wtrampolines
-        -Wfloat-equal
         -Wshadow
         -Wunsafe-loop-optimizations
         -Wpointer-arith
@@ -69,27 +68,20 @@ add_compile_options(
         -Wextra-semi
 )
 
-find_package(OpenCV REQUIRED)
-
-find_library(GMP_LIB gmp REQUIRED)
-find_library(GMPXX_LIB gmpxx REQUIRED)
-
-find_library(MPFR_LIB mpfr REQUIRED)
-
-find_library(MPFI_LIB mpfi REQUIRED)
-
-
 include_directories(
-        src
-        str/number
+        src/number
         src/interval
         src/vector
         src/geometry
         src/flatbuffers
+        src
 )
 
 add_executable(rupert main.cpp)
 
-
-#target_link_libraries(rupert PRIVATE ${OpenCV_LIBS} ${GMP_LIB} ${GMPXX_LIB} ${MPFR_LIB} ${MPFI_LIB})
+find_package(OpenCV REQUIRED)
+find_library(GMP_LIB gmp REQUIRED)
+find_library(GMPXX_LIB gmpxx REQUIRED)
+find_library(MPFR_LIB mpfr REQUIRED)
+find_library(MPFI_LIB mpfi REQUIRED)
 target_link_libraries(rupert PRIVATE ${OpenCV_LIBS} ${GMP_LIB} ${GMPXX_LIB} ${MPFR_LIB} ${MPFI_LIB} /usr/lib/x86_64-linux-gnu/libflatbuffers.a)
