@@ -36,7 +36,7 @@ std::vector<Interval> split(const Interval& interval, const int parts) {
     std::vector<Interval> sub_intervals;
     for(int part_index = 0; part_index < parts; part_index++) {
         // TODO make valid (min rounds down, so we need smarter calculation of parts)
-        const Interval sub_interval = interval.min() + Interval(part_index, part_index + 1) * interval.len() / parts;
+        const Interval sub_interval = interval.min() + Interval(part_index, part_index + 1) / parts * interval.len();
         sub_intervals.push_back(sub_interval);
     }
     return sub_intervals;
@@ -162,7 +162,7 @@ int main() {
     exporter.cover_builder.set_hole(exporter.builder, hole);
     exporter.cover_builder.set_plug(exporter.builder, plug);
 
-    solve<Interval>(hole, plug, 1, 64, 10000, 3);
+    solve<Interval>(hole, plug, 1, 800, 10000, 3);
 
     exporter.save("../../web/static/test.bin");
 
