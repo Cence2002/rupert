@@ -136,10 +136,11 @@ public:
     void set_projection(flatbuffers::FlatBufferBuilder& builder, const Polygon<Interval>& polygon) {
         std::vector<FlatBuffers::Edge> edges;
         for(const auto& edge: polygon.edges()) {
-            edges.emplace_back(
+            const auto flatbuffers_edge = FlatBuffers::Edge(
                 FlatBuffers::Vector2(edge.from().x().mid().float_value(), edge.from().y().mid().float_value()),
                 FlatBuffers::Vector2(edge.to().x().mid().float_value(), edge.to().y().mid().float_value())
             );
+            edges.push_back(flatbuffers_edge);
         }
         projection_ = FlatBuffers::CreatePolygon(builder, builder.CreateVectorOfStructs(edges));
     }

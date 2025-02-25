@@ -135,7 +135,7 @@ void solve(const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug,
             mpfr_free_cache2(MPFR_FREE_LOCAL_CACHE);
         });
     }
-    for(auto& thread: threads) {
+    for(std::thread& thread: threads) {
         thread.join();
     }
     mpfr_free_cache();
