@@ -8,14 +8,15 @@ Exporter exporter;
 
 template<IntervalType Interval>
 bool is_box2_terminal(const Box2& box2, const Polygon<Interval>& hole, const Polyhedron<Interval>& plug) {
+    const Interval& theta = box2.theta<Interval>();
+    const Interval& phi = box2.phi<Interval>();
     bool is_terminal = false;
     for(size_t vertex_index = 0; vertex_index < plug.vertices().size(); vertex_index++) {
-        for(const Vector2Interval<Interval>& projected_plug_vertex: projection_hull_trivial(plug.vertices()[vertex_index], box2.theta<Interval>(), box2.phi<Interval>())) {
+        for(const Vector2Interval<Interval>& projected_plug_vertex: projection_hull_trivial(plug.vertices()[vertex_index], theta, phi)) {
             exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(projected_plug_vertex);
         }
         exporter.cover_builder.box3_builder.box2_builder.add_projection(exporter.builder);
-        const Vector2Interval<Interval> projected_plug_vertex = projection(plug.vertices()[vertex_index], box2.theta<Interval>(), box2.phi<Interval>());
-        if(is_vector2_outside_polygon(projected_plug_vertex, hole)) {
+        if(is_projected_vertex_outside_polygon_trivial(plug.vertices()[vertex_index], theta, phi, hole)) {
             exporter.cover_builder.box3_builder.box2_builder.add_out(static_cast<uint8_t>(vertex_index));
             is_terminal = true;
         }
@@ -25,9 +26,10 @@ bool is_box2_terminal(const Box2& box2, const Polygon<Interval>& hole, const Pol
 
 template<IntervalType Interval>
 bool is_box3_nonterminal(const Box2& box2, const Polygon<Interval>& hole, const Polyhedron<Interval>& plug) {
+    const Interval& theta = Interval(box2.theta<Interval>().mid());
+    const Interval& phi = Interval(box2.phi<Interval>().mid());
     return std::ranges::all_of(plug.vertices(), [&](const IntervalVector3<Interval>& plug_vertex) {
-        const Vector2Interval<Interval> projected_plug_vertex = projection(plug_vertex, Interval(box2.theta<Interval>().mid()), Interval(box2.phi<Interval>().mid()));
-        return is_vector2_inside_polygon(projected_plug_vertex, hole);
+        return is_projected_vertex_inside_polygon_trivial(plug_vertex, theta, phi, hole);
     });
 }
 
@@ -65,8 +67,7 @@ Polygon<Interval> project_hole(const Box3& box3, const Polyhedron<Interval>& hol
 }
 
 template<IntervalType Interval>
-bool is_box3_terminal(const Box3& box3, const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug,
-                      const int iterations2, const int resolution) {
+bool is_box3_terminal(const Box3& box3, const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug, const int iterations2, const int resolution) {
     Polygon<Interval> projected_hole = project_hole(box3, hole, resolution);
     exporter.cover_builder.box3_builder.set_projection(exporter.builder, projected_hole);
     Queue2 queue2;
@@ -120,8 +121,7 @@ void step(Queue3& queue3, const Polyhedron<Interval>& hole, const Polyhedron<Int
 }
 
 template<IntervalType Interval>
-void solve(const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug,
-           const int num_threads = 10, const int iterations3 = 1000, const int iterations2 = 10000, const int resolution = 5) {
+void solve(const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug, const int num_threads, const int iterations3, const int iterations2, const int resolution) {
     Queue3 queue3;
 
     std::vector<std::thread> threads;
@@ -161,7 +161,7 @@ int main() {
     exporter.cover_builder.set_hole(exporter.builder, hole);
     exporter.cover_builder.set_plug(exporter.builder, plug);
 
-    solve<Interval>(hole, plug, 1, 800, 10000, 3);
+    solve<Interval>(hole, plug, 1, 100, 10000, 3);
 
     exporter.save("../../web/static/test.bin");
 

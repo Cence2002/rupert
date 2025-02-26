@@ -157,6 +157,12 @@ bool is_vector2_inside_polygon(const Vector2Interval<Interval>& vector2, const P
 }
 
 template<IntervalType Interval>
+bool is_projected_vertex_inside_polygon_trivial(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
+    const Vector2Interval<Interval> projected_vertex = projection(vertex, theta, phi);
+    return is_vector2_inside_polygon(projected_vertex, polygon);
+}
+
+template<IntervalType Interval>
 bool is_vector2_outside_polygon(const Vector2Interval<Interval>& vector2, const Polygon<Interval>& polygon) {
     bool any_clockwise = false;
     for(const Edge<Interval>& edge: polygon.edges()) {
@@ -168,6 +174,12 @@ bool is_vector2_outside_polygon(const Vector2Interval<Interval>& vector2, const 
         any_clockwise |= clockwise;
     }
     return any_clockwise;
+}
+
+template<IntervalType Interval>
+bool is_projected_vertex_outside_polygon_trivial(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
+    const Vector2Interval<Interval> projected_vertex = projection(vertex, theta, phi);
+    return is_vector2_outside_polygon(projected_vertex, polygon);
 }
 
 template<IntervalType Interval>
@@ -226,7 +238,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector2Interval<Interval>>& vert
                 to_indices.push_back(to_index);
             }
         }
-        std::ranges::sort(to_indices, [&](const size_t a, const size_t b) {
+        std::ranges::stable_sort(to_indices, [&](const size_t a, const size_t b) {
             return (vertices[a] - from).len().mid() < (vertices[b] - from).len().mid();
         });
         for(const size_t to_index: to_indices) {
