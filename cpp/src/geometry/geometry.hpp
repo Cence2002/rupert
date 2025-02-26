@@ -40,6 +40,8 @@ std::vector<Vector2Interval<Interval>> vector2_hull(const Vector2Interval<Interv
 
 template<IntervalType Interval>
 Vector2Interval<Interval> rotation_trivial(const Vector2Interval<Interval>& projected_vertex, const Interval& alpha) {
+    // X = x * cos(alpha) - y * sin(alpha)
+    // Y = x * sin(alpha) + y * cos(alpha)
     return Vector2Interval<Interval>(
         harmonic_trivial(projected_vertex.x(), -projected_vertex.y(), alpha),
         harmonic_trivial(projected_vertex.y(), projected_vertex.x(), alpha)
@@ -68,8 +70,9 @@ std::vector<Vector2Interval<Interval>> rotation_hull_combined(const Vector2Inter
 
 template<IntervalType Interval>
 std::vector<Vector2Interval<Interval>> rotation_hull_triangle(const Vector2Interval<Interval>& vector2, const Interval& alpha) {
-    if(!(alpha.len() < Interval::pi() / 2)) {
-        std::cerr << "rotation_hull_triangle only supports |alpha| < pi/2" << std::endl;
+    if(!(alpha.len() < Interval::pi() / 4)) {
+        // apex of triangle is not well-defined, or it might be numerically unstable
+        // default to combined
         return rotation_hull_combined(vector2, alpha);
     }
 
@@ -92,6 +95,8 @@ std::vector<Vector2Interval<Interval>> rotation_hull_triangle(const Vector2Inter
 
 template<IntervalType Interval>
 Vector2Interval<Interval> projection_trivial(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi) {
+    // X = -x * sin(phi) + y * cos(phi)
+    // Y = (x * cos(phi) + y * sin(phi)) * cos(theta) - z * sin(theta)
     const Vector2Interval<Interval> reflected_vertex = Vector2Interval<Interval>(vertex.x(), -vertex.y());
     const Interval shifted_phi = phi + Interval::pi() / 2;
     const Vector2Interval<Interval> rotated_reflected_vertex = rotation_trivial(reflected_vertex, shifted_phi);
@@ -126,8 +131,9 @@ std::vector<Vector2Interval<Interval>> projection_hull_combined(const Vector3Int
 
 template<IntervalType Interval>
 std::vector<Vector2Interval<Interval>> projection_hull_triangle(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi) {
-    if(!(phi.len() < Interval::pi() / 2)) {
-        std::cerr << "rotation_hull_triangle only supports |phi| < pi/2" << std::endl;
+    if(!(phi.len() < Interval::pi() / 4)) {
+        // apex of triangle (in rotation_hull_triangle) is not well-defined, or it might be numerically unstable
+        // default to combined
         return projection_hull_combined(vertex, theta, phi);
     }
 
@@ -216,6 +222,40 @@ template<IntervalType Interval>
 bool is_projected_vertex_outside_polygon_combined(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
     const Vector2Interval<Interval> projected_vertex = projection_combined(vertex, theta, phi);
     return is_vector2_outside_polygon(projected_vertex, polygon);
+}
+
+template<IntervalType Interval>
+bool is_fixed_phi_projected_vertex_avoiding_polygon_perimeter(const Vector3Interval<Interval>& vertex, const Interval& theta, const typename Interval::Number& phi, const Polygon<Interval>& polygon) {
+    const Vector2Interval<Interval> projected_vertex = projection_combined(vertex, theta, Interval(phi));
+    const Edge projected_edge(
+        Vector2Interval<Interval>(projected_vertex.x(), Interval(projected_vertex.y().min())),
+        Vector2Interval<Interval>(projected_vertex.x(), Interval(projected_vertex.y().max()))
+    );
+    for(const Edge<Interval>& edge: polygon.edges()) {
+        if(!projected_edge.avoids(edge)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template<IntervalType Interval>
+bool is_fixed_theta_projected_vertex_avoiding_polygon_perimeter(const Vector3Interval<Interval>& vertex, const typename Interval::Number& theta, const Interval& phi, const Polygon<Interval>& polygon) {
+    return false;
+}
+
+template<IntervalType Interval>
+bool is_projected_vertex_outside_polygon_perimeter(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
+    if(!(theta.len() < Interval::pi() / 4) || !(phi.len() < Interval::pi() / 4)) {
+        // projected vertex might surround the polygon, meaning it avoids, but is not outside
+        // default to combined
+        return is_projected_vertex_outside_polygon_combined(vertex, theta, phi, polygon);
+    }
+    return is_projected_vertex_outside_polygon_combined(vertex, Interval(theta.mid()), Interval(phi.mid()), polygon) &&
+           is_fixed_phi_projected_vertex_avoiding_polygon_perimeter(vertex, theta, phi.min(), polygon) &&
+           is_fixed_phi_projected_vertex_avoiding_polygon_perimeter(vertex, theta, phi.max(), polygon) &&
+           is_fixed_theta_projected_vertex_avoiding_polygon_perimeter(vertex, theta.min(), phi, polygon) &&
+           is_fixed_theta_projected_vertex_avoiding_polygon_perimeter(vertex, theta.max(), phi, polygon);
 }
 
 template<IntervalType Interval>
