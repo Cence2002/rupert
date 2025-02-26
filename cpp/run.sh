@@ -21,4 +21,6 @@ if [ ! -f "$BUILD_DIR/$EXECUTABLE" ]; then
   exit 1
 fi
 
-./$BUILD_DIR/$EXECUTABLE
+cd $BUILD_DIR
+./$EXECUTABLE
+cd ..

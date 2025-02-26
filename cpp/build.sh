@@ -10,7 +10,7 @@ if [ "$PWD" != "$SCRIPT_DIR" ]; then
 fi
 
 BUILD_DIR="build"
-JOBS=4
+JOBS=1
 
 rm -rf $BUILD_DIR
 mkdir $BUILD_DIR
