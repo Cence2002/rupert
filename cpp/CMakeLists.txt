@@ -6,72 +6,72 @@ set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_EXTENSIONS NO)
 
 add_compile_options(
-        -std=c++20
-        -O3
-        -g3
+    -std=c++20
+    -O3
+    -g3
 
-        -Werror
+    -Werror
 
-        -Wpedantic
-        -Wall
-        -Wextra
-        -Wdouble-promotion
-        -Wformat-overflow=2
-        -Wformat-nonliteral
-        -Wformat-security
-        -Wformat-signedness
-        -Winit-self
-        -Wmain
-        -Wmissing-include-dirs
-        -Wshift-overflow=2
-        -Wunused
-        -Wuseless-cast
-        -Wuninitialized
-        -Wstrict-overflow=5
-        -Wstringop-overflow=4
+    -Wpedantic
+    -Wall
+    -Wextra
+    -Wdouble-promotion
+    -Wformat-overflow=2
+    -Wformat-nonliteral
+    -Wformat-security
+    -Wformat-signedness
+    -Winit-self
+    -Wmain
+    -Wmissing-include-dirs
+    -Wshift-overflow=2
+    -Wunused
+    -Wuseless-cast
+    -Wuninitialized
+    -Wstrict-overflow=5
+    -Wstringop-overflow=4
 
-        -Wsuggest-attribute=pure
-        -Wsuggest-attribute=const
-        -Wsuggest-attribute=noreturn
-        -Wmissing-noreturn
-        -Wsuggest-attribute=malloc
-        -Wsuggest-attribute=format
-        -Wmissing-format-attribute
-        -Wsuggest-attribute=cold
+    -Wsuggest-attribute=pure
+    -Wsuggest-attribute=const
+    -Wsuggest-attribute=noreturn
+    -Wmissing-noreturn
+    -Wsuggest-attribute=malloc
+    -Wsuggest-attribute=format
+    -Wmissing-format-attribute
+    -Wsuggest-attribute=cold
 
-        -Warith-conversion
-        -Wduplicated-branches
-        -Wduplicated-cond
-        -Wtrampolines
-        -Wshadow
-        -Wunsafe-loop-optimizations
-        -Wpointer-arith
-        -Wundef
-        -Wconversion
-        -Wlogical-op
-        -Wredundant-decls
-        #-Winline
-        -Wlong-long
-        -Wvector-operation-performance
+    -Warith-conversion
+    -Wduplicated-branches
+    -Wduplicated-cond
+    -Wtrampolines
+    -Wshadow
+    -Wunsafe-loop-optimizations
+    -Wpointer-arith
+    -Wundef
+    -Wconversion
+    -Wlogical-op
+    -Wredundant-decls
+    #-Winline
+    -Wlong-long
+    -Wvector-operation-performance
 
-        -Winvalid-imported-macros
-        -Wnoexcept
-        -Wreorder
-        -Wredundant-tags
-        -Weffc++
-        -Wold-style-cast
-        -Wsign-promo
-        -Wno-template-id-cdtor
-        -Wextra-semi
+    -Winvalid-imported-macros
+    -Wnoexcept
+    -Wreorder
+    -Wredundant-tags
+    -Weffc++
+    -Wold-style-cast
+    -Wsign-promo
+    -Wno-template-id-cdtor
+    -Wextra-semi
 )
 
 include_directories(
-        src/number
-        src/interval
-        src/vector
-        src/geometry
-        src/flatbuffers
-        src
+    src/number
+    src/interval
+    src/vector
+    src/geometry
+    src/flatbuffers
+    src
 )
 
 add_executable(rupert main.cpp)
