@@ -406,6 +406,12 @@ public:
         return sin;
     }
 
+    MpfiInterval atan() const {
+        MpfiInterval atan;
+        mpfi_atan(atan.interval_, interval_);
+        return atan;
+    }
+
     static MpfiInterval nan() {
         return MpfiInterval();
     }

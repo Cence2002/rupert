@@ -84,6 +84,7 @@ concept IntervalType =
 
         { interval.cos() } -> std::same_as<Interval>;
         { interval.sin() } -> std::same_as<Interval>;
+        { interval.atan() } -> std::same_as<Interval>;
 
         { Interval::nan() } -> std::same_as<Interval>;
         { Interval::unit() } -> std::same_as<Interval>;

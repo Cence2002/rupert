@@ -328,6 +328,13 @@ public:
         return FloatInterval(min, max);
     }
 
+    FloatInterval atan() const {
+        if(is_nan()) {
+            return nan();
+        }
+        return FloatInterval(std::atan(min_), std::atan(max_));
+    }
+
     static FloatInterval nan() {
         return FloatInterval(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN());
     }

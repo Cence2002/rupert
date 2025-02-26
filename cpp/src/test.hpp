@@ -276,6 +276,9 @@ public:
             if(!compare_interval(interval_0.sin(), interval_1.sin())) {
                 print("(", Interval_0::name, ")", interval_0, ".sin()", "  ==>  ", interval_0.sin(), "    <====>    ", interval_1.sin(), "  <==  ", "(", Interval_1::name, ")", interval_1, ".sin()");
             }
+            if(!compare_interval(interval_0.atan(), interval_1.atan())) {
+                print("(", Interval_0::name, ")", interval_0, ".atan()", "  ==>  ", interval_0.atan(), "    <====>    ", interval_1.atan(), "  <==  ", "(", Interval_1::name, ")", interval_1, ".atan()");
+            }
         }
         if(!compare_interval(Interval_0::unit(), Interval_1::unit())) {
             print("(", Interval_0::name, ")", ".unit()", "  ==>  ", Interval_0::unit(), "    <====>    ", Interval_1::unit(), "  <==  ", "(", Interval_1::name, ")", ".unit()");
@@ -286,14 +289,10 @@ public:
     }
 };
 
-inline void tests() {
+inline void tests(const int iterations = 10000, const int resolution = 100, const double tolerance = 1e-12) {
     const auto start = current_time();
 
-    std::thread thread([] {
-        constexpr int iterations = 10000;
-        constexpr int resolution = 100;
-        constexpr double tolerance = 1e-12;
-
+    std::thread thread([&] {
         IntervalValidator<FloatInterval, BoostInterval> float_interval_vs_boost_interval(tolerance);
         float_interval_vs_boost_interval.validate(iterations, resolution);
 

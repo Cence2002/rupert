@@ -274,6 +274,10 @@ public:
         return BoostInterval(boost::numeric::sin(interval_));
     }
 
+    BoostInterval atan() const {
+        return BoostInterval(boost::numeric::atan(interval_));
+    }
+
     static BoostInterval nan() {
         return BoostInterval(BoostIntervalType::empty());
     }
