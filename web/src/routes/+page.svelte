@@ -15,7 +15,7 @@
     let selection = new Selection();
 
     onMount(async () => {
-        cover = await loadCover("/test.bin");
+        cover = await loadCover("/cover.bin");
         console.log("Fetched:", cover!.description());
     });
 </script>

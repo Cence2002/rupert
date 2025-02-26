@@ -163,7 +163,7 @@ int main() {
 
     solve<Interval>(hole, plug, 1, 100, 10000, 3);
 
-    exporter.save("../../web/static/test.bin");
+    exporter.save("../../web/static/cover.bin");
 
     return 0;
 }
