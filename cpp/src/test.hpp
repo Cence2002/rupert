@@ -116,7 +116,7 @@ public:
         return compare_number(interval_0.min(), interval_1.min()) && compare_number(interval_0.max(), interval_1.max());
     }
 
-    void validate(const int iterations = 1000, const int resolution = 1000) {
+    void validate(const int iterations, const int resolution) {
         for(int iteration = 0; iteration < iterations; iteration++) {
             auto [interval_0, interval_1] = random_intervals(resolution);
             interval_0 = interval_0 / (resolution / 10);
@@ -147,6 +147,9 @@ public:
                 print("(", Interval_0::name, ")", interval_0, ".rad()", "  ==>  ", interval_0.rad(), "    <====>    ", interval_1.rad(), "  <==  ", "(", Interval_1::name, ")", interval_1, ".rad()");
             }
 
+            if(!compare_bool(interval_0.is_nonzero(), interval_1.is_nonzero())) {
+                print("(", Interval_0::name, ")", interval_0, ".is_nonzero()", "  ==>  ", interval_0.is_nonzero(), "    <====>    ", interval_1.is_nonzero(), "  <==  ", "(", Interval_1::name, ")", interval_1, ".is_nonzero()");
+            }
             if(!compare_bool(interval_0.is_pos(), interval_1.is_pos())) {
                 print("(", Interval_0::name, ")", interval_0, ".is_pos()", "  ==>  ", interval_0.is_pos(), "    <====>    ", interval_1.is_pos(), "  <==  ", "(", Interval_1::name, ")", interval_1, ".is_pos()");
             }

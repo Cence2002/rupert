@@ -49,6 +49,7 @@ concept NumberType =
         { number < integer } -> std::same_as<bool>;
         { integer < number } -> std::same_as<bool>;
 
+        { number.is_nonzero() } -> std::same_as<bool>;
         { number.is_pos() } -> std::same_as<bool>;
         { number.is_neg() } -> std::same_as<bool>;
         { number.is_nan() } -> std::same_as<bool>;

@@ -81,6 +81,10 @@ public:
         return rad;
     }
 
+    bool is_nonzero() const {
+        return !is_nan() && !boost::numeric::zero_in(interval_);
+    }
+
     bool is_pos() const {
         return boost::numeric::interval_lib::cergt(interval_, 0.0);
     }
@@ -212,21 +216,21 @@ public:
     }
 
     BoostInterval operator/(const BoostInterval& interval) const {
-        if(!interval.is_pos() && !interval.is_neg()) {
+        if(!interval.is_nonzero()) {
             return nan();
         }
         return BoostInterval(interval_ / interval.interval_);
     }
 
     BoostInterval operator/(const Number& number) const {
-        if(!number.is_pos() && !number.is_neg()) {
+        if(!number.is_nonzero()) {
             return nan();
         }
         return BoostInterval(interval_ / number.value());
     }
 
     friend BoostInterval operator/(const Number& number, const BoostInterval& interval) {
-        if(!interval.is_pos() && !interval.is_neg()) {
+        if(!interval.is_nonzero()) {
             return nan();
         }
         return BoostInterval(number.value() / interval.interval_);
@@ -242,14 +246,14 @@ public:
 
     template<IntegerType Integer>
     friend BoostInterval operator/(const Integer integer, const BoostInterval& interval) {
-        if(!interval.is_pos() && !interval.is_neg()) {
+        if(!interval.is_nonzero()) {
             return nan();
         }
         return BoostInterval(static_cast<double>(integer) / interval.interval_);
     }
 
     BoostInterval inv() const {
-        if(!is_pos() && !is_neg()) {
+        if(!is_nonzero()) {
             return nan();
         }
         return BoostInterval(boost::numeric::interval_lib::multiplicative_inverse(interval_));
@@ -260,7 +264,7 @@ public:
     }
 
     BoostInterval sqrt() const {
-        if(min() < 0) {
+        if(min().is_neg()) {
             return nan();
         }
         return BoostInterval(boost::numeric::sqrt(interval_));

@@ -70,6 +70,10 @@ public:
         return rad;
     }
 
+    bool is_nonzero() const {
+        return min_ > 0 || max_ < 0;
+    }
+
     bool is_pos() const {
         return min_ > 0;
     }
@@ -214,7 +218,7 @@ public:
     }
 
     FloatInterval operator/(const FloatInterval& interval) const {
-        if(!interval.is_pos() && !interval.is_neg()) {
+        if(!interval.is_nonzero()) {
             return nan();
         }
         const double min_min = min_ / interval.min_;
@@ -226,7 +230,7 @@ public:
     }
 
     FloatInterval operator/(const Number& number) const {
-        if(number.value() == 0) {
+        if(!number.is_nonzero()) {
             return nan();
         }
         const double min_n = min_ / number.value();
@@ -235,7 +239,7 @@ public:
     }
 
     friend FloatInterval operator/(const Number& number, const FloatInterval& interval) {
-        if(!interval.is_pos() && !interval.is_neg()) {
+        if(!interval.is_nonzero()) {
             return nan();
         }
         const double min = number.value() / interval.min_;
@@ -255,7 +259,7 @@ public:
 
     template<IntegerType Integer>
     friend FloatInterval operator/(const Integer integer, const FloatInterval& interval) {
-        if(!interval.is_pos() && !interval.is_neg()) {
+        if(!interval.is_nonzero()) {
             return nan();
         }
         const double min = static_cast<double>(integer) / interval.min_;
@@ -264,7 +268,7 @@ public:
     }
 
     FloatInterval inv() const {
-        if(!is_pos() && !is_neg()) {
+        if(!is_nonzero()) {
             return nan();
         }
         return FloatInterval(1.0 / max_, 1.0 / min_);
@@ -284,7 +288,7 @@ public:
     }
 
     FloatInterval sqrt() const {
-        if(min() < 0) {
+        if(min().is_neg()) {
             return nan();
         }
         return FloatInterval(std::sqrt(min_), std::sqrt(max_));

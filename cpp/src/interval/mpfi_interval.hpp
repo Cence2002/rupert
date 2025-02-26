@@ -123,6 +123,10 @@ public:
         return rad;
     }
 
+    bool is_nonzero() const {
+        return !is_nan() && !mpfi_has_zero(interval_);
+    }
+
     bool is_pos() const {
         return mpfi_is_strictly_pos(interval_);
     }
@@ -324,7 +328,7 @@ public:
     }
 
     MpfiInterval operator/(const MpfiInterval& interval) const {
-        if(!interval.is_pos() && !interval.is_neg()) {
+        if(!interval.is_nonzero()) {
             return nan();
         }
         MpfiInterval div;
@@ -333,7 +337,7 @@ public:
     }
 
     MpfiInterval operator/(const Number& number) const {
-        if(!number.is_pos() && !number.is_neg()) {
+        if(!number.is_nonzero()) {
             return nan();
         }
         MpfiInterval div;
@@ -342,7 +346,7 @@ public:
     }
 
     friend MpfiInterval operator/(const Number& number, const MpfiInterval& interval) {
-        if(!interval.is_pos() && !interval.is_neg()) {
+        if(!interval.is_nonzero()) {
             return nan();
         }
         MpfiInterval div;
@@ -362,7 +366,7 @@ public:
 
     template<IntegerType Integer>
     friend MpfiInterval operator/(const Integer integer, const MpfiInterval& interval) {
-        if(!interval.is_pos() && !interval.is_neg()) {
+        if(!interval.is_nonzero()) {
             return nan();
         }
         MpfiInterval div;
@@ -371,7 +375,7 @@ public:
     }
 
     MpfiInterval inv() const {
-        if(!is_pos() && !is_neg()) {
+        if(!is_nonzero()) {
             return nan();
         }
         MpfiInterval inv;
@@ -386,7 +390,7 @@ public:
     }
 
     MpfiInterval sqrt() const {
-        if(min() < 0) {
+        if(min().is_neg()) {
             return nan();
         }
         MpfiInterval sqrt;

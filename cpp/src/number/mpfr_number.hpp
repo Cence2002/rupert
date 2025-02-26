@@ -133,6 +133,10 @@ public:
         return mpfr_cmp_si(number.value_, integer) > 0;
     }
 
+    bool is_nonzero() const {
+        return mpfr_zero_p(value_) == 0;
+    }
+
     bool is_pos() const {
         return mpfr_sgn(value_) > 0;
     }

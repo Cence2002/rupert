@@ -35,6 +35,7 @@ concept IntervalType =
         { interval.len() } -> std::same_as<typename Interval::Number>;
         { interval.rad() } -> std::same_as<typename Interval::Number>;
 
+        { interval.is_nonzero() } -> std::same_as<bool>;
         { interval.is_pos() } -> std::same_as<bool>;
         { interval.is_neg() } -> std::same_as<bool>;
         { interval.is_nan() } -> std::same_as<bool>;
