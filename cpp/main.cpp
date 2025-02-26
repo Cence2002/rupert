@@ -12,7 +12,7 @@ bool is_box2_terminal(const Box2& box2, const Polygon<Interval>& hole, const Pol
     const Interval& phi = box2.phi<Interval>();
     bool is_terminal = false;
     for(size_t vertex_index = 0; vertex_index < plug.vertices().size(); vertex_index++) {
-        for(const Vector2Interval<Interval>& projected_plug_vertex: projection_hull_trivial(plug.vertices()[vertex_index], theta, phi)) {
+        for(const Vector2Interval<Interval>& projected_plug_vertex: projection_hull_combined(plug.vertices()[vertex_index], theta, phi)) {
             exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(projected_plug_vertex);
         }
         exporter.cover_builder.box3_builder.box2_builder.add_projection(exporter.builder);
@@ -161,7 +161,7 @@ int main() {
     exporter.cover_builder.set_hole(exporter.builder, hole);
     exporter.cover_builder.set_plug(exporter.builder, plug);
 
-    solve<Interval>(hole, plug, 1, 100, 10000, 3);
+    solve<Interval>(hole, plug, 1, 512, 10000, 3);
 
     exporter.save("../../web/static/cover.bin");
 

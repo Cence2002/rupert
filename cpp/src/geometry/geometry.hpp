@@ -7,6 +7,28 @@
 #include <optional>
 
 template<IntervalType Interval>
+Interval harmonic_trivial(const Interval& cos_amplitude, const Interval& sin_amplitude, const Interval& angle) {
+    return cos_amplitude * angle.cos() + sin_amplitude * angle.sin();
+}
+
+template<IntervalType Interval>
+Interval harmonic_combined(const Interval& cos_amplitude, const Interval& sin_amplitude, const Interval& angle) {
+    if(cos_amplitude.is_nonzero()) {
+        const Interval amplitude = (cos_amplitude * cos_amplitude + sin_amplitude * sin_amplitude).sqrt();
+        const Interval phase = (sin_amplitude / cos_amplitude).atan();
+        const int sign = cos_amplitude.is_pos() ? 1 : -1;
+        return sign * amplitude * (angle - phase).cos();
+    }
+    if(sin_amplitude.is_nonzero()) {
+        const Interval amplitude = (cos_amplitude * cos_amplitude + sin_amplitude * sin_amplitude).sqrt();
+        const Interval phase = -(cos_amplitude / sin_amplitude).atan();
+        const int sign = sin_amplitude.is_pos() ? 1 : -1;
+        return sign * amplitude * (angle - phase).sin();
+    }
+    return harmonic_trivial(cos_amplitude, sin_amplitude, angle);
+}
+
+template<IntervalType Interval>
 std::vector<Vector2Interval<Interval>> vector2_hull(const Vector2Interval<Interval>& vector2) {
     return std::vector<Vector2Interval<Interval>>{
             Vector2Interval<Interval>(Interval(vector2.x().min()), Interval(vector2.y().min())),
@@ -17,49 +39,50 @@ std::vector<Vector2Interval<Interval>> vector2_hull(const Vector2Interval<Interv
 }
 
 template<IntervalType Interval>
-Vector2Interval<Interval> rotation(const Vector2Interval<Interval>& projected_vertex, const Interval& alpha) {
-    const Interval cos_alpha = alpha.cos();
-    const Interval sin_alpha = alpha.sin();
+Vector2Interval<Interval> rotation_trivial(const Vector2Interval<Interval>& projected_vertex, const Interval& alpha) {
     return Vector2Interval<Interval>(
-        projected_vertex.x() * cos_alpha - projected_vertex.y() * sin_alpha,
-        projected_vertex.x() * sin_alpha + projected_vertex.y() * cos_alpha
+        harmonic_trivial(projected_vertex.x(), -projected_vertex.y(), alpha),
+        harmonic_trivial(projected_vertex.y(), projected_vertex.x(), alpha)
+    );
+}
+
+template<IntervalType Interval>
+Vector2Interval<Interval> rotation_combined(const Vector2Interval<Interval>& projected_vertex, const Interval& alpha) {
+    return Vector2Interval<Interval>(
+        harmonic_combined(projected_vertex.x(), -projected_vertex.y(), alpha),
+        harmonic_combined(projected_vertex.y(), projected_vertex.x(), alpha)
     );
 }
 
 template<IntervalType Interval>
 std::vector<Vector2Interval<Interval>> rotation_hull_trivial(const Vector2Interval<Interval>& projected_vertex, const Interval& alpha) {
-    const Vector2Interval<Interval> rotated_vertex = rotation(projected_vertex, alpha);
+    const Vector2Interval<Interval> rotated_vertex = rotation_trivial(projected_vertex, alpha);
+    return vector2_hull(rotated_vertex);
+}
+
+template<IntervalType Interval>
+std::vector<Vector2Interval<Interval>> rotation_hull_combined(const Vector2Interval<Interval>& projected_vertex, const Interval& alpha) {
+    const Vector2Interval<Interval> rotated_vertex = rotation_combined(projected_vertex, alpha);
     return vector2_hull(rotated_vertex);
 }
 
 template<IntervalType Interval>
 std::vector<Vector2Interval<Interval>> rotation_hull_triangle(const Vector2Interval<Interval>& vector2, const Interval& alpha) {
     if(!(alpha.len() < Interval::pi() / 2)) {
-        throw std::invalid_argument("rotation_hull_triangle only supports |alpha| < pi/2");
+        std::cerr << "rotation_hull_triangle only supports |alpha| < pi/2" << std::endl;
+        return rotation_hull_combined(vector2, alpha);
     }
 
-    const Interval cos_alpha_min = Interval(alpha.min()).cos();
-    const Interval cos_alpha_mid = Interval(alpha.mid()).cos();
-    const Interval cos_alpha_max = Interval(alpha.max()).cos();
-
-    const Interval sin_alpha_min = Interval(alpha.min()).sin();
-    const Interval sin_alpha_mid = Interval(alpha.mid()).sin();
-    const Interval sin_alpha_max = Interval(alpha.max()).sin();
+    Vector2Interval<Interval> min_rotated_vertex = rotation_trivial(vector2, Interval(alpha.min()));
+    Vector2Interval<Interval> mid_rotated_vertex = rotation_trivial(vector2, Interval(alpha.mid()));
+    Vector2Interval<Interval> max_rotated_vertex = rotation_trivial(vector2, Interval(alpha.max()));
 
     const Interval cos_alpha_rad = Interval(alpha.rad()).cos();
+    Vector2Interval<Interval> mid_rotated_vertex_scaled(
+        mid_rotated_vertex.x() / cos_alpha_rad,
+        mid_rotated_vertex.y() / cos_alpha_rad
+    );
 
-    Vector2Interval<Interval> min_rotated_vertex(
-        vector2.x() * cos_alpha_min - vector2.y() * sin_alpha_min,
-        vector2.x() * sin_alpha_min + vector2.y() * cos_alpha_min
-    );
-    Vector2Interval<Interval> mid_rotated_vertex(
-        (vector2.x() * cos_alpha_mid - vector2.y() * sin_alpha_mid) / cos_alpha_rad,
-        (vector2.x() * sin_alpha_mid + vector2.y() * cos_alpha_mid) / cos_alpha_rad
-    );
-    Vector2Interval<Interval> max_rotated_vertex(
-        vector2.x() * cos_alpha_max - vector2.y() * sin_alpha_max,
-        vector2.x() * sin_alpha_max + vector2.y() * cos_alpha_max
-    );
     return std::vector<Vector2Interval<Interval>>{
             min_rotated_vertex,
             mid_rotated_vertex,
@@ -68,69 +91,69 @@ std::vector<Vector2Interval<Interval>> rotation_hull_triangle(const Vector2Inter
 }
 
 template<IntervalType Interval>
-Vector2Interval<Interval> projection(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
-    const Interval cos_theta = theta.cos();
-    const Interval sin_theta = theta.sin();
-    const Interval cos_phi = phi.cos();
-    const Interval sin_phi = phi.sin();
+Vector2Interval<Interval> projection_trivial(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
+    const Vector2Interval<Interval> reflected_vertex = Vector2Interval<Interval>(vertex.x(), -vertex.y());
+    const Interval shifted_phi = phi + Interval::pi() / 2;
+    const Vector2Interval<Interval> rotated_reflected_vertex = rotation_trivial(reflected_vertex, shifted_phi);
     return Vector2Interval<Interval>(
-        -vertex.x() * sin_phi + vertex.y() * cos_phi,
-        (vertex.x() * cos_phi + vertex.y() * sin_phi) * cos_theta - vertex.z() * sin_theta
+        rotated_reflected_vertex.x(),
+        harmonic_trivial(rotated_reflected_vertex.y(), -vertex.z(), theta)
+    );
+}
+
+template<IntervalType Interval>
+Vector2Interval<Interval> projection_combined(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
+    const Vector2Interval<Interval> reflected_vertex = Vector2Interval<Interval>(vertex.x(), -vertex.y());
+    const Interval shifted_phi = phi + Interval::pi() / 2;
+    const Vector2Interval<Interval> rotated_reflected_vertex = rotation_combined(reflected_vertex, shifted_phi);
+    return Vector2Interval<Interval>(
+        rotated_reflected_vertex.x(),
+        harmonic_combined(rotated_reflected_vertex.y(), -vertex.z(), theta)
     );
 }
 
 template<IntervalType Interval>
 std::vector<Vector2Interval<Interval>> projection_hull_trivial(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
-    const Vector2Interval<Interval> projected_vertex = projection(vertex, theta, phi);
+    const Vector2Interval<Interval> projected_vertex = projection_trivial(vertex, theta, phi);
+    return vector2_hull(projected_vertex);
+}
+
+template<IntervalType Interval>
+std::vector<Vector2Interval<Interval>> projection_hull_combined(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
+    const Vector2Interval<Interval> projected_vertex = projection_combined(vertex, theta, phi);
     return vector2_hull(projected_vertex);
 }
 
 template<IntervalType Interval>
 std::vector<Vector2Interval<Interval>> projection_hull_triangle(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
     if(!(phi.len() < Interval::pi() / 2)) {
-        throw std::invalid_argument("rotation_hull_triangle only supports |phi| < pi/2");
+        std::cerr << "rotation_hull_triangle only supports |phi| < pi/2" << std::endl;
+        return projection_hull_combined(vertex, theta, phi);
     }
 
     const Vector2Interval<Interval> reflected_vertex = Vector2Interval<Interval>(vertex.x(), -vertex.y());
     const Interval shifted_phi = phi + Interval::pi() / 2;
 
-    const Interval cos_shifted_phi_min = Interval(shifted_phi.min()).cos();
-    const Interval cos_shifted_phi_mid = Interval(shifted_phi.mid()).cos();
-    const Interval cos_shifted_phi_max = Interval(shifted_phi.max()).cos();
+    std::vector<Vector2Interval<Interval>> rotation_hull = rotation_hull_triangle(reflected_vertex, shifted_phi);
+    if(rotation_hull.size() != 3) {
+        throw std::runtime_error("rotation_hull_triangle must return 3 vertices");
+    }
 
-    const Interval sin_shifted_phi_min = Interval(shifted_phi.min()).sin();
-    const Interval sin_shifted_phi_mid = Interval(shifted_phi.mid()).sin();
-    const Interval sin_shifted_phi_max = Interval(shifted_phi.max()).sin();
-
-    const Interval cos_shifted_phi_rad = Interval(shifted_phi.rad()).cos();
-
-    const Vector2Interval<Interval> min_rotated_reflected_vertex(
-        reflected_vertex.x() * cos_shifted_phi_min - reflected_vertex.y() * sin_shifted_phi_min,
-        reflected_vertex.x() * sin_shifted_phi_min + reflected_vertex.y() * cos_shifted_phi_min
-    );
-    const Vector2Interval<Interval> mid_rotated_reflected_vertex(
-        (reflected_vertex.x() * cos_shifted_phi_mid - reflected_vertex.y() * sin_shifted_phi_mid) / cos_shifted_phi_rad,
-        (reflected_vertex.x() * sin_shifted_phi_mid + reflected_vertex.y() * cos_shifted_phi_mid) / cos_shifted_phi_rad
-    );
-    const Vector2Interval<Interval> max_rotated_reflected_vertex(
-        reflected_vertex.x() * cos_shifted_phi_max - reflected_vertex.y() * sin_shifted_phi_max,
-        reflected_vertex.x() * sin_shifted_phi_max + reflected_vertex.y() * cos_shifted_phi_max
-    );
-
-    const Interval cos_theta = theta.cos();
-    const Interval sin_theta = theta.sin();
+    const Vector2Interval<Interval> min_rotated_reflected_vertex = rotation_hull[0];
+    const Vector2Interval<Interval> mid_rotated_reflected_vertex = rotation_hull[1];
+    const Vector2Interval<Interval> max_rotated_reflected_vertex = rotation_hull[2];
 
     const Vector2Interval<Interval> scaled_min_rotated_reflected_vertex(
         min_rotated_reflected_vertex.x(),
-        min_rotated_reflected_vertex.y() * cos_theta - vertex.z() * sin_theta
+        harmonic_combined(min_rotated_reflected_vertex.y(), -vertex.z(), theta)
     );
     const Vector2Interval<Interval> scaled_mid_rotated_reflected_vertex(
         mid_rotated_reflected_vertex.x(),
-        mid_rotated_reflected_vertex.y() * cos_theta - vertex.z() * sin_theta
+        harmonic_combined(mid_rotated_reflected_vertex.y(), -vertex.z(), theta)
     );
     const Vector2Interval<Interval> scaled_max_rotated_reflected_vertex(
         max_rotated_reflected_vertex.x(),
-        max_rotated_reflected_vertex.y() * cos_theta - vertex.z() * sin_theta
+        harmonic_combined(max_rotated_reflected_vertex.y(), -vertex.z(), theta)
     );
 
     return std::vector<Vector2Interval<Interval>>{
@@ -159,7 +182,7 @@ bool is_vector2_inside_polygon(const Vector2Interval<Interval>& vector2, const P
 
 template<IntervalType Interval>
 bool is_projected_vertex_inside_polygon_trivial(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
-    const Vector2Interval<Interval> projected_vertex = projection(vertex, theta, phi);
+    const Vector2Interval<Interval> projected_vertex = projection_trivial(vertex, theta, phi);
     return is_vector2_inside_polygon(projected_vertex, polygon);
 }
 
@@ -179,7 +202,7 @@ bool is_vector2_outside_polygon(const Vector2Interval<Interval>& vector2, const 
 
 template<IntervalType Interval>
 bool is_projected_vertex_outside_polygon_trivial(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
-    const Vector2Interval<Interval> projected_vertex = projection(vertex, theta, phi);
+    const Vector2Interval<Interval> projected_vertex = projection_trivial(vertex, theta, phi);
     return is_vector2_outside_polygon(projected_vertex, polygon);
 }
 
