@@ -91,7 +91,7 @@ std::vector<Vector2Interval<Interval>> rotation_hull_triangle(const Vector2Inter
 }
 
 template<IntervalType Interval>
-Vector2Interval<Interval> projection_trivial(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
+Vector2Interval<Interval> projection_trivial(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi) {
     const Vector2Interval<Interval> reflected_vertex = Vector2Interval<Interval>(vertex.x(), -vertex.y());
     const Interval shifted_phi = phi + Interval::pi() / 2;
     const Vector2Interval<Interval> rotated_reflected_vertex = rotation_trivial(reflected_vertex, shifted_phi);
@@ -102,7 +102,7 @@ Vector2Interval<Interval> projection_trivial(const IntervalVector3<Interval>& ve
 }
 
 template<IntervalType Interval>
-Vector2Interval<Interval> projection_combined(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
+Vector2Interval<Interval> projection_combined(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi) {
     const Vector2Interval<Interval> reflected_vertex = Vector2Interval<Interval>(vertex.x(), -vertex.y());
     const Interval shifted_phi = phi + Interval::pi() / 2;
     const Vector2Interval<Interval> rotated_reflected_vertex = rotation_combined(reflected_vertex, shifted_phi);
@@ -113,19 +113,19 @@ Vector2Interval<Interval> projection_combined(const IntervalVector3<Interval>& v
 }
 
 template<IntervalType Interval>
-std::vector<Vector2Interval<Interval>> projection_hull_trivial(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
+std::vector<Vector2Interval<Interval>> projection_hull_trivial(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi) {
     const Vector2Interval<Interval> projected_vertex = projection_trivial(vertex, theta, phi);
     return vector2_hull(projected_vertex);
 }
 
 template<IntervalType Interval>
-std::vector<Vector2Interval<Interval>> projection_hull_combined(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
+std::vector<Vector2Interval<Interval>> projection_hull_combined(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi) {
     const Vector2Interval<Interval> projected_vertex = projection_combined(vertex, theta, phi);
     return vector2_hull(projected_vertex);
 }
 
 template<IntervalType Interval>
-std::vector<Vector2Interval<Interval>> projection_hull_triangle(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
+std::vector<Vector2Interval<Interval>> projection_hull_triangle(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi) {
     if(!(phi.len() < Interval::pi() / 2)) {
         std::cerr << "rotation_hull_triangle only supports |phi| < pi/2" << std::endl;
         return projection_hull_combined(vertex, theta, phi);
@@ -181,13 +181,13 @@ bool is_vector2_inside_polygon(const Vector2Interval<Interval>& vector2, const P
 }
 
 template<IntervalType Interval>
-bool is_projected_vertex_inside_polygon_trivial(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
+bool is_projected_vertex_inside_polygon_trivial(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
     const Vector2Interval<Interval> projected_vertex = projection_trivial(vertex, theta, phi);
     return is_vector2_inside_polygon(projected_vertex, polygon);
 }
 
 template<IntervalType Interval>
-bool is_projected_vertex_inside_polygon_combined(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
+bool is_projected_vertex_inside_polygon_combined(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
     const Vector2Interval<Interval> projected_vertex = projection_combined(vertex, theta, phi);
     return is_vector2_inside_polygon(projected_vertex, polygon);
 }
@@ -207,13 +207,13 @@ bool is_vector2_outside_polygon(const Vector2Interval<Interval>& vector2, const 
 }
 
 template<IntervalType Interval>
-bool is_projected_vertex_outside_polygon_trivial(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
+bool is_projected_vertex_outside_polygon_trivial(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
     const Vector2Interval<Interval> projected_vertex = projection_trivial(vertex, theta, phi);
     return is_vector2_outside_polygon(projected_vertex, polygon);
 }
 
 template<IntervalType Interval>
-bool is_projected_vertex_outside_polygon_combined(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
+bool is_projected_vertex_outside_polygon_combined(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
     const Vector2Interval<Interval> projected_vertex = projection_combined(vertex, theta, phi);
     return is_vector2_outside_polygon(projected_vertex, polygon);
 }

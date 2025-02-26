@@ -28,7 +28,7 @@ template<IntervalType Interval>
 bool is_box3_nonterminal(const Box2& box2, const Polygon<Interval>& hole, const Polyhedron<Interval>& plug) {
     const Interval& theta_mid = Interval(box2.theta<Interval>().mid());
     const Interval& phi_mid = Interval(box2.phi<Interval>().mid());
-    return std::ranges::all_of(plug.vertices(), [&](const IntervalVector3<Interval>& plug_vertex) {
+    return std::ranges::all_of(plug.vertices(), [&](const Vector3Interval<Interval>& plug_vertex) {
         return is_projected_vertex_inside_polygon_trivial(plug_vertex, theta_mid, phi_mid, hole);
     });
 }
@@ -46,7 +46,7 @@ std::vector<Interval> split(const Interval& interval, const int parts) {
 template<IntervalType Interval>
 Polygon<Interval> project_hole(const Box3& box3, const Polyhedron<Interval>& hole, const int resolution) {
     std::vector<Vector2Interval<Interval>> all_projected_hole_vertices;
-    for(const IntervalVector3<Interval>& hole_vertex: hole.vertices()) {
+    for(const Vector3Interval<Interval>& hole_vertex: hole.vertices()) {
         for(const Interval& sub_theta: split(box3.theta<Interval>(), resolution)) {
             for(const Interval& sub_phi: split(box3.phi<Interval>(), resolution)) {
                 const std::vector<Vector2Interval<Interval>> projected_hole_vertices = projection_hull_triangle(hole_vertex, sub_theta, sub_phi);
@@ -144,14 +144,14 @@ int main() {
     tests();
 
     using Interval = FloatInterval;
-    const Polyhedron<Interval> hole = Polyhedron<Interval>(std::vector<IntervalVector3<Interval>>(
+    const Polyhedron<Interval> hole = Polyhedron<Interval>(std::vector<Vector3Interval<Interval>>(
         {
-            IntervalVector3<Interval>(Interval(1), Interval(1), Interval(0)),
-            IntervalVector3<Interval>(Interval(1), Interval(-1), Interval(0)),
-            IntervalVector3<Interval>(Interval(-1), Interval(-1), Interval(0)),
-            IntervalVector3<Interval>(Interval(-1), Interval(1), Interval(0)),
-            IntervalVector3<Interval>(Interval(0), Interval(0), Interval(1) / 2),
-            IntervalVector3<Interval>(Interval(0), Interval(0), -Interval(1) / 2),
+            Vector3Interval<Interval>(Interval(1), Interval(1), Interval(0)),
+            Vector3Interval<Interval>(Interval(1), Interval(-1), Interval(0)),
+            Vector3Interval<Interval>(Interval(-1), Interval(-1), Interval(0)),
+            Vector3Interval<Interval>(Interval(-1), Interval(1), Interval(0)),
+            Vector3Interval<Interval>(Interval(0), Interval(0), Interval(1) / 2),
+            Vector3Interval<Interval>(Interval(0), Interval(0), -Interval(1) / 2),
         }
     ));
 

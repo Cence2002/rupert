@@ -6,19 +6,19 @@
 template<IntervalType Interval>
 struct Polyhedron {
 private:
-    std::vector<IntervalVector3<Interval>> vertices_;
+    std::vector<Vector3Interval<Interval>> vertices_;
 
 public:
-    explicit Polyhedron(const std::vector<IntervalVector3<Interval>>& vertices) : vertices_(vertices) {}
+    explicit Polyhedron(const std::vector<Vector3Interval<Interval>>& vertices) : vertices_(vertices) {}
 
-    const std::vector<IntervalVector3<Interval>>& vertices() const {
+    const std::vector<Vector3Interval<Interval>>& vertices() const {
         return vertices_;
     }
 
 private:
-    static std::vector<IntervalVector3<Interval>> permutations(const std::vector<IntervalVector3<Interval>>& vertices) {
-        std::vector<IntervalVector3<Interval>> permutations;
-        for(const IntervalVector3<Interval>& vertex: vertices) {
+    static std::vector<Vector3Interval<Interval>> permutations(const std::vector<Vector3Interval<Interval>>& vertices) {
+        std::vector<Vector3Interval<Interval>> permutations;
+        for(const Vector3Interval<Interval>& vertex: vertices) {
             permutations.emplace_back(vertex.x(), vertex.y(), vertex.z());
             permutations.emplace_back(vertex.y(), vertex.z(), vertex.x());
             permutations.emplace_back(vertex.z(), vertex.x(), vertex.y());
@@ -29,9 +29,9 @@ private:
         return permutations;
     }
 
-    static std::vector<IntervalVector3<Interval>> rotations(const std::vector<IntervalVector3<Interval>>& vertices) {
-        std::vector<IntervalVector3<Interval>> rotations;
-        for(const IntervalVector3<Interval>& vertex: vertices) {
+    static std::vector<Vector3Interval<Interval>> rotations(const std::vector<Vector3Interval<Interval>>& vertices) {
+        std::vector<Vector3Interval<Interval>> rotations;
+        for(const Vector3Interval<Interval>& vertex: vertices) {
             rotations.emplace_back(vertex.x(), vertex.y(), vertex.z());
             rotations.emplace_back(vertex.y(), vertex.z(), vertex.x());
             rotations.emplace_back(vertex.z(), vertex.x(), vertex.y());
@@ -39,12 +39,12 @@ private:
         return rotations;
     }
 
-    static std::vector<IntervalVector3<Interval>> flips(const std::vector<IntervalVector3<Interval>>& vertices, const bool flip_x, const bool flip_y, const bool flip_z) {
-        std::vector<IntervalVector3<Interval>> flips;
+    static std::vector<Vector3Interval<Interval>> flips(const std::vector<Vector3Interval<Interval>>& vertices, const bool flip_x, const bool flip_y, const bool flip_z) {
+        std::vector<Vector3Interval<Interval>> flips;
         for(const bool sign_x: flip_x ? std::vector<bool>{false, true} : std::vector<bool>{false}) {
             for(const bool sign_y: flip_y ? std::vector<bool>{false, true} : std::vector<bool>{false}) {
                 for(const bool sign_z: flip_z ? std::vector<bool>{false, true} : std::vector<bool>{false}) {
-                    for(const IntervalVector3<Interval>& vertex: vertices) {
+                    for(const Vector3Interval<Interval>& vertex: vertices) {
                         flips.emplace_back(
                             sign_x ? -vertex.x() : vertex.x(),
                             sign_y ? -vertex.y() : vertex.y(),
@@ -57,13 +57,13 @@ private:
         return flips;
     }
 
-    static std::vector<IntervalVector3<Interval>> flips(const IntervalVector3<Interval>& vertex, const bool flip_x, const bool flip_y, const bool flip_z) {
-        return flips(std::vector<IntervalVector3<Interval>>{vertex}, flip_x, flip_y, flip_z);
+    static std::vector<Vector3Interval<Interval>> flips(const Vector3Interval<Interval>& vertex, const bool flip_x, const bool flip_y, const bool flip_z) {
+        return flips(std::vector<Vector3Interval<Interval>>{vertex}, flip_x, flip_y, flip_z);
     }
 
-    static std::vector<IntervalVector3<Interval>> combine(const std::vector<std::vector<IntervalVector3<Interval>>>& vertices) {
-        std::vector<IntervalVector3<Interval>> combine;
-        for(const std::vector<IntervalVector3<Interval>>& vertex: vertices) {
+    static std::vector<Vector3Interval<Interval>> combine(const std::vector<std::vector<Vector3Interval<Interval>>>& vertices) {
+        std::vector<Vector3Interval<Interval>> combine;
+        for(const std::vector<Vector3Interval<Interval>>& vertex: vertices) {
             combine.insert(combine.end(), vertex.begin(), vertex.end());
         }
         return combine;
@@ -74,7 +74,7 @@ private:
 
 public:
     static Polyhedron cube() {
-        return Polyhedron(flips(IntervalVector3<Interval>(Interval(1), Interval(1), Interval(1)), true, true, true));
+        return Polyhedron(flips(Vector3Interval<Interval>(Interval(1), Interval(1), Interval(1)), true, true, true));
     }
 
     // static Polyhedron octahedron() {
