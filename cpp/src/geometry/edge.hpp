@@ -8,13 +8,13 @@ enum class Orientation {
     COLLINEAR
 };
 
-bool same_orientation(const Orientation orientation_0, const Orientation orientation_1) {
+constexpr bool same_orientation(const Orientation orientation_0, const Orientation orientation_1) {
     return orientation_0 != Orientation::COLLINEAR &&
            orientation_1 != Orientation::COLLINEAR &&
            orientation_0 == orientation_1;
 }
 
-bool opposite_orientation(const Orientation orientation_0, const Orientation orientation_1) {
+constexpr bool opposite_orientation(const Orientation orientation_0, const Orientation orientation_1) {
     return orientation_0 != Orientation::COLLINEAR &&
            orientation_1 != Orientation::COLLINEAR &&
            orientation_0 != orientation_1;

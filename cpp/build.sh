@@ -10,11 +10,10 @@ if [ "$PWD" != "$SCRIPT_DIR" ]; then
 fi
 
 BUILD_DIR="build"
-JOBS=1
 
 rm -rf $BUILD_DIR
 mkdir $BUILD_DIR
 cd $BUILD_DIR
 cmake ..
-cmake --build . -- -j$JOBS
+cmake --build .
 cd ..
