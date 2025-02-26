@@ -55,8 +55,8 @@ public:
     template<IntervalType Interval>
     Interval interval() const {
         Interval interval = Interval::unit();
-        for(int shift = depth_ - 1; shift >= 0; shift--) {
-            if(bits_ & (static_cast<uint64_t>(1) << shift)) {
+        for(uint8_t shift = depth_; shift > 0; shift--) {
+            if(bits_ & (static_cast<uint64_t>(1) << (shift - 1))) {
                 interval = Interval(interval.mid(), interval.max());
             } else {
                 interval = Interval(interval.min(), interval.mid());

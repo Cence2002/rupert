@@ -15,9 +15,6 @@ public:
         return edges_;
     }
 
-    bool is_outside(const Vector2Interval<Interval>& vector2) const {
-    }
-
     friend std::ostream& operator<<(std::ostream& ostream, const Polygon& polygon) {
         for(const Edge<Interval>& edge: polygon.edges_) {
             ostream << edge << "\n";
