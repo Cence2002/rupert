@@ -187,6 +187,12 @@ bool is_projected_vertex_inside_polygon_trivial(const IntervalVector3<Interval>&
 }
 
 template<IntervalType Interval>
+bool is_projected_vertex_inside_polygon_combined(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
+    const Vector2Interval<Interval> projected_vertex = projection_combined(vertex, theta, phi);
+    return is_vector2_inside_polygon(projected_vertex, polygon);
+}
+
+template<IntervalType Interval>
 bool is_vector2_outside_polygon(const Vector2Interval<Interval>& vector2, const Polygon<Interval>& polygon) {
     bool any_clockwise = false;
     for(const Edge<Interval>& edge: polygon.edges()) {
@@ -203,6 +209,12 @@ bool is_vector2_outside_polygon(const Vector2Interval<Interval>& vector2, const 
 template<IntervalType Interval>
 bool is_projected_vertex_outside_polygon_trivial(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
     const Vector2Interval<Interval> projected_vertex = projection_trivial(vertex, theta, phi);
+    return is_vector2_outside_polygon(projected_vertex, polygon);
+}
+
+template<IntervalType Interval>
+bool is_projected_vertex_outside_polygon_combined(const IntervalVector3<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
+    const Vector2Interval<Interval> projected_vertex = projection_combined(vertex, theta, phi);
     return is_vector2_outside_polygon(projected_vertex, polygon);
 }
 

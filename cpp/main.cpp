@@ -16,7 +16,7 @@ bool is_box2_terminal(const Box2& box2, const Polygon<Interval>& hole, const Pol
             exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(projected_plug_vertex);
         }
         exporter.cover_builder.box3_builder.box2_builder.add_projection(exporter.builder);
-        if(is_projected_vertex_outside_polygon_trivial(plug.vertices()[vertex_index], theta, phi, hole)) {
+        if(is_projected_vertex_outside_polygon_combined(plug.vertices()[vertex_index], theta, phi, hole)) {
             exporter.cover_builder.box3_builder.box2_builder.add_out(static_cast<uint8_t>(vertex_index));
             is_terminal = true;
         }
@@ -26,10 +26,10 @@ bool is_box2_terminal(const Box2& box2, const Polygon<Interval>& hole, const Pol
 
 template<IntervalType Interval>
 bool is_box3_nonterminal(const Box2& box2, const Polygon<Interval>& hole, const Polyhedron<Interval>& plug) {
-    const Interval& theta = Interval(box2.theta<Interval>().mid());
-    const Interval& phi = Interval(box2.phi<Interval>().mid());
+    const Interval& theta_mid = Interval(box2.theta<Interval>().mid());
+    const Interval& phi_mid = Interval(box2.phi<Interval>().mid());
     return std::ranges::all_of(plug.vertices(), [&](const IntervalVector3<Interval>& plug_vertex) {
-        return is_projected_vertex_inside_polygon_trivial(plug_vertex, theta, phi, hole);
+        return is_projected_vertex_inside_polygon_trivial(plug_vertex, theta_mid, phi_mid, hole);
     });
 }
 
