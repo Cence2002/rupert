@@ -12,8 +12,6 @@ add_compile_options(
 
         -Werror
 
-        -fsyntax-only
-        -Wfatal-errors
         -Wpedantic
         -Wall
         -Wextra
@@ -31,7 +29,6 @@ add_compile_options(
         -Wuninitialized
         -Wstrict-overflow=5
         -Wstringop-overflow=4
-
 
         -Wsuggest-attribute=pure
         -Wsuggest-attribute=const
@@ -53,7 +50,7 @@ add_compile_options(
         -Wconversion
         -Wlogical-op
         -Wredundant-decls
-        -Winline
+        #-Winline
         -Wlong-long
         -Wvector-operation-performance
 
