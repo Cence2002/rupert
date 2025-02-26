@@ -4,6 +4,7 @@
 #include "geometry/polygon.hpp"
 #include "geometry/polyhedron.hpp"
 #include <queue>
+#include <optional>
 
 template<IntervalType Interval>
 std::vector<Vector2Interval<Interval>> vector2_hull(const Vector2Interval<Interval>& vector2) {
@@ -205,12 +206,13 @@ Polygon<Interval> convex_hull(const std::vector<Vector2Interval<Interval>>& vert
         visited[from_index] = true;
 
         const Vector2Interval<Interval> from = vertices[from_index];
-        int most_clockwise_index = -1;
+
+        std::optional<size_t> most_clockwise_index;
         for(size_t clockwise_index = 0; clockwise_index < vertices.size(); clockwise_index++) {
-            if(most_clockwise_index == -1 && (vertices[clockwise_index] - from).len().is_pos()) {
+            if(!most_clockwise_index.has_value() && (vertices[clockwise_index] - from).len().is_pos()) {
                 most_clockwise_index = static_cast<int>(clockwise_index);
             }
-            if(most_clockwise_index != -1 && Edge<Interval>(from, vertices[most_clockwise_index]).orientation(vertices[clockwise_index]) == Orientation::CLOCKWISE) {
+            if(most_clockwise_index.has_value() && Edge<Interval>(from, vertices[most_clockwise_index.value()]).orientation(vertices[clockwise_index]) == Orientation::CLOCKWISE) {
                 most_clockwise_index = static_cast<int>(clockwise_index);
             }
         }
@@ -221,7 +223,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector2Interval<Interval>>& vert
                 continue;
             }
             const Vector2Interval<Interval> to = vertices[to_index];
-            if(Edge<Interval>(from, vertices[most_clockwise_index]).orientation(to) == Orientation::COUNTERCLOCKWISE) {
+            if(Edge<Interval>(from, vertices[most_clockwise_index.value()]).orientation(to) == Orientation::COUNTERCLOCKWISE) {
                 continue;
             }
             bool most_clockwise = true;
