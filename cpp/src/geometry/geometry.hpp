@@ -14,13 +14,13 @@ Interval harmonic_trivial(const Interval& cos_amplitude, const Interval& sin_amp
 template<IntervalType Interval>
 Interval harmonic_combined(const Interval& cos_amplitude, const Interval& sin_amplitude, const Interval& angle) {
     if(cos_amplitude.is_nonzero()) {
-        const Interval amplitude = (cos_amplitude * cos_amplitude + sin_amplitude * sin_amplitude).sqrt();
+        const Interval amplitude = (cos_amplitude.sqr() + sin_amplitude.sqr()).sqrt();
         const Interval phase = (sin_amplitude / cos_amplitude).atan();
         const int sign = cos_amplitude.is_pos() ? 1 : -1;
         return sign * amplitude * (angle - phase).cos();
     }
     if(sin_amplitude.is_nonzero()) {
-        const Interval amplitude = (cos_amplitude * cos_amplitude + sin_amplitude * sin_amplitude).sqrt();
+        const Interval amplitude = (cos_amplitude.sqr() + sin_amplitude.sqr()).sqrt();
         const Interval phase = -(cos_amplitude / sin_amplitude).atan();
         const int sign = sin_amplitude.is_pos() ? 1 : -1;
         return sign * amplitude * (angle - phase).sin();
@@ -70,7 +70,7 @@ std::vector<Vector2Interval<Interval>> rotation_hull_combined(const Vector2Inter
 
 template<IntervalType Interval>
 std::vector<Vector2Interval<Interval>> rotation_hull_triangle(const Vector2Interval<Interval>& vector2, const Interval& alpha) {
-    if(!(alpha.len() < Interval::pi() / 4)) {
+    if(!(alpha.len() < Interval::pi() / 3)) {
         // apex of triangle is not well-defined, or it might be numerically unstable
         // default to combined
         return rotation_hull_combined(vector2, alpha);
@@ -131,7 +131,7 @@ std::vector<Vector2Interval<Interval>> projection_hull_combined(const Vector3Int
 
 template<IntervalType Interval>
 std::vector<Vector2Interval<Interval>> projection_hull_triangle(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi) {
-    if(!(phi.len() < Interval::pi() / 4)) {
+    if(!(phi.len() < Interval::pi() / 3)) {
         // apex of triangle (in rotation_hull_triangle) is not well-defined, or it might be numerically unstable
         // default to combined
         return projection_hull_combined(vertex, theta, phi);
@@ -170,6 +170,32 @@ std::vector<Vector2Interval<Interval>> projection_hull_triangle(const Vector3Int
         Vector2Interval<Interval>(scaled_max_rotated_reflected_vertex.x(), Interval(scaled_max_rotated_reflected_vertex.y().min())),
         Vector2Interval<Interval>(scaled_max_rotated_reflected_vertex.x(), Interval(scaled_max_rotated_reflected_vertex.y().max()))
     };
+}
+
+template<IntervalType Interval>
+std::vector<Vector2Interval<Interval>> projection_hull_advanced_approximate(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi, const int resolution = 30) {
+    std::vector<Vector2Interval<Interval>> projected_vertices;
+    for(int i = 0; i <= resolution; i++) {
+        const Interval theta_i = Interval(theta.min()) + Interval(theta.len()) * i / resolution;
+        const Vector2Interval<Interval> projected_vertex = projection_combined(vertex, theta_i, Interval(phi.min()));
+        projected_vertices.push_back(projected_vertex);
+    }
+    for(int i = 0; i <= resolution; i++) {
+        const Interval phi_i = Interval(phi.min()) + Interval(phi.len()) * i / resolution;
+        const Vector2Interval<Interval> projected_vertex = projection_combined(vertex, Interval(theta.max()), phi_i);
+        projected_vertices.push_back(projected_vertex);
+    }
+    for(int i = 0; i <= resolution; i++) {
+        const Interval theta_i = Interval(theta.max()) - Interval(theta.len()) * i / resolution;
+        const Vector2Interval<Interval> projected_vertex = projection_combined(vertex, theta_i, Interval(phi.max()));
+        projected_vertices.push_back(projected_vertex);
+    }
+    for(int i = 0; i <= resolution; i++) {
+        const Interval phi_i = Interval(phi.max()) - Interval(phi.len()) * i / resolution;
+        const Vector2Interval<Interval> projected_vertex = projection_combined(vertex, Interval(theta.min()), phi_i);
+        projected_vertices.push_back(projected_vertex);
+    }
+    return projected_vertices;
 }
 
 template<IntervalType Interval>
@@ -241,48 +267,48 @@ bool is_projected_vertex_avoiding_polygon_advanced_fixed_phi(const Vector3Interv
 
 template<IntervalType Interval>
 bool is_projected_vertex_avoiding_edge_advanced_fixed_theta(const Vector3Interval<Interval>& vertex, const typename Interval::Number& theta, const Interval& phi, const Edge<Interval>& edge) {
-    const Interval transformation_addition_scale = vertex.z() * Interval(theta).sin();
-    const Interval transformation_division_scale = Interval(theta).cos();
+    const Interval transformation_addition = vertex.z() * Interval(theta).sin();
+    const Interval transformation_division = Interval(theta).cos();
     const Edge<Interval> transformed_edge(
         Vector2Interval<Interval>(
             edge.from().x(),
-            (edge.from().y() + transformation_addition_scale) / transformation_division_scale
+            (edge.from().y() + transformation_addition) / transformation_division
         ),
         Vector2Interval<Interval>(
             edge.to().x(),
-            (edge.to().y() + transformation_addition_scale) / transformation_division_scale
+            (edge.to().y() + transformation_addition) / transformation_division
         )
     );
-    const Vector2Interval<Interval> edge_direction = transformed_edge.direction();
+    const Vector2Interval<Interval> transformed_edge_direction = transformed_edge.direction();
 
     const Interval radius_squared = vertex.x() * vertex.x() + vertex.y() * vertex.y();
-    const Interval quadratic_term = edge_direction.len_sqr();
-    const Interval linear_term = 2 * Vector2Interval<Interval>::dot(edge_direction, transformed_edge.from());
+    const Interval double_quadratic_term = 2 * transformed_edge_direction.len_sqr();
+    const Interval linear_term = 2 * Vector2Interval<Interval>::dot(transformed_edge_direction, transformed_edge.from());
     const Interval constant_term = transformed_edge.from().len_sqr() - radius_squared;
-    const Interval discriminant = linear_term * linear_term - 4 * quadratic_term * constant_term;
-    if(discriminant.is_neg()) {
+    const Interval discriminant = linear_term.sqr() - 2 * double_quadratic_term * constant_term;
+    if(!discriminant.is_pos()) {
         return true;
     }
     const Interval sqrt_discriminant = discriminant.sqrt();
     std::array<Interval, 2> solutions = {
-        (-linear_term + sqrt_discriminant) / (2 * quadratic_term),
-        (-linear_term - sqrt_discriminant) / (2 * quadratic_term)
+        (-linear_term + sqrt_discriminant) / double_quadratic_term,
+        (-linear_term - sqrt_discriminant) / double_quadratic_term
     };
 
     const Vector2Interval<Interval> min_projected_vertex = projection_trivial(vertex, Interval(theta), Interval(phi.min()));
     const Vector2Interval<Interval> max_projected_vertex = projection_trivial(vertex, Interval(theta), Interval(phi.max()));
     const Vector2Interval<Interval> transformed_max_projected_vertex = Vector2Interval<Interval>(
         max_projected_vertex.x(),
-        (max_projected_vertex.y() + transformation_addition_scale) / transformation_division_scale
+        (max_projected_vertex.y() + transformation_addition) / transformation_division
     );
     const Edge<Interval> projected_vertex_edge(
         Vector2Interval<Interval>(
             min_projected_vertex.x(),
-            (min_projected_vertex.y() + transformation_addition_scale) / transformation_division_scale
+            (min_projected_vertex.y() + transformation_addition) / transformation_division
         ),
         Vector2Interval<Interval>(
             max_projected_vertex.x(),
-            (max_projected_vertex.y() + transformation_addition_scale) / transformation_division_scale
+            (max_projected_vertex.y() + transformation_addition) / transformation_division
         )
     );
     for(const Interval& solution: solutions) {
@@ -290,8 +316,8 @@ bool is_projected_vertex_avoiding_edge_advanced_fixed_theta(const Vector3Interva
             continue;
         }
         const Vector2Interval<Interval> intersection(
-            transformed_edge.from().x() + solution * edge_direction.x(),
-            transformed_edge.from().y() + solution * edge_direction.y()
+            transformed_edge.from().x() + solution * transformed_edge_direction.x(),
+            transformed_edge.from().y() + solution * transformed_edge_direction.y()
         );
         if(!projected_vertex_edge.avoids(Edge<Interval>(Vector2Interval<Interval>(Interval(0), Interval(0)), intersection))) {
             return false;
@@ -317,7 +343,7 @@ bool is_projected_vertex_avoiding_polygon_advanced_fixed_theta(const Vector3Inte
 
 template<IntervalType Interval>
 bool is_projected_vertex_outside_polygon_advanced(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
-    if(!(theta.len() < Interval::pi() / 4) || !(phi.len() < Interval::pi() / 4)) {
+    if(!(theta.len() < Interval::pi() / 3) || !(phi.len() < Interval::pi() / 3)) {
         // projected vertex might surround the polygon, meaning it avoids, but is not outside
         // default to combined
         return is_projected_vertex_outside_polygon_combined(vertex, theta, phi, polygon);

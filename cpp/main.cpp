@@ -16,7 +16,7 @@ bool is_box2_terminal(const Box2& box2, const Polygon<Interval>& hole, const Pol
             exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(projected_plug_vertex);
         }
         exporter.cover_builder.box3_builder.box2_builder.add_projection(exporter.builder);
-        if(is_projected_vertex_outside_polygon_combined(plug.vertices()[vertex_index], theta, phi, hole)) {
+        if(is_projected_vertex_outside_polygon_advanced(plug.vertices()[vertex_index], theta, phi, hole)) {
             exporter.cover_builder.box3_builder.box2_builder.add_out(static_cast<uint8_t>(vertex_index));
             is_terminal = true;
         }
