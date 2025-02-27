@@ -86,9 +86,9 @@ public:
         }
         const auto [integer_0, integer_1] = random_integers(resolution);
         return {
-                typename Interval_0::Number(integer_0),
-                typename Interval_1::Number(integer_1)
-            };
+            typename Interval_0::Number(integer_0),
+            typename Interval_1::Number(integer_1)
+        };
     }
 
     std::pair<Interval_0, Interval_1> random_intervals(const int resolution) {
@@ -96,16 +96,16 @@ public:
         const auto [max_0, max_1] = random_numbers(resolution);
         if(min_0.is_nan() || max_0.is_nan() || min_1.is_nan() || max_1.is_nan()) {
             return {
-                    Interval_0::nan(),
-                    Interval_1::nan()
-                };
+                Interval_0::nan(),
+                Interval_1::nan()
+            };
         }
         const bool swap_0 = min_0 > max_0;
         const bool swap_1 = min_1 > max_1;
         return {
-                Interval_0(swap_0 ? max_0 : min_0, swap_0 ? min_0 : max_0),
-                Interval_1(swap_1 ? max_1 : min_1, swap_1 ? min_1 : max_1)
-            };
+            Interval_0(swap_0 ? max_0 : min_0, swap_0 ? min_0 : max_0),
+            Interval_1(swap_1 ? max_1 : min_1, swap_1 ? min_1 : max_1)
+        };
     }
 
     bool compare_number(const typename Interval_0::Number& number0, const typename Interval_1::Number& number1) {

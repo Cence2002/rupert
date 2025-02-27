@@ -31,11 +31,11 @@ Interval harmonic_combined(const Interval& cos_amplitude, const Interval& sin_am
 template<IntervalType Interval>
 std::vector<Vector2Interval<Interval>> vector2_hull(const Vector2Interval<Interval>& vector2) {
     return std::vector<Vector2Interval<Interval>>{
-            Vector2Interval<Interval>(Interval(vector2.x().min()), Interval(vector2.y().min())),
-            Vector2Interval<Interval>(Interval(vector2.x().min()), Interval(vector2.y().max())),
-            Vector2Interval<Interval>(Interval(vector2.x().max()), Interval(vector2.y().max())),
-            Vector2Interval<Interval>(Interval(vector2.x().max()), Interval(vector2.y().min()))
-        };
+        Vector2Interval<Interval>(Interval(vector2.x().min()), Interval(vector2.y().min())),
+        Vector2Interval<Interval>(Interval(vector2.x().min()), Interval(vector2.y().max())),
+        Vector2Interval<Interval>(Interval(vector2.x().max()), Interval(vector2.y().max())),
+        Vector2Interval<Interval>(Interval(vector2.x().max()), Interval(vector2.y().min()))
+    };
 }
 
 template<IntervalType Interval>
@@ -87,10 +87,10 @@ std::vector<Vector2Interval<Interval>> rotation_hull_triangle(const Vector2Inter
     );
 
     return std::vector<Vector2Interval<Interval>>{
-            min_rotated_vertex,
-            mid_rotated_vertex,
-            max_rotated_vertex
-        };
+        min_rotated_vertex,
+        mid_rotated_vertex,
+        max_rotated_vertex
+    };
 }
 
 template<IntervalType Interval>
@@ -163,13 +163,13 @@ std::vector<Vector2Interval<Interval>> projection_hull_triangle(const Vector3Int
     );
 
     return std::vector<Vector2Interval<Interval>>{
-            Vector2Interval<Interval>(scaled_min_rotated_reflected_vertex.x(), Interval(scaled_min_rotated_reflected_vertex.y().min())),
-            Vector2Interval<Interval>(scaled_min_rotated_reflected_vertex.x(), Interval(scaled_min_rotated_reflected_vertex.y().max())),
-            Vector2Interval<Interval>(scaled_mid_rotated_reflected_vertex.x(), Interval(scaled_mid_rotated_reflected_vertex.y().min())),
-            Vector2Interval<Interval>(scaled_mid_rotated_reflected_vertex.x(), Interval(scaled_mid_rotated_reflected_vertex.y().max())),
-            Vector2Interval<Interval>(scaled_max_rotated_reflected_vertex.x(), Interval(scaled_max_rotated_reflected_vertex.y().min())),
-            Vector2Interval<Interval>(scaled_max_rotated_reflected_vertex.x(), Interval(scaled_max_rotated_reflected_vertex.y().max()))
-        };
+        Vector2Interval<Interval>(scaled_min_rotated_reflected_vertex.x(), Interval(scaled_min_rotated_reflected_vertex.y().min())),
+        Vector2Interval<Interval>(scaled_min_rotated_reflected_vertex.x(), Interval(scaled_min_rotated_reflected_vertex.y().max())),
+        Vector2Interval<Interval>(scaled_mid_rotated_reflected_vertex.x(), Interval(scaled_mid_rotated_reflected_vertex.y().min())),
+        Vector2Interval<Interval>(scaled_mid_rotated_reflected_vertex.x(), Interval(scaled_mid_rotated_reflected_vertex.y().max())),
+        Vector2Interval<Interval>(scaled_max_rotated_reflected_vertex.x(), Interval(scaled_max_rotated_reflected_vertex.y().min())),
+        Vector2Interval<Interval>(scaled_max_rotated_reflected_vertex.x(), Interval(scaled_max_rotated_reflected_vertex.y().max()))
+    };
 }
 
 template<IntervalType Interval>
@@ -265,9 +265,9 @@ bool is_projected_vertex_avoiding_edge_advanced_fixed_theta(const Vector3Interva
     }
     const Interval sqrt_discriminant = discriminant.sqrt();
     std::array<Interval, 2> solutions = {
-            (-linear_term + sqrt_discriminant) / (2 * quadratic_term),
-            (-linear_term - sqrt_discriminant) / (2 * quadratic_term)
-        };
+        (-linear_term + sqrt_discriminant) / (2 * quadratic_term),
+        (-linear_term - sqrt_discriminant) / (2 * quadratic_term)
+    };
 
     const Vector2Interval<Interval> min_projected_vertex = projection_trivial(vertex, Interval(theta), Interval(phi.min()));
     const Vector2Interval<Interval> max_projected_vertex = projection_trivial(vertex, Interval(theta), Interval(phi.max()));
