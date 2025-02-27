@@ -188,13 +188,6 @@ private:
 public:
     explicit Queue2() : queue() {
         push(Box2());
-        for(int i = 0; i < 21; i++) {
-            const Box2 box2 = queue.front();
-            queue.pop();
-            for(const Box2& sub_box2: box2.split()) {
-                push(sub_box2);
-            }
-        }
     }
 
     bool empty() const {
@@ -223,13 +216,6 @@ private:
 public:
     explicit Queue3() : queue(), mutex() {
         push(Box3());
-        for(int i = 0; i < 73; i++) {
-            const Box3 box3 = queue.front();
-            queue.pop();
-            for(const Box3& sub_box3: box3.split()) {
-                push(sub_box3);
-            }
-        }
     }
 
     void push(const Box3& box) {
