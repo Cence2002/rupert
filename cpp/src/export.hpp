@@ -99,7 +99,7 @@ public:
     ProjectionBuilder projection_builder;
     Box2Builder box2_builder;
 
-    Box3Builder() : theta_(), phi_(), alpha_(), projections_(), projection_(), box2s_(), complete_(), in_(), projection_builder(), box2_builder() {}
+    Box3Builder() : theta_(), phi_(), alpha_(), projections_(), projection_(), box2s_(), projection_builder(), box2_builder() {}
 
     void set_box3(const Box3& box3) {
         theta_ = FlatBuffers::Id(
