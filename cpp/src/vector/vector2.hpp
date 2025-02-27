@@ -113,6 +113,10 @@ public:
         return (x_.sqr() + y_.sqr()).sqrt();
     }
 
+    Interval len_sqr() const {
+        return x_.sqr() + y_.sqr();
+    }
+
     static Interval dot(const Vector2Interval& vector2, const Vector2Interval& other_vector2) {
         return vector2.x() * other_vector2.x() + vector2.y() * other_vector2.y();
     }

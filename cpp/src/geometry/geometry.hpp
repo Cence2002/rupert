@@ -225,7 +225,7 @@ bool is_projected_vertex_outside_polygon_combined(const Vector3Interval<Interval
 }
 
 template<IntervalType Interval>
-bool is_fixed_phi_projected_vertex_avoiding_polygon_perimeter(const Vector3Interval<Interval>& vertex, const Interval& theta, const typename Interval::Number& phi, const Polygon<Interval>& polygon) {
+bool is_projected_vertex_avoiding_polygon_advanced_fixed_phi(const Vector3Interval<Interval>& vertex, const Interval& theta, const typename Interval::Number& phi, const Polygon<Interval>& polygon) {
     const Vector2Interval<Interval> projected_vertex = projection_combined(vertex, theta, Interval(phi));
     const Edge projected_edge(
         Vector2Interval<Interval>(projected_vertex.x(), Interval(projected_vertex.y().min())),
@@ -240,22 +240,93 @@ bool is_fixed_phi_projected_vertex_avoiding_polygon_perimeter(const Vector3Inter
 }
 
 template<IntervalType Interval>
-bool is_fixed_theta_projected_vertex_avoiding_polygon_perimeter(const Vector3Interval<Interval>& vertex, const typename Interval::Number& theta, const Interval& phi, const Polygon<Interval>& polygon) {
-    return false;
+bool is_projected_vertex_avoiding_edge_advanced_fixed_theta(const Vector3Interval<Interval>& vertex, const typename Interval::Number& theta, const Interval& phi, const Edge<Interval>& edge) {
+    const Interval transformation_addition_scale = vertex.z() * Interval(theta).sin();
+    const Interval transformation_division_scale = Interval(theta).cos();
+    const Edge<Interval> transformed_edge(
+        Vector2Interval<Interval>(
+            edge.from().x(),
+            (edge.from().y() + transformation_addition_scale) / transformation_division_scale
+        ),
+        Vector2Interval<Interval>(
+            edge.to().x(),
+            (edge.to().y() + transformation_addition_scale) / transformation_division_scale
+        )
+    );
+    const Vector2Interval<Interval> edge_direction = transformed_edge.direction();
+
+    const Interval radius_squared = vertex.x() * vertex.x() + vertex.y() * vertex.y();
+    const Interval quadratic_term = edge_direction.len_sqr();
+    const Interval linear_term = 2 * Vector2Interval<Interval>::dot(edge_direction, transformed_edge.from());
+    const Interval constant_term = transformed_edge.from().len_sqr() - radius_squared;
+    const Interval discriminant = linear_term * linear_term - 4 * quadratic_term * constant_term;
+    if(discriminant.is_neg()) {
+        return true;
+    }
+    const Interval sqrt_discriminant = discriminant.sqrt();
+    std::array<Interval, 2> solutions = {
+            (-linear_term + sqrt_discriminant) / (2 * quadratic_term),
+            (-linear_term - sqrt_discriminant) / (2 * quadratic_term)
+        };
+
+    const Vector2Interval<Interval> min_projected_vertex = projection_trivial(vertex, Interval(theta), Interval(phi.min()));
+    const Vector2Interval<Interval> max_projected_vertex = projection_trivial(vertex, Interval(theta), Interval(phi.max()));
+    const Vector2Interval<Interval> transformed_max_projected_vertex = Vector2Interval<Interval>(
+        max_projected_vertex.x(),
+        (max_projected_vertex.y() + transformation_addition_scale) / transformation_division_scale
+    );
+    const Edge<Interval> projected_vertex_edge(
+        Vector2Interval<Interval>(
+            min_projected_vertex.x(),
+            (min_projected_vertex.y() + transformation_addition_scale) / transformation_division_scale
+        ),
+        Vector2Interval<Interval>(
+            max_projected_vertex.x(),
+            (max_projected_vertex.y() + transformation_addition_scale) / transformation_division_scale
+        )
+    );
+    for(const Interval& solution: solutions) {
+        if(solution.is_neg() || solution > 1) {
+            continue;
+        }
+        const Vector2Interval<Interval> intersection(
+            transformed_edge.from().x() + solution * edge_direction.x(),
+            transformed_edge.from().y() + solution * edge_direction.y()
+        );
+        if(!projected_vertex_edge.avoids(Edge<Interval>(Vector2Interval<Interval>(Interval(0), Interval(0)), intersection))) {
+            return false;
+        }
+    }
+    return true;
 }
 
 template<IntervalType Interval>
-bool is_projected_vertex_outside_polygon_perimeter(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
+bool is_projected_vertex_avoiding_polygon_advanced_fixed_theta(const Vector3Interval<Interval>& vertex, const typename Interval::Number& theta, const Interval& phi, const Polygon<Interval>& polygon) {
+    if(!Interval(theta).cos().is_nonzero()) {
+        // degenerate case, division by zero would occur in the inverse transformation
+        // default to combined
+        return is_projected_vertex_outside_polygon_combined(vertex, Interval(theta), phi, polygon);
+    }
+    for(const Edge<Interval>& edge: polygon.edges()) {
+        if(!is_projected_vertex_avoiding_edge_advanced_fixed_theta(vertex, theta, phi, edge)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template<IntervalType Interval>
+bool is_projected_vertex_outside_polygon_advanced(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
     if(!(theta.len() < Interval::pi() / 4) || !(phi.len() < Interval::pi() / 4)) {
         // projected vertex might surround the polygon, meaning it avoids, but is not outside
         // default to combined
         return is_projected_vertex_outside_polygon_combined(vertex, theta, phi, polygon);
     }
     return is_projected_vertex_outside_polygon_combined(vertex, Interval(theta.mid()), Interval(phi.mid()), polygon) &&
-           is_fixed_phi_projected_vertex_avoiding_polygon_perimeter(vertex, theta, phi.min(), polygon) &&
-           is_fixed_phi_projected_vertex_avoiding_polygon_perimeter(vertex, theta, phi.max(), polygon) &&
-           is_fixed_theta_projected_vertex_avoiding_polygon_perimeter(vertex, theta.min(), phi, polygon) &&
-           is_fixed_theta_projected_vertex_avoiding_polygon_perimeter(vertex, theta.max(), phi, polygon);
+           is_projected_vertex_avoiding_polygon_advanced_fixed_phi(vertex, theta, phi.min(), polygon) &&
+           is_projected_vertex_avoiding_polygon_advanced_fixed_phi(vertex, theta, phi.max(), polygon) &&
+           is_projected_vertex_avoiding_polygon_advanced_fixed_theta(vertex, theta.min(), phi, polygon) &&
+           is_projected_vertex_avoiding_polygon_advanced_fixed_theta(vertex, theta.max(), phi, polygon);
 }
 
 template<IntervalType Interval>
