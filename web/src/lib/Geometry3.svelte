@@ -47,7 +47,7 @@
     const camera = new OrthographicCamera(-4, 4, 4, -4, 0.001, 1000);
     camera.up.set(0, 0, 1);
     camera.lookAt(0, 0, 2);
-    camera.position.set(0, -10, 0);
+    camera.position.set(0, -100, 0);
 
     const renderer = new WebGLRenderer({antialias: true});
 
