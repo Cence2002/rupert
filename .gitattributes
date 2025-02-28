@@ -1,2 +1,2 @@
 * text=auto eol=lf
-web/static/test.bin filter=lfs diff=lfs merge=lfs -text
+web/static/*.bin filter=lfs diff=lfs merge=lfs -text
