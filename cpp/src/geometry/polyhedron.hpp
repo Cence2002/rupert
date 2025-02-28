@@ -69,7 +69,7 @@ private:
         return combine;
     }
 
-    static inline const Interval phi = 1 + Interval(5).sqrt() / 2;
+    static inline const Interval phi = (1 + Interval(5).sqrt()) / 2;
     static inline const Interval sqrt2 = Interval(2).sqrt();
 
 public:
@@ -77,26 +77,26 @@ public:
         return Polyhedron(flips(Vector3Interval<Interval>(Interval(1), Interval(1), Interval(1)), true, true, true));
     }
 
-    // static Polyhedron octahedron() {
-    //     return Polyhedron(rotations(flips(Vector3<Interval>(0, 0, 1), false, false, true)));
-    // }
-    //
-    // static Polyhedron dodecahedron() {
-    //     return Polyhedron(combine({
-    //             flips(Vector3<Interval>(1, 1, 1), true, true, true),
-    //             rotations(flips(Vector3<Interval>(0, 1 / phi, phi), false, true, true))
-    //         }));
-    // }
-    //
-    // static Polyhedron icosahedron() {
-    //     return Polyhedron(rotations(flips(Vector3<Interval>(0, phi, 1), false, true, true)));
-    // }
-    //
-    // static Polyhedron rhombicosidodecahedron() {
-    //     return Polyhedron(rotations(combine({
-    //             flips(Vector3<Interval>(1, 1, phi * phi * phi), true, true, true),
-    //             flips(Vector3<Interval>(phi * phi, phi, 2 * phi), true, true, true),
-    //             flips(Vector3<Interval>(phi + 2, 0, phi * phi), true, false, true)
-    //         })));
-    // }
+    static Polyhedron octahedron() {
+        return Polyhedron(rotations(flips(Vector3Interval<Interval>(Interval(0), Interval(0), Interval(1)), false, false, true)));
+    }
+
+    static Polyhedron dodecahedron() {
+        return Polyhedron(combine({
+            flips(Vector3Interval<Interval>(1, 1, 1), true, true, true),
+            rotations(flips(Vector3<Interval>(0, 1 / phi, phi), false, true, true))
+        }));
+    }
+
+    static Polyhedron icosahedron() {
+        return Polyhedron(rotations(flips(Vector3<Interval>(0, phi, 1), false, true, true)));
+    }
+
+    static Polyhedron rhombicosidodecahedron() {
+        return Polyhedron(rotations(combine({
+            flips(Vector3Interval<Interval>(Interval(1), Interval(1), phi * phi * phi), true, true, true),
+            flips(Vector3Interval<Interval>(phi * phi, phi, 2 * phi), true, true, true),
+            flips(Vector3Interval<Interval>(2 + phi, Interval(0), phi * phi), true, false, true)
+        })));
+    }
 };

@@ -10,6 +10,8 @@ private:
     uint64_t bits_;
     uint8_t depth_;
 
+    static constexpr uint8_t overflow_depth = 32;
+
 public:
     explicit Id() : bits_(0), depth_(0) {}
 
@@ -27,26 +29,30 @@ public:
         return depth_;
     }
 
+    bool is_overflow() const {
+        return depth_ >= overflow_depth;
+    }
+
     double len() const {
         return std::pow(0.5, depth_);
     }
 
     Id min() const {
-        if(depth_ >= 64) {
+        if(is_overflow()) {
             throw std::runtime_error("Id overflow");
         }
         return Id(bits_ << 1, static_cast<uint8_t>(depth_ + 1));
     }
 
     Id max() const {
-        if(depth_ >= 64) {
+        if(is_overflow()) {
             throw std::runtime_error("Id overflow");
         }
         return Id((bits_ << 1) | static_cast<uint64_t>(1), static_cast<uint8_t>(depth_ + 1));
     }
 
     std::pair<Id, Id> split() const {
-        if(depth_ >= 64) {
+        if(is_overflow()) {
             throw std::runtime_error("Id overflow");
         }
         return std::make_pair(min(), max());
@@ -54,6 +60,9 @@ public:
 
     template<IntervalType Interval>
     Interval interval() const {
+        if(is_overflow()) {
+            throw std::runtime_error("Id overflow");
+        }
         Interval interval = Interval::unit();
         for(uint8_t shift = depth_; shift > 0; shift--) {
             if(bits_ & (static_cast<uint64_t>(1) << (shift - 1))) {
@@ -86,6 +95,10 @@ public:
 
     Id phi_id() const {
         return phi_id_;
+    }
+
+    bool is_overflow() const {
+        return theta_id_.is_overflow() || phi_id_.is_overflow();
     }
 
     std::array<Box2, 4> split() const {
@@ -139,6 +152,10 @@ public:
 
     Id alpha_id() const {
         return alpha_id_;
+    }
+
+    bool is_overflow() const {
+        return theta_id_.is_overflow() || phi_id_.is_overflow() || alpha_id_.is_overflow();
     }
 
     std::array<Box3, 8> split() const {
@@ -215,7 +232,14 @@ private:
 
 public:
     explicit Queue3() : queue(), mutex() {
-        push(Box3());
+        // push(Box3());
+
+        //start from a small subset of the space
+        push(Box3(
+            Id(0b0011, 4),
+            Id(0b0101, 4),
+            Id(0b1010, 4)
+        ));
     }
 
     void push(const Box3& box) {

@@ -79,6 +79,9 @@ bool is_box3_terminal(const Box3& box3, const Polyhedron<Interval>& hole, const 
         }
 
         const Box2& box2 = optional_box2.value();
+        if(box2.is_overflow()) {
+            return false;
+        }
         exporter.cover_builder.box3_builder.box2_builder.set_box2(box2);
         if(is_box2_terminal(box2, projected_hole, plug)) {
             exporter.cover_builder.box3_builder.add_box2(exporter.builder);
@@ -105,6 +108,9 @@ void step(Queue3& queue3, const Polyhedron<Interval>& hole, const Polyhedron<Int
         return;
     }
     const Box3& box3 = optional_box3.value();
+    if(box3.is_overflow()) {
+        return;
+    }
     exporter.cover_builder.box3_builder.set_box3(box3);
     const bool is_terminal = is_box3_terminal(box3, hole, plug, iterations2, resolution);
     exporter.cover_builder.box3_builder.set_complete(is_terminal);
@@ -144,24 +150,15 @@ int main() {
     tests();
 
     using Interval = FloatInterval;
-    const Polyhedron<Interval> hole = Polyhedron<Interval>(std::vector<Vector3Interval<Interval>>(
-        {
-            Vector3Interval<Interval>(Interval(1), Interval(1), Interval(0)),
-            Vector3Interval<Interval>(Interval(1), Interval(-1), Interval(0)),
-            Vector3Interval<Interval>(Interval(-1), Interval(-1), Interval(0)),
-            Vector3Interval<Interval>(Interval(-1), Interval(1), Interval(0)),
-            Vector3Interval<Interval>(Interval(0), Interval(0), Interval(1) / 2),
-            Vector3Interval<Interval>(Interval(0), Interval(0), -Interval(1) / 2),
-        }
-    ));
 
-    const Polyhedron<Interval> plug = Polyhedron<Interval>::cube();
+    const Polyhedron<Interval> hole = Polyhedron<Interval>::rhombicosidodecahedron();
+    const Polyhedron<Interval> plug = Polyhedron<Interval>::rhombicosidodecahedron();
 
     exporter.cover_builder.set_description("Exported Data from C++");
     exporter.cover_builder.set_hole(exporter.builder, hole);
     exporter.cover_builder.set_plug(exporter.builder, plug);
 
-    solve<Interval>(hole, plug, 1, 512, 10000, 3);
+    solve<Interval>(hole, plug, 1, 64, 10000, 3);
 
     exporter.save("../../web/static/cover.bin");
 
