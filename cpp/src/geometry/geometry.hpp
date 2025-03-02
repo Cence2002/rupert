@@ -38,10 +38,12 @@ std::vector<Vector2Interval<Interval>> vector2_hull(const Vector2Interval<Interv
     };
 }
 
+// (x, y) rotated with angle alpha
+// X = x * cos(alpha) - y * sin(alpha)
+// Y = x * sin(alpha) + y * cos(alpha)
+
 template<IntervalType Interval>
 Vector2Interval<Interval> rotation_trivial(const Vector2Interval<Interval>& projected_vertex, const Interval& alpha) {
-    // X = x * cos(alpha) - y * sin(alpha)
-    // Y = x * sin(alpha) + y * cos(alpha)
     return Vector2Interval<Interval>(
         harmonic_trivial(projected_vertex.x(), -projected_vertex.y(), alpha),
         harmonic_trivial(projected_vertex.y(), projected_vertex.x(), alpha)
@@ -93,27 +95,29 @@ std::vector<Vector2Interval<Interval>> rotation_hull_triangle(const Vector2Inter
     };
 }
 
+// (x, y, z) projected angle theta and phi
+// X = -x * sin(theta) + y * cos(theta)
+// Y = (x * cos(theta) + y * sin(theta)) * cos(phi) - z * sin(phi)
+
 template<IntervalType Interval>
 Vector2Interval<Interval> projection_trivial(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi) {
-    // X = -x * sin(phi) + y * cos(phi)
-    // Y = (x * cos(phi) + y * sin(phi)) * cos(theta) - z * sin(theta)
     const Vector2Interval<Interval> reflected_vertex = Vector2Interval<Interval>(vertex.x(), -vertex.y());
-    const Interval shifted_phi = phi + Interval::pi() / 2;
-    const Vector2Interval<Interval> rotated_reflected_vertex = rotation_trivial(reflected_vertex, shifted_phi);
+    const Interval shifted_theta = theta + Interval::pi() / 2;
+    const Vector2Interval<Interval> rotated_reflected_vertex = rotation_trivial(reflected_vertex, shifted_theta);
     return Vector2Interval<Interval>(
         rotated_reflected_vertex.x(),
-        harmonic_trivial(rotated_reflected_vertex.y(), -vertex.z(), theta)
+        harmonic_trivial(rotated_reflected_vertex.y(), -vertex.z(), phi)
     );
 }
 
 template<IntervalType Interval>
 Vector2Interval<Interval> projection_combined(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi) {
     const Vector2Interval<Interval> reflected_vertex = Vector2Interval<Interval>(vertex.x(), -vertex.y());
-    const Interval shifted_phi = phi + Interval::pi() / 2;
-    const Vector2Interval<Interval> rotated_reflected_vertex = rotation_combined(reflected_vertex, shifted_phi);
+    const Interval shifted_theta = theta + Interval::pi() / 2;
+    const Vector2Interval<Interval> rotated_reflected_vertex = rotation_combined(reflected_vertex, shifted_theta);
     return Vector2Interval<Interval>(
         rotated_reflected_vertex.x(),
-        harmonic_combined(rotated_reflected_vertex.y(), -vertex.z(), theta)
+        harmonic_combined(rotated_reflected_vertex.y(), -vertex.z(), phi)
     );
 }
 
@@ -131,16 +135,16 @@ std::vector<Vector2Interval<Interval>> projection_hull_combined(const Vector3Int
 
 template<IntervalType Interval>
 std::vector<Vector2Interval<Interval>> projection_hull_triangle(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi) {
-    if(!(phi.len() < Interval::pi() / 3)) {
+    if(!(theta.len() < Interval::pi() / 3)) {
         // apex of triangle (in rotation_hull_triangle) is not well-defined, or it might be numerically unstable
         // default to combined
         return projection_hull_combined(vertex, theta, phi);
     }
 
     const Vector2Interval<Interval> reflected_vertex = Vector2Interval<Interval>(vertex.x(), -vertex.y());
-    const Interval shifted_phi = phi + Interval::pi() / 2;
+    const Interval shifted_theta = theta + Interval::pi() / 2;
 
-    std::vector<Vector2Interval<Interval>> rotation_hull = rotation_hull_triangle(reflected_vertex, shifted_phi);
+    std::vector<Vector2Interval<Interval>> rotation_hull = rotation_hull_triangle(reflected_vertex, shifted_theta);
     if(rotation_hull.size() != 3) {
         throw std::runtime_error("rotation_hull_triangle must return 3 vertices");
     }
@@ -151,15 +155,15 @@ std::vector<Vector2Interval<Interval>> projection_hull_triangle(const Vector3Int
 
     const Vector2Interval<Interval> scaled_min_rotated_reflected_vertex(
         min_rotated_reflected_vertex.x(),
-        harmonic_combined(min_rotated_reflected_vertex.y(), -vertex.z(), theta)
+        harmonic_combined(min_rotated_reflected_vertex.y(), -vertex.z(), phi)
     );
     const Vector2Interval<Interval> scaled_mid_rotated_reflected_vertex(
         mid_rotated_reflected_vertex.x(),
-        harmonic_combined(mid_rotated_reflected_vertex.y(), -vertex.z(), theta)
+        harmonic_combined(mid_rotated_reflected_vertex.y(), -vertex.z(), phi)
     );
     const Vector2Interval<Interval> scaled_max_rotated_reflected_vertex(
         max_rotated_reflected_vertex.x(),
-        harmonic_combined(max_rotated_reflected_vertex.y(), -vertex.z(), theta)
+        harmonic_combined(max_rotated_reflected_vertex.y(), -vertex.z(), phi)
     );
 
     return std::vector<Vector2Interval<Interval>>{
@@ -174,6 +178,9 @@ std::vector<Vector2Interval<Interval>> projection_hull_triangle(const Vector3Int
 
 template<IntervalType Interval>
 std::vector<Vector2Interval<Interval>> projection_hull_advanced_approximate(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi, const int resolution = 30) {
+    if(!(theta.len() < Interval::pi() / 3)) {
+        return projection_hull_combined(vertex, theta, phi);
+    }
     std::vector<Vector2Interval<Interval>> projected_vertices;
     for(int i = 0; i <= resolution; i++) {
         const Interval theta_i = Interval(theta.min()) + Interval(theta.len()) * i / resolution;
@@ -251,8 +258,8 @@ bool is_projected_vertex_outside_polygon_combined(const Vector3Interval<Interval
 }
 
 template<IntervalType Interval>
-bool is_projected_vertex_avoiding_polygon_advanced_fixed_phi(const Vector3Interval<Interval>& vertex, const Interval& theta, const typename Interval::Number& phi, const Polygon<Interval>& polygon) {
-    const Vector2Interval<Interval> projected_vertex = projection_combined(vertex, theta, Interval(phi));
+bool is_projected_vertex_avoiding_polygon_advanced_fixed_theta(const Vector3Interval<Interval>& vertex, const typename Interval::Number& theta, const Interval& phi, const Polygon<Interval>& polygon) {
+    const Vector2Interval<Interval> projected_vertex = projection_combined(vertex, Interval(theta), phi);
     const Edge projected_edge(
         Vector2Interval<Interval>(projected_vertex.x(), Interval(projected_vertex.y().min())),
         Vector2Interval<Interval>(projected_vertex.x(), Interval(projected_vertex.y().max()))
@@ -266,9 +273,9 @@ bool is_projected_vertex_avoiding_polygon_advanced_fixed_phi(const Vector3Interv
 }
 
 template<IntervalType Interval>
-bool is_projected_vertex_avoiding_edge_advanced_fixed_theta(const Vector3Interval<Interval>& vertex, const typename Interval::Number& theta, const Interval& phi, const Edge<Interval>& edge) {
-    const Interval transformation_addition = vertex.z() * Interval(theta).sin();
-    const Interval transformation_division = Interval(theta).cos();
+bool is_projected_vertex_avoiding_edge_advanced_fixed_phi(const Vector3Interval<Interval>& vertex, const Interval& theta, const typename Interval::Number& phi, const Edge<Interval>& edge) {
+    const Interval transformation_addition = vertex.z() * Interval(phi).sin();
+    const Interval transformation_division = Interval(phi).cos();
     const Edge<Interval> transformed_edge(
         Vector2Interval<Interval>(
             edge.from().x(),
@@ -295,8 +302,8 @@ bool is_projected_vertex_avoiding_edge_advanced_fixed_theta(const Vector3Interva
         (-linear_term - sqrt_discriminant) / double_quadratic_term
     };
 
-    const Vector2Interval<Interval> min_projected_vertex = projection_trivial(vertex, Interval(theta), Interval(phi.min()));
-    const Vector2Interval<Interval> max_projected_vertex = projection_trivial(vertex, Interval(theta), Interval(phi.max()));
+    const Vector2Interval<Interval> min_projected_vertex = projection_trivial(vertex, Interval(theta.min()), Interval(phi));
+    const Vector2Interval<Interval> max_projected_vertex = projection_trivial(vertex, Interval(theta.max()), Interval(phi));
     const Vector2Interval<Interval> transformed_max_projected_vertex = Vector2Interval<Interval>(
         max_projected_vertex.x(),
         (max_projected_vertex.y() + transformation_addition) / transformation_division
@@ -327,14 +334,14 @@ bool is_projected_vertex_avoiding_edge_advanced_fixed_theta(const Vector3Interva
 }
 
 template<IntervalType Interval>
-bool is_projected_vertex_avoiding_polygon_advanced_fixed_theta(const Vector3Interval<Interval>& vertex, const typename Interval::Number& theta, const Interval& phi, const Polygon<Interval>& polygon) {
-    if(!Interval(theta).cos().is_nonzero()) {
+bool is_projected_vertex_avoiding_polygon_advanced_fixed_phi(const Vector3Interval<Interval>& vertex, const Interval& theta, const typename Interval::Number& phi, const Polygon<Interval>& polygon) {
+    if(!Interval(phi).cos().is_nonzero()) {
         // degenerate case, division by zero would occur in the inverse transformation
         // default to combined
-        return is_projected_vertex_outside_polygon_combined(vertex, Interval(theta), phi, polygon);
+        return is_projected_vertex_outside_polygon_combined(vertex, theta, Interval(phi), polygon);
     }
     for(const Edge<Interval>& edge: polygon.edges()) {
-        if(!is_projected_vertex_avoiding_edge_advanced_fixed_theta(vertex, theta, phi, edge)) {
+        if(!is_projected_vertex_avoiding_edge_advanced_fixed_phi(vertex, theta, phi, edge)) {
             return false;
         }
     }
@@ -343,82 +350,84 @@ bool is_projected_vertex_avoiding_polygon_advanced_fixed_theta(const Vector3Inte
 
 template<IntervalType Interval>
 bool is_projected_vertex_outside_polygon_advanced(const Vector3Interval<Interval>& vertex, const Interval& theta, const Interval& phi, const Polygon<Interval>& polygon) {
-    if(!(theta.len() < Interval::pi() / 3) || !(phi.len() < Interval::pi() / 3)) {
+    if(!(theta.len() < Interval::pi() / 3)) {
         // projected vertex might surround the polygon, meaning it avoids, but is not outside
         // default to combined
         return is_projected_vertex_outside_polygon_combined(vertex, theta, phi, polygon);
     }
     return is_projected_vertex_outside_polygon_combined(vertex, Interval(theta.mid()), Interval(phi.mid()), polygon) &&
-           is_projected_vertex_avoiding_polygon_advanced_fixed_phi(vertex, theta, phi.min(), polygon) &&
-           is_projected_vertex_avoiding_polygon_advanced_fixed_phi(vertex, theta, phi.max(), polygon) &&
            is_projected_vertex_avoiding_polygon_advanced_fixed_theta(vertex, theta.min(), phi, polygon) &&
-           is_projected_vertex_avoiding_polygon_advanced_fixed_theta(vertex, theta.max(), phi, polygon);
+           is_projected_vertex_avoiding_polygon_advanced_fixed_theta(vertex, theta.max(), phi, polygon) &&
+           is_projected_vertex_avoiding_polygon_advanced_fixed_phi(vertex, theta, phi.min(), polygon) &&
+           is_projected_vertex_avoiding_polygon_advanced_fixed_phi(vertex, theta, phi.max(), polygon);
 }
 
 template<IntervalType Interval>
-Polygon<Interval> convex_hull(const std::vector<Vector2Interval<Interval>>& vertices) {
+Polygon<Interval> convex_hull(const std::vector<Vector2Interval<Interval>>& vertices, const typename Interval::Number& epsilon) {
     std::vector<Edge<Interval>> edges;
 
-    std::vector<bool> visited(vertices.size(), false);
-
-    size_t most_max_x_index = 0;
-    for(size_t max_x_index = 1; max_x_index < vertices.size(); max_x_index++) {
-        if(vertices[max_x_index].x().max() > vertices[most_max_x_index].x().max()) {
-            most_max_x_index = max_x_index;
+    std::optional<size_t> start_index;
+    for(size_t new_start_index = 0; new_start_index < vertices.size(); new_start_index++) {
+        if(!start_index.has_value() || vertices[new_start_index].x().max() > vertices[start_index.value()].x().max()) {
+            start_index = new_start_index;
         }
     }
 
-    std::queue<size_t> queue({most_max_x_index});
+    std::vector<bool> visited_indices(vertices.size(), false);
+    std::queue<std::pair<size_t, Vector2Interval<Interval>>> queue({{start_index.value(), vertices[start_index.value()] * Interval(epsilon)}});
     while(!queue.empty()) {
-        const size_t from_index = queue.front();
+        const auto [from_index, from_vertex] = queue.front();
         queue.pop();
-        if(visited[from_index]) {
+        if(visited_indices[from_index]) {
             continue;
         }
-        visited[from_index] = true;
-
-        const Vector2Interval<Interval> from = vertices[from_index];
+        visited_indices[from_index] = true;
 
         std::optional<size_t> most_clockwise_index;
-        for(size_t clockwise_index = 0; clockwise_index < vertices.size(); clockwise_index++) {
-            if(!most_clockwise_index.has_value() && (vertices[clockwise_index] - from).len().is_pos()) {
-                most_clockwise_index = static_cast<int>(clockwise_index);
+        for(size_t new_most_clockwise_index = 0; new_most_clockwise_index < vertices.size(); new_most_clockwise_index++) {
+            if(!most_clockwise_index.has_value() && (vertices[new_most_clockwise_index] - from_vertex).len().is_pos()) {
+                most_clockwise_index = new_most_clockwise_index;
             }
-            if(most_clockwise_index.has_value() && Edge<Interval>(from, vertices[most_clockwise_index.value()]).orientation(vertices[clockwise_index]) == Orientation::CLOCKWISE) {
-                most_clockwise_index = static_cast<int>(clockwise_index);
+            if(most_clockwise_index.has_value() && Edge<Interval>(from_vertex, vertices[most_clockwise_index.value()]).orientation(vertices[new_most_clockwise_index]) == Orientation::CLOCKWISE) {
+                most_clockwise_index = new_most_clockwise_index;
             }
+        }
+        if(!most_clockwise_index.has_value()) {
+            throw std::runtime_error("No most clockwise index found");
         }
 
         std::vector<size_t> to_indices;
         for(size_t to_index = 0; to_index < vertices.size(); to_index++) {
-            if(!(vertices[to_index] - from).len().is_pos()) {
+            if(!(vertices[to_index] - from_vertex).len().is_pos()) {
+                print(vertices[to_index], from_vertex);
+                throw std::runtime_error("Zero length edge found");
+            }
+            const Vector2Interval<Interval> to_vertex = vertices[to_index];
+            if(Edge<Interval>(from_vertex, vertices[most_clockwise_index.value()]).orientation(to_vertex) == Orientation::COUNTERCLOCKWISE) {
                 continue;
             }
-            const Vector2Interval<Interval> to = vertices[to_index];
-            if(Edge<Interval>(from, vertices[most_clockwise_index.value()]).orientation(to) == Orientation::COUNTERCLOCKWISE) {
-                continue;
-            }
-            bool most_clockwise = true;
-            for(size_t clockwise_index = 0; clockwise_index < vertices.size(); clockwise_index++) {
-                if(clockwise_index == from_index || clockwise_index == to_index) {
+            bool is_most_clockwise = true;
+            for(size_t index = 0; index < vertices.size(); index++) {
+                if(index == from_index || index == to_index) {
                     continue;
                 }
-                if(Edge<Interval>(from, to).orientation(vertices[clockwise_index]) == Orientation::CLOCKWISE) {
-                    most_clockwise = false;
+                if(Edge<Interval>(from_vertex, to_vertex).orientation(vertices[index]) == Orientation::CLOCKWISE) {
+                    is_most_clockwise = false;
                     break;
                 }
             }
-            if(most_clockwise) {
+            if(is_most_clockwise) {
                 to_indices.push_back(to_index);
             }
         }
-        std::ranges::stable_sort(to_indices, [&](const size_t a, const size_t b) {
-            return (vertices[a] - from).len().mid() < (vertices[b] - from).len().mid();
+        std::ranges::stable_sort(to_indices, [&](const size_t index, const size_t other_index) {
+            return (vertices[index] - from_vertex).len().max() < (vertices[other_index] - from_vertex).len().max();
         });
         for(const size_t to_index: to_indices) {
-            edges.emplace_back(vertices[from_index], vertices[to_index]);
-            if(!visited[to_index]) {
-                queue.push(to_index);
+            const Vector2Interval<Interval> to_vertex = vertices[to_index] * Interval(epsilon);
+            edges.emplace_back(from_vertex, to_vertex);
+            if(!visited_indices[to_index]) {
+                queue.push({to_index, vertices[to_index] * Interval(epsilon)});
             }
         }
     }

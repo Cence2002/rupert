@@ -109,6 +109,10 @@ public:
         return Vector2Interval(x_ - vector2.x_, y_ - vector2.y_);
     }
 
+    Vector2Interval operator*(const Interval& interval) const {
+        return Vector2Interval(x_ * interval, y_ * interval);
+    }
+
     Interval len() const {
         return (x_.sqr() + y_.sqr()).sqrt();
     }

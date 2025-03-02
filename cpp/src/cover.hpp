@@ -118,12 +118,12 @@ public:
 
     template<IntervalType Interval>
     Interval theta() const {
-        return theta_id_.interval<Interval>() * Interval::pi();
+        return theta_id_.interval<Interval>() * 2 * Interval::pi();
     }
 
     template<IntervalType Interval>
     Interval phi() const {
-        return phi_id_.interval<Interval>() * 2 * Interval::pi();
+        return phi_id_.interval<Interval>() * Interval::pi();
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Box2& box2) {
@@ -180,12 +180,12 @@ public:
 
     template<IntervalType Interval>
     Interval theta() const {
-        return theta_id_.interval<Interval>() * Interval::pi();
+        return theta_id_.interval<Interval>() * 2 * Interval::pi();
     }
 
     template<IntervalType Interval>
     Interval phi() const {
-        return phi_id_.interval<Interval>() * 2 * Interval::pi();
+        return phi_id_.interval<Interval>() * Interval::pi();
     }
 
     template<IntervalType Interval>
@@ -236,8 +236,8 @@ public:
 
         //start from a small subset of the space
         push(Box3(
-            Id(0b0011, 4),
             Id(0b0101, 4),
+            Id(0b0011, 4),
             Id(0b1010, 4)
         ));
     }
