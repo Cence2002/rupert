@@ -22,6 +22,7 @@
         Line,
         Quaternion,
         OrthographicCamera,
+        SphereGeometry,
     } from "three";
     import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
     import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
@@ -55,6 +56,9 @@
     controls.enableRotate = true;
     controls.enableZoom = true;
     controls.enablePan = true;
+
+    const center = new Mesh(new SphereGeometry(0.01), new MeshBasicMaterial({color: new Color(1, 1, 1)}));
+    scene.add(center);
 
     let holeGroup: Group;
     let holeRadius: number;
@@ -460,6 +464,7 @@
             plug_theta_t += 0.1;
             plug_phi_t += 0.1 / Math.sqrt(2);
         }
+        center.position.copy(controls.target);
     }
 
     function resize(width: number, height: number, zoom: number = 10) {

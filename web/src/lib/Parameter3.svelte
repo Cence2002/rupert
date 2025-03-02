@@ -20,6 +20,7 @@
         Group,
         Vector3,
         Color,
+        SphereGeometry,
     } from "three";
 
 
@@ -50,6 +51,9 @@
     controls.enableZoom = true;
     controls.enablePan = true;
     controls.target.set(0.5, 0.5, 0.5);
+
+    const center = new Mesh(new SphereGeometry(0.01), new MeshBasicMaterial({color: new Color(1, 1, 1)}));
+    scene.add(center);
 
     const box3Groups: Group[] = [];
 
@@ -178,6 +182,7 @@
 
     function draw() {
         renderer.render(scene, camera);
+        center.position.copy(controls.target);
     }
 
     function resize(width: number, height: number) {
