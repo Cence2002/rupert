@@ -17,7 +17,7 @@ bool is_box2_terminal(const Box2& box2, const Polygon<Interval>& hole, const Pol
         }
         exporter.cover_builder.box3_builder.box2_builder.add_projection(exporter.builder);
         if(is_projected_vertex_outside_polygon_advanced(plug.vertices()[vertex_index], theta, phi, hole)) {
-            exporter.cover_builder.box3_builder.box2_builder.add_out(static_cast<uint8_t>(vertex_index));
+            exporter.cover_builder.box3_builder.box2_builder.add_last_as_out();
             is_terminal = true;
         }
     }
@@ -63,7 +63,7 @@ Polygon<Interval> project_hole(const Box3& box3, const Polyhedron<Interval>& hol
         }
         exporter.cover_builder.box3_builder.add_projection(exporter.builder);
     }
-    typename Interval::Number epsilon = (1 / (Interval(box3.alpha<Interval>().rad()) / 10000).cos()).max();
+    typename Interval::Number epsilon = (1 / (Interval(box3.alpha<Interval>().rad()) / 100).cos()).max();
     return convex_hull(all_projected_hole_vertices, epsilon);
 }
 

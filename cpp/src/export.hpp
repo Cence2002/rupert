@@ -29,6 +29,10 @@ public:
         vertices_.clear();
         return projection;
     }
+
+    size_t size() const {
+        return vertices_.size();
+    }
 };
 
 struct Box2Builder {
@@ -81,6 +85,10 @@ public:
         projections_.clear();
         out_.clear();
         return box2;
+    }
+
+    void add_last_as_out() {
+        out_.push_back(static_cast<uint8_t>(projections_.size() - 1));
     }
 };
 
