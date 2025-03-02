@@ -54,7 +54,7 @@
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableRotate = true;
     controls.enableZoom = true;
-    controls.enablePan = false;
+    controls.enablePan = true;
 
     let holeGroup: Group;
     let holeRadius: number;
