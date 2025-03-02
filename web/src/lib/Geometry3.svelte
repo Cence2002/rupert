@@ -62,7 +62,6 @@
     let plugGroup: Group;
     let plugRadius: number;
 
-    const resolution = 8;
     let rotatedProjectedHoleVertices: Mesh[] = [];
     let projectedPlugVertices: Mesh[] = [];
 
@@ -386,9 +385,9 @@
         const cos_phi = Math.cos(phi);
         const sin_phi = Math.sin(phi);
         return new Vector3(
-            -vertex.x * sin_phi + vertex.y * cos_phi,
-            (vertex.x * cos_phi + vertex.y * sin_phi) * cos_theta - vertex.z * sin_theta,
-            -(vertex.x * cos_phi + vertex.y * sin_phi) * sin_theta - vertex.z * cos_theta
+            -vertex.x * sin_theta + vertex.y * cos_theta,
+            (vertex.x * cos_theta + vertex.y * sin_theta) * cos_phi - vertex.z * sin_phi,
+            -(vertex.x * cos_theta + vertex.y * sin_theta) * sin_phi - vertex.z * cos_phi
         );
     }
 
@@ -405,11 +404,11 @@
     function projection_rotation_quaternion(theta: number, phi: number, alpha: number): Quaternion {
         const q_init_0 = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI);
         const q_init_1 = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI / 2);
-        const q_phi = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), phi);
-        const q_theta = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -theta);
+        const q_theta = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), theta);
+        const q_phi = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -phi);
         const q_alpha = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), alpha);
         const q_total = new Quaternion();
-        q_total.copy(q_alpha).multiply(q_theta).multiply(q_phi).multiply(q_init_1).multiply(q_init_0);
+        q_total.copy(q_alpha).multiply(q_phi).multiply(q_theta).multiply(q_init_1).multiply(q_init_0);
         return q_total;
     }
 

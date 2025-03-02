@@ -65,7 +65,7 @@
                 const phi = box3.phi().interval();
                 const alpha = box3.alpha().interval();
 
-                const box3Geometry = new BoxGeometry((theta.max() - theta.min()) / PI, (phi.max() - phi.min()) / TWO_PI, (alpha.max() - alpha.min()) / TWO_PI);
+                const box3Geometry = new BoxGeometry((theta.max() - theta.min()) / TWO_PI, (phi.max() - phi.min()) / PI, (alpha.max() - alpha.min()) / TWO_PI);
                 const box3Material = new MeshBasicMaterial({
                     color: new Color(0, 0, 1),
                     transparent: true,
@@ -73,14 +73,14 @@
                     depthWrite: false
                 });
                 const box3Mesh = new Mesh(box3Geometry, box3Material);
-                box3Mesh.position.set((theta.min() + theta.max()) / 2 / PI, (phi.min() + phi.max()) / 2 / TWO_PI, (alpha.min() + alpha.max()) / 2 / TWO_PI);
+                box3Mesh.position.set((theta.min() + theta.max()) / 2 / TWO_PI, (phi.min() + phi.max()) / 2 / PI, (alpha.min() + alpha.max()) / 2 / TWO_PI);
 
                 const box3EdgesGeometry = new EdgesGeometry(box3Geometry);
                 const box3EdgesMaterial = new LineBasicMaterial({
                     color: new Color(0.5, 0.5, 0.5),
                 });
                 const box3Edges = new LineSegments(box3EdgesGeometry, box3EdgesMaterial);
-                box3Edges.position.set((theta.min() + theta.max()) / 2 / PI, (phi.min() + phi.max()) / 2 / TWO_PI, (alpha.min() + alpha.max()) / 2 / TWO_PI);
+                box3Edges.position.set((theta.min() + theta.max()) / 2 / TWO_PI, (phi.min() + phi.max()) / 2 / PI, (alpha.min() + alpha.max()) / 2 / TWO_PI);
 
                 const box3Group = new Group();
                 box3Group.add(box3Mesh);
