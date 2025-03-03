@@ -76,7 +76,7 @@ public:
         if(from_dot.is_negative() && to_dot.is_negative()) {
             return true;
         }
-        if(from_dot > Vector2<Interval>::dot(direction(), direction()) && to_dot > Vector2<Interval>::dot(direction(), direction())) {
+        if(from_dot > direction().len_sqr() && to_dot > direction().len_sqr()) {
             return true;
         }
         const Interval edge_from_dot = Vector2<Interval>::dot(edge.direction(), from_ - edge.from());
@@ -84,18 +84,24 @@ public:
         if(edge_from_dot.is_negative() && edge_to_dot.is_negative()) {
             return true;
         }
-        if(edge_from_dot > Vector2<Interval>::dot(edge.direction(), edge.direction()) && edge_to_dot > Vector2<Interval>::dot(edge.direction(), edge.direction())) {
+        if(edge_from_dot > edge.direction().len_sqr() && edge_to_dot > edge.direction().len_sqr()) {
             return true;
         }
-        return false;
+        const Vector2<Interval> midpoint = (from_ + to_) / Interval(2);
+        const Vector2<Interval> edge_midpoint = (edge.from() + edge.to()) / Interval(2);
+        return (edge_midpoint - midpoint).len() > (direction().len() + edge.direction().len()) / 2;
     }
 
     bool avoids(const Vector2<Interval>& vector2) const {
         if(orientation(vector2) != Orientation::COLLINEAR) {
             return true;
         }
-        const Interval dot = Vector2<Interval>::dot(direction(), vector2 - Vector2<Interval>(from_));
-        return dot.is_negative() || dot > Vector2<Interval>::dot(direction(), direction());
+        const Interval dot = Vector2<Interval>::dot(direction(), vector2 - from_);
+        if(dot.is_negative() || dot > direction().len_sqr()) {
+            return true;
+        }
+        const Vector2<Interval> midpoint = (from_ + to_) / Interval(2);
+        return (vector2 - midpoint).len() > direction().len() / 2;
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Edge& edge) {
