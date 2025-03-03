@@ -17,7 +17,7 @@ public:
     explicit ProjectionBuilder() : vertices_() {}
 
     template<IntervalType Interval>
-    void add_vertex(const Vector2Interval<Interval>& vertex) {
+    void add_vertex(const Vector2<Interval>& vertex) {
         vertices_.emplace_back(
             vertex.x().mid().float_value(),
             vertex.y().mid().float_value()

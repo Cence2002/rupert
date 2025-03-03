@@ -32,26 +32,26 @@ constexpr bool opposite_orientation(const Orientation orientation_0, const Orien
 template<IntervalType Interval>
 struct Edge {
 private:
-    Vector2Interval<Interval> from_;
-    Vector2Interval<Interval> to_;
+    Vector2<Interval> from_;
+    Vector2<Interval> to_;
 
 public:
-    explicit Edge(const Vector2Interval<Interval>& from, const Vector2Interval<Interval>& to) noexcept: from_(from), to_(to) {}
+    explicit Edge(const Vector2<Interval>& from, const Vector2<Interval>& to) noexcept: from_(from), to_(to) {}
 
-    Vector2Interval<Interval> from() const {
+    Vector2<Interval> from() const {
         return from_;
     }
 
-    Vector2Interval<Interval> to() const {
+    Vector2<Interval> to() const {
         return to_;
     }
 
-    Vector2Interval<Interval> direction() const {
+    Vector2<Interval> direction() const {
         return to_ - from_;
     }
 
-    Orientation orientation(const Vector2Interval<Interval>& vector2) const {
-        const Interval cross = Vector2Interval<Interval>::cross(direction(), vector2 - from_);
+    Orientation orientation(const Vector2<Interval>& vector2) const {
+        const Interval cross = Vector2<Interval>::cross(direction(), vector2 - from_);
         if(cross.is_positive()) {
             return Orientation::COUNTERCLOCKWISE;
         }
@@ -71,31 +71,31 @@ public:
            same_orientation(edge.orientation(from_), edge.orientation(to_))) {
             return true;
         }
-        const Interval from_dot = Vector2Interval<Interval>::dot(direction(), edge.from() - Vector2Interval<Interval>(from_));
-        const Interval to_dot = Vector2Interval<Interval>::dot(direction(), edge.to() - Vector2Interval<Interval>(from_));
+        const Interval from_dot = Vector2<Interval>::dot(direction(), edge.from() - Vector2<Interval>(from_));
+        const Interval to_dot = Vector2<Interval>::dot(direction(), edge.to() - Vector2<Interval>(from_));
         if(from_dot.is_negative() && to_dot.is_negative()) {
             return true;
         }
-        if(from_dot > Vector2Interval<Interval>::dot(direction(), direction()) && to_dot > Vector2Interval<Interval>::dot(direction(), direction())) {
+        if(from_dot > Vector2<Interval>::dot(direction(), direction()) && to_dot > Vector2<Interval>::dot(direction(), direction())) {
             return true;
         }
-        const Interval edge_from_dot = Vector2Interval<Interval>::dot(edge.direction(), from_ - edge.from());
-        const Interval edge_to_dot = Vector2Interval<Interval>::dot(edge.direction(), to_ - edge.from());
+        const Interval edge_from_dot = Vector2<Interval>::dot(edge.direction(), from_ - edge.from());
+        const Interval edge_to_dot = Vector2<Interval>::dot(edge.direction(), to_ - edge.from());
         if(edge_from_dot.is_negative() && edge_to_dot.is_negative()) {
             return true;
         }
-        if(edge_from_dot > Vector2Interval<Interval>::dot(edge.direction(), edge.direction()) && edge_to_dot > Vector2Interval<Interval>::dot(edge.direction(), edge.direction())) {
+        if(edge_from_dot > Vector2<Interval>::dot(edge.direction(), edge.direction()) && edge_to_dot > Vector2<Interval>::dot(edge.direction(), edge.direction())) {
             return true;
         }
         return false;
     }
 
-    bool avoids(const Vector2Interval<Interval>& vector2) const {
+    bool avoids(const Vector2<Interval>& vector2) const {
         if(orientation(vector2) != Orientation::COLLINEAR) {
             return true;
         }
-        const Interval dot = Vector2Interval<Interval>::dot(direction(), vector2 - Vector2Interval<Interval>(from_));
-        return dot.is_negative() || dot > Vector2Interval<Interval>::dot(direction(), direction());
+        const Interval dot = Vector2<Interval>::dot(direction(), vector2 - Vector2<Interval>(from_));
+        return dot.is_negative() || dot > Vector2<Interval>::dot(direction(), direction());
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Edge& edge) {
