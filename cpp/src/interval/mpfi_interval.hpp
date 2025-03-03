@@ -123,22 +123,6 @@ public:
         return rad;
     }
 
-    bool is_nonzero() const {
-        return !is_nan() && !mpfi_has_zero(interval_);
-    }
-
-    bool is_pos() const {
-        return mpfi_is_strictly_pos(interval_);
-    }
-
-    bool is_neg() const {
-        return mpfi_is_strictly_neg(interval_);
-    }
-
-    bool is_nan() const {
-        return mpfi_nan_p(interval_);
-    }
-
     bool operator>(const MpfiInterval& interval) const {
         if(is_nan() || interval.is_nan()) {
             return false;
@@ -211,6 +195,22 @@ public:
             return false;
         }
         return mpfi_cmp_si(interval.interval_, integer) > 0;
+    }
+
+    bool is_positive() const {
+        return mpfi_is_strictly_pos(interval_);
+    }
+
+    bool is_negative() const {
+        return mpfi_is_strictly_neg(interval_);
+    }
+
+    bool is_nonzero() const {
+        return !is_nan() && !mpfi_has_zero(interval_);
+    }
+
+    bool is_nan() const {
+        return mpfi_nan_p(interval_);
     }
 
     MpfiInterval operator+() const {
@@ -390,7 +390,7 @@ public:
     }
 
     MpfiInterval sqrt() const {
-        if(min().is_neg()) {
+        if(min().is_negative()) {
             return nan();
         }
         MpfiInterval sqrt;

@@ -16,13 +16,13 @@ Interval harmonic_combined(const Interval& cos_amplitude, const Interval& sin_am
     if(cos_amplitude.is_nonzero()) {
         const Interval amplitude = (cos_amplitude.sqr() + sin_amplitude.sqr()).sqrt();
         const Interval phase = (sin_amplitude / cos_amplitude).atan();
-        const int sign = cos_amplitude.is_pos() ? 1 : -1;
+        const int sign = cos_amplitude.is_positive() ? 1 : -1;
         return sign * amplitude * (angle - phase).cos();
     }
     if(sin_amplitude.is_nonzero()) {
         const Interval amplitude = (cos_amplitude.sqr() + sin_amplitude.sqr()).sqrt();
         const Interval phase = -(cos_amplitude / sin_amplitude).atan();
-        const int sign = sin_amplitude.is_pos() ? 1 : -1;
+        const int sign = sin_amplitude.is_positive() ? 1 : -1;
         return sign * amplitude * (angle - phase).sin();
     }
     return harmonic_trivial(cos_amplitude, sin_amplitude, angle);
@@ -293,7 +293,7 @@ bool is_projected_vertex_avoiding_edge_advanced_fixed_phi(const Vector3Interval<
     const Interval linear_term = 2 * Vector2Interval<Interval>::dot(transformed_edge_direction, transformed_edge.from());
     const Interval constant_term = transformed_edge.from().len_sqr() - radius_squared;
     const Interval discriminant = linear_term.sqr() - 2 * double_quadratic_term * constant_term;
-    if(!discriminant.is_pos()) {
+    if(!discriminant.is_positive()) {
         return true;
     }
     const Interval sqrt_discriminant = discriminant.sqrt();
@@ -319,7 +319,7 @@ bool is_projected_vertex_avoiding_edge_advanced_fixed_phi(const Vector3Interval<
         )
     );
     for(const Interval& solution: solutions) {
-        if(solution.is_neg() || solution > 1) {
+        if(solution.is_negative() || solution > 1) {
             continue;
         }
         const Vector2Interval<Interval> intersection(
@@ -385,7 +385,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector2Interval<Interval>>& vert
 
         std::optional<size_t> most_clockwise_index;
         for(size_t new_most_clockwise_index = 0; new_most_clockwise_index < vertices.size(); new_most_clockwise_index++) {
-            if(!most_clockwise_index.has_value() && (vertices[new_most_clockwise_index] - from_vertex).len().is_pos()) {
+            if(!most_clockwise_index.has_value() && (vertices[new_most_clockwise_index] - from_vertex).len().is_positive()) {
                 most_clockwise_index = new_most_clockwise_index;
             }
             if(most_clockwise_index.has_value() && Edge<Interval>(from_vertex, vertices[most_clockwise_index.value()]).orientation(vertices[new_most_clockwise_index]) == Orientation::CLOCKWISE) {
@@ -398,7 +398,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector2Interval<Interval>>& vert
 
         std::vector<size_t> to_indices;
         for(size_t to_index = 0; to_index < vertices.size(); to_index++) {
-            if(!(vertices[to_index] - from_vertex).len().is_pos()) {
+            if(!(vertices[to_index] - from_vertex).len().is_positive()) {
                 print(vertices[to_index], from_vertex);
                 throw std::runtime_error("Zero length edge found");
             }

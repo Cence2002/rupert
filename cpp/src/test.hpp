@@ -150,11 +150,11 @@ public:
             if(!compare_bool(interval_0.is_nonzero(), interval_1.is_nonzero())) {
                 print("(", Interval_0::name, ")", interval_0, ".is_nonzero()", "  ==>  ", interval_0.is_nonzero(), "    <====>    ", interval_1.is_nonzero(), "  <==  ", "(", Interval_1::name, ")", interval_1, ".is_nonzero()");
             }
-            if(!compare_bool(interval_0.is_pos(), interval_1.is_pos())) {
-                print("(", Interval_0::name, ")", interval_0, ".is_pos()", "  ==>  ", interval_0.is_pos(), "    <====>    ", interval_1.is_pos(), "  <==  ", "(", Interval_1::name, ")", interval_1, ".is_pos()");
+            if(!compare_bool(interval_0.is_positive(), interval_1.is_positive())) {
+                print("(", Interval_0::name, ")", interval_0, ".is_positive()", "  ==>  ", interval_0.is_positive(), "    <====>    ", interval_1.is_positive(), "  <==  ", "(", Interval_1::name, ")", interval_1, ".is_positive()");
             }
-            if(!compare_bool(interval_0.is_neg(), interval_1.is_neg())) {
-                print("(", Interval_0::name, ")", interval_0, ".is_neg()", "  ==>  ", interval_0.is_neg(), "    <====>    ", interval_1.is_neg(), "  <==  ", "(", Interval_1::name, ")", interval_1, ".is_neg()");
+            if(!compare_bool(interval_0.is_negative(), interval_1.is_negative())) {
+                print("(", Interval_0::name, ")", interval_0, ".is_negative()", "  ==>  ", interval_0.is_negative(), "    <====>    ", interval_1.is_negative(), "  <==  ", "(", Interval_1::name, ")", interval_1, ".is_negative()");
             }
             if(!compare_bool(interval_0.is_nan(), interval_1.is_nan())) {
                 print("(", Interval_0::name, ")", interval_0, ".is_nan()", "  ==>  ", interval_0.is_nan(), "    <====>    ", interval_1.is_nan(), "  <==  ", "(", Interval_1::name, ")", interval_1, ".is_nan()");

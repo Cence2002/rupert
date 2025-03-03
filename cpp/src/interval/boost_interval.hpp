@@ -81,22 +81,6 @@ public:
         return rad;
     }
 
-    bool is_nonzero() const {
-        return !is_nan() && !boost::numeric::zero_in(interval_);
-    }
-
-    bool is_pos() const {
-        return boost::numeric::interval_lib::cergt(interval_, 0.0);
-    }
-
-    bool is_neg() const {
-        return boost::numeric::interval_lib::cerlt(interval_, 0.0);
-    }
-
-    bool is_nan() const {
-        return std::isnan(boost::numeric::lower(interval_)) || std::isnan(boost::numeric::upper(interval_));
-    }
-
     bool operator>(const BoostInterval& interval) const {
         return boost::numeric::interval_lib::cergt(interval_, interval.interval_);
     }
@@ -139,6 +123,22 @@ public:
     template<IntegerType Integer>
     friend bool operator<(const Integer n, const BoostInterval& interval) {
         return boost::numeric::interval_lib::cerlt(static_cast<double>(n), interval.interval_);
+    }
+
+    bool is_positive() const {
+        return boost::numeric::interval_lib::cergt(interval_, 0.0);
+    }
+
+    bool is_negative() const {
+        return boost::numeric::interval_lib::cerlt(interval_, 0.0);
+    }
+
+    bool is_nonzero() const {
+        return !is_nan() && !boost::numeric::zero_in(interval_);
+    }
+
+    bool is_nan() const {
+        return std::isnan(boost::numeric::lower(interval_)) || std::isnan(boost::numeric::upper(interval_));
     }
 
     BoostInterval operator+() const {
@@ -264,7 +264,7 @@ public:
     }
 
     BoostInterval sqrt() const {
-        if(min().is_neg()) {
+        if(min().is_negative()) {
             return nan();
         }
         return BoostInterval(boost::numeric::sqrt(interval_));

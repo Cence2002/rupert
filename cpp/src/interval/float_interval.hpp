@@ -70,22 +70,6 @@ public:
         return rad;
     }
 
-    bool is_nonzero() const {
-        return min_ > 0 || max_ < 0;
-    }
-
-    bool is_pos() const {
-        return min_ > 0;
-    }
-
-    bool is_neg() const {
-        return max_ < 0;
-    }
-
-    bool is_nan() const {
-        return std::isnan(min_) || std::isnan(max_);
-    }
-
     bool operator>(const FloatInterval& interval) const {
         return min_ > interval.max_;
     }
@@ -128,6 +112,22 @@ public:
     template<IntegerType Integer>
     friend bool operator<(const Integer integer, const FloatInterval& interval) {
         return static_cast<double>(integer) < interval.min_;
+    }
+
+    bool is_positive() const {
+        return min_ > 0;
+    }
+
+    bool is_negative() const {
+        return max_ < 0;
+    }
+
+    bool is_nonzero() const {
+        return min_ > 0 || max_ < 0;
+    }
+
+    bool is_nan() const {
+        return std::isnan(min_) || std::isnan(max_);
     }
 
     FloatInterval operator+() const {
@@ -288,7 +288,7 @@ public:
     }
 
     FloatInterval sqrt() const {
-        if(min().is_neg()) {
+        if(min().is_negative()) {
             return nan();
         }
         return FloatInterval(std::sqrt(min_), std::sqrt(max_));

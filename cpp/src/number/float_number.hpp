@@ -98,16 +98,16 @@ public:
         return static_cast<double>(integer) < number.value_;
     }
 
-    bool is_nonzero() const {
-        return value_ != 0.0;
-    }
-
-    bool is_pos() const {
+    bool is_positive() const {
         return value_ > 0.0;
     }
 
-    bool is_neg() const {
+    bool is_negative() const {
         return value_ < 0.0;
+    }
+
+    bool is_nonzero() const {
+        return value_ != 0.0;
     }
 
     bool is_nan() const {

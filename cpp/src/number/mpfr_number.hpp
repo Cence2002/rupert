@@ -133,16 +133,16 @@ public:
         return mpfr_cmp_si(number.value_, integer) > 0;
     }
 
-    bool is_nonzero() const {
-        return mpfr_zero_p(value_) == 0;
-    }
-
-    bool is_pos() const {
+    bool is_positive() const {
         return mpfr_sgn(value_) > 0;
     }
 
-    bool is_neg() const {
+    bool is_negative() const {
         return mpfr_sgn(value_) < 0;
+    }
+
+    bool is_nonzero() const {
+        return mpfr_zero_p(value_) == 0;
     }
 
     bool is_nan() const {

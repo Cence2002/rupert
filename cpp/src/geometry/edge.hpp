@@ -52,10 +52,10 @@ public:
 
     Orientation orientation(const Vector2Interval<Interval>& vector2) const {
         const Interval cross = Vector2Interval<Interval>::cross(direction(), vector2 - from_);
-        if(cross.is_pos()) {
+        if(cross.is_positive()) {
             return Orientation::COUNTERCLOCKWISE;
         }
-        if(cross.is_neg()) {
+        if(cross.is_negative()) {
             return Orientation::CLOCKWISE;
         }
         return Orientation::COLLINEAR;
@@ -73,7 +73,7 @@ public:
         }
         const Interval from_dot = Vector2Interval<Interval>::dot(direction(), edge.from() - Vector2Interval<Interval>(from_));
         const Interval to_dot = Vector2Interval<Interval>::dot(direction(), edge.to() - Vector2Interval<Interval>(from_));
-        if(from_dot.is_neg() && to_dot.is_neg()) {
+        if(from_dot.is_negative() && to_dot.is_negative()) {
             return true;
         }
         if(from_dot > Vector2Interval<Interval>::dot(direction(), direction()) && to_dot > Vector2Interval<Interval>::dot(direction(), direction())) {
@@ -81,7 +81,7 @@ public:
         }
         const Interval edge_from_dot = Vector2Interval<Interval>::dot(edge.direction(), from_ - edge.from());
         const Interval edge_to_dot = Vector2Interval<Interval>::dot(edge.direction(), to_ - edge.from());
-        if(edge_from_dot.is_neg() && edge_to_dot.is_neg()) {
+        if(edge_from_dot.is_negative() && edge_to_dot.is_negative()) {
             return true;
         }
         if(edge_from_dot > Vector2Interval<Interval>::dot(edge.direction(), edge.direction()) && edge_to_dot > Vector2Interval<Interval>::dot(edge.direction(), edge.direction())) {
@@ -95,7 +95,7 @@ public:
             return true;
         }
         const Interval dot = Vector2Interval<Interval>::dot(direction(), vector2 - Vector2Interval<Interval>(from_));
-        return dot.is_neg() || dot > Vector2Interval<Interval>::dot(direction(), direction());
+        return dot.is_negative() || dot > Vector2Interval<Interval>::dot(direction(), direction());
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Edge& edge) {
