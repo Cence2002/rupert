@@ -12,7 +12,7 @@ bool is_box2_terminal(const Box2& box2, const Polygon<Interval>& hole, const Pol
     const Interval& phi = box2.phi<Interval>();
     bool is_terminal = false;
     for(size_t vertex_index = 0; vertex_index < plug.vertices().size(); vertex_index++) {
-        for(const Vector2<Interval>& projected_plug_vertex: projection_hull_combined(plug.vertices()[vertex_index], theta, phi)) {
+        for(const Vector2<Interval>& projected_plug_vertex: projection_hull_advanced_approximate(plug.vertices()[vertex_index], theta, phi)) {
             exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(projected_plug_vertex);
         }
         exporter.cover_builder.box3_builder.box2_builder.add_projection(exporter.builder);

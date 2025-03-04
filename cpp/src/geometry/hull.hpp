@@ -95,7 +95,7 @@ std::vector<Vector2<Interval>> projection_hull_triangle(const Vector3<Interval>&
 }
 
 template<IntervalType Interval>
-std::vector<Vector2<Interval>> projection_hull_advanced_approximate(const Vector3<Interval>& vertex, const Interval& theta, const Interval& phi, const int resolution = 30) {
+std::vector<Vector2<Interval>> projection_hull_advanced_approximate(const Vector3<Interval>& vertex, const Interval& theta, const Interval& phi, const int resolution = 8) {
     if(!(theta.len() < Interval::pi() / 3)) {
         return projection_hull_combined(vertex, theta, phi);
     }
