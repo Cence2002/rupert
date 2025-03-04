@@ -63,7 +63,10 @@ Polygon<Interval> project_hole(const Box3& box3, const Polyhedron<Interval>& hol
         }
         exporter.cover_builder.box3_builder.add_projection(exporter.builder);
     }
-    typename Interval::Number epsilon = (1 / (Interval(box3.alpha<Interval>().rad()) / 100).cos()).max();
+    const Interval alpha_step = Interval(box3.alpha<Interval>().rad()) / resolution;
+    const Interval alpha_epsilon = 1 / alpha_step.cos() - 1;
+    // const Interval alpha_epsilon = alpha_step.sqr() / 2;
+    const typename Interval::Number epsilon = (alpha_epsilon / 16).max();
     return convex_hull(all_projected_hole_vertices, epsilon);
 }
 
