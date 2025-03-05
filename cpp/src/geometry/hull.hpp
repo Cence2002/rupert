@@ -16,7 +16,7 @@ std::vector<Vector2<Interval>> rotation_hull_combined(const Vector2<Interval>& p
 
 template<IntervalType Interval>
 std::vector<Vector2<Interval>> rotation_hull_triangle(const Vector2<Interval>& vector2, const Interval& alpha) {
-    if(!(alpha.len() < Interval::pi() / 3)) {
+    if(alpha.len() > Interval::pi() / 3) {
         // apex of triangle is not well-defined, or it might be numerically unstable
         // default to combined
         return rotation_hull_combined(vector2, alpha);
@@ -40,6 +40,22 @@ std::vector<Vector2<Interval>> rotation_hull_triangle(const Vector2<Interval>& v
 }
 
 template<IntervalType Interval>
+std::vector<Vector2<Interval>> rotation_hull_polygon(const Vector2<Interval>& vector2, const Interval& alpha, const int resolution) {
+    if(alpha.len() > Interval::pi() / 3 * resolution) {
+        return rotation_hull_combined(vector2, alpha);
+    }
+    std::vector<Vector2<Interval>> rotated_vertices;
+    const Interval scaling_factor = 1 / (Interval(alpha.rad()) / resolution).cos();
+    for(int i = 0; i <= resolution; i++) {
+        const Interval alpha_i = Interval(alpha.min()) * (resolution - i) / resolution + Interval(alpha.max()) * i / resolution;
+        const Vector2<Interval> rotated_vertex = rotation_trivial(vector2, alpha_i);
+        const Vector2<Interval> scaled_rotated_vertex = rotated_vertex * scaling_factor;
+        rotated_vertices.push_back(scaled_rotated_vertex);
+    }
+    return rotated_vertices;
+}
+
+template<IntervalType Interval>
 std::vector<Vector2<Interval>> projection_hull_trivial(const Vector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
     const Vector2<Interval> projected_vertex = projection_trivial(vertex, theta, phi);
     return vector2_hull(projected_vertex);
@@ -53,7 +69,7 @@ std::vector<Vector2<Interval>> projection_hull_combined(const Vector3<Interval>&
 
 template<IntervalType Interval>
 std::vector<Vector2<Interval>> projection_hull_triangle(const Vector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
-    if(!(theta.len() < Interval::pi() / 3)) {
+    if(theta.len() > Interval::pi() / 3) {
         // apex of triangle (in rotation_hull_triangle) is not well-defined, or it might be numerically unstable
         // default to combined
         return projection_hull_combined(vertex, theta, phi);
@@ -96,7 +112,7 @@ std::vector<Vector2<Interval>> projection_hull_triangle(const Vector3<Interval>&
 
 template<IntervalType Interval>
 std::vector<Vector2<Interval>> projection_hull_advanced_approximate(const Vector3<Interval>& vertex, const Interval& theta, const Interval& phi, const int resolution = 8) {
-    if(!(theta.len() < Interval::pi() / 3)) {
+    if(theta.len() > Interval::pi() / 3) {
         return projection_hull_combined(vertex, theta, phi);
     }
     std::vector<Vector2<Interval>> projected_vertices;

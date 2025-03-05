@@ -12,7 +12,7 @@ bool is_box2_terminal(const Box2& box2, const Polygon<Interval>& hole, const Pol
     const Interval& phi = box2.phi<Interval>();
     bool is_terminal = false;
     for(size_t vertex_index = 0; vertex_index < plug.vertices().size(); vertex_index++) {
-        for(const Vector2<Interval>& projected_plug_vertex: projection_hull_advanced_approximate(plug.vertices()[vertex_index], theta, phi)) {
+        for(const Vector2<Interval>& projected_plug_vertex: projection_hull_combined(plug.vertices()[vertex_index], theta, phi)) {
             exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(projected_plug_vertex);
         }
         exporter.cover_builder.box3_builder.box2_builder.add_projection(exporter.builder);
@@ -51,12 +51,10 @@ Polygon<Interval> project_hole(const Box3& box3, const Polyhedron<Interval>& hol
             for(const Interval& sub_phi: split(box3.phi<Interval>(), resolution)) {
                 const std::vector<Vector2<Interval>> projected_hole_vertices = projection_hull_triangle(hole_vertex, sub_theta, sub_phi);
                 for(const Vector2<Interval>& projected_hole_vertex: projected_hole_vertices) {
-                    for(const Interval& sub_alpha: split(box3.alpha<Interval>(), resolution)) {
-                        const std::vector<Vector2<Interval>> rotated_projected_hole_vertices = rotation_hull_triangle(projected_hole_vertex, sub_alpha);
-                        for(const Vector2<Interval>& rotated_projected_hole_vertex: rotated_projected_hole_vertices) {
-                            all_projected_hole_vertices.push_back(rotated_projected_hole_vertex);
-                            exporter.cover_builder.box3_builder.projection_builder.add_vertex(rotated_projected_hole_vertex);
-                        }
+                    const std::vector<Vector2<Interval>> rotated_projected_hole_vertices = rotation_hull_polygon(projected_hole_vertex, box3.alpha<Interval>(), resolution);
+                    for(const Vector2<Interval>& rotated_projected_hole_vertex: rotated_projected_hole_vertices) {
+                        all_projected_hole_vertices.push_back(rotated_projected_hole_vertex);
+                        exporter.cover_builder.box3_builder.projection_builder.add_vertex(rotated_projected_hole_vertex);
                     }
                 }
             }
@@ -65,7 +63,6 @@ Polygon<Interval> project_hole(const Box3& box3, const Polyhedron<Interval>& hol
     }
     const Interval alpha_step = Interval(box3.alpha<Interval>().rad()) / resolution;
     const Interval alpha_epsilon = 1 / alpha_step.cos() - 1;
-    // const Interval alpha_epsilon = alpha_step.sqr() / 2;
     const typename Interval::Number epsilon = (alpha_epsilon / 16).max();
     return convex_hull(all_projected_hole_vertices, epsilon);
 }
