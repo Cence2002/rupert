@@ -111,6 +111,27 @@ std::vector<Vector2<Interval>> projection_hull_triangle(const Vector3<Interval>&
 }
 
 template<IntervalType Interval>
+std::vector<Vector2<Interval>> projection_hull_polygon(const Vector3<Interval>& vertex, const Interval& theta, const Interval& phi, const int resolution) {
+    if(theta.len() > Interval::pi() / 3 * resolution) {
+        return projection_hull_combined(vertex, theta, phi);
+    }
+
+    const Vector2<Interval> reflected_vertex = Vector2<Interval>(vertex.x(), -vertex.y());
+    const Interval shifted_theta = theta + Interval::pi() / 2;
+
+    const std::vector<Vector2<Interval>> rotation_hull = rotation_hull_polygon(reflected_vertex, shifted_theta, resolution);
+
+    std::vector<Vector2<Interval>> projected_vertices;
+    for(const Vector2<Interval>& rotated_vertex: rotation_hull) {
+        const Interval harmonic = harmonic_combined(rotated_vertex.y(), -vertex.z(), phi);
+        projected_vertices.push_back(Vector2<Interval>(rotated_vertex.x(), Interval(harmonic.min())));
+        projected_vertices.push_back(Vector2<Interval>(rotated_vertex.x(), Interval(harmonic.max())));
+    }
+
+    return projected_vertices;
+}
+
+template<IntervalType Interval>
 std::vector<Vector2<Interval>> projection_hull_advanced_approximate(const Vector3<Interval>& vertex, const Interval& theta, const Interval& phi, const int resolution = 8) {
     if(theta.len() > Interval::pi() / 3) {
         return projection_hull_combined(vertex, theta, phi);

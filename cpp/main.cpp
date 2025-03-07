@@ -44,32 +44,28 @@ std::vector<Interval> split(const Interval& interval, const int parts) {
 }
 
 template<IntervalType Interval>
-Polygon<Interval> project_hole(const Box3& box3, const Polyhedron<Interval>& hole, const int resolution) {
+Polygon<Interval> project_hole(const Box3& box3, const Polyhedron<Interval>& hole, const int projection_resolution, const int rotation_resolution) {
     std::vector<Vector2<Interval>> all_projected_hole_vertices;
     for(const Vector3<Interval>& hole_vertex: hole.vertices()) {
-        for(const Interval& sub_theta: split(box3.theta<Interval>(), resolution)) {
-            for(const Interval& sub_phi: split(box3.phi<Interval>(), resolution)) {
-                const std::vector<Vector2<Interval>> projected_hole_vertices = projection_hull_triangle(hole_vertex, sub_theta, sub_phi);
-                for(const Vector2<Interval>& projected_hole_vertex: projected_hole_vertices) {
-                    const std::vector<Vector2<Interval>> rotated_projected_hole_vertices = rotation_hull_polygon(projected_hole_vertex, box3.alpha<Interval>(), resolution);
-                    for(const Vector2<Interval>& rotated_projected_hole_vertex: rotated_projected_hole_vertices) {
-                        all_projected_hole_vertices.push_back(rotated_projected_hole_vertex);
-                        exporter.cover_builder.box3_builder.projection_builder.add_vertex(rotated_projected_hole_vertex);
-                    }
-                }
+        const std::vector<Vector2<Interval>> projected_hole_vertices = projection_hull_polygon(hole_vertex, box3.theta<Interval>(), box3.phi<Interval>(), projection_resolution);
+        for(const Vector2<Interval>& projected_hole_vertex: projected_hole_vertices) {
+            const std::vector<Vector2<Interval>> rotated_projected_hole_vertices = rotation_hull_polygon(projected_hole_vertex, box3.alpha<Interval>(), rotation_resolution);
+            for(const Vector2<Interval>& rotated_projected_hole_vertex: rotated_projected_hole_vertices) {
+                all_projected_hole_vertices.push_back(rotated_projected_hole_vertex);
+                exporter.cover_builder.box3_builder.projection_builder.add_vertex(rotated_projected_hole_vertex);
             }
         }
         exporter.cover_builder.box3_builder.add_projection(exporter.builder);
     }
-    const Interval alpha_step = Interval(box3.alpha<Interval>().rad()) / resolution;
+    const Interval alpha_step = Interval(box3.alpha<Interval>().rad()) / rotation_resolution;
     const Interval alpha_epsilon = 1 / alpha_step.cos() - 1;
     const typename Interval::Number epsilon = (alpha_epsilon / 16).max();
     return convex_hull(all_projected_hole_vertices, epsilon);
 }
 
 template<IntervalType Interval>
-bool is_box3_terminal(const Box3& box3, const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug, const int iterations2, const int resolution) {
-    Polygon<Interval> projected_hole = project_hole(box3, hole, resolution);
+bool is_box3_terminal(const Box3& box3, const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug, const int iterations2, const int projection_resolution, const int rotation_resolution) {
+    Polygon<Interval> projected_hole = project_hole(box3, hole, projection_resolution, rotation_resolution);
     exporter.cover_builder.box3_builder.set_projection(exporter.builder, projected_hole);
     Queue2 queue2;
     for(int iteration2 = 0; iterations2 == 0 || iteration2 < iterations2; iteration2++) {
@@ -102,8 +98,7 @@ bool is_box3_terminal(const Box3& box3, const Polyhedron<Interval>& hole, const 
 }
 
 template<IntervalType Interval>
-void step(Queue3& queue3, const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug,
-          const int iterations2, const int resolution) {
+void step(Queue3& queue3, const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug, const int iterations2, const int projection_resolution, const int rotation_resolution) {
     const std::optional<Box3> optional_box3 = queue3.pop();
     if(!optional_box3.has_value()) {
         return;
@@ -113,7 +108,7 @@ void step(Queue3& queue3, const Polyhedron<Interval>& hole, const Polyhedron<Int
         return;
     }
     exporter.cover_builder.box3_builder.set_box3(box3);
-    const bool is_terminal = is_box3_terminal(box3, hole, plug, iterations2, resolution);
+    const bool is_terminal = is_box3_terminal(box3, hole, plug, iterations2, projection_resolution, rotation_resolution);
     exporter.cover_builder.box3_builder.set_complete(is_terminal);
     if(!is_terminal) {
         for(const Box3& sub_box3: box3.split()) {
@@ -128,14 +123,14 @@ void step(Queue3& queue3, const Polyhedron<Interval>& hole, const Polyhedron<Int
 }
 
 template<IntervalType Interval>
-void solve(const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug, const int num_threads, const int iterations3, const int iterations2, const int resolution) {
+void solve(const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug, const int num_threads, const int iterations3, const int iterations2, const int projection_resolution, const int rotation_resolution) {
     Queue3 queue3;
 
     std::vector<std::thread> threads;
     for(int thread = 0; thread < num_threads; thread++) {
         threads.emplace_back([&] {
             for(int iteration3 = 0; iterations3 == 0 || iteration3 < iterations3; iteration3++) {
-                step(queue3, hole, plug, iterations2, resolution);
+                step(queue3, hole, plug, iterations2, projection_resolution, rotation_resolution);
                 exporter.cover_builder.add_box3(exporter.builder);
             }
             mpfr_free_cache2(MPFR_FREE_LOCAL_CACHE);
@@ -159,7 +154,7 @@ int main() {
     exporter.cover_builder.set_hole(exporter.builder, hole);
     exporter.cover_builder.set_plug(exporter.builder, plug);
 
-    solve<Interval>(hole, plug, 1, 64, 10000, 3);
+    solve<Interval>(hole, plug, 1, 64, 10000, 2, 2);
 
     exporter.save("../../web/static/cover.bin");
 
