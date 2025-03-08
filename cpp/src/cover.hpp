@@ -200,38 +200,38 @@ public:
 
 struct Queue2 {
 private:
-    std::queue<Box2> queue;
+    std::queue<Box2> queue_;
 
 public:
-    explicit Queue2() : queue() {
+    explicit Queue2() : queue_() {
         push(Box2());
     }
 
     bool empty() const {
-        return queue.empty();
+        return queue_.empty();
     }
 
     void push(const Box2& box2) {
-        queue.push(box2);
+        queue_.push(box2);
     }
 
     std::optional<Box2> pop() {
         if(empty()) {
             return std::nullopt;
         }
-        const Box2 box2 = queue.front();
-        queue.pop();
+        const Box2 box2 = queue_.front();
+        queue_.pop();
         return std::make_optional(box2);
     }
 };
 
 struct Queue3 {
 private:
-    std::queue<Box3> queue;
-    std::mutex mutex;
+    std::queue<Box3> queue_;
+    std::mutex mutex_;
 
 public:
-    explicit Queue3() : queue(), mutex() {
+    explicit Queue3() : queue_(), mutex_() {
         // push(Box3());
 
         //start from a small subset of the space
@@ -240,20 +240,27 @@ public:
             Id(0b0011, 4),
             Id(0b1010, 4)
         ));
+
+        // Terminal Box: T<000000> P<000011> A<000001>
+        // push(Box3(
+        //     Id(0b000000, 6),
+        //     Id(0b000011, 6),
+        //     Id(0b000001, 6)
+        // ));
     }
 
     void push(const Box3& box) {
-        std::lock_guard<std::mutex> lock(mutex);
-        queue.push(box);
+        std::lock_guard<std::mutex> lock(mutex_);
+        queue_.push(box);
     }
 
     std::optional<Box3> pop() {
-        std::lock_guard<std::mutex> lock(mutex);
-        if(queue.empty()) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if(queue_.empty()) {
             return std::nullopt;
         }
-        const Box3 box = queue.front();
-        queue.pop();
+        const Box3 box = queue_.front();
+        queue_.pop();
         return std::make_optional(box);
     }
 };

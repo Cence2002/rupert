@@ -12,7 +12,7 @@ bool is_box2_terminal(const Box2& box2, const Polygon<Interval>& hole, const Pol
     const Interval& phi = box2.phi<Interval>();
     bool is_terminal = false;
     for(size_t vertex_index = 0; vertex_index < plug.vertices().size(); vertex_index++) {
-        for(const Vector2<Interval>& projected_plug_vertex: projection_hull_combined(plug.vertices()[vertex_index], theta, phi)) {
+        for(const Vector2<Interval>& projected_plug_vertex: projection_hull_advanced_approximate(plug.vertices()[vertex_index], theta, phi)) {
             exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(projected_plug_vertex);
         }
         exporter.cover_builder.box3_builder.box2_builder.add_projection(exporter.builder);
@@ -127,9 +127,10 @@ void solve(const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug, c
     Queue3 queue3;
 
     std::vector<std::thread> threads;
+    const int iterations3_per_thread = iterations3 / num_threads;
     for(int thread = 0; thread < num_threads; thread++) {
         threads.emplace_back([&] {
-            for(int iteration3 = 0; iterations3 == 0 || iteration3 < iterations3; iteration3++) {
+            for(int iteration3 = 0; iterations3_per_thread == 0 || iteration3 < iterations3_per_thread; iteration3++) {
                 step(queue3, hole, plug, iterations2, projection_resolution, rotation_resolution);
                 exporter.cover_builder.add_box3(exporter.builder);
             }
@@ -150,7 +151,7 @@ int main() {
     const Polyhedron<Interval> hole = Polyhedron<Interval>::rhombicosidodecahedron();
     const Polyhedron<Interval> plug = Polyhedron<Interval>::rhombicosidodecahedron();
 
-    exporter.cover_builder.set_description("Exported Data from C++");
+    exporter.cover_builder.set_description("Exported Cover");
     exporter.cover_builder.set_hole(exporter.builder, hole);
     exporter.cover_builder.set_plug(exporter.builder, plug);
 
