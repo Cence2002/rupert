@@ -5,23 +5,21 @@
 #include <mutex>
 #include <optional>
 
-struct Queue3 {
+struct BoxQueue {
 private:
     std::queue<Box> queue_;
     std::mutex mutex_;
 
 public:
-    explicit Queue3() : queue_(), mutex_() {
+    explicit BoxQueue() : queue_(), mutex_() {
         // push(Box());
 
-        //start from a small subset of the space
         push(Box(
             Id(0b0101, 4),
             Id(0b0011, 4),
             Id(0b1010, 4)
         ));
 
-        // Terminal Box: T<000000> P<000011> A<000001>
         // push(Box(
         //     Id(0b000000, 6),
         //     Id(0b000011, 6),
@@ -43,17 +41,15 @@ public:
         queue_.pop();
         return std::make_optional(box);
     }
-};
 
-struct BoxQueue {
-private:
-    std::queue<Box> queue_;
-    std::mutex mutex_;
-
-public:
-    void push(const Box& box);
-
-    std::optional<Box> pop();
-
-    std::vector<Box> flush();
+    std::vector<Box> flush() {
+        std::lock_guard<std::mutex> lock(mutex_);
+        std::vector<Box> boxes;
+        boxes.reserve(queue_.size());
+        while(!queue_.empty()) {
+            boxes.push_back(queue_.front());
+            queue_.pop();
+        }
+        return boxes;
+    }
 };

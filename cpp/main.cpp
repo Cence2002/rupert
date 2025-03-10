@@ -97,8 +97,8 @@ bool is_box_terminal(const Box& box, const Polyhedron<Interval>& hole, const Pol
 }
 
 template<IntervalType Interval>
-void step(Queue3& queue3, const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug, const int iterations2, const int projection_resolution, const int rotation_resolution) {
-    const std::optional<Box> optional_box = queue3.pop();
+void step(BoxQueue& bo_queue, const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug, const int iterations2, const int projection_resolution, const int rotation_resolution) {
+    const std::optional<Box> optional_box = bo_queue.pop();
     if(!optional_box.has_value()) {
         return;
     }
@@ -111,7 +111,7 @@ void step(Queue3& queue3, const Polyhedron<Interval>& hole, const Polyhedron<Int
     debug_exporter.cover_builder.box_builder.set_complete(is_terminal);
     if(!is_terminal) {
         for(const Box& sub_box: box.subdivide()) {
-            queue3.push(sub_box);
+            bo_queue.push(sub_box);
         }
     }
     if(is_terminal) {
@@ -123,14 +123,14 @@ void step(Queue3& queue3, const Polyhedron<Interval>& hole, const Polyhedron<Int
 
 template<IntervalType Interval>
 void solve(const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug, const int num_threads, const int iterations3, const int iterations2, const int projection_resolution, const int rotation_resolution) {
-    Queue3 queue3;
+    BoxQueue bo_queue;
 
     std::vector<std::thread> threads;
     const int iterations3_per_thread = iterations3 / num_threads;
     for(int thread = 0; thread < num_threads; thread++) {
         threads.emplace_back([&] {
             for(int iteration3 = 0; iterations3_per_thread == 0 || iteration3 < iterations3_per_thread; iteration3++) {
-                step(queue3, hole, plug, iterations2, projection_resolution, rotation_resolution);
+                step(bo_queue, hole, plug, iterations2, projection_resolution, rotation_resolution);
                 debug_exporter.cover_builder.add_box(debug_exporter.builder);
             }
             mpfr_free_cache2(MPFR_FREE_LOCAL_CACHE);
