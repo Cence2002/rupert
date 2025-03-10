@@ -66,9 +66,9 @@ template<IntervalType Interval>
 bool is_box_terminal(const Box& box, const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug, const int iterations2, const int projection_resolution, const int rotation_resolution) {
     Polygon<Interval> projected_hole = project_hole(box, hole, projection_resolution, rotation_resolution);
     debug_exporter.cover_builder.box_builder.set_projection(debug_exporter.builder, projected_hole);
-    Queue2 queue2;
+    RectangleQueue rectangle_queue;
     for(int iteration2 = 0; iterations2 == 0 || iteration2 < iterations2; iteration2++) {
-        const std::optional<Rectangle> optional_rectangle = queue2.pop();
+        const std::optional<Rectangle> optional_rectangle = rectangle_queue.pop();
         if(!optional_rectangle.has_value()) {
             debug_exporter.cover_builder.box_builder.set_complete(true);
             return true;
@@ -90,7 +90,7 @@ bool is_box_terminal(const Box& box, const Polyhedron<Interval>& hole, const Pol
         }
         debug_exporter.cover_builder.box_builder.add_rectangle(debug_exporter.builder);
         for(const Rectangle& sub_rectangle: rectangle.subdivide()) {
-            queue2.push(sub_rectangle);
+            rectangle_queue.push(sub_rectangle);
         }
     }
     return false;
