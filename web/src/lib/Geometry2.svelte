@@ -75,8 +75,8 @@
         for (let index = 0; index < box3.projectionsLength(); index++) {
             const projection = box3.projections(index);
             const vertices: Vector2[] = [];
-            for (let index2 = 0; index2 < projection.verticesLength(); index2++) {
-                const vertex = projection.vertices(index2);
+            for (let index2 = 0; index2 < projection.vectorsLength(); index2++) {
+                const vertex = projection.vectors(index2);
                 vertices.push(new Vector2(vertex.x(), vertex.y()));
             }
 
@@ -152,8 +152,8 @@
         for (let index = 0; index < box2.projectionsLength(); index++) {
             const projection = box2.projections(index);
             const vertices: Vector2[] = [];
-            for (let index2 = 0; index2 < projection.verticesLength(); index2++) {
-                const vertex = projection.vertices(index2);
+            for (let index2 = 0; index2 < projection.vectorsLength(); index2++) {
+                const vertex = projection.vectors(index2);
                 vertices.push(new Vector2(vertex.x(), vertex.y()));
             }
 
