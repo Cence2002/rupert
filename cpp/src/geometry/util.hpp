@@ -1,7 +1,7 @@
 #pragma once
 
-#include "vector/vector.hpp"
-#include "vector/vertex.hpp"
+#include "geometry/vector.hpp"
+#include "geometry/vertex.hpp"
 
 template<IntervalType Interval>
 Interval harmonic_trivial(const Interval& cos_amplitude, const Interval& sin_amplitude, const Interval& angle) {
