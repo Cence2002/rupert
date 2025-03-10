@@ -22,23 +22,23 @@ public:
         return phi_id_;
     }
 
-    bool is_overflow() const {
-        return theta_id_.is_overflow() || phi_id_.is_overflow();
-    }
-
-    std::array<Rectangle, 4> split() const {
-        const auto [theta_id_min, theta_id_max] = theta_id_.split();
-        const auto [phi_id_min, phi_id_max] = phi_id_.split();
-        return std::array<Rectangle, 4>{
-            Rectangle(theta_id_min, phi_id_min),
-            Rectangle(theta_id_min, phi_id_max),
-            Rectangle(theta_id_max, phi_id_min),
-            Rectangle(theta_id_max, phi_id_max)
-        };
+    bool invalid() const {
+        return theta_id_.invalid() || phi_id_.invalid();
     }
 
     double size() const {
-        return theta_id_.len() * phi_id_.len();
+        return theta_id_.size() * phi_id_.size();
+    }
+
+    std::array<Rectangle, 4> subdivide() const {
+        const auto [theta_id_min_half, theta_id_max_half] = theta_id_.subdivide();
+        const auto [phi_id_min_half, phi_id_max_half] = phi_id_.subdivide();
+        return std::array<Rectangle, 4>{
+            Rectangle(theta_id_min_half, phi_id_min_half),
+            Rectangle(theta_id_min_half, phi_id_max_half),
+            Rectangle(theta_id_max_half, phi_id_min_half),
+            Rectangle(theta_id_max_half, phi_id_max_half)
+        };
     }
 
     template<IntervalType Interval>

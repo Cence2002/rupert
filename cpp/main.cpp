@@ -75,7 +75,7 @@ bool is_box_terminal(const Box& box, const Polyhedron<Interval>& hole, const Pol
         }
 
         const Rectangle& rectangle = optional_rectangle.value();
-        if(rectangle.is_overflow()) {
+        if(rectangle.invalid()) {
             return false;
         }
         debug_exporter.cover_builder.box_builder.rectangle_builder.set_rectangle(rectangle);
@@ -89,7 +89,7 @@ bool is_box_terminal(const Box& box, const Polyhedron<Interval>& hole, const Pol
             return false;
         }
         debug_exporter.cover_builder.box_builder.add_rectangle(debug_exporter.builder);
-        for(const Rectangle& sub_rectangle: rectangle.split()) {
+        for(const Rectangle& sub_rectangle: rectangle.subdivide()) {
             queue2.push(sub_rectangle);
         }
     }
@@ -103,14 +103,14 @@ void step(Queue3& queue3, const Polyhedron<Interval>& hole, const Polyhedron<Int
         return;
     }
     const Box& box = optional_box.value();
-    if(box.is_overflow()) {
+    if(box.invalid()) {
         return;
     }
     debug_exporter.cover_builder.box_builder.set_box(box);
     const bool is_terminal = is_box_terminal(box, hole, plug, iterations2, projection_resolution, rotation_resolution);
     debug_exporter.cover_builder.box_builder.set_complete(is_terminal);
     if(!is_terminal) {
-        for(const Box& sub_box: box.split()) {
+        for(const Box& sub_box: box.subdivide()) {
             queue3.push(sub_box);
         }
     }

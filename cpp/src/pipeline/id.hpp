@@ -6,19 +6,21 @@
 
 struct Id {
 private:
-    uint64_t bits_;
+    uint16_t bits_;
     uint8_t depth_;
-
-    static constexpr uint8_t overflow_depth = 32;
 
 public:
     explicit Id() : bits_(0), depth_(0) {}
 
-    explicit Id(const uint64_t bits, const uint8_t depth) : bits_(bits), depth_(depth) {}
+    explicit Id(const uint16_t bits, const uint8_t depth) : bits_(bits), depth_(depth) {}
 
     Id(const Id& other) = default;
 
     Id& operator=(const Id& other) = default;
+
+    Id(Id&& other) = default;
+
+    Id& operator=(Id&& other) = default;
 
     uint64_t bits() const {
         return bits_;
@@ -28,52 +30,44 @@ public:
         return depth_;
     }
 
-    bool is_overflow() const {
-        return depth_ >= overflow_depth;
+    bool invalid() const {
+        return depth_ >= 16;
     }
 
-    double len() const {
+    double size() const {
         return std::pow(0.5, depth_);
     }
 
-    Id min() const {
-        if(is_overflow()) {
-            throw std::runtime_error("Id overflow");
+    Id min_half() const {
+        if(invalid()) {
+            throw std::runtime_error("Invalid Id");
         }
-        return Id(bits_ << 1, static_cast<uint8_t>(depth_ + 1));
+        return Id(static_cast<uint16_t>(bits_ << 1), static_cast<uint8_t>(depth_ + 1));
     }
 
-    Id max() const {
-        if(is_overflow()) {
-            throw std::runtime_error("Id overflow");
+    Id max_half() const {
+        if(invalid()) {
+            throw std::runtime_error("Invalid Id");
         }
-        return Id((bits_ << 1) | static_cast<uint64_t>(1), static_cast<uint8_t>(depth_ + 1));
+        return Id(static_cast<uint16_t>((bits_ << 1) | 1), static_cast<uint8_t>(depth_ + 1));
     }
 
-    std::pair<Id, Id> split() const {
-        if(is_overflow()) {
-            throw std::runtime_error("Id overflow");
+    std::pair<Id, Id> subdivide() const {
+        if(invalid()) {
+            throw std::runtime_error("Invalid Id");
         }
-        return std::make_pair(min(), max());
+        return std::make_pair(min_half(), max_half());
     }
 
     template<IntervalType Interval>
     Interval interval() const {
-        if(is_overflow()) {
-            throw std::runtime_error("Id overflow");
+        if(invalid()) {
+            throw std::runtime_error("Invalid Id");
         }
-        Interval interval = Interval::unit();
-        for(uint8_t shift = depth_; shift > 0; shift--) {
-            if(bits_ & (static_cast<uint64_t>(1) << (shift - 1))) {
-                interval = Interval(interval.mid(), interval.max());
-            } else {
-                interval = Interval(interval.min(), interval.mid());
-            }
-        }
-        return interval;
+        return Interval(static_cast<uint16_t>(bits_), static_cast<uint16_t>(bits_ + 1)) / (static_cast<uint16_t>(1) << depth_);
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Id& id) {
-        return os << "<" << std::bitset<64>(id.bits_).to_string().substr(64 - id.depth_) << ">";
+        return os << "<" << std::bitset<16>(id.bits_).to_string().substr(16 - id.depth_) << ">";
     }
 };

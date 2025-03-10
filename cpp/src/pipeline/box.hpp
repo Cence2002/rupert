@@ -27,28 +27,28 @@ public:
         return alpha_id_;
     }
 
-    bool is_overflow() const {
-        return theta_id_.is_overflow() || phi_id_.is_overflow() || alpha_id_.is_overflow();
-    }
-
-    std::array<Box, 8> split() const {
-        const auto [theta_id_min, theta_id_max] = theta_id_.split();
-        const auto [phi_id_min, phi_id_max] = phi_id_.split();
-        const auto [alpha_id_min, alpha_id_max] = alpha_id_.split();
-        return std::array<Box, 8>{
-            Box(theta_id_min, phi_id_min, alpha_id_min),
-            Box(theta_id_min, phi_id_min, alpha_id_max),
-            Box(theta_id_min, phi_id_max, alpha_id_min),
-            Box(theta_id_min, phi_id_max, alpha_id_max),
-            Box(theta_id_max, phi_id_min, alpha_id_min),
-            Box(theta_id_max, phi_id_min, alpha_id_max),
-            Box(theta_id_max, phi_id_max, alpha_id_min),
-            Box(theta_id_max, phi_id_max, alpha_id_max)
-        };
+    bool invalid() const {
+        return theta_id_.invalid() || phi_id_.invalid() || alpha_id_.invalid();
     }
 
     double size() const {
-        return theta_id_.len() * phi_id_.len() * alpha_id_.len();
+        return theta_id_.size() * phi_id_.size() * alpha_id_.size();
+    }
+
+    std::array<Box, 8> subdivide() const {
+        const auto [theta_id_min_half, theta_id_max_half] = theta_id_.subdivide();
+        const auto [phi_id_min_half, phi_id_max_half] = phi_id_.subdivide();
+        const auto [alpha_id_min_half, alpha_id_max_half] = alpha_id_.subdivide();
+        return std::array<Box, 8>{
+            Box(theta_id_min_half, phi_id_min_half, alpha_id_min_half),
+            Box(theta_id_min_half, phi_id_min_half, alpha_id_max_half),
+            Box(theta_id_min_half, phi_id_max_half, alpha_id_min_half),
+            Box(theta_id_min_half, phi_id_max_half, alpha_id_max_half),
+            Box(theta_id_max_half, phi_id_min_half, alpha_id_min_half),
+            Box(theta_id_max_half, phi_id_min_half, alpha_id_max_half),
+            Box(theta_id_max_half, phi_id_max_half, alpha_id_min_half),
+            Box(theta_id_max_half, phi_id_max_half, alpha_id_max_half)
+        };
     }
 
     template<IntervalType Interval>
