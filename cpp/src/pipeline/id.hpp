@@ -34,8 +34,8 @@ public:
         return depth_ >= 16;
     }
 
-    double size() const {
-        return std::pow(0.5, depth_);
+    size_t size() const {
+        return sizeof(bits_) + sizeof(depth_);
     }
 
     Id min_half() const {

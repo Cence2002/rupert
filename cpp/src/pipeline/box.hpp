@@ -31,8 +31,8 @@ public:
         return theta_id_.invalid() || phi_id_.invalid() || alpha_id_.invalid();
     }
 
-    double size() const {
-        return theta_id_.size() * phi_id_.size() * alpha_id_.size();
+    size_t size() const {
+        return theta_id_.size() + phi_id_.size() + alpha_id_.size();
     }
 
     std::array<Box, 8> subdivide() const {
