@@ -2,28 +2,28 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Box2 } from '../flat-buffers/box2';
 import { Id } from '../flat-buffers/id';
 import { Polygon } from '../flat-buffers/polygon';
 import { Projection } from '../flat-buffers/projection';
+import { Rectangle } from '../flat-buffers/rectangle';
 
 
-export class Box3 {
+export class Box {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):Box3 {
+  __init(i:number, bb:flatbuffers.ByteBuffer):Box {
   this.bb_pos = i;
   this.bb = bb;
   return this;
 }
 
-static getRootAsBox3(bb:flatbuffers.ByteBuffer, obj?:Box3):Box3 {
-  return (obj || new Box3()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+static getRootAsBox(bb:flatbuffers.ByteBuffer, obj?:Box):Box {
+  return (obj || new Box()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-static getSizePrefixedRootAsBox3(bb:flatbuffers.ByteBuffer, obj?:Box3):Box3 {
+static getSizePrefixedRootAsBox(bb:flatbuffers.ByteBuffer, obj?:Box):Box {
   bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new Box3()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  return (obj || new Box()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
 theta(obj?:Id):Id|null {
@@ -56,12 +56,12 @@ projection(obj?:Polygon):Polygon|null {
   return offset ? (obj || new Polygon()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 }
 
-box2s(index: number, obj?:Box2):Box2|null {
+rectangles(index: number, obj?:Rectangle):Rectangle|null {
   const offset = this.bb!.__offset(this.bb_pos, 14);
-  return offset ? (obj || new Box2()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+  return offset ? (obj || new Rectangle()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
 }
 
-box2sLength():number {
+rectanglesLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 14);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
@@ -76,7 +76,7 @@ in_():number {
   return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
 }
 
-static startBox3(builder:flatbuffers.Builder) {
+static startBox(builder:flatbuffers.Builder) {
   builder.startObject(8);
 }
 
@@ -112,11 +112,11 @@ static addProjection(builder:flatbuffers.Builder, projectionOffset:flatbuffers.O
   builder.addFieldOffset(4, projectionOffset, 0);
 }
 
-static addBox2s(builder:flatbuffers.Builder, box2sOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(5, box2sOffset, 0);
+static addRectangles(builder:flatbuffers.Builder, rectanglesOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(5, rectanglesOffset, 0);
 }
 
-static createBox2sVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+static createRectanglesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
   builder.startVector(4, data.length, 4);
   for (let i = data.length - 1; i >= 0; i--) {
     builder.addOffset(data[i]!);
@@ -124,7 +124,7 @@ static createBox2sVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[])
   return builder.endVector();
 }
 
-static startBox2sVector(builder:flatbuffers.Builder, numElems:number) {
+static startRectanglesVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 }
 
@@ -136,7 +136,7 @@ static addIn(builder:flatbuffers.Builder, in_:number) {
   builder.addFieldInt32(7, in_, 0);
 }
 
-static endBox3(builder:flatbuffers.Builder):flatbuffers.Offset {
+static endBox(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
 }

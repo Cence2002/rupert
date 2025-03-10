@@ -31,7 +31,7 @@
 
     $effect(onSelectBox3);
 
-    $effect(onSelectBox2);
+    $effect(onSelectRectangle);
 
     const PI = Math.PI;
     const TWO_PI = 2 * Math.PI;
@@ -53,7 +53,7 @@
     controls.screenSpacePanning = true;
     controls.zoomToCursor = true;
 
-    let box2Groups: Group[] = [];
+    let rectangleGroups: Group[] = [];
 
     function onCover() {
         if (!cover) {
@@ -65,66 +65,66 @@
         if (selection.selectedBox3 === null) {
             return;
         }
-        const box3 = cover!.box3s(selection.selectedBox3)
-        for (let index = 0; index < box3.box2sLength(); index++) {
-            const box2 = box3.box2s(index);
+        const box = cover!.boxes(selection.selectedBox3)
+        for (let index = 0; index < box.rectanglesLength(); index++) {
+            const rectangle = box.rectangles(index);
 
-            const theta = box2.theta().interval();
-            const phi = box2.phi().interval();
+            const theta = rectangle.theta().interval();
+            const phi = rectangle.phi().interval();
 
-            const box2Geometry = new PlaneGeometry((theta.max() - theta.min()) / TWO_PI, (phi.max() - phi.min()) / PI);
-            const box2Material = new MeshBasicMaterial({
+            const rectangleGeometry = new PlaneGeometry((theta.max() - theta.min()) / TWO_PI, (phi.max() - phi.min()) / PI);
+            const rectangleMaterial = new MeshBasicMaterial({
                 color: new Color(0, 1, 0),
                 transparent: true,
-                opacity: (index == box3.in_()) ? 0.75 : (box2.outLength() > 0 ? 0.25 : 0.0),
+                opacity: (index == box.in_()) ? 0.75 : (rectangle.outLength() > 0 ? 0.25 : 0.0),
                 side: FrontSide,
                 depthWrite: false
             });
-            const box2Mesh = new Mesh(box2Geometry, box2Material);
-            box2Mesh.position.set((theta.min() + theta.max()) / 2 / TWO_PI, (phi.min() + phi.max()) / 2 / PI, 0);
+            const rectangleMesh = new Mesh(rectangleGeometry, rectangleMaterial);
+            rectangleMesh.position.set((theta.min() + theta.max()) / 2 / TWO_PI, (phi.min() + phi.max()) / 2 / PI, 0);
 
-            const box2EdgesGeometry = new EdgesGeometry(box2Geometry);
-            const box2EdgesMaterial = new LineBasicMaterial({
+            const rectangleEdgesGeometry = new EdgesGeometry(rectangleGeometry);
+            const rectangleEdgesMaterial = new LineBasicMaterial({
                 color: new Color(0.5, 0.5, 0.5),
             });
-            const box2Edges = new LineSegments(box2EdgesGeometry, box2EdgesMaterial);
-            box2Edges.position.set((theta.min() + theta.max()) / 2 / TWO_PI, (phi.min() + phi.max()) / 2 / PI, 0);
+            const rectangleEdges = new LineSegments(rectangleEdgesGeometry, rectangleEdgesMaterial);
+            rectangleEdges.position.set((theta.min() + theta.max()) / 2 / TWO_PI, (phi.min() + phi.max()) / 2 / PI, 0);
 
-            const box2Group = new Group();
-            box2Group.add(box2Mesh);
-            if (box2.outLength() > 0) {
-                box2Group.add(box2Edges);
+            const rectangleGroup = new Group();
+            rectangleGroup.add(rectangleMesh);
+            if (rectangle.outLength() > 0) {
+                rectangleGroup.add(rectangleEdges);
             }
 
-            box2Groups.push(box2Group);
+            rectangleGroups.push(rectangleGroup);
         }
 
-        for (const box2Group of box2Groups.values()) {
-            scene.add(box2Group);
+        for (const rectangleGroup of rectangleGroups.values()) {
+            scene.add(rectangleGroup);
         }
 
         return () => {
-            for (const box2Group of box2Groups.values()) {
-                scene.remove(box2Group);
+            for (const rectangleGroup of rectangleGroups.values()) {
+                scene.remove(rectangleGroup);
             }
-            box2Groups = [];
+            rectangleGroups = [];
         };
     }
 
-    function onSelectBox2() {
-        if (selection.selectedBox2 === null) {
+    function onSelectRectangle() {
+        if (selection.selectedRectangle === null) {
             return;
         }
-        const box2Group = box2Groups[selection.selectedBox2];
-        const box2 = box2Group.children[0] as Mesh;
-        const box2Material = box2.material as MeshBasicMaterial;
-        const originalColor = box2Material.color.clone();
-        box2Material.color.copy(new Color(1, 0, 0));
-        const originalOpacity = box2Material.opacity;
-        box2Material.opacity = 0.9;
+        const rectangleGroup = rectangleGroups[selection.selectedRectangle];
+        const rectangle = rectangleGroup.children[0] as Mesh;
+        const rectangleMaterial = rectangle.material as MeshBasicMaterial;
+        const originalColor = rectangleMaterial.color.clone();
+        rectangleMaterial.color.copy(new Color(1, 0, 0));
+        const originalOpacity = rectangleMaterial.opacity;
+        rectangleMaterial.opacity = 0.9;
         return () => {
-            box2Material.color.copy(originalColor);
-            box2Material.opacity = originalOpacity;
+            rectangleMaterial.color.copy(originalColor);
+            rectangleMaterial.opacity = originalOpacity;
         };
     }
 
@@ -132,7 +132,7 @@
         const raycaster = new Raycaster();
         raycaster.setFromCamera(mouse, camera);
 
-        const intersections = raycaster.intersectObjects(box2Groups
+        const intersections = raycaster.intersectObjects(rectangleGroups
                 .map(group => group.children[0] as Mesh)
                 .filter(mesh => (mesh.material as MeshBasicMaterial).opacity > 0),
             false);
@@ -150,21 +150,21 @@
         });
 
         if (intersections.length === 0) {
-            selection.selectBox2(null);
+            selection.selectRectangle(null);
             return;
         }
 
-        if (selection.selectedBox2 === null) {
-            selection.selectBox2(box2Groups.findIndex(group => group.children[0] === intersections[0].object));
+        if (selection.selectedRectangle === null) {
+            selection.selectRectangle(rectangleGroups.findIndex(group => group.children[0] === intersections[0].object));
             return;
         }
 
-        const selectedBox2 = box2Groups[selection.selectedBox2].children[0] as Mesh;
-        const selectedBox2Index = intersections.findIndex(intersection => intersection.object === selectedBox2);
-        const newSelectedBox2Index = selectedBox2Index === -1 ? 0 : (selectedBox2Index + 1) % intersections.length;
-        const newSelectedBox2 = intersections[newSelectedBox2Index].object as Mesh;
-        const newSelectedBox2IndexInGroups = box2Groups.findIndex(group => group.children[0] === newSelectedBox2);
-        selection.selectBox2(newSelectedBox2IndexInGroups);
+        const selectedRectangle = rectangleGroups[selection.selectedRectangle].children[0] as Mesh;
+        const selectedRectangleIndex = intersections.findIndex(intersection => intersection.object === selectedRectangle);
+        const newSelectedRectangleIndex = selectedRectangleIndex === -1 ? 0 : (selectedRectangleIndex + 1) % intersections.length;
+        const newSelectedRectangle = intersections[newSelectedRectangleIndex].object as Mesh;
+        const newSelectedRectangleIndexInGroups = rectangleGroups.findIndex(group => group.children[0] === newSelectedRectangle);
+        selection.selectRectangle(newSelectedRectangleIndexInGroups);
     }
 
     function setup(width: number, height: number) {

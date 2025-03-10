@@ -39,20 +39,20 @@ table Projection { // helper
   vectors: [Vector];
 }
 
-table Box2 {
+table Rectangle {
   theta: Id;
   phi: Id;
   projections: [Projection]; // helper
   out: [uint8]; // helper
 }
 
-table Box3 {
+table Box {
   theta: Id;
   phi: Id;
   alpha: Id;
   projections: [Projection]; // helper
   projection: Polygon; // helper
-  box2s: [Box2];
+  rectangles: [Rectangle];
   complete: bool; // helper
   in: int32; // helper
 }
@@ -61,7 +61,7 @@ table Cover {
   description: string;
   hole: Polyhedron;
   plug: Polyhedron;
-  box3s: [Box3];
+  boxes: [Box];
 }
 
 root_type Cover;

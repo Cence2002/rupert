@@ -35,7 +35,7 @@
 
     $effect(onSelectBox3);
 
-    $effect(onSelectBox2);
+    $effect(onSelectRectangle);
 
 
     const scene = new Scene();
@@ -57,8 +57,8 @@
 
     let projectionEdges: Line[] = [];
     let projections: Group[] = [];
-    let box2Projections: Group[] = [];
-    let box2Out: number[] = [];
+    let rectangleProjections: Group[] = [];
+    let rectangleOut: number[] = [];
 
     function onCover() {
         if (!cover) {
@@ -70,10 +70,10 @@
         if (selection.selectedBox3 === null) {
             return;
         }
-        const box3 = cover!.box3s(selection.selectedBox3);
+        const box = cover!.boxes(selection.selectedBox3);
 
-        for (let index = 0; index < box3.projectionsLength(); index++) {
-            const projection = box3.projections(index);
+        for (let index = 0; index < box.projectionsLength(); index++) {
+            const projection = box.projections(index);
             const vertices: Vector2[] = [];
             for (let index2 = 0; index2 < projection.vectorsLength(); index2++) {
                 const vertex = projection.vectors(index2);
@@ -107,7 +107,7 @@
             scene.add(group);
         }
 
-        const projection = box3.projection();
+        const projection = box.projection();
         for (let index = 0; index < projection.edgesLength(); index++) {
             const edge = projection.edges(index);
             const from = new Vector2(edge.from().x(), edge.from().y());
@@ -138,19 +138,19 @@
         };
     }
 
-    function onSelectBox2() {
-        if (selection.selectedBox2 === null) {
+    function onSelectRectangle() {
+        if (selection.selectedRectangle === null) {
             return;
         }
-        const box3 = cover!.box3s(selection.selectedBox3);
-        const box2 = box3.box2s(selection.selectedBox2);
+        const box = cover!.boxes(selection.selectedBox3);
+        const rectangle = box.rectangles(selection.selectedRectangle);
 
-        for (let index = 0; index < box2.outLength(); index++) {
-            box2Out.push(box2.out(index));
+        for (let index = 0; index < rectangle.outLength(); index++) {
+            rectangleOut.push(rectangle.out(index));
         }
 
-        for (let index = 0; index < box2.projectionsLength(); index++) {
-            const projection = box2.projections(index);
+        for (let index = 0; index < rectangle.projectionsLength(); index++) {
+            const projection = rectangle.projections(index);
             const vertices: Vector2[] = [];
             for (let index2 = 0; index2 < projection.vectorsLength(); index2++) {
                 const vertex = projection.vectors(index2);
@@ -162,7 +162,7 @@
             const hullMaterial = new MeshBasicMaterial({
                 color: new Color(0, 1, 0),
                 transparent: true,
-                opacity: (selection.selectedBox2 == box3.in_()) ? 0.25 : (box2Out.includes(index) ? 0.5 : 0),
+                opacity: (selection.selectedRectangle == box.in_()) ? 0.25 : (rectangleOut.includes(index) ? 0.5 : 0),
                 side: FrontSide,
                 depthWrite: false,
             });
@@ -178,18 +178,18 @@
             group.add(hullMesh);
             group.add(hullEdges);
 
-            box2Projections.push(group);
+            rectangleProjections.push(group);
         }
-        for (let group of box2Projections) {
+        for (let group of rectangleProjections) {
             scene.add(group);
         }
 
         return () => {
-            for (let group of box2Projections) {
+            for (let group of rectangleProjections) {
                 scene.remove(group);
             }
-            box2Projections = [];
-            box2Out = [];
+            rectangleProjections = [];
+            rectangleOut = [];
         };
     }
 

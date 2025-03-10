@@ -40,7 +40,7 @@
 
     $effect(onSelectBox3);
 
-    $effect(onSelectBox2);
+    $effect(onSelectRectangle);
 
     const scene = new Scene();
     scene.up.set(0, 0, 1);
@@ -71,8 +71,8 @@
 
     let projectionEdges: Line[] = [];
     let projections: Group[] = [];
-    let box2Projections: Group[] = [];
-    let box2Out: number[] = [];
+    let rectangleProjections: Group[] = [];
+    let rectangleOut: number[] = [];
 
     let hole_theta_t = 0;
     let hole_phi_t = 0;
@@ -151,10 +151,10 @@
         if (selection.selectedBox3 === null) {
             return;
         }
-        const box3 = cover!.box3s(selection.selectedBox3);
+        const box = cover!.boxes(selection.selectedBox3);
 
-        for (let index = 0; index < box3.projectionsLength(); index++) {
-            const projection = box3.projections(index);
+        for (let index = 0; index < box.projectionsLength(); index++) {
+            const projection = box.projections(index);
             const vertices: Vector2[] = [];
             for (let index2 = 0; index2 < projection.vectorsLength(); index2++) {
                 const vertex = projection.vectors(index2);
@@ -188,7 +188,7 @@
             scene.add(group);
         }
 
-        const projection = box3.projection();
+        const projection = box.projection();
         for (let index = 0; index < projection.edgesLength(); index++) {
             const edge = projection.edges(index);
             const from = new Vector2(edge.from().x(), edge.from().y());
@@ -215,11 +215,11 @@
             const resolution = 8;
 
             for (let theta_index = 0; theta_index <= resolution; theta_index++) {
-                const theta = lerp(box3.theta().interval().min(), box3.theta().interval().max(), theta_index / resolution);
+                const theta = lerp(box.theta().interval().min(), box.theta().interval().max(), theta_index / resolution);
 
                 function parametric(phi_t: number, alpha_t: number, target: Vector3) {
-                    const phi = lerp(box3.phi().interval().min(), box3.phi().interval().max(), phi_t);
-                    const alpha = lerp(box3.alpha().interval().min(), box3.alpha().interval().max(), alpha_t);
+                    const phi = lerp(box.phi().interval().min(), box.phi().interval().max(), phi_t);
+                    const alpha = lerp(box.alpha().interval().min(), box.alpha().interval().max(), alpha_t);
 
                     const projected_vertex = project(holeVertex, theta, phi);
                     const rotated_projected_vertex = rotate(projected_vertex, alpha);
@@ -236,11 +236,11 @@
                 rotatedProjectedHoleVertices.push(rotatedProjectedHoleVertex);
             }
             for (let phi_index = 0; phi_index <= resolution; phi_index++) {
-                const phi = lerp(box3.phi().interval().min(), box3.phi().interval().max(), phi_index / resolution);
+                const phi = lerp(box.phi().interval().min(), box.phi().interval().max(), phi_index / resolution);
 
                 function parametric(theta_t: number, alpha_t: number, target: Vector3) {
-                    const theta = lerp(box3.theta().interval().min(), box3.theta().interval().max(), theta_t);
-                    const alpha = lerp(box3.alpha().interval().min(), box3.alpha().interval().max(), alpha_t);
+                    const theta = lerp(box.theta().interval().min(), box.theta().interval().max(), theta_t);
+                    const alpha = lerp(box.alpha().interval().min(), box.alpha().interval().max(), alpha_t);
 
                     const projected_vertex = project(holeVertex, theta, phi);
                     const rotated_projected_vertex = rotate(projected_vertex, alpha);
@@ -257,11 +257,11 @@
                 rotatedProjectedHoleVertices.push(rotatedProjectedHoleVertex);
             }
             for (let alpha_index = 0; alpha_index <= resolution; alpha_index++) {
-                const alpha = lerp(box3.alpha().interval().min(), box3.alpha().interval().max(), alpha_index / resolution);
+                const alpha = lerp(box.alpha().interval().min(), box.alpha().interval().max(), alpha_index / resolution);
 
                 function parametric(theta_t: number, phi_t: number, target: Vector3) {
-                    const theta = lerp(box3.theta().interval().min(), box3.theta().interval().max(), theta_t);
-                    const phi = lerp(box3.phi().interval().min(), box3.phi().interval().max(), phi_t);
+                    const theta = lerp(box.theta().interval().min(), box.theta().interval().max(), theta_t);
+                    const phi = lerp(box.phi().interval().min(), box.phi().interval().max(), phi_t);
 
                     const projected_vertex = project(holeVertex, theta, phi);
                     const rotated_projected_vertex = rotate(projected_vertex, alpha);
@@ -298,19 +298,19 @@
         };
     }
 
-    function onSelectBox2() {
-        if (selection.selectedBox2 === null) {
+    function onSelectRectangle() {
+        if (selection.selectedRectangle === null) {
             return;
         }
-        const box3 = cover!.box3s(selection.selectedBox3);
-        const box2 = box3.box2s(selection.selectedBox2);
+        const box = cover!.boxes(selection.selectedBox3);
+        const rectangle = box.rectangles(selection.selectedRectangle);
 
-        for (let index = 0; index < box2.outLength(); index++) {
-            box2Out.push(box2.out(index));
+        for (let index = 0; index < rectangle.outLength(); index++) {
+            rectangleOut.push(rectangle.out(index));
         }
 
-        for (let index = 0; index < box2.projectionsLength(); index++) {
-            const projection = box2.projections(index);
+        for (let index = 0; index < rectangle.projectionsLength(); index++) {
+            const projection = rectangle.projections(index);
             const vertices: Vector2[] = [];
             for (let index2 = 0; index2 < projection.vectorsLength(); index2++) {
                 const vertex = projection.vectors(index2);
@@ -322,7 +322,7 @@
             const hullMaterial = new MeshBasicMaterial({
                 color: new Color(0, 1, 0),
                 transparent: true,
-                opacity: (selection.selectedBox2 == box3.in_()) ? 0.25 : (box2Out.includes(index) ? 0.5 : 0),
+                opacity: (selection.selectedRectangle == box.in_()) ? 0.25 : (rectangleOut.includes(index) ? 0.5 : 0),
                 side: DoubleSide,
                 depthWrite: false,
             });
@@ -338,9 +338,9 @@
             group.add(hullMesh);
             group.add(hullEdges);
 
-            box2Projections.push(group);
+            rectangleProjections.push(group);
         }
-        for (let group of box2Projections) {
+        for (let group of rectangleProjections) {
             scene.add(group);
         }
 
@@ -350,8 +350,8 @@
             const holeVertex = new Vector3(vertex.x(), vertex.y(), vertex.z());
 
             function parametric(theta_t: number, phi_t: number, target: Vector3) {
-                const theta = lerp(box2.theta().interval().min(), box2.theta().interval().max(), theta_t);
-                const phi = lerp(box2.phi().interval().min(), box2.phi().interval().max(), phi_t);
+                const theta = lerp(rectangle.theta().interval().min(), rectangle.theta().interval().max(), theta_t);
+                const phi = lerp(rectangle.phi().interval().min(), rectangle.phi().interval().max(), phi_t);
 
                 //TODO: handle the case when vertex is on the z-axis, as the parametric surface will collapse to a line
                 const projected_vertex = project(holeVertex, theta, phi);
@@ -371,11 +371,11 @@
             scene.add(group);
         }
         return () => {
-            for (let group of box2Projections) {
+            for (let group of rectangleProjections) {
                 scene.remove(group);
             }
-            box2Projections = [];
-            box2Out = [];
+            rectangleProjections = [];
+            rectangleOut = [];
             for (let group of projectedPlugVertices) {
                 scene.remove(group);
             }
@@ -432,11 +432,11 @@
         renderer.render(scene, camera);
 
         if (holeGroup && selection.selectedBox3 !== null) {
-            const box3 = cover!.box3s(selection.selectedBox3);
+            const box = cover!.boxes(selection.selectedBox3);
 
-            const theta_interval = box3.theta().interval();
-            const phi_interval = box3.phi().interval();
-            const alpha_interval = box3.alpha().interval();
+            const theta_interval = box.theta().interval();
+            const phi_interval = box.phi().interval();
+            const alpha_interval = box.alpha().interval();
 
             holeGroup.quaternion.copy(projection_rotation_quaternion(
                 lerp(theta_interval.min(), theta_interval.max(), (Math.sin(hole_theta_t) + 1) / 2),
@@ -448,12 +448,12 @@
             hole_phi_t += 0.1 / Math.sqrt(2);
             hole_alpha_t += 0.1 / Math.sqrt(3);
         }
-        if (plugGroup && selection.selectedBox3 !== null && selection.selectedBox2 !== null) {
-            const box3 = cover!.box3s(selection.selectedBox3);
-            const box2 = box3.box2s(selection.selectedBox2);
+        if (plugGroup && selection.selectedBox3 !== null && selection.selectedRectangle !== null) {
+            const box = cover!.boxes(selection.selectedBox3);
+            const rectangle = box.rectangles(selection.selectedRectangle);
 
-            const theta_interval = box2.theta().interval();
-            const phi_interval = box2.phi().interval();
+            const theta_interval = rectangle.theta().interval();
+            const phi_interval = rectangle.phi().interval();
 
             plugGroup.quaternion.copy(projection_rotation_quaternion(
                 lerp(theta_interval.min(), theta_interval.max(), (Math.sin(plug_theta_t) + 1) / 2),

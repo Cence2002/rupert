@@ -34,11 +34,11 @@ struct Id;
 struct Projection;
 struct ProjectionBuilder;
 
-struct Box2;
-struct Box2Builder;
+struct Rectangle;
+struct RectangleBuilder;
 
-struct Box3;
-struct Box3Builder;
+struct Box;
+struct BoxBuilder;
 
 struct Cover;
 struct CoverBuilder;
@@ -336,8 +336,8 @@ inline flatbuffers::Offset<Projection> CreateProjectionDirect(
       vectors__);
 }
 
-struct Box2 FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef Box2Builder Builder;
+struct Rectangle FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef RectangleBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_THETA = 4,
     VT_PHI = 6,
@@ -369,40 +369,40 @@ struct Box2 FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
-struct Box2Builder {
-  typedef Box2 Table;
+struct RectangleBuilder {
+  typedef Rectangle Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_theta(const FlatBuffers::Id *theta) {
-    fbb_.AddStruct(Box2::VT_THETA, theta);
+    fbb_.AddStruct(Rectangle::VT_THETA, theta);
   }
   void add_phi(const FlatBuffers::Id *phi) {
-    fbb_.AddStruct(Box2::VT_PHI, phi);
+    fbb_.AddStruct(Rectangle::VT_PHI, phi);
   }
   void add_projections(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Projection>>> projections) {
-    fbb_.AddOffset(Box2::VT_PROJECTIONS, projections);
+    fbb_.AddOffset(Rectangle::VT_PROJECTIONS, projections);
   }
   void add_out(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> out) {
-    fbb_.AddOffset(Box2::VT_OUT, out);
+    fbb_.AddOffset(Rectangle::VT_OUT, out);
   }
-  explicit Box2Builder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit RectangleBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<Box2> Finish() {
+  flatbuffers::Offset<Rectangle> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<Box2>(end);
+    auto o = flatbuffers::Offset<Rectangle>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<Box2> CreateBox2(
+inline flatbuffers::Offset<Rectangle> CreateRectangle(
     flatbuffers::FlatBufferBuilder &_fbb,
     const FlatBuffers::Id *theta = nullptr,
     const FlatBuffers::Id *phi = nullptr,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Projection>>> projections = 0,
     flatbuffers::Offset<flatbuffers::Vector<uint8_t>> out = 0) {
-  Box2Builder builder_(_fbb);
+  RectangleBuilder builder_(_fbb);
   builder_.add_out(out);
   builder_.add_projections(projections);
   builder_.add_phi(phi);
@@ -410,7 +410,7 @@ inline flatbuffers::Offset<Box2> CreateBox2(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<Box2> CreateBox2Direct(
+inline flatbuffers::Offset<Rectangle> CreateRectangleDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const FlatBuffers::Id *theta = nullptr,
     const FlatBuffers::Id *phi = nullptr,
@@ -418,7 +418,7 @@ inline flatbuffers::Offset<Box2> CreateBox2Direct(
     const std::vector<uint8_t> *out = nullptr) {
   auto projections__ = projections ? _fbb.CreateVector<flatbuffers::Offset<FlatBuffers::Projection>>(*projections) : 0;
   auto out__ = out ? _fbb.CreateVector<uint8_t>(*out) : 0;
-  return FlatBuffers::CreateBox2(
+  return FlatBuffers::CreateRectangle(
       _fbb,
       theta,
       phi,
@@ -426,15 +426,15 @@ inline flatbuffers::Offset<Box2> CreateBox2Direct(
       out__);
 }
 
-struct Box3 FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef Box3Builder Builder;
+struct Box FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef BoxBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_THETA = 4,
     VT_PHI = 6,
     VT_ALPHA = 8,
     VT_PROJECTIONS = 10,
     VT_PROJECTION = 12,
-    VT_BOX2S = 14,
+    VT_RECTANGLES = 14,
     VT_COMPLETE = 16,
     VT_IN = 18
   };
@@ -453,8 +453,8 @@ struct Box3 FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const FlatBuffers::Polygon *projection() const {
     return GetPointer<const FlatBuffers::Polygon *>(VT_PROJECTION);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box2>> *box2s() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box2>> *>(VT_BOX2S);
+  const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Rectangle>> *rectangles() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Rectangle>> *>(VT_RECTANGLES);
   }
   bool complete() const {
     return GetField<uint8_t>(VT_COMPLETE, 0) != 0;
@@ -472,67 +472,67 @@ struct Box3 FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVectorOfTables(projections()) &&
            VerifyOffset(verifier, VT_PROJECTION) &&
            verifier.VerifyTable(projection()) &&
-           VerifyOffset(verifier, VT_BOX2S) &&
-           verifier.VerifyVector(box2s()) &&
-           verifier.VerifyVectorOfTables(box2s()) &&
+           VerifyOffset(verifier, VT_RECTANGLES) &&
+           verifier.VerifyVector(rectangles()) &&
+           verifier.VerifyVectorOfTables(rectangles()) &&
            VerifyField<uint8_t>(verifier, VT_COMPLETE, 1) &&
            VerifyField<int32_t>(verifier, VT_IN, 4) &&
            verifier.EndTable();
   }
 };
 
-struct Box3Builder {
-  typedef Box3 Table;
+struct BoxBuilder {
+  typedef Box Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_theta(const FlatBuffers::Id *theta) {
-    fbb_.AddStruct(Box3::VT_THETA, theta);
+    fbb_.AddStruct(Box::VT_THETA, theta);
   }
   void add_phi(const FlatBuffers::Id *phi) {
-    fbb_.AddStruct(Box3::VT_PHI, phi);
+    fbb_.AddStruct(Box::VT_PHI, phi);
   }
   void add_alpha(const FlatBuffers::Id *alpha) {
-    fbb_.AddStruct(Box3::VT_ALPHA, alpha);
+    fbb_.AddStruct(Box::VT_ALPHA, alpha);
   }
   void add_projections(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Projection>>> projections) {
-    fbb_.AddOffset(Box3::VT_PROJECTIONS, projections);
+    fbb_.AddOffset(Box::VT_PROJECTIONS, projections);
   }
   void add_projection(flatbuffers::Offset<FlatBuffers::Polygon> projection) {
-    fbb_.AddOffset(Box3::VT_PROJECTION, projection);
+    fbb_.AddOffset(Box::VT_PROJECTION, projection);
   }
-  void add_box2s(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box2>>> box2s) {
-    fbb_.AddOffset(Box3::VT_BOX2S, box2s);
+  void add_rectangles(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Rectangle>>> rectangles) {
+    fbb_.AddOffset(Box::VT_RECTANGLES, rectangles);
   }
   void add_complete(bool complete) {
-    fbb_.AddElement<uint8_t>(Box3::VT_COMPLETE, static_cast<uint8_t>(complete), 0);
+    fbb_.AddElement<uint8_t>(Box::VT_COMPLETE, static_cast<uint8_t>(complete), 0);
   }
   void add_in(int32_t in) {
-    fbb_.AddElement<int32_t>(Box3::VT_IN, in, 0);
+    fbb_.AddElement<int32_t>(Box::VT_IN, in, 0);
   }
-  explicit Box3Builder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit BoxBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<Box3> Finish() {
+  flatbuffers::Offset<Box> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<Box3>(end);
+    auto o = flatbuffers::Offset<Box>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<Box3> CreateBox3(
+inline flatbuffers::Offset<Box> CreateBox(
     flatbuffers::FlatBufferBuilder &_fbb,
     const FlatBuffers::Id *theta = nullptr,
     const FlatBuffers::Id *phi = nullptr,
     const FlatBuffers::Id *alpha = nullptr,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Projection>>> projections = 0,
     flatbuffers::Offset<FlatBuffers::Polygon> projection = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box2>>> box2s = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Rectangle>>> rectangles = 0,
     bool complete = false,
     int32_t in = 0) {
-  Box3Builder builder_(_fbb);
+  BoxBuilder builder_(_fbb);
   builder_.add_in(in);
-  builder_.add_box2s(box2s);
+  builder_.add_rectangles(rectangles);
   builder_.add_projection(projection);
   builder_.add_projections(projections);
   builder_.add_alpha(alpha);
@@ -542,26 +542,26 @@ inline flatbuffers::Offset<Box3> CreateBox3(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<Box3> CreateBox3Direct(
+inline flatbuffers::Offset<Box> CreateBoxDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const FlatBuffers::Id *theta = nullptr,
     const FlatBuffers::Id *phi = nullptr,
     const FlatBuffers::Id *alpha = nullptr,
     const std::vector<flatbuffers::Offset<FlatBuffers::Projection>> *projections = nullptr,
     flatbuffers::Offset<FlatBuffers::Polygon> projection = 0,
-    const std::vector<flatbuffers::Offset<FlatBuffers::Box2>> *box2s = nullptr,
+    const std::vector<flatbuffers::Offset<FlatBuffers::Rectangle>> *rectangles = nullptr,
     bool complete = false,
     int32_t in = 0) {
   auto projections__ = projections ? _fbb.CreateVector<flatbuffers::Offset<FlatBuffers::Projection>>(*projections) : 0;
-  auto box2s__ = box2s ? _fbb.CreateVector<flatbuffers::Offset<FlatBuffers::Box2>>(*box2s) : 0;
-  return FlatBuffers::CreateBox3(
+  auto rectangles__ = rectangles ? _fbb.CreateVector<flatbuffers::Offset<FlatBuffers::Rectangle>>(*rectangles) : 0;
+  return FlatBuffers::CreateBox(
       _fbb,
       theta,
       phi,
       alpha,
       projections__,
       projection,
-      box2s__,
+      rectangles__,
       complete,
       in);
 }
@@ -572,7 +572,7 @@ struct Cover FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_DESCRIPTION = 4,
     VT_HOLE = 6,
     VT_PLUG = 8,
-    VT_BOX3S = 10
+    VT_BOXES = 10
   };
   const flatbuffers::String *description() const {
     return GetPointer<const flatbuffers::String *>(VT_DESCRIPTION);
@@ -583,8 +583,8 @@ struct Cover FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const FlatBuffers::Polyhedron *plug() const {
     return GetPointer<const FlatBuffers::Polyhedron *>(VT_PLUG);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box3>> *box3s() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box3>> *>(VT_BOX3S);
+  const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box>> *boxes() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box>> *>(VT_BOXES);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -594,9 +594,9 @@ struct Cover FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyTable(hole()) &&
            VerifyOffset(verifier, VT_PLUG) &&
            verifier.VerifyTable(plug()) &&
-           VerifyOffset(verifier, VT_BOX3S) &&
-           verifier.VerifyVector(box3s()) &&
-           verifier.VerifyVectorOfTables(box3s()) &&
+           VerifyOffset(verifier, VT_BOXES) &&
+           verifier.VerifyVector(boxes()) &&
+           verifier.VerifyVectorOfTables(boxes()) &&
            verifier.EndTable();
   }
 };
@@ -614,8 +614,8 @@ struct CoverBuilder {
   void add_plug(flatbuffers::Offset<FlatBuffers::Polyhedron> plug) {
     fbb_.AddOffset(Cover::VT_PLUG, plug);
   }
-  void add_box3s(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box3>>> box3s) {
-    fbb_.AddOffset(Cover::VT_BOX3S, box3s);
+  void add_boxes(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box>>> boxes) {
+    fbb_.AddOffset(Cover::VT_BOXES, boxes);
   }
   explicit CoverBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -633,9 +633,9 @@ inline flatbuffers::Offset<Cover> CreateCover(
     flatbuffers::Offset<flatbuffers::String> description = 0,
     flatbuffers::Offset<FlatBuffers::Polyhedron> hole = 0,
     flatbuffers::Offset<FlatBuffers::Polyhedron> plug = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box3>>> box3s = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box>>> boxes = 0) {
   CoverBuilder builder_(_fbb);
-  builder_.add_box3s(box3s);
+  builder_.add_boxes(boxes);
   builder_.add_plug(plug);
   builder_.add_hole(hole);
   builder_.add_description(description);
@@ -647,15 +647,15 @@ inline flatbuffers::Offset<Cover> CreateCoverDirect(
     const char *description = nullptr,
     flatbuffers::Offset<FlatBuffers::Polyhedron> hole = 0,
     flatbuffers::Offset<FlatBuffers::Polyhedron> plug = 0,
-    const std::vector<flatbuffers::Offset<FlatBuffers::Box3>> *box3s = nullptr) {
+    const std::vector<flatbuffers::Offset<FlatBuffers::Box>> *boxes = nullptr) {
   auto description__ = description ? _fbb.CreateString(description) : 0;
-  auto box3s__ = box3s ? _fbb.CreateVector<flatbuffers::Offset<FlatBuffers::Box3>>(*box3s) : 0;
+  auto boxes__ = boxes ? _fbb.CreateVector<flatbuffers::Offset<FlatBuffers::Box>>(*boxes) : 0;
   return FlatBuffers::CreateCover(
       _fbb,
       description__,
       hole,
       plug,
-      box3s__);
+      boxes__);
 }
 
 inline const FlatBuffers::Cover *GetCover(const void *buf) {

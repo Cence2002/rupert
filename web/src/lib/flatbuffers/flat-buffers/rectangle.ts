@@ -6,22 +6,22 @@ import { Id } from '../flat-buffers/id';
 import { Projection } from '../flat-buffers/projection';
 
 
-export class Box2 {
+export class Rectangle {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):Box2 {
+  __init(i:number, bb:flatbuffers.ByteBuffer):Rectangle {
   this.bb_pos = i;
   this.bb = bb;
   return this;
 }
 
-static getRootAsBox2(bb:flatbuffers.ByteBuffer, obj?:Box2):Box2 {
-  return (obj || new Box2()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+static getRootAsRectangle(bb:flatbuffers.ByteBuffer, obj?:Rectangle):Rectangle {
+  return (obj || new Rectangle()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-static getSizePrefixedRootAsBox2(bb:flatbuffers.ByteBuffer, obj?:Box2):Box2 {
+static getSizePrefixedRootAsRectangle(bb:flatbuffers.ByteBuffer, obj?:Rectangle):Rectangle {
   bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new Box2()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  return (obj || new Rectangle()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
 theta(obj?:Id):Id|null {
@@ -59,7 +59,7 @@ outArray():Uint8Array|null {
   return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 }
 
-static startBox2(builder:flatbuffers.Builder) {
+static startRectangle(builder:flatbuffers.Builder) {
   builder.startObject(4);
 }
 
@@ -103,7 +103,7 @@ static startOutVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(1, numElems, 1);
 }
 
-static endBox2(builder:flatbuffers.Builder):flatbuffers.Offset {
+static endRectangle(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
 }

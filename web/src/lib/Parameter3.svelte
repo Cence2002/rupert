@@ -55,49 +55,49 @@
     const center = new Mesh(new SphereGeometry(0.01), new MeshBasicMaterial({color: new Color(1, 1, 1)}));
     scene.add(center);
 
-    const box3Groups: Group[] = [];
+    const boxGroups: Group[] = [];
 
     function onCover() {
         if (!cover) {
             return;
         }
         {
-            for (let index = 0; index < cover!.box3sLength(); index++) {
-                const box3 = cover!.box3s(index);
+            for (let index = 0; index < cover!.boxesLength(); index++) {
+                const box = cover!.boxes(index);
 
-                const theta = box3.theta().interval();
-                const phi = box3.phi().interval();
-                const alpha = box3.alpha().interval();
+                const theta = box.theta().interval();
+                const phi = box.phi().interval();
+                const alpha = box.alpha().interval();
 
-                const box3Geometry = new BoxGeometry((theta.max() - theta.min()) / TWO_PI, (phi.max() - phi.min()) / PI, (alpha.max() - alpha.min()) / TWO_PI);
-                const box3Material = new MeshBasicMaterial({
+                const boxGeometry = new BoxGeometry((theta.max() - theta.min()) / TWO_PI, (phi.max() - phi.min()) / PI, (alpha.max() - alpha.min()) / TWO_PI);
+                const boxMaterial = new MeshBasicMaterial({
                     color: new Color(0, 0, 1),
                     transparent: true,
-                    opacity: box3.complete() ? 0.5 : 0.0,
+                    opacity: box.complete() ? 0.5 : 0.0,
                     depthWrite: false
                 });
-                const box3Mesh = new Mesh(box3Geometry, box3Material);
-                box3Mesh.position.set((theta.min() + theta.max()) / 2 / TWO_PI, (phi.min() + phi.max()) / 2 / PI, (alpha.min() + alpha.max()) / 2 / TWO_PI);
+                const boxMesh = new Mesh(boxGeometry, boxMaterial);
+                boxMesh.position.set((theta.min() + theta.max()) / 2 / TWO_PI, (phi.min() + phi.max()) / 2 / PI, (alpha.min() + alpha.max()) / 2 / TWO_PI);
 
-                const box3EdgesGeometry = new EdgesGeometry(box3Geometry);
-                const box3EdgesMaterial = new LineBasicMaterial({
+                const boxEdgesGeometry = new EdgesGeometry(boxGeometry);
+                const boxEdgesMaterial = new LineBasicMaterial({
                     color: new Color(0.5, 0.5, 0.5),
                 });
-                const box3Edges = new LineSegments(box3EdgesGeometry, box3EdgesMaterial);
-                box3Edges.position.set((theta.min() + theta.max()) / 2 / TWO_PI, (phi.min() + phi.max()) / 2 / PI, (alpha.min() + alpha.max()) / 2 / TWO_PI);
+                const boxEdges = new LineSegments(boxEdgesGeometry, boxEdgesMaterial);
+                boxEdges.position.set((theta.min() + theta.max()) / 2 / TWO_PI, (phi.min() + phi.max()) / 2 / PI, (alpha.min() + alpha.max()) / 2 / TWO_PI);
 
-                const box3Group = new Group();
-                box3Group.add(box3Mesh);
-                if (box3.complete()) {
-                    box3Group.add(box3Edges);
+                const boxGroup = new Group();
+                boxGroup.add(boxMesh);
+                if (box.complete()) {
+                    boxGroup.add(boxEdges);
                 }
 
-                box3Groups.push(box3Group);
+                boxGroups.push(boxGroup);
             }
         }
         {
-            for (const box3Group of box3Groups) {
-                scene.add(box3Group);
+            for (const boxGroup of boxGroups) {
+                scene.add(boxGroup);
             }
         }
     }
@@ -106,17 +106,17 @@
         if (selection.selectedBox3 === null) {
             return;
         }
-        const box3Group = box3Groups[selection.selectedBox3];
-        const box3 = box3Group.children[0] as Mesh;
-        const box3Material = box3.material as MeshBasicMaterial;
-        const originalColor = box3Material.color.clone();
-        box3Material.color.copy(new Color(1, 0, 0));
-        const box3MaterialOpacity = box3Material.opacity;
-        box3Material.opacity = 0.9;
+        const boxGroup = boxGroups[selection.selectedBox3];
+        const box = boxGroup.children[0] as Mesh;
+        const boxMaterial = box.material as MeshBasicMaterial;
+        const originalColor = boxMaterial.color.clone();
+        boxMaterial.color.copy(new Color(1, 0, 0));
+        const boxMaterialOpacity = boxMaterial.opacity;
+        boxMaterial.opacity = 0.9;
 
         return () => {
-            box3Material.color.copy(originalColor);
-            box3Material.opacity = box3MaterialOpacity;
+            boxMaterial.color.copy(originalColor);
+            boxMaterial.opacity = boxMaterialOpacity;
         };
     }
 
@@ -124,7 +124,7 @@
         const raycaster = new Raycaster();
         raycaster.setFromCamera(mouse, camera);
 
-        const intersections = raycaster.intersectObjects(box3Groups
+        const intersections = raycaster.intersectObjects(boxGroups
                 .map(group => group.children[0] as Mesh)
                 .filter(mesh => (mesh.material as MeshBasicMaterial).opacity > 0),
             false);
@@ -148,15 +148,15 @@
         }
 
         if (selection.selectedBox3 === null) {
-            selection.selectBox3(box3Groups.findIndex(group => group.children[0] === intersections[0].object));
+            selection.selectBox3(boxGroups.findIndex(group => group.children[0] === intersections[0].object));
             return;
         }
 
-        const selectedBox3 = box3Groups[selection.selectedBox3].children[0] as Mesh;
+        const selectedBox3 = boxGroups[selection.selectedBox3].children[0] as Mesh;
         const selectedBox3Index = intersections.findIndex(intersection => intersection.object === selectedBox3);
         const newSelectedBox3Index = selectedBox3Index === -1 ? 0 : (selectedBox3Index + 1) % intersections.length;
         const newSelectedBox3 = intersections[newSelectedBox3Index].object as Mesh;
-        const newSelectedBox3IndexInGroups = box3Groups.findIndex(group => group.children[0] === newSelectedBox3);
+        const newSelectedBox3IndexInGroups = boxGroups.findIndex(group => group.children[0] === newSelectedBox3);
         selection.selectBox3(newSelectedBox3IndexInGroups);
     }
 

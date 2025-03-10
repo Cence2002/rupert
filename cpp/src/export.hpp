@@ -11,31 +11,31 @@
 
 struct ProjectionBuilder {
 private:
-    std::vector<FlatBuffers::Vector2> vertices_;
+    std::vector<FlatBuffers::Vector> vectors_;
 
 public:
-    explicit ProjectionBuilder() : vertices_() {}
+    explicit ProjectionBuilder() : vectors_() {}
 
     template<IntervalType Interval>
-    void add_vertex(const Vector<Interval>& vertex) {
-        vertices_.emplace_back(
-            vertex.x().mid().float_value(),
-            vertex.y().mid().float_value()
+    void add_vertex(const Vector<Interval>& vector) {
+        vectors_.emplace_back(
+            vector.x().mid().float_value(),
+            vector.y().mid().float_value()
         );
     }
 
     auto build(flatbuffers::FlatBufferBuilder& builder) {
-        const auto projection = FlatBuffers::CreateProjection(builder, builder.CreateVectorOfStructs(vertices_));
-        vertices_.clear();
+        const auto projection = FlatBuffers::CreateProjection(builder, builder.CreateVectorOfStructs(vectors_));
+        vectors_.clear();
         return projection;
     }
 
     size_t size() const {
-        return vertices_.size();
+        return vectors_.size();
     }
 };
 
-struct Box2Builder {
+struct RectangleBuilder {
 private:
     FlatBuffers::Id theta_;
     FlatBuffers::Id phi_;
@@ -45,23 +45,23 @@ private:
 public:
     ProjectionBuilder projection_builder;
 
-    explicit Box2Builder() : theta_(), phi_(), projections_(), out_(), projection_builder() {}
+    explicit RectangleBuilder() : theta_(), phi_(), projections_(), out_(), projection_builder() {}
 
-    void set_box2(const Box2& box2) {
+    void set_rectangle(const Rectangle& rectangle) {
         theta_ = FlatBuffers::Id(
-            box2.theta_id().bits(),
-            box2.theta_id().depth(),
+            rectangle.theta_id().bits(),
+            rectangle.theta_id().depth(),
             FlatBuffers::Interval(
-                box2.theta<FloatInterval>().min().float_value(),
-                box2.theta<FloatInterval>().max().float_value()
+                rectangle.theta<FloatInterval>().min().float_value(),
+                rectangle.theta<FloatInterval>().max().float_value()
             )
         );
         phi_ = FlatBuffers::Id(
-            box2.phi_id().bits(),
-            box2.phi_id().depth(),
+            rectangle.phi_id().bits(),
+            rectangle.phi_id().depth(),
             FlatBuffers::Interval(
-                box2.phi<FloatInterval>().min().float_value(),
-                box2.phi<FloatInterval>().max().float_value()
+                rectangle.phi<FloatInterval>().min().float_value(),
+                rectangle.phi<FloatInterval>().max().float_value()
             )
         );
     }
@@ -75,7 +75,7 @@ public:
     }
 
     auto build(flatbuffers::FlatBufferBuilder& builder) {
-        const auto box2 = FlatBuffers::CreateBox2(
+        const auto rectangle = FlatBuffers::CreateRectangle(
             builder,
             &theta_,
             &phi_,
@@ -84,7 +84,7 @@ public:
         );
         projections_.clear();
         out_.clear();
-        return box2;
+        return rectangle;
     }
 
     void add_last_as_out() {
@@ -92,46 +92,46 @@ public:
     }
 };
 
-struct Box3Builder {
+struct BoxBuilder {
 private:
     FlatBuffers::Id theta_;
     FlatBuffers::Id phi_;
     FlatBuffers::Id alpha_;
     std::vector<flatbuffers::Offset<FlatBuffers::Projection>> projections_;
     flatbuffers::Offset<FlatBuffers::Polygon> projection_;
-    std::vector<flatbuffers::Offset<FlatBuffers::Box2>> box2s_;
+    std::vector<flatbuffers::Offset<FlatBuffers::Rectangle>> rectangles_;
     bool complete_ = false;
     int32_t in_ = -1;
 
 public:
     ProjectionBuilder projection_builder;
-    Box2Builder box2_builder;
+    RectangleBuilder rectangle_builder;
 
-    Box3Builder() : theta_(), phi_(), alpha_(), projections_(), projection_(), box2s_(), projection_builder(), box2_builder() {}
+    BoxBuilder() : theta_(), phi_(), alpha_(), projections_(), projection_(), rectangles_(), projection_builder(), rectangle_builder() {}
 
-    void set_box3(const Box3& box3) {
+    void set_box(const Box& box) {
         theta_ = FlatBuffers::Id(
-            box3.theta_id().bits(),
-            box3.theta_id().depth(),
+            box.theta_id().bits(),
+            box.theta_id().depth(),
             FlatBuffers::Interval(
-                box3.theta<FloatInterval>().min().float_value(),
-                box3.theta<FloatInterval>().max().float_value()
+                box.theta<FloatInterval>().min().float_value(),
+                box.theta<FloatInterval>().max().float_value()
             )
         );
         phi_ = FlatBuffers::Id(
-            box3.phi_id().bits(),
-            box3.phi_id().depth(),
+            box.phi_id().bits(),
+            box.phi_id().depth(),
             FlatBuffers::Interval(
-                box3.phi<FloatInterval>().min().float_value(),
-                box3.phi<FloatInterval>().max().float_value()
+                box.phi<FloatInterval>().min().float_value(),
+                box.phi<FloatInterval>().max().float_value()
             )
         );
         alpha_ = FlatBuffers::Id(
-            box3.alpha_id().bits(),
-            box3.alpha_id().depth(),
+            box.alpha_id().bits(),
+            box.alpha_id().depth(),
             FlatBuffers::Interval(
-                box3.alpha<FloatInterval>().min().float_value(),
-                box3.alpha<FloatInterval>().max().float_value()
+                box.alpha<FloatInterval>().min().float_value(),
+                box.alpha<FloatInterval>().max().float_value()
             )
         );
     }
@@ -145,16 +145,16 @@ public:
         std::vector<FlatBuffers::Edge> edges;
         for(const auto& edge: polygon.edges()) {
             const auto flatbuffers_edge = FlatBuffers::Edge(
-                FlatBuffers::Vector2(edge.from().x().mid().float_value(), edge.from().y().mid().float_value()),
-                FlatBuffers::Vector2(edge.to().x().mid().float_value(), edge.to().y().mid().float_value())
+                FlatBuffers::Vector(edge.from().x().mid().float_value(), edge.from().y().mid().float_value()),
+                FlatBuffers::Vector(edge.to().x().mid().float_value(), edge.to().y().mid().float_value())
             );
             edges.push_back(flatbuffers_edge);
         }
         projection_ = FlatBuffers::CreatePolygon(builder, builder.CreateVectorOfStructs(edges));
     }
 
-    void add_box2(flatbuffers::FlatBufferBuilder& builder) {
-        box2s_.push_back(box2_builder.build(builder));
+    void add_rectangle(flatbuffers::FlatBufferBuilder& builder) {
+        rectangles_.push_back(rectangle_builder.build(builder));
     }
 
     void set_complete(const bool complete) {
@@ -162,26 +162,26 @@ public:
     }
 
     void save_in() {
-        in_ = static_cast<int32_t>(box2s_.size()) - 1;
+        in_ = static_cast<int32_t>(rectangles_.size()) - 1;
     }
 
     auto build(flatbuffers::FlatBufferBuilder& builder) {
-        const auto box3 = FlatBuffers::CreateBox3(
+        const auto box = FlatBuffers::CreateBox(
             builder,
             &theta_,
             &phi_,
             &alpha_,
             builder.CreateVector(projections_),
             projection_,
-            builder.CreateVector(box2s_),
+            builder.CreateVector(rectangles_),
             complete_,
             in_
         );
         projections_.clear();
-        box2s_.clear();
+        rectangles_.clear();
         complete_ = false;
         in_ = -1;
-        return box3;
+        return box;
     }
 };
 
@@ -190,12 +190,12 @@ private:
     std::string description_;
     flatbuffers::Offset<FlatBuffers::Polyhedron> hole_;
     flatbuffers::Offset<FlatBuffers::Polyhedron> plug_;
-    std::vector<flatbuffers::Offset<FlatBuffers::Box3>> box3s_;
+    std::vector<flatbuffers::Offset<FlatBuffers::Box>> boxes_;
 
 public:
-    Box3Builder box3_builder;
+    BoxBuilder box_builder;
 
-    explicit CoverBuilder() : description_(), hole_(), plug_(), box3s_(), box3_builder() {}
+    explicit CoverBuilder() : description_(), hole_(), plug_(), boxes_(), box_builder() {}
 
     void set_description(const std::string& description) {
         description_ = description;
@@ -227,8 +227,8 @@ public:
         plug_ = FlatBuffers::CreatePolyhedron(builder, builder.CreateVectorOfStructs(vertices));
     }
 
-    void add_box3(flatbuffers::FlatBufferBuilder& builder) {
-        box3s_.push_back(box3_builder.build(builder));
+    void add_box(flatbuffers::FlatBufferBuilder& builder) {
+        boxes_.push_back(box_builder.build(builder));
     }
 
     void build(flatbuffers::FlatBufferBuilder& builder) {
@@ -238,7 +238,7 @@ public:
             descriptionOffset,
             hole_,
             plug_,
-            builder.CreateVector(box3s_)
+            builder.CreateVector(boxes_)
         );
         builder.Finish(cover);
     }
