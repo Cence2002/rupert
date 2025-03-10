@@ -119,14 +119,14 @@ public:
         if(bits_ == 0) {
             throw std::runtime_error("Invalid Id has no minimum");
         }
-        return CompressedId(bits_ << 1);
+        return CompressedId(static_cast<uint16_t>(bits_ << 1));
     }
 
     CompressedId max() const {
         if(bits_ == 0) {
             throw std::runtime_error("Invalid Id has no maximum");
         }
-        return CompressedId((bits_ << 1) | 1);
+        return CompressedId(static_cast<uint16_t>((bits_ << 1) | 1));
     }
 
     std::pair<CompressedId, CompressedId> split() const {
