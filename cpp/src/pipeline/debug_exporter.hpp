@@ -6,7 +6,7 @@
 #pragma GCC diagnostic pop
 
 #include "geometry/geometry.hpp"
-#include "cover.hpp"
+#include "pipeline/pipeline.hpp"
 #include <fstream>
 
 struct ProjectionBuilder {
@@ -244,11 +244,11 @@ public:
     }
 };
 
-struct Exporter {
+struct DebugExporter {
     flatbuffers::FlatBufferBuilder builder;
     CoverBuilder cover_builder;
 
-    explicit Exporter() : builder(), cover_builder() {}
+    explicit DebugExporter() : builder(), cover_builder() {}
 
     void save(const std::string& filename) {
         cover_builder.build(builder);

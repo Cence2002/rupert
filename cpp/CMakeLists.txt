@@ -66,12 +66,12 @@ add_compile_options(
 )
 
 include_directories(
+    src
     src/number
     src/interval
-    src/vector
     src/geometry
     src/flatbuffers
-    src
+    src/pipeline
 )
 
 add_executable(rupert main.cpp)

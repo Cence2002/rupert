@@ -2,7 +2,6 @@
 
 #include "util.hpp"
 #include "geometry/geometry.hpp"
-#include "cover.hpp"
 #include <random>
 #include <thread>
 
