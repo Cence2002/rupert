@@ -75,7 +75,7 @@ bool is_box_terminal(const Box& box, const Polyhedron<Interval>& hole, const Pol
         }
 
         const Rectangle& rectangle = optional_rectangle.value();
-        if(rectangle.invalid()) {
+        if(rectangle.is_invalid()) {
             return false;
         }
         debug_exporter.cover_builder.box_builder.rectangle_builder.set_rectangle(rectangle);
@@ -103,7 +103,7 @@ void step(BoxQueue& bo_queue, const Polyhedron<Interval>& hole, const Polyhedron
         return;
     }
     const Box& box = optional_box.value();
-    if(box.invalid()) {
+    if(box.is_invalid()) {
         return;
     }
     debug_exporter.cover_builder.box_builder.set_box(box);
@@ -144,6 +144,8 @@ void solve(const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug, c
 
 int main() {
     tests();
+    uint16_t x = 1;
+    print(31 - __builtin_clz(x));
 
     using Interval = FloatInterval;
 

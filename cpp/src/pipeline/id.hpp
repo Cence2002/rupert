@@ -3,6 +3,7 @@
 #include "interval/interval.hpp"
 #include <cstdint>
 #include <bitset>
+#include <cstring>
 
 struct Id {
 private:
@@ -30,30 +31,34 @@ public:
         return depth_;
     }
 
-    bool invalid() const {
+    static Id invalid() {
+        return Id(0, 16);
+    }
+
+    bool is_invalid() const {
         return depth_ >= 16;
     }
 
-    size_t size() const {
-        return sizeof(bits_) + sizeof(depth_);
+    static size_t size() {
+        return 2;
     }
 
     Id min_half() const {
-        if(invalid()) {
+        if(is_invalid()) {
             throw std::runtime_error("Invalid Id");
         }
         return Id(static_cast<uint16_t>(bits_ << 1), static_cast<uint8_t>(depth_ + 1));
     }
 
     Id max_half() const {
-        if(invalid()) {
+        if(is_invalid()) {
             throw std::runtime_error("Invalid Id");
         }
         return Id(static_cast<uint16_t>((bits_ << 1) | 1), static_cast<uint8_t>(depth_ + 1));
     }
 
     std::pair<Id, Id> subdivide() const {
-        if(invalid()) {
+        if(is_invalid()) {
             throw std::runtime_error("Invalid Id");
         }
         return std::make_pair(min_half(), max_half());
@@ -61,7 +66,7 @@ public:
 
     template<IntervalType Interval>
     Interval interval() const {
-        if(invalid()) {
+        if(is_invalid()) {
             throw std::runtime_error("Invalid Id");
         }
         return Interval(static_cast<uint16_t>(bits_), static_cast<uint16_t>(bits_ + 1)) / (static_cast<uint16_t>(1) << depth_);
@@ -69,5 +74,35 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const Id& id) {
         return os << "<" << std::bitset<16>(id.bits_).to_string().substr(16 - id.depth_) << ">";
+    }
+
+    uint16_t pack() const {
+        if(is_invalid()) {
+            return 0;
+        }
+        return bits_ | static_cast<uint16_t>(1 << depth_);
+    }
+
+    static Id unpack(const uint16_t packed) {
+        if(packed == 0) {
+            return Id(0, 16);
+        }
+        const uint16_t bits = packed & 0x7FFF;
+        const uint8_t depth = static_cast<uint8_t>(32 - __builtin_clz(packed));
+        return Id(bits, depth);
+    }
+
+    void to_stream(std::ostream& os) const {
+        const uint16_t packed = pack();
+        os.write(reinterpret_cast<const char*>(&packed), sizeof(packed));
+    }
+
+    static Id from_stream(std::istream& is) {
+        uint16_t packed;
+        is.read(reinterpret_cast<char*>(&packed), sizeof(packed));
+        if(is.gcount() != sizeof(packed)) {
+            throw std::runtime_error("Failed to read Id from stream");
+        }
+        return unpack(packed);
     }
 };

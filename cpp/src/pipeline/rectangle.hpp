@@ -22,8 +22,12 @@ public:
         return phi_id_;
     }
 
-    bool invalid() const {
-        return theta_id_.invalid() || phi_id_.invalid();
+    static Rectangle invalid() {
+        return Rectangle(Id::invalid(), Id::invalid());
+    }
+
+    bool is_invalid() const {
+        return theta_id_.is_invalid() || phi_id_.is_invalid();
     }
 
     size_t size() const {
@@ -53,5 +57,16 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const Rectangle& rectangle) {
         return os << "T" << rectangle.theta_id_ << " P" << rectangle.phi_id_;
+    }
+
+    void to_stream(std::ostream& os) const {
+        theta_id_.to_stream(os);
+        phi_id_.to_stream(os);
+    }
+
+    static Rectangle from_bytes(std::istream& is) {
+        const Id theta_id = Id::from_stream(is);
+        const Id phi_id = Id::from_stream(is);
+        return Rectangle(theta_id, phi_id);
     }
 };
