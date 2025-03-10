@@ -56,19 +56,19 @@ std::vector<Vector2<Interval>> rotation_hull_polygon(const Vector2<Interval>& ve
 }
 
 template<IntervalType Interval>
-std::vector<Vector2<Interval>> projection_hull_trivial(const Vector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
+std::vector<Vector2<Interval>> projection_hull_trivial(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) {
     const Vector2<Interval> projected_vertex = projection_trivial(vertex, theta, phi);
     return vector2_hull(projected_vertex);
 }
 
 template<IntervalType Interval>
-std::vector<Vector2<Interval>> projection_hull_combined(const Vector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
+std::vector<Vector2<Interval>> projection_hull_combined(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) {
     const Vector2<Interval> projected_vertex = projection_combined(vertex, theta, phi);
     return vector2_hull(projected_vertex);
 }
 
 template<IntervalType Interval>
-std::vector<Vector2<Interval>> projection_hull_triangle(const Vector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
+std::vector<Vector2<Interval>> projection_hull_triangle(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) {
     if(theta.len() > Interval::pi() / 3) {
         // apex of triangle (in rotation_hull_triangle) is not well-defined, or it might be numerically unstable
         // default to combined
@@ -111,7 +111,7 @@ std::vector<Vector2<Interval>> projection_hull_triangle(const Vector3<Interval>&
 }
 
 template<IntervalType Interval>
-std::vector<Vector2<Interval>> projection_hull_polygon(const Vector3<Interval>& vertex, const Interval& theta, const Interval& phi, const int resolution) {
+std::vector<Vector2<Interval>> projection_hull_polygon(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi, const int resolution) {
     if(theta.len() > Interval::pi() / 3 * resolution) {
         return projection_hull_combined(vertex, theta, phi);
     }
@@ -132,7 +132,7 @@ std::vector<Vector2<Interval>> projection_hull_polygon(const Vector3<Interval>& 
 }
 
 template<IntervalType Interval>
-std::vector<Vector2<Interval>> projection_hull_advanced_approximate(const Vector3<Interval>& vertex, const Interval& theta, const Interval& phi, const int resolution = 8) {
+std::vector<Vector2<Interval>> projection_hull_advanced_approximate(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi, const int resolution = 8) {
     if(theta.len() > Interval::pi() / 3) {
         return projection_hull_combined(vertex, theta, phi);
     }

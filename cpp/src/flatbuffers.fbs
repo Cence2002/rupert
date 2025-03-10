@@ -5,7 +5,7 @@ struct Vector2 {
   y: double;
 }
 
-struct Vector3 {
+struct Vertex {
   x: double;
   y: double;
   z: double;
@@ -21,7 +21,7 @@ table Polygon {
 }
 
 table Polyhedron {
-  vertices: [Vector3];
+  vertices: [Vertex];
 }
 
 struct Interval {
@@ -36,7 +36,7 @@ struct Id {
 }
 
 table Projection { // helper
-  vertices: [Vector2];
+  vectors: [Vector2];
 }
 
 table Box2 {

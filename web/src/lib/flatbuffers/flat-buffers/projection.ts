@@ -23,12 +23,12 @@ static getSizePrefixedRootAsProjection(bb:flatbuffers.ByteBuffer, obj?:Projectio
   return (obj || new Projection()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-vertices(index: number, obj?:Vector2):Vector2|null {
+vectors(index: number, obj?:Vector2):Vector2|null {
   const offset = this.bb!.__offset(this.bb_pos, 4);
   return offset ? (obj || new Vector2()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 16, this.bb!) : null;
 }
 
-verticesLength():number {
+vectorsLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 4);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
@@ -37,11 +37,11 @@ static startProjection(builder:flatbuffers.Builder) {
   builder.startObject(1);
 }
 
-static addVertices(builder:flatbuffers.Builder, verticesOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(0, verticesOffset, 0);
+static addVectors(builder:flatbuffers.Builder, vectorsOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(0, vectorsOffset, 0);
 }
 
-static startVerticesVector(builder:flatbuffers.Builder, numElems:number) {
+static startVectorsVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(16, numElems, 8);
 }
 
@@ -50,9 +50,9 @@ static endProjection(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 }
 
-static createProjection(builder:flatbuffers.Builder, verticesOffset:flatbuffers.Offset):flatbuffers.Offset {
+static createProjection(builder:flatbuffers.Builder, vectorsOffset:flatbuffers.Offset):flatbuffers.Offset {
   Projection.startProjection(builder);
-  Projection.addVertices(builder, verticesOffset);
+  Projection.addVectors(builder, vectorsOffset);
   return Projection.endProjection(builder);
 }
 }

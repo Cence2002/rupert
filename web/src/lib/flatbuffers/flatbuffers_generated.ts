@@ -10,4 +10,4 @@ export { Polygon } from './flat-buffers/polygon';
 export { Polyhedron } from './flat-buffers/polyhedron';
 export { Projection } from './flat-buffers/projection';
 export { Vector2 } from './flat-buffers/vector2';
-export { Vector3 } from './flat-buffers/vector3';
+export { Vertex } from './flat-buffers/vertex';

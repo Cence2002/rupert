@@ -47,20 +47,20 @@ concept Vector2Type =
         { vector2.y() } -> std::convertible_to<const Interval&>;
     };
 
-template<typename Vector3, typename Interval>
-concept Vector3Type =
-    VectorType<Vector3, Interval> &&
+template<typename Vertex, typename Interval>
+concept VertexType =
+    VectorType<Vertex, Interval> &&
 
-    std::is_constructible_v<Vector3, Interval, Interval, Interval> &&
+    std::is_constructible_v<Vertex, Interval, Interval, Interval> &&
 
-    requires(Vector3 vector3) {
-        { vector3.x() } -> std::convertible_to<Interval&>;
-        { vector3.y() } -> std::convertible_to<Interval&>;
-        { vector3.z() } -> std::convertible_to<Interval&>;
+    requires(Vertex vertex) {
+        { vertex.x() } -> std::convertible_to<Interval&>;
+        { vertex.y() } -> std::convertible_to<Interval&>;
+        { vertex.z() } -> std::convertible_to<Interval&>;
     } &&
 
-    requires(const Vector3 vector3) {
-        { vector3.x() } -> std::convertible_to<const Interval&>;
-        { vector3.y() } -> std::convertible_to<const Interval&>;
-        { vector3.z() } -> std::convertible_to<const Interval&>;
+    requires(const Vertex vertex) {
+        { vertex.x() } -> std::convertible_to<const Interval&>;
+        { vertex.y() } -> std::convertible_to<const Interval&>;
+        { vertex.z() } -> std::convertible_to<const Interval&>;
     };

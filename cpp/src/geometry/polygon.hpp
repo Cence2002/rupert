@@ -29,12 +29,12 @@ public:
         return all_counter_clockwise;
     }
 
-    bool is_projected_vertex_inside_polygon_trivial(const Vector3<Interval>& vertex, const Interval& theta, const Interval& phi) const {
+    bool is_projected_vertex_inside_polygon_trivial(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) const {
         const Vector2<Interval> projected_vertex = projection_trivial(vertex, theta, phi);
         return is_vector2_inside_polygon(projected_vertex);
     }
 
-    bool is_projected_vertex_inside_polygon_combined(const Vector3<Interval>& vertex, const Interval& theta, const Interval& phi) const {
+    bool is_projected_vertex_inside_polygon_combined(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) const {
         const Vector2<Interval> projected_vertex = projection_combined(vertex, theta, phi);
         return is_vector2_inside_polygon(projected_vertex);
     }
@@ -52,17 +52,17 @@ public:
         return any_clockwise;
     }
 
-    bool is_projected_vertex_outside_polygon_trivial(const Vector3<Interval>& vertex, const Interval& theta, const Interval& phi) const {
+    bool is_projected_vertex_outside_polygon_trivial(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) const {
         const Vector2<Interval> projected_vertex = projection_trivial(vertex, theta, phi);
         return is_vector2_outside_polygon(projected_vertex);
     }
 
-    bool is_projected_vertex_outside_polygon_combined(const Vector3<Interval>& vertex, const Interval& theta, const Interval& phi) const {
+    bool is_projected_vertex_outside_polygon_combined(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) const {
         const Vector2<Interval> projected_vertex = projection_combined(vertex, theta, phi);
         return is_vector2_outside_polygon(projected_vertex);
     }
 
-    bool is_projected_vertex_avoiding_polygon_advanced_fixed_theta(const Vector3<Interval>& vertex, const typename Interval::Number& theta, const Interval& phi) const {
+    bool is_projected_vertex_avoiding_polygon_advanced_fixed_theta(const Vertex<Interval>& vertex, const typename Interval::Number& theta, const Interval& phi) const {
         const Vector2<Interval> projected_vertex = projection_combined(vertex, Interval(theta), phi);
         const Edge projected_edge(
             Vector2<Interval>(projected_vertex.x(), Interval(projected_vertex.y().min())),
@@ -76,7 +76,7 @@ public:
         return true;
     }
 
-    bool is_projected_vertex_avoiding_edge_advanced_fixed_phi(const Vector3<Interval>& vertex, const Interval& theta, const typename Interval::Number& phi, const Edge<Interval>& edge) const {
+    bool is_projected_vertex_avoiding_edge_advanced_fixed_phi(const Vertex<Interval>& vertex, const Interval& theta, const typename Interval::Number& phi, const Edge<Interval>& edge) const {
         const Interval transformation_addition = vertex.z() * Interval(phi).sin();
         const Interval transformation_division = Interval(phi).cos();
         const Edge<Interval> transformed_edge(
@@ -136,7 +136,7 @@ public:
         return true;
     }
 
-    bool is_projected_vertex_avoiding_polygon_advanced_fixed_phi(const Vector3<Interval>& vertex, const Interval& theta, const typename Interval::Number& phi) const {
+    bool is_projected_vertex_avoiding_polygon_advanced_fixed_phi(const Vertex<Interval>& vertex, const Interval& theta, const typename Interval::Number& phi) const {
         if(!Interval(phi).cos().is_nonzero()) {
             // degenerate case, division by zero would occur in the inverse transformation
             // default to combined
@@ -150,7 +150,7 @@ public:
         return true;
     }
 
-    bool is_projected_vertex_outside_polygon_advanced(const Vector3<Interval>& vertex, const Interval& theta, const Interval& phi) const {
+    bool is_projected_vertex_outside_polygon_advanced(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) const {
         if(!(theta.len() < Interval::pi() / 3)) {
             // projected vertex might surround the polygon, meaning it avoids, but is not outside
             // default to combined

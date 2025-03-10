@@ -2,10 +2,10 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-export class Vector3 {
+export class Vertex {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):Vector3 {
+  __init(i:number, bb:flatbuffers.ByteBuffer):Vertex {
   this.bb_pos = i;
   this.bb = bb;
   return this;
@@ -27,7 +27,7 @@ static sizeOf():number {
   return 24;
 }
 
-static createVector3(builder:flatbuffers.Builder, x: number, y: number, z: number):flatbuffers.Offset {
+static createVertex(builder:flatbuffers.Builder, x: number, y: number, z: number):flatbuffers.Offset {
   builder.prep(8, 24);
   builder.writeFloat64(z);
   builder.writeFloat64(y);

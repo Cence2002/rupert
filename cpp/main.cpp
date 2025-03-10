@@ -28,7 +28,7 @@ template<IntervalType Interval>
 bool is_box3_nonterminal(const Box2& box2, const Polygon<Interval>& hole, const Polyhedron<Interval>& plug) {
     const Interval& theta_mid = Interval(box2.theta<Interval>().mid());
     const Interval& phi_mid = Interval(box2.phi<Interval>().mid());
-    return std::ranges::all_of(plug.vertices(), [&](const Vector3<Interval>& plug_vertex) {
+    return std::ranges::all_of(plug.vertices(), [&](const Vertex<Interval>& plug_vertex) {
         return hole.is_projected_vertex_inside_polygon_trivial(plug_vertex, theta_mid, phi_mid);
     });
 }
@@ -46,7 +46,7 @@ std::vector<Interval> split(const Interval& interval, const int parts) {
 template<IntervalType Interval>
 Polygon<Interval> project_hole(const Box3& box3, const Polyhedron<Interval>& hole, const int projection_resolution, const int rotation_resolution) {
     std::vector<Vector2<Interval>> all_projected_hole_vertices;
-    for(const Vector3<Interval>& hole_vertex: hole.vertices()) {
+    for(const Vertex<Interval>& hole_vertex: hole.vertices()) {
         const std::vector<Vector2<Interval>> projected_hole_vertices = projection_hull_polygon(hole_vertex, box3.theta<Interval>(), box3.phi<Interval>(), projection_resolution);
         for(const Vector2<Interval>& projected_hole_vertex: projected_hole_vertices) {
             const std::vector<Vector2<Interval>> rotated_projected_hole_vertices = rotation_hull_polygon(projected_hole_vertex, box3.alpha<Interval>(), rotation_resolution);

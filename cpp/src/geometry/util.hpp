@@ -59,7 +59,7 @@ Vector2<Interval> rotation_combined(const Vector2<Interval>& projected_vertex, c
 // Y = (x * cos(theta) + y * sin(theta)) * cos(phi) - z * sin(phi)
 
 template<IntervalType Interval>
-Vector2<Interval> projection_trivial(const Vector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
+Vector2<Interval> projection_trivial(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) {
     const Vector2<Interval> reflected_vertex = Vector2<Interval>(vertex.x(), -vertex.y());
     const Interval shifted_theta = theta + Interval::pi() / 2;
     const Vector2<Interval> rotated_reflected_vertex = rotation_trivial(reflected_vertex, shifted_theta);
@@ -70,7 +70,7 @@ Vector2<Interval> projection_trivial(const Vector3<Interval>& vertex, const Inte
 }
 
 template<IntervalType Interval>
-Vector2<Interval> projection_combined(const Vector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
+Vector2<Interval> projection_combined(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) {
     const Vector2<Interval> reflected_vertex = Vector2<Interval>(vertex.x(), -vertex.y());
     const Interval shifted_theta = theta + Interval::pi() / 2;
     const Vector2<Interval> rotated_reflected_vertex = rotation_combined(reflected_vertex, shifted_theta);

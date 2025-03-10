@@ -17,7 +17,7 @@ namespace FlatBuffers {
 
 struct Vector2;
 
-struct Vector3;
+struct Vertex;
 
 struct Edge;
 
@@ -66,19 +66,19 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vector2 FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(Vector2, 16);
 
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vector3 FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vertex FLATBUFFERS_FINAL_CLASS {
  private:
   double x_;
   double y_;
   double z_;
 
  public:
-  Vector3()
+  Vertex()
       : x_(0),
         y_(0),
         z_(0) {
   }
-  Vector3(double _x, double _y, double _z)
+  Vertex(double _x, double _y, double _z)
       : x_(flatbuffers::EndianScalar(_x)),
         y_(flatbuffers::EndianScalar(_y)),
         z_(flatbuffers::EndianScalar(_z)) {
@@ -93,7 +93,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vector3 FLATBUFFERS_FINAL_CLASS {
     return flatbuffers::EndianScalar(z_);
   }
 };
-FLATBUFFERS_STRUCT_END(Vector3, 24);
+FLATBUFFERS_STRUCT_END(Vertex, 24);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Edge FLATBUFFERS_FINAL_CLASS {
  private:
@@ -239,8 +239,8 @@ struct Polyhedron FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_VERTICES = 4
   };
-  const flatbuffers::Vector<const FlatBuffers::Vector3 *> *vertices() const {
-    return GetPointer<const flatbuffers::Vector<const FlatBuffers::Vector3 *> *>(VT_VERTICES);
+  const flatbuffers::Vector<const FlatBuffers::Vertex *> *vertices() const {
+    return GetPointer<const flatbuffers::Vector<const FlatBuffers::Vertex *> *>(VT_VERTICES);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -254,7 +254,7 @@ struct PolyhedronBuilder {
   typedef Polyhedron Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_vertices(flatbuffers::Offset<flatbuffers::Vector<const FlatBuffers::Vector3 *>> vertices) {
+  void add_vertices(flatbuffers::Offset<flatbuffers::Vector<const FlatBuffers::Vertex *>> vertices) {
     fbb_.AddOffset(Polyhedron::VT_VERTICES, vertices);
   }
   explicit PolyhedronBuilder(flatbuffers::FlatBufferBuilder &_fbb)
@@ -270,7 +270,7 @@ struct PolyhedronBuilder {
 
 inline flatbuffers::Offset<Polyhedron> CreatePolyhedron(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<const FlatBuffers::Vector3 *>> vertices = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<const FlatBuffers::Vertex *>> vertices = 0) {
   PolyhedronBuilder builder_(_fbb);
   builder_.add_vertices(vertices);
   return builder_.Finish();
@@ -278,8 +278,8 @@ inline flatbuffers::Offset<Polyhedron> CreatePolyhedron(
 
 inline flatbuffers::Offset<Polyhedron> CreatePolyhedronDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<FlatBuffers::Vector3> *vertices = nullptr) {
-  auto vertices__ = vertices ? _fbb.CreateVectorOfStructs<FlatBuffers::Vector3>(*vertices) : 0;
+    const std::vector<FlatBuffers::Vertex> *vertices = nullptr) {
+  auto vertices__ = vertices ? _fbb.CreateVectorOfStructs<FlatBuffers::Vertex>(*vertices) : 0;
   return FlatBuffers::CreatePolyhedron(
       _fbb,
       vertices__);
@@ -288,15 +288,15 @@ inline flatbuffers::Offset<Polyhedron> CreatePolyhedronDirect(
 struct Projection FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef ProjectionBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_VERTICES = 4
+    VT_VECTORS = 4
   };
-  const flatbuffers::Vector<const FlatBuffers::Vector2 *> *vertices() const {
-    return GetPointer<const flatbuffers::Vector<const FlatBuffers::Vector2 *> *>(VT_VERTICES);
+  const flatbuffers::Vector<const FlatBuffers::Vector2 *> *vectors() const {
+    return GetPointer<const flatbuffers::Vector<const FlatBuffers::Vector2 *> *>(VT_VECTORS);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_VERTICES) &&
-           verifier.VerifyVector(vertices()) &&
+           VerifyOffset(verifier, VT_VECTORS) &&
+           verifier.VerifyVector(vectors()) &&
            verifier.EndTable();
   }
 };
@@ -305,8 +305,8 @@ struct ProjectionBuilder {
   typedef Projection Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_vertices(flatbuffers::Offset<flatbuffers::Vector<const FlatBuffers::Vector2 *>> vertices) {
-    fbb_.AddOffset(Projection::VT_VERTICES, vertices);
+  void add_vectors(flatbuffers::Offset<flatbuffers::Vector<const FlatBuffers::Vector2 *>> vectors) {
+    fbb_.AddOffset(Projection::VT_VECTORS, vectors);
   }
   explicit ProjectionBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -321,19 +321,19 @@ struct ProjectionBuilder {
 
 inline flatbuffers::Offset<Projection> CreateProjection(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<const FlatBuffers::Vector2 *>> vertices = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<const FlatBuffers::Vector2 *>> vectors = 0) {
   ProjectionBuilder builder_(_fbb);
-  builder_.add_vertices(vertices);
+  builder_.add_vectors(vectors);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<Projection> CreateProjectionDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<FlatBuffers::Vector2> *vertices = nullptr) {
-  auto vertices__ = vertices ? _fbb.CreateVectorOfStructs<FlatBuffers::Vector2>(*vertices) : 0;
+    const std::vector<FlatBuffers::Vector2> *vectors = nullptr) {
+  auto vectors__ = vectors ? _fbb.CreateVectorOfStructs<FlatBuffers::Vector2>(*vectors) : 0;
   return FlatBuffers::CreateProjection(
       _fbb,
-      vertices__);
+      vectors__);
 }
 
 struct Box2 FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

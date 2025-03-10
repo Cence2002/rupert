@@ -203,7 +203,7 @@ public:
 
     template<IntervalType Interval>
     void set_hole(flatbuffers::FlatBufferBuilder& builder, const Polyhedron<Interval>& polyhedron) {
-        std::vector<FlatBuffers::Vector3> vertices;
+        std::vector<FlatBuffers::Vertex> vertices;
         for(const auto& vertex: polyhedron.vertices()) {
             vertices.emplace_back(
                 vertex.x().mid().float_value(),
@@ -216,7 +216,7 @@ public:
 
     template<IntervalType Interval>
     void set_plug(flatbuffers::FlatBufferBuilder& builder, const Polyhedron<Interval>& polyhedron) {
-        std::vector<FlatBuffers::Vector3> vertices;
+        std::vector<FlatBuffers::Vertex> vertices;
         for(const auto& vertex: polyhedron.vertices()) {
             vertices.emplace_back(
                 vertex.x().mid().float_value(),

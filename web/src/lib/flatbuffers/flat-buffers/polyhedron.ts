@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Vector3 } from '../flat-buffers/vector3';
+import { Vertex } from '../flat-buffers/vertex';
 
 
 export class Polyhedron {
@@ -23,9 +23,9 @@ static getSizePrefixedRootAsPolyhedron(bb:flatbuffers.ByteBuffer, obj?:Polyhedro
   return (obj || new Polyhedron()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-vertices(index: number, obj?:Vector3):Vector3|null {
+vertices(index: number, obj?:Vertex):Vertex|null {
   const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? (obj || new Vector3()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 24, this.bb!) : null;
+  return offset ? (obj || new Vertex()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 24, this.bb!) : null;
 }
 
 verticesLength():number {
