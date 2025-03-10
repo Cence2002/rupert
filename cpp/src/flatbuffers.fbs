@@ -1,6 +1,6 @@
 namespace FlatBuffers;
 
-struct Vector2 {
+struct Vector {
   x: double;
   y: double;
 }
@@ -12,8 +12,8 @@ struct Vertex {
 }
 
 struct Edge {
-  from: Vector2;
-  to: Vector2;
+  from: Vector;
+  to: Vector;
 }
 
 table Polygon {
@@ -36,7 +36,7 @@ struct Id {
 }
 
 table Projection { // helper
-  vectors: [Vector2];
+  vectors: [Vector];
 }
 
 table Box2 {

@@ -3,25 +3,25 @@
 #include "interval/interval.hpp"
 
 template<IntervalType Interval>
-struct Vector2 {
+struct Vector {
 private:
     Interval x_;
     Interval y_;
 
 public:
-    explicit Vector2() : x_(), y_() {}
+    explicit Vector() : x_(), y_() {}
 
-    ~Vector2() = default;
+    ~Vector() = default;
 
-    Vector2(const Vector2& vector2) = default;
+    Vector(const Vector& vector) = default;
 
-    Vector2& operator=(const Vector2& vector2) = default;
+    Vector& operator=(const Vector& vector) = default;
 
-    Vector2(Vector2&& vector2) = default;
+    Vector(Vector&& vector) = default;
 
-    Vector2& operator=(Vector2&& vector2) = default;
+    Vector& operator=(Vector&& vector) = default;
 
-    explicit Vector2(const Interval& x, const Interval& y) : x_(x), y_(y) {}
+    explicit Vector(const Interval& x, const Interval& y) : x_(x), y_(y) {}
 
     Interval& x() {
         return x_;
@@ -39,28 +39,28 @@ public:
         return y_;
     }
 
-    Vector2 operator+() const {
-        return Vector2(+x_, +y_);
+    Vector operator+() const {
+        return Vector(+x_, +y_);
     }
 
-    Vector2 operator-() const {
-        return Vector2(-x_, -y_);
+    Vector operator-() const {
+        return Vector(-x_, -y_);
     }
 
-    Vector2 operator+(const Vector2& vector2) const {
-        return Vector2(x_ + vector2.x_, y_ + vector2.y_);
+    Vector operator+(const Vector& vector) const {
+        return Vector(x_ + vector.x_, y_ + vector.y_);
     }
 
-    Vector2 operator-(const Vector2& vector2) const {
-        return Vector2(x_ - vector2.x_, y_ - vector2.y_);
+    Vector operator-(const Vector& vector) const {
+        return Vector(x_ - vector.x_, y_ - vector.y_);
     }
 
-    Vector2 operator*(const Interval& interval) const {
-        return Vector2(x_ * interval, y_ * interval);
+    Vector operator*(const Interval& interval) const {
+        return Vector(x_ * interval, y_ * interval);
     }
 
-    Vector2 operator/(const Interval& interval) const {
-        return Vector2(x_ / interval, y_ / interval);
+    Vector operator/(const Interval& interval) const {
+        return Vector(x_ / interval, y_ / interval);
     }
 
     Interval len() const {
@@ -71,15 +71,15 @@ public:
         return x_.sqr() + y_.sqr();
     }
 
-    static Interval dot(const Vector2& vector2, const Vector2& other_vector2) {
-        return vector2.x() * other_vector2.x() + vector2.y() * other_vector2.y();
+    static Interval dot(const Vector& vector, const Vector& other_vector) {
+        return vector.x() * other_vector.x() + vector.y() * other_vector.y();
     }
 
-    static Interval cross(const Vector2& vector2, const Vector2& other_vector2) {
-        return vector2.x() * other_vector2.y() - vector2.y() * other_vector2.x();
+    static Interval cross(const Vector& vector, const Vector& other_vector) {
+        return vector.x() * other_vector.y() - vector.y() * other_vector.x();
     }
 
-    friend std::ostream& operator<<(std::ostream& ostream, const Vector2& vector2) {
-        return ostream << "(" << vector2.x_ << " | " << vector2.y_ << ")";
+    friend std::ostream& operator<<(std::ostream& ostream, const Vector& vector) {
+        return ostream << "(" << vector.x_ << " | " << vector.y_ << ")";
     }
 };

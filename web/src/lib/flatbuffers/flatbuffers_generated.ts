@@ -9,5 +9,5 @@ export { Interval } from './flat-buffers/interval';
 export { Polygon } from './flat-buffers/polygon';
 export { Polyhedron } from './flat-buffers/polyhedron';
 export { Projection } from './flat-buffers/projection';
-export { Vector2 } from './flat-buffers/vector2';
+export { Vector } from './flat-buffers/vector';
 export { Vertex } from './flat-buffers/vertex';

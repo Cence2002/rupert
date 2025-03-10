@@ -12,7 +12,7 @@ bool is_box2_terminal(const Box2& box2, const Polygon<Interval>& hole, const Pol
     const Interval& phi = box2.phi<Interval>();
     bool is_terminal = false;
     for(size_t vertex_index = 0; vertex_index < plug.vertices().size(); vertex_index++) {
-        for(const Vector2<Interval>& projected_plug_vertex: projection_hull_advanced_approximate(plug.vertices()[vertex_index], theta, phi)) {
+        for(const Vector<Interval>& projected_plug_vertex: projection_hull_advanced_approximate(plug.vertices()[vertex_index], theta, phi)) {
             exporter.cover_builder.box3_builder.box2_builder.projection_builder.add_vertex(projected_plug_vertex);
         }
         exporter.cover_builder.box3_builder.box2_builder.add_projection(exporter.builder);
@@ -45,12 +45,12 @@ std::vector<Interval> split(const Interval& interval, const int parts) {
 
 template<IntervalType Interval>
 Polygon<Interval> project_hole(const Box3& box3, const Polyhedron<Interval>& hole, const int projection_resolution, const int rotation_resolution) {
-    std::vector<Vector2<Interval>> all_projected_hole_vertices;
+    std::vector<Vector<Interval>> all_projected_hole_vertices;
     for(const Vertex<Interval>& hole_vertex: hole.vertices()) {
-        const std::vector<Vector2<Interval>> projected_hole_vertices = projection_hull_polygon(hole_vertex, box3.theta<Interval>(), box3.phi<Interval>(), projection_resolution);
-        for(const Vector2<Interval>& projected_hole_vertex: projected_hole_vertices) {
-            const std::vector<Vector2<Interval>> rotated_projected_hole_vertices = rotation_hull_polygon(projected_hole_vertex, box3.alpha<Interval>(), rotation_resolution);
-            for(const Vector2<Interval>& rotated_projected_hole_vertex: rotated_projected_hole_vertices) {
+        const std::vector<Vector<Interval>> projected_hole_vertices = projection_hull_polygon(hole_vertex, box3.theta<Interval>(), box3.phi<Interval>(), projection_resolution);
+        for(const Vector<Interval>& projected_hole_vertex: projected_hole_vertices) {
+            const std::vector<Vector<Interval>> rotated_projected_hole_vertices = rotation_hull_polygon(projected_hole_vertex, box3.alpha<Interval>(), rotation_resolution);
+            for(const Vector<Interval>& rotated_projected_hole_vertex: rotated_projected_hole_vertices) {
                 all_projected_hole_vertices.push_back(rotated_projected_hole_vertex);
                 exporter.cover_builder.box3_builder.projection_builder.add_vertex(rotated_projected_hole_vertex);
             }

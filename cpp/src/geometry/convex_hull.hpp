@@ -6,11 +6,11 @@
 #include <optional>
 
 template<IntervalType Interval>
-Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vertices, const typename Interval::Number& epsilon) {
+Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vertices, const typename Interval::Number& epsilon) {
     const Interval epsilon_interval = 1 + Interval(epsilon);
     std::vector<Edge<Interval>> edges;
 
-    std::queue<std::pair<size_t, Vector2<Interval>>> queue;
+    std::queue<std::pair<size_t, Vector<Interval>>> queue;
     std::vector<bool> visited_indices(vertices.size(), false);
 
     std::optional<size_t> start_index;
@@ -55,7 +55,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vertices, co
             if(to_index == from_index) {
                 continue;
             }
-            const Vector2<Interval> to_vertex = vertices[to_index];
+            const Vector<Interval> to_vertex = vertices[to_index];
             if(!(to_vertex - from_vertex).len_sqr().is_positive()) {
                 throw std::runtime_error("Zero length edge found");
             }
@@ -82,7 +82,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vertices, co
         });
         std::vector<Edge<Interval>> new_edges;
         for(const size_t to_index: to_indices) {
-            const Vector2<Interval> to_vertex = vertices[to_index] * epsilon_interval;
+            const Vector<Interval> to_vertex = vertices[to_index] * epsilon_interval;
             const bool is_most_clockwise = std::ranges::none_of(new_edges, [&](const Edge<Interval>& new_edge) {
                 return new_edge.orientation(to_vertex) == Orientation::COUNTERCLOCKWISE;
             });

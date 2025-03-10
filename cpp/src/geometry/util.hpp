@@ -25,12 +25,12 @@ Interval harmonic_combined(const Interval& cos_amplitude, const Interval& sin_am
 }
 
 template<IntervalType Interval>
-std::vector<Vector2<Interval>> vector2_hull(const Vector2<Interval>& vector2) {
-    return std::vector<Vector2<Interval>>{
-        Vector2<Interval>(Interval(vector2.x().min()), Interval(vector2.y().min())),
-        Vector2<Interval>(Interval(vector2.x().min()), Interval(vector2.y().max())),
-        Vector2<Interval>(Interval(vector2.x().max()), Interval(vector2.y().max())),
-        Vector2<Interval>(Interval(vector2.x().max()), Interval(vector2.y().min()))
+std::vector<Vector<Interval>> vector_hull(const Vector<Interval>& vector) {
+    return std::vector<Vector<Interval>>{
+        Vector<Interval>(Interval(vector.x().min()), Interval(vector.y().min())),
+        Vector<Interval>(Interval(vector.x().min()), Interval(vector.y().max())),
+        Vector<Interval>(Interval(vector.x().max()), Interval(vector.y().max())),
+        Vector<Interval>(Interval(vector.x().max()), Interval(vector.y().min()))
     };
 }
 
@@ -39,16 +39,16 @@ std::vector<Vector2<Interval>> vector2_hull(const Vector2<Interval>& vector2) {
 // Y = x * sin(alpha) + y * cos(alpha)
 
 template<IntervalType Interval>
-Vector2<Interval> rotation_trivial(const Vector2<Interval>& projected_vertex, const Interval& alpha) {
-    return Vector2<Interval>(
+Vector<Interval> rotation_trivial(const Vector<Interval>& projected_vertex, const Interval& alpha) {
+    return Vector<Interval>(
         harmonic_trivial(projected_vertex.x(), -projected_vertex.y(), alpha),
         harmonic_trivial(projected_vertex.y(), projected_vertex.x(), alpha)
     );
 }
 
 template<IntervalType Interval>
-Vector2<Interval> rotation_combined(const Vector2<Interval>& projected_vertex, const Interval& alpha) {
-    return Vector2<Interval>(
+Vector<Interval> rotation_combined(const Vector<Interval>& projected_vertex, const Interval& alpha) {
+    return Vector<Interval>(
         harmonic_combined(projected_vertex.x(), -projected_vertex.y(), alpha),
         harmonic_combined(projected_vertex.y(), projected_vertex.x(), alpha)
     );
@@ -59,22 +59,22 @@ Vector2<Interval> rotation_combined(const Vector2<Interval>& projected_vertex, c
 // Y = (x * cos(theta) + y * sin(theta)) * cos(phi) - z * sin(phi)
 
 template<IntervalType Interval>
-Vector2<Interval> projection_trivial(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) {
-    const Vector2<Interval> reflected_vertex = Vector2<Interval>(vertex.x(), -vertex.y());
+Vector<Interval> projection_trivial(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) {
+    const Vector<Interval> reflected_vertex = Vector<Interval>(vertex.x(), -vertex.y());
     const Interval shifted_theta = theta + Interval::pi() / 2;
-    const Vector2<Interval> rotated_reflected_vertex = rotation_trivial(reflected_vertex, shifted_theta);
-    return Vector2<Interval>(
+    const Vector<Interval> rotated_reflected_vertex = rotation_trivial(reflected_vertex, shifted_theta);
+    return Vector<Interval>(
         rotated_reflected_vertex.x(),
         harmonic_trivial(rotated_reflected_vertex.y(), -vertex.z(), phi)
     );
 }
 
 template<IntervalType Interval>
-Vector2<Interval> projection_combined(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) {
-    const Vector2<Interval> reflected_vertex = Vector2<Interval>(vertex.x(), -vertex.y());
+Vector<Interval> projection_combined(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) {
+    const Vector<Interval> reflected_vertex = Vector<Interval>(vertex.x(), -vertex.y());
     const Interval shifted_theta = theta + Interval::pi() / 2;
-    const Vector2<Interval> rotated_reflected_vertex = rotation_combined(reflected_vertex, shifted_theta);
-    return Vector2<Interval>(
+    const Vector<Interval> rotated_reflected_vertex = rotation_combined(reflected_vertex, shifted_theta);
+    return Vector<Interval>(
         rotated_reflected_vertex.x(),
         harmonic_combined(rotated_reflected_vertex.y(), -vertex.z(), phi)
     );

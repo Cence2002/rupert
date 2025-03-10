@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Vector2 } from '../flat-buffers/vector2';
+import { Vector } from '../flat-buffers/vector';
 
 
 export class Edge {
@@ -14,12 +14,12 @@ export class Edge {
   return this;
 }
 
-from(obj?:Vector2):Vector2|null {
-  return (obj || new Vector2()).__init(this.bb_pos, this.bb!);
+from(obj?:Vector):Vector|null {
+  return (obj || new Vector()).__init(this.bb_pos, this.bb!);
 }
 
-to(obj?:Vector2):Vector2|null {
-  return (obj || new Vector2()).__init(this.bb_pos + 16, this.bb!);
+to(obj?:Vector):Vector|null {
+  return (obj || new Vector()).__init(this.bb_pos + 16, this.bb!);
 }
 
 static sizeOf():number {

@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Vector2 } from '../flat-buffers/vector2';
+import { Vector } from '../flat-buffers/vector';
 
 
 export class Projection {
@@ -23,9 +23,9 @@ static getSizePrefixedRootAsProjection(bb:flatbuffers.ByteBuffer, obj?:Projectio
   return (obj || new Projection()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-vectors(index: number, obj?:Vector2):Vector2|null {
+vectors(index: number, obj?:Vector):Vector|null {
   const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? (obj || new Vector2()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 16, this.bb!) : null;
+  return offset ? (obj || new Vector()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 16, this.bb!) : null;
 }
 
 vectorsLength():number {

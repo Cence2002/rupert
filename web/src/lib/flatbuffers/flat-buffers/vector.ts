@@ -2,10 +2,10 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-export class Vector2 {
+export class Vector {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):Vector2 {
+  __init(i:number, bb:flatbuffers.ByteBuffer):Vector {
   this.bb_pos = i;
   this.bb = bb;
   return this;
@@ -23,7 +23,7 @@ static sizeOf():number {
   return 16;
 }
 
-static createVector2(builder:flatbuffers.Builder, x: number, y: number):flatbuffers.Offset {
+static createVector(builder:flatbuffers.Builder, x: number, y: number):flatbuffers.Offset {
   builder.prep(8, 16);
   builder.writeFloat64(y);
   builder.writeFloat64(x);
