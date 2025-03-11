@@ -35,8 +35,8 @@ private:
     }
 
     bool is_rectangle_terminal(const Rectangle& rectangle, const Polygon<Interval>& projected_hole) {
-        const Interval& theta = rectangle.theta<Interval>();
-        const Interval& phi = rectangle.phi<Interval>();
+        const Interval theta(rectangle.theta<Interval>());
+        const Interval phi(rectangle.phi<Interval>());
         bool is_terminal = false;
         for(size_t vertex_index = 0; vertex_index < config_.plug().vertices().size(); vertex_index++) {
             const Vertex<Interval>& plug_vertex = config_.plug().vertices()[vertex_index];
@@ -54,8 +54,8 @@ private:
     }
 
     bool is_box_nonterminal(const Rectangle& rectangle, const Polygon<Interval>& projected_hole) {
-        const Interval theta_mid = rectangle.theta<Interval>().mid();
-        const Interval phi_mid = rectangle.phi<Interval>().mid();
+        const Interval theta_mid(rectangle.theta<Interval>().mid());
+        const Interval phi_mid(rectangle.phi<Interval>().mid());
         return std::ranges::all_of(config_.plug().vertices(), [&](const Vertex<Interval>& plug_vertex) {
             return projected_hole.is_projected_vertex_inside_polygon_trivial(plug_vertex, theta_mid, phi_mid);
         });
@@ -66,7 +66,7 @@ private:
         // debug_exporter.cover_builder.box_builder.set_projection(debug_exporter.builder, projected_hole);
         RectangleQueue rectangle_queue;
         std::vector<Rectangle> rectangles;
-        for(int iteration = 0; config_.rectangle_iteration_limit() == 0 || iteration < config_.rectangle_iteration_limit(); iteration++) {
+        for(uint32_t iteration = 0; config_.rectangle_iteration_limit() == 0 || iteration < config_.rectangle_iteration_limit(); iteration++) {
             const std::optional<Rectangle> optional_rectangle = rectangle_queue.pop();
             if(!optional_rectangle.has_value()) {
                 // debug_exporter.cover_builder.box_builder.set_complete(true);
@@ -78,7 +78,7 @@ private:
                 return std::nullopt;
             }
             // debug_exporter.cover_builder.box_builder.rectangle_builder.set_rectangle(rectangle);
-            if(is_rectangle_terminal(rectangle, projected_hole, config_.plug())) {
+            if(is_rectangle_terminal(rectangle, projected_hole)) {
                 // debug_exporter.cover_builder.box_builder.add_rectangle(debug_exporter.builder);
                 rectangles.push_back(rectangle);
                 continue;
@@ -97,14 +97,18 @@ private:
     }
 
 public:
-    void process() {
+    explicit BoxProcessor(const Config<Interval>& config, BoxQueue& box_queue, TerminalBoxQueue& terminal_box_queue): config_(config),
+                                                                                                                      box_queue_(box_queue),
+                                                                                                                      terminal_box_queue_(terminal_box_queue) {}
+
+    bool process() {
         const std::optional<Box> optional_box = box_queue_.pop();
         if(!optional_box.has_value()) {
-            return;
+            return false;
         }
         const Box& box = optional_box.value();
         if(box.is_invalid()) {
-            return;
+            return false;
         }
         // debug_exporter.cover_builder.box_builder.set_box(box);
         const std::optional<TerminalBox> optional_terminal_box = get_optional_terminal_box(box);
@@ -113,10 +117,11 @@ public:
             print("Terminal Box: ", box);
             terminal_box_queue_.push(optional_terminal_box.value());
         } else {
-            print("Nonterminal Box: ", box);
+            // print("Nonterminal Box: ", box);
             for(const Box& sub_box: box.subdivide()) {
                 box_queue_.push(sub_box);
             }
         }
+        return true;
     }
 };

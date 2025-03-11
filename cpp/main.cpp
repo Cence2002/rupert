@@ -150,13 +150,26 @@ int main() {
     const Polyhedron<Interval> hole = Polyhedron<Interval>::rhombicosidodecahedron();
     const Polyhedron<Interval> plug = Polyhedron<Interval>::rhombicosidodecahedron();
 
-    debug_exporter.cover_builder.set_description("Exported Cover");
-    debug_exporter.cover_builder.set_hole(debug_exporter.builder, hole);
-    debug_exporter.cover_builder.set_plug(debug_exporter.builder, plug);
+    // debug_exporter.cover_builder.set_description("Exported Cover");
+    // debug_exporter.cover_builder.set_hole(debug_exporter.builder, hole);
+    // debug_exporter.cover_builder.set_plug(debug_exporter.builder, plug);
+    // solve<Interval>(hole, plug, 1, 64, 10000, 2, 2);
+    // debug_exporter.save("../../web/static/cover.bin");
 
-    solve<Interval>(hole, plug, 1, 64, 10000, 2, 2);
-
-    debug_exporter.save("../../web/static/cover.bin");
+    const Config<Interval> config(
+        "Exported Cover",
+        hole,
+        plug,
+        1,
+        64,
+        10000,
+        2,
+        2,
+        1000,
+        std::filesystem::path("../../web/static/cover.bin")
+    );
+    Pipeline<Interval> pipeline(config);
+    pipeline.start();
 
     return 0;
 }

@@ -23,17 +23,20 @@ private:
     Exporter<Interval> exporter_;
     std::vector<std::thread> processor_threads_;
     std::thread exporter_thread_;
-    std::atomic<uint32_t> processed_boxes_count_;
+    std::atomic<uint32_t> processed_box_count_;
     std::atomic<bool> terminated_;
-    std::atomic<uint8_t> terminated_threads_count_;
+    std::atomic<uint8_t> terminated_thread_count_;
 
     void start_box_processor() {
         BoxProcessor<Interval> processor(config_, box_queue_, terminal_box_queue_);
-        while(!terminated_ && processed_boxes_count_ < config_.box_iteration_limit()) {
-            processor.process();
-            ++processed_boxes_count_;
+        while(!terminated_) {
+            if(processor.process()) {
+                if(++processed_box_count_ > config_.box_iteration_limit()) {
+                    stop();
+                }
+            }
         }
-        ++terminated_threads_count_;
+        ++terminated_thread_count_;
     }
 
     void start_exporter() {
@@ -45,7 +48,7 @@ private:
             }
             exporter.export_terminal_boxes(terminal_box_queue_.flush());
         }
-        while(terminated_threads_count_ < config_.num_threads()) {
+        while(terminated_thread_count_ < config_.thread_count()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
         exporter.export_terminal_boxes(terminal_box_queue_.flush());
@@ -53,24 +56,33 @@ private:
     }
 
 public:
-    explicit Pipeline(const Config<Interval>& config) : config_(config), processed_boxes_count_(0), terminated_(false), terminated_threads_count_(0) {}
+    explicit Pipeline(const Config<Interval>& config) : config_(config),
+                                                        box_queue_(),
+                                                        terminal_box_queue_(),
+                                                        exporter_(config),
+                                                        processor_threads_(),
+                                                        exporter_thread_(),
+                                                        processed_box_count_(0),
+                                                        terminated_(false),
+                                                        terminated_thread_count_(0) {}
 
     void start() {
-        for(int thread = 0; thread < config_.num_threads(); thread++) {
-            processor_threads_.emplace_back([this] {
+        std::ranges::generate_n(std::back_inserter(processor_threads_), config_.thread_count(), [this] {
+            return std::thread([this] {
                 start_box_processor();
             });
-        }
+        });
         exporter_thread_ = std::thread([this] {
             start_exporter();
         });
-    }
 
-    void stop() {
-        terminated_ = true;
         for(std::thread& processor_thread: processor_threads_) {
             processor_thread.join();
         }
         exporter_thread_.join();
+    }
+
+    void stop() {
+        terminated_ = true;
     }
 };
