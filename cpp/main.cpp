@@ -157,7 +157,7 @@ int main() {
     // debug_exporter.save("../../web/static/cover.bin");
 
     const Config<Interval> config(
-        "Exported Cover",
+        "RID",
         hole,
         plug,
         1,
@@ -166,8 +166,9 @@ int main() {
         2,
         2,
         1000,
-        std::filesystem::path("../../web/static/cover.bin")
+        std::filesystem::path("../../web/static")
     );
+
     Pipeline<Interval> pipeline(config);
     pipeline.start();
 

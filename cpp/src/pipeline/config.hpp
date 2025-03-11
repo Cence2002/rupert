@@ -40,7 +40,14 @@ public:
         projection_resolution_(projection_resolution),
         rotation_resolution_(rotation_resolution),
         export_size_threshold_(export_size_threshold),
-        path_(std::move(path)) {}
+        path_(std::move(path)) {
+        if(!std::filesystem::exists(path_)) {
+            throw std::runtime_error("Path does not exist: " + path_.string());
+        }
+        if(!std::filesystem::is_directory(path_)) {
+            throw std::runtime_error("Path is not a directory: " + path_.string());
+        }
+    }
 
     std::string description() const {
         return description_;
