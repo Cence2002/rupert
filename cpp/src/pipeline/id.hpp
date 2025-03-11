@@ -87,8 +87,8 @@ public:
         if(packed == 0) {
             return Id(0, 16);
         }
-        const uint16_t bits = packed & 0x7FFF;
-        const uint8_t depth = static_cast<uint8_t>(32 - __builtin_clz(packed));
+        const uint8_t depth = static_cast<uint8_t>(31 - __builtin_clz(packed));
+        const uint16_t bits = packed & static_cast<uint16_t>((1 << depth) - 1);
         return Id(bits, depth);
     }
 

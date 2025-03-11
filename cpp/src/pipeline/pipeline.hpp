@@ -22,6 +22,7 @@ private:
     BoxQueue box_queue_;
     TerminalBoxQueue terminal_box_queue_;
     Exporter<Interval> exporter_;
+    Importer<Interval> importer_;
     std::vector<std::thread> processor_threads_;
     std::thread exporter_thread_;
     std::atomic<uint32_t> processed_box_count_;
@@ -53,7 +54,7 @@ private:
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
         exporter.export_terminal_boxes(terminal_box_queue_.flush());
-        exporter.export_boxes(box_queue_.flush());
+        exporter.export_boxes(box_queue_.pop_all());
     }
 
 public:
@@ -61,11 +62,20 @@ public:
                                                         box_queue_(),
                                                         terminal_box_queue_(),
                                                         exporter_(config),
+                                                        importer_(config),
                                                         processor_threads_(),
                                                         exporter_thread_(),
                                                         processed_box_count_(0),
                                                         terminated_(false),
                                                         terminated_thread_count_(0) {}
+
+    void init() {
+        if(!importer_.can_import()) {
+            return;
+        }
+        const std::vector<Box> boxes = importer_.import_boxes();
+        box_queue_.push_all(boxes);
+    }
 
     void start() {
         std::ranges::generate_n(std::back_inserter(processor_threads_), config_.thread_count(), [this] {

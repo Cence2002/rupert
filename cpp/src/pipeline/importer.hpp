@@ -19,6 +19,18 @@ private:
 public:
     explicit Importer(const Config<Interval>& config) : config_(config) {}
 
+    bool can_import() {
+        const std::filesystem::path path = config_.boxes_path();
+        if(!std::filesystem::exists(path)) {
+            return false;
+        }
+        std::ifstream file(path, std::ios::binary);
+        if(!file.is_open()) {
+            return false;
+        }
+        return size_from_stream(file) > 0;
+    }
+
     std::vector<Box> import_boxes() {
         const std::filesystem::path path = config_.boxes_path();
         std::ifstream file(path, std::ios::binary);
@@ -36,5 +48,7 @@ public:
             throw std::runtime_error("Failed to read from " + path.string());
         }
         print("Imported ", size, " boxes from ", path);
+
+        return boxes;
     }
 };

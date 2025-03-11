@@ -170,6 +170,7 @@ int main() {
     );
 
     Pipeline<Interval> pipeline(config);
+    pipeline.init();
     pipeline.start();
 
     return 0;

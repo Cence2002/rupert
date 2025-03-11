@@ -42,7 +42,14 @@ public:
         return std::make_optional(box);
     }
 
-    std::vector<Box> flush() {
+    void push_all(const std::vector<Box>& boxes) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        for(const Box& box: boxes) {
+            queue_.push(box);
+        }
+    }
+
+    std::vector<Box> pop_all() {
         std::lock_guard<std::mutex> lock(mutex_);
         std::vector<Box> boxes;
         boxes.reserve(queue_.size());
