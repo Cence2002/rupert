@@ -12,10 +12,11 @@ private:
     Polyhedron<Interval> hole_;
     Polyhedron<Interval> plug_;
     uint8_t thread_count_;
-    uint32_t hole_iteration_limit_;
-    uint32_t plug_iteration_limit_;
+    uint32_t box_iteration_limit_;
+    uint32_t rectangle_iteration_limit_;
     uint8_t projection_resolution_;
     uint8_t rotation_resolution_;
+    size_t export_size_threshold_;
     std::filesystem::path path_;
 
 public:
@@ -24,19 +25,21 @@ public:
         const Polyhedron<Interval>& hole,
         const Polyhedron<Interval>& plug,
         const uint8_t thread_count,
-        const uint32_t hole_iteration_limit,
-        const uint32_t plug_iteration_limit,
+        const uint32_t box_iteration_limit,
+        const uint32_t rectangle_iteration_limit,
         const uint8_t projection_resolution,
         const uint8_t rotation_resolution,
+        const size_t export_size_threshold,
         std::filesystem::path path
     ) : description_(std::move(description)),
         hole_(hole),
         plug_(plug),
         thread_count_(thread_count),
-        hole_iteration_limit_(hole_iteration_limit),
-        plug_iteration_limit_(plug_iteration_limit),
+        box_iteration_limit_(box_iteration_limit),
+        rectangle_iteration_limit_(rectangle_iteration_limit),
         projection_resolution_(projection_resolution),
         rotation_resolution_(rotation_resolution),
+        export_size_threshold_(export_size_threshold),
         path_(std::move(path)) {}
 
     std::string description() const {
@@ -55,12 +58,12 @@ public:
         return thread_count_;
     }
 
-    uint32_t hole_iteration_limit() const {
-        return hole_iteration_limit_;
+    uint32_t box_iteration_limit() const {
+        return box_iteration_limit_;
     }
 
-    uint32_t plug_iteration_limit() const {
-        return plug_iteration_limit_;
+    uint32_t rectangle_iteration_limit() const {
+        return rectangle_iteration_limit_;
     }
 
     uint8_t projection_resolution() const {
@@ -69,6 +72,10 @@ public:
 
     uint8_t rotation_resolution() const {
         return rotation_resolution_;
+    }
+
+    size_t export_size_threshold() const {
+        return export_size_threshold_;
     }
 
     std::filesystem::path path() const {

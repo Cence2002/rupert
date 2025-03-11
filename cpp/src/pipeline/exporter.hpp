@@ -10,6 +10,8 @@ private:
     const Config<Interval>& config_;
 
 public:
+    explicit Exporter(const Config<Interval>& config) : config_(config) {}
+
     void export_terminal_boxes(const std::vector<TerminalBox>& terminal_boxes);
 
     void export_boxes(const std::vector<Box>& boxes);

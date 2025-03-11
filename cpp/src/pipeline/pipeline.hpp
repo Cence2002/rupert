@@ -17,15 +17,60 @@
 template<IntervalType Interval>
 struct Pipeline {
 private:
+    const Config<Interval>& config_;
     BoxQueue box_queue_;
     TerminalBoxQueue terminal_box_queue_;
     Exporter<Interval> exporter_;
     std::vector<std::thread> processor_threads_;
     std::thread exporter_thread_;
+    std::atomic<uint32_t> processed_boxes_count_;
     std::atomic<bool> terminated_;
+    std::atomic<uint8_t> terminated_threads_count_;
+
+    void start_box_processor() {
+        BoxProcessor<Interval> processor(config_, box_queue_, terminal_box_queue_);
+        while(!terminated_ && processed_boxes_count_ < config_.box_iteration_limit()) {
+            processor.process();
+            ++processed_boxes_count_;
+        }
+        ++terminated_threads_count_;
+    }
+
+    void start_exporter() {
+        Exporter<Interval> exporter(config_);
+        while(!terminated_) {
+            if(terminal_box_queue_.size() < config_.export_size_threshold()) {
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+                continue;
+            }
+            exporter.export_terminal_boxes(terminal_box_queue_.flush());
+        }
+        while(terminated_threads_count_ < config_.num_threads()) {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+        exporter.export_terminal_boxes(terminal_box_queue_.flush());
+        exporter.export_boxes(box_queue_.flush());
+    }
 
 public:
-    void start();
+    explicit Pipeline(const Config<Interval>& config) : config_(config), processed_boxes_count_(0), terminated_(false), terminated_threads_count_(0) {}
 
-    void stop();
+    void start() {
+        for(int thread = 0; thread < config_.num_threads(); thread++) {
+            processor_threads_.emplace_back([this] {
+                start_box_processor();
+            });
+        }
+        exporter_thread_ = std::thread([this] {
+            start_exporter();
+        });
+    }
+
+    void stop() {
+        terminated_ = true;
+        for(std::thread& processor_thread: processor_threads_) {
+            processor_thread.join();
+        }
+        exporter_thread_.join();
+    }
 };

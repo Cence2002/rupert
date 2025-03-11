@@ -144,8 +144,6 @@ void solve(const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug, c
 
 int main() {
     tests();
-    uint16_t x = 1;
-    print(31 - __builtin_clz(x));
 
     using Interval = FloatInterval;
 
