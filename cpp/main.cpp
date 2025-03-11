@@ -166,7 +166,7 @@ int main() {
         2,
         2,
         1000,
-        std::filesystem::path("../../web/static")
+        "../../web/static"
     );
 
     Pipeline<Interval> pipeline(config);

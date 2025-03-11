@@ -17,7 +17,7 @@ private:
     uint8_t projection_resolution_;
     uint8_t rotation_resolution_;
     size_t export_size_threshold_;
-    std::filesystem::path path_;
+    std::filesystem::path directory_;
 
 public:
     Config(
@@ -30,7 +30,7 @@ public:
         const uint8_t projection_resolution,
         const uint8_t rotation_resolution,
         const size_t export_size_threshold,
-        std::filesystem::path path
+        std::string directory
     ) : description_(std::move(description)),
         hole_(hole),
         plug_(plug),
@@ -40,12 +40,12 @@ public:
         projection_resolution_(projection_resolution),
         rotation_resolution_(rotation_resolution),
         export_size_threshold_(export_size_threshold),
-        path_(std::move(path)) {
-        if(!std::filesystem::exists(path_)) {
-            throw std::runtime_error("Path does not exist: " + path_.string());
+        directory_(std::move(directory)) {
+        if(!std::filesystem::exists(directory_)) {
+            throw std::runtime_error(directory_.string() + " does not exist");
         }
-        if(!std::filesystem::is_directory(path_)) {
-            throw std::runtime_error("Path is not a directory: " + path_.string());
+        if(!std::filesystem::is_directory(directory_)) {
+            throw std::runtime_error(directory_.string() + " is not a directory");
         }
     }
 
@@ -85,11 +85,11 @@ public:
         return export_size_threshold_;
     }
 
-    std::filesystem::path path() const {
-        return path_;
+    std::filesystem::path directory() const {
+        return directory_;
     }
 
     std::filesystem::path path(const std::string& suffix) const {
-        return path_ / (description_ + "_" + suffix);
+        return directory_ / (description_ + "_" + suffix);
     }
 };
