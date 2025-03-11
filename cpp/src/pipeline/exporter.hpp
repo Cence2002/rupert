@@ -10,22 +10,23 @@ struct Exporter {
 private:
     const Config<Interval>& config_;
 
+    static void size_to_stream(std::ostream& os, const size_t size) {
+        os.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    }
+
 public:
     explicit Exporter(const Config<Interval>& config) : config_(config) {}
 
     void export_terminal_boxes(const std::vector<TerminalBox>& terminal_boxes) {
-        std::ostringstream buffer;
-        for(const TerminalBox& terminal_box: terminal_boxes) {
-            terminal_box.to_stream(buffer);
-        }
-
-        std::filesystem::path path = config_.path("terminal_boxes.bin");
+        const std::filesystem::path path = config_.terminal_boxes_path();
         std::ofstream file(path, std::ios::binary | std::ios::app);
         if(!file.is_open()) {
             throw std::runtime_error("Failed to open " + path.string());
         }
 
-        file.write(buffer.str().c_str(), buffer.str().size());
+        for(const TerminalBox& terminal_box: terminal_boxes) {
+            terminal_box.to_stream(file);
+        }
 
         if(file.fail()) {
             throw std::runtime_error("Failed to write to " + path.string());
@@ -34,18 +35,16 @@ public:
     }
 
     void export_boxes(const std::vector<Box>& boxes) {
-        std::ostringstream buffer;
-        for(const Box& box: boxes) {
-            box.to_stream(buffer);
-        }
-
-        std::filesystem::path path = config_.path("boxes.bin");
+        const std::filesystem::path path = config_.boxes_path();
         std::ofstream file(path, std::ios::binary | std::ios::trunc);
         if(!file.is_open()) {
             throw std::runtime_error("Failed to open " + path.string());
         }
 
-        file.write(buffer.str().c_str(), buffer.str().size());
+        size_to_stream(file, boxes.size());
+        for(const Box& box: boxes) {
+            box.to_stream(file);
+        }
 
         if(file.fail()) {
             throw std::runtime_error("Failed to write to " + path.string());
