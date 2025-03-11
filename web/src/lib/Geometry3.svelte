@@ -145,6 +145,11 @@
             plugGroup.position.set(0, 0, 2 * holeRadius + plugRadius);
             scene.add(plugGroup);
         }
+
+        {
+            controls.object.zoom = 4.0 / (holeRadius + plugRadius);
+            camera.updateProjectionMatrix();
+        }
     }
 
     function onSelectBox3() {

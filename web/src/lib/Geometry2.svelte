@@ -55,6 +55,9 @@
     controls.screenSpacePanning = true;
     controls.zoomToCursor = true;
 
+    let holeRadius: number;
+    let plugRadius: number;
+
     let projectionEdges: Line[] = [];
     let projections: Group[] = [];
     let rectangleProjections: Group[] = [];
@@ -63,6 +66,28 @@
     function onCover() {
         if (!cover) {
             return;
+        }
+        {
+            const coverHole = cover!.hole();
+            let vertices: Vector3[] = [];
+            for (let index = 0; index < coverHole.verticesLength(); index++) {
+                const vertex = coverHole.vertices(index);
+                vertices.push(new Vector3(vertex.x(), vertex.y(), vertex.z()));
+            }
+            holeRadius = Math.max(...vertices.map(v => v.length()));
+        }
+        {
+            const coverPlug = cover!.plug();
+            let vertices = [];
+            for (let index = 0; index < coverPlug.verticesLength(); index++) {
+                const vertex = coverPlug.vertices(index);
+                vertices.push(new Vector3(vertex.x(), vertex.y(), vertex.z()));
+            }
+            plugRadius = Math.max(...vertices.map(v => v.length()));
+        }
+        {
+            controls.object.zoom = 2.0 / Math.max(holeRadius, plugRadius);
+            camera.updateProjectionMatrix();
         }
     }
 

@@ -51,7 +51,7 @@
         <div id="horizontal-resizer" style="width: 4px; height: 100%;"></div>
     </PaneResizer>
 
-    <Pane defaultSize={3}>
+    <Pane defaultSize={4}>
         <div id="pane">
             <Geometry3 {cover} {selection}/>
         </div>
@@ -61,7 +61,7 @@
         <div id="horizontal-resizer" style="width: 4px; height: 100%;"></div>
     </PaneResizer>
 
-    <Pane defaultSize={3}>
+    <Pane defaultSize={2}>
         <div id="pane">
             <Geometry2 {cover} {selection}/>
         </div>
