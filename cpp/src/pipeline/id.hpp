@@ -7,13 +7,13 @@
 
 struct Id {
 private:
-    uint16_t bits_;
     uint8_t depth_;
+    uint16_t bits_;
 
 public:
-    explicit Id() : bits_(0), depth_(0) {}
+    explicit Id() : depth_(0), bits_(0) {}
 
-    explicit Id(const uint16_t bits, const uint8_t depth) : bits_(bits), depth_(depth) {}
+    explicit Id(const uint8_t depth, const uint16_t bits) : depth_(depth), bits_(bits) {}
 
     Id(const Id& other) = default;
 
@@ -23,16 +23,16 @@ public:
 
     Id& operator=(Id&& other) = default;
 
-    uint64_t bits() const {
-        return bits_;
-    }
-
     uint8_t depth() const {
         return depth_;
     }
 
+    uint64_t bits() const {
+        return bits_;
+    }
+
     static Id invalid() {
-        return Id(0, 16);
+        return Id(16, 0);
     }
 
     bool is_invalid() const {
@@ -40,21 +40,21 @@ public:
     }
 
     static size_t size() {
-        return 2;
+        return sizeof(uint16_t);
     }
 
     Id min_half() const {
         if(is_invalid()) {
             throw std::runtime_error("Invalid Id");
         }
-        return Id(static_cast<uint16_t>(bits_ << 1), static_cast<uint8_t>(depth_ + 1));
+        return Id(static_cast<uint8_t>(depth_ + 1), static_cast<uint16_t>(bits_ << 1));
     }
 
     Id max_half() const {
         if(is_invalid()) {
             throw std::runtime_error("Invalid Id");
         }
-        return Id(static_cast<uint16_t>((bits_ << 1) | 1), static_cast<uint8_t>(depth_ + 1));
+        return Id(static_cast<uint8_t>(depth_ + 1), static_cast<uint16_t>((bits_ << 1) | 1));
     }
 
     std::pair<Id, Id> subdivide() const {
@@ -69,7 +69,7 @@ public:
         if(is_invalid()) {
             throw std::runtime_error("Invalid Id");
         }
-        return Interval(static_cast<uint16_t>(bits_), static_cast<uint16_t>(bits_ + 1)) / (static_cast<uint16_t>(1) << depth_);
+        return Interval(static_cast<uint16_t>(bits_), static_cast<uint16_t>(bits_ + 1)) / (1 << depth_);
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Id& id) {
@@ -80,16 +80,16 @@ public:
         if(is_invalid()) {
             return 0;
         }
-        return bits_ | static_cast<uint16_t>(1 << depth_);
+        return static_cast<uint16_t>(1 << depth_) | bits_;
     }
 
     static Id unpack(const uint16_t packed) {
         if(packed == 0) {
-            return Id(0, 16);
+            return Id(16, 0);
         }
         const uint8_t depth = static_cast<uint8_t>(31 - __builtin_clz(packed));
         const uint16_t bits = packed & static_cast<uint16_t>((1 << depth) - 1);
-        return Id(bits, depth);
+        return Id(depth, bits);
     }
 
     void to_stream(std::ostream& os) const {
