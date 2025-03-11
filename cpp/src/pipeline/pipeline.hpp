@@ -11,6 +11,7 @@
 #include "config.hpp"
 #include "box_processor.hpp"
 #include "exporter.hpp"
+#include "importer.hpp"
 #include "debug_exporter.hpp"
 #include <thread>
 
