@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_EXTENSIONS NO)
 
 add_compile_options(
-    -std=c++20
     -O3
     -g3
 
