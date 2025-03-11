@@ -70,11 +70,17 @@ public:
                                                         terminated_thread_count_(0) {}
 
     void init() {
-        if(!importer_.can_import()) {
-            return;
+        if(importer_.can_import()) {
+            const std::vector<Box> boxes = importer_.import_boxes();
+            box_queue_.push_all(boxes);
+        } else {
+            // box_queue_.push(Box()); // TODO: Use this instead of the magic numbers
+            box_queue_.push(Box(
+                Id(4, 0b0101),
+                Id(4, 0b0011),
+                Id(4, 0b1010)
+            ));
         }
-        const std::vector<Box> boxes = importer_.import_boxes();
-        box_queue_.push_all(boxes);
     }
 
     void start() {

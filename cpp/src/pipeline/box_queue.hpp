@@ -11,21 +11,7 @@ private:
     std::mutex mutex_;
 
 public:
-    explicit BoxQueue() : queue_(), mutex_() {
-        // push(Box());
-
-        push(Box(
-            Id(0b0101, 4),
-            Id(0b0011, 4),
-            Id(0b1010, 4)
-        ));
-
-        // push(Box(
-        //     Id(0b000000, 6),
-        //     Id(0b000011, 6),
-        //     Id(0b000001, 6)
-        // ));
-    }
+    explicit BoxQueue() : queue_(), mutex_() {}
 
     void push(const Box& box) {
         std::lock_guard<std::mutex> lock(mutex_);
