@@ -1,27 +1,27 @@
 #pragma once
 
-#include "util.hpp"
-#include "geometry/geometry.hpp"
+#include "test/util.hpp"
+#include "interval/interval.hpp"
 #include <random>
 #include <thread>
 
 struct RandomNumberGenerator {
 private:
     static constexpr uint32_t default_seed = 42;
-    std::mt19937_64 engine;
+    std::mt19937_64 engine_;
 
 public:
-    RandomNumberGenerator() : engine(default_seed) {}
+    RandomNumberGenerator() : engine_(default_seed) {}
 
-    explicit RandomNumberGenerator(const std::mt19937_64::result_type seed) : engine(seed) {}
+    explicit RandomNumberGenerator(const std::mt19937_64::result_type seed) : engine_(seed) {}
 
     void seed(const std::mt19937_64::result_type seed) {
-        engine.seed(seed);
+        engine_.seed(seed);
     }
 
     double uniform_float(const double min, const double max) {
         std::uniform_real_distribution<double> distribution(min, max);
-        return distribution(engine);
+        return distribution(engine_);
     }
 
     double uniform_float(const double max) {
@@ -34,7 +34,7 @@ public:
 
     int uniform_int(const int min, const int max) {
         std::uniform_int_distribution<int> distribution(min, max);
-        return distribution(engine);
+        return distribution(engine_);
     }
 
     int uniform_int(const int max) {

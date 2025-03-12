@@ -1,9 +1,8 @@
 #pragma once
 
-#include "geometry/geometry.hpp"
+#include "geometry/polyhedron.hpp"
 #include <cstdint>
 #include <filesystem>
-#include <utility>
 
 template<IntervalType Interval>
 struct Config {

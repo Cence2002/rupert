@@ -14,7 +14,7 @@ private:
 
     BoostIntervalType interval_;
 
-    static inline IntervalPrintMode print_mode_ = IntervalPrintMode::MIN_AND_MAX;
+    static inline IntervalPrintMode print_mode_ = IntervalPrintMode::min_and_max;
 
     explicit BoostInterval(const BoostIntervalType& interval) : interval_(interval) {}
 
@@ -304,10 +304,10 @@ public:
 
     friend std::ostream& operator<<(std::ostream& ostream, const BoostInterval& interval) {
         switch(print_mode_) {
-            case IntervalPrintMode::MIN_AND_MAX: {
+            case IntervalPrintMode::min_and_max: {
                 return ostream << "[" << interval.min().value() << " : " << interval.max().value() << "]";
             }
-            case IntervalPrintMode::MID_AND_RAD: {
+            case IntervalPrintMode::mid_and_rad: {
                 return ostream << "[" << interval.mid().value() << " ~ " << interval.rad().value() << "]";
             }
             default: throw std::invalid_argument("Invalid print type");

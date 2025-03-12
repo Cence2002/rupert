@@ -1,4 +1,3 @@
-#include "geometry/geometry.hpp"
 #include "pipeline/pipeline.hpp"
 #include "test/test.hpp"
 

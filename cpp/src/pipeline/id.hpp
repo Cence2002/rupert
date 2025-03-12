@@ -3,7 +3,6 @@
 #include "interval/interval.hpp"
 #include <cstdint>
 #include <bitset>
-#include <cstring>
 
 struct Id {
 private:

@@ -2,13 +2,12 @@
 
 #include "number/number_type.hpp"
 #include <mpfr.h>
-#include <vector>
 
 struct MpfrNumber {
 private:
     mpfr_t value_;
 
-    static inline int print_precision_ = 10;
+    static inline size_t print_precision_ = 6;
 
     void assert_same_precision(const MpfrNumber& number) const {
         if(mpfr_get_prec(value_) != mpfr_get_prec(number.value_)) {
@@ -155,13 +154,13 @@ public:
         return number;
     }
 
-    static void set_print_precision(const int print_precision) {
+    static void set_print_precision(const size_t print_precision) {
         print_precision_ = print_precision;
     }
 
     friend std::ostream& operator<<(std::ostream& ostream, const MpfrNumber& number) {
-        std::vector<char> number_str(static_cast<size_t>(print_precision_ + 10));
-        mpfr_sprintf(number_str.data(), "%.*Rg", print_precision_, number.value());
-        return ostream << number_str.data();
+        char* number_str = new char[print_precision_ + 10];
+        mpfr_sprintf(number_str, "%.*Rg", print_precision_, number.value());
+        return ostream << number_str;
     }
 };

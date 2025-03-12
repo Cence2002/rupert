@@ -1,18 +1,11 @@
 #pragma once
 
-#include "geometry/geometry.hpp"
-#include "id.hpp"
-#include "rectangle.hpp"
-#include "box.hpp"
-#include "terminal_box.hpp"
-#include "rectangle_queue.hpp"
-#include "box_queue.hpp"
-#include "terminal_box_queue.hpp"
-#include "config.hpp"
-#include "box_processor.hpp"
-#include "exporter.hpp"
-#include "importer.hpp"
-#include "debug_exporter.hpp"
+#include "pipeline/config.hpp"
+#include "pipeline/box_processor.hpp"
+#include "pipeline/importer.hpp"
+#include "pipeline/exporter.hpp"
+#include "pipeline/debug_exporter.hpp"
+
 #include <thread>
 
 template<IntervalType Interval>

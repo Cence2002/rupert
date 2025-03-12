@@ -8,7 +8,7 @@ struct FloatNumber {
 private:
     double value_;
 
-    static inline int print_precision_ = 10;
+    static inline size_t print_precision_ = 6;
 
 public:
     static inline const std::string name = "FloatNumber";
@@ -118,7 +118,7 @@ public:
         return FloatNumber();
     }
 
-    static void set_print_precision(const int print_precision) {
+    static void set_print_precision(const size_t print_precision) {
         print_precision_ = print_precision;
     }
 

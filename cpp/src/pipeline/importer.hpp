@@ -1,9 +1,7 @@
 #pragma once
 
-#include "util.hpp"
-#include "interval/interval.hpp"
-#include "config.hpp"
-#include "terminal_box.hpp"
+#include "pipeline/config.hpp"
+#include "pipeline/box.hpp"
 #include <fstream>
 
 template<IntervalType Interval>
@@ -48,7 +46,7 @@ public:
         if(file.fail()) {
             throw std::runtime_error("Failed to read from " + path.string());
         }
-        print("Imported ", size, " boxes from ", path);
+        std::cout << "Imported " << size << " boxes from " << path << std::endl;
 
         return boxes;
     }

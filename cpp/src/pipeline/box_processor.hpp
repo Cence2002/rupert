@@ -1,13 +1,11 @@
 #pragma once
 
-#include "util.hpp"
-#include "interval/interval.hpp"
-#include "config.hpp"
-#include "box.hpp"
-#include "box_queue.hpp"
-#include "terminal_box_queue.hpp"
-#include "debug_exporter.hpp"
-#include "rectangle_queue.hpp"
+#include "geometry/transformation.hpp"
+#include "pipeline/config.hpp"
+#include "pipeline/debug_exporter.hpp"
+#include "pipeline/rectangle_queue.hpp"
+#include "pipeline/box_queue.hpp"
+#include "pipeline/terminal_box_queue.hpp"
 
 template<IntervalType Interval>
 struct BoxProcessor {
@@ -122,10 +120,10 @@ public:
         const std::optional<TerminalBox> optional_terminal_box = get_optional_terminal_box(box);
         debug_exporter_.cover_builder.box_builder.set_complete(optional_terminal_box.has_value());
         if(optional_terminal_box.has_value()) {
-            print("Terminal Box: ", box);
+            std::cout << "Terminal Box: " << box << std::endl;
             terminal_box_queue_.push(optional_terminal_box.value());
         } else {
-            // print("Nonterminal Box: ", box);
+            std::cout << "Non Terminal Box: " << box << std::endl;
             for(const Box& sub_box: box.subdivide()) {
                 box_queue_.push(sub_box);
             }

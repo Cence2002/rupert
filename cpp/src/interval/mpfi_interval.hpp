@@ -7,7 +7,7 @@ struct MpfiInterval {
 private:
     mpfi_t interval_;
 
-    static inline IntervalPrintMode print_mode_ = IntervalPrintMode::MIN_AND_MAX;
+    static inline IntervalPrintMode print_mode_ = IntervalPrintMode::min_and_max;
 
     void assert_same_precision(const MpfiInterval& interval) const {
         if(mpfi_get_prec(interval_) != mpfi_get_prec(interval.interval_)) {
@@ -442,10 +442,10 @@ public:
 
     friend std::ostream& operator<<(std::ostream& ostream, const MpfiInterval& interval) {
         switch(print_mode_) {
-            case IntervalPrintMode::MIN_AND_MAX: {
+            case IntervalPrintMode::min_and_max: {
                 return ostream << "[" << interval.min() << " : " << interval.max() << "]";
             }
-            case IntervalPrintMode::MID_AND_RAD: {
+            case IntervalPrintMode::mid_and_rad: {
                 return ostream << "[" << interval.mid() << " ~ " << interval.rad() << "]";
             }
             default: throw std::invalid_argument("Invalid print type");

@@ -1,31 +1,31 @@
 #pragma once
 
-#include "vector.hpp"
+#include "geometry/vector.hpp"
 
 enum class Orientation {
-    COUNTERCLOCKWISE,
-    CLOCKWISE,
-    COLLINEAR
+    counterclockwise,
+    clockwise,
+    collinear
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Orientation& orientation) {
     switch(orientation) {
-        case Orientation::COUNTERCLOCKWISE: return os << "COUNTERCLOCKWISE";
-        case Orientation::CLOCKWISE: return os << "CLOCKWISE";
-        case Orientation::COLLINEAR: return os << "COLLINEAR";
+        case Orientation::counterclockwise: return os << "counterclockwise";
+        case Orientation::clockwise: return os << "clockwise";
+        case Orientation::collinear: return os << "collinear";
         default: throw std::runtime_error("Unknown orientation");
     }
 }
 
 constexpr bool same_orientation(const Orientation orientation_0, const Orientation orientation_1) {
-    return orientation_0 != Orientation::COLLINEAR &&
-           orientation_1 != Orientation::COLLINEAR &&
+    return orientation_0 != Orientation::collinear &&
+           orientation_1 != Orientation::collinear &&
            orientation_0 == orientation_1;
 }
 
 constexpr bool opposite_orientation(const Orientation orientation_0, const Orientation orientation_1) {
-    return orientation_0 != Orientation::COLLINEAR &&
-           orientation_1 != Orientation::COLLINEAR &&
+    return orientation_0 != Orientation::collinear &&
+           orientation_1 != Orientation::collinear &&
            orientation_0 != orientation_1;
 }
 
@@ -53,12 +53,12 @@ public:
     Orientation orientation(const Vector<Interval>& vector) const {
         const Interval cross = Vector<Interval>::cross(direction(), vector - from_);
         if(cross.is_positive()) {
-            return Orientation::COUNTERCLOCKWISE;
+            return Orientation::counterclockwise;
         }
         if(cross.is_negative()) {
-            return Orientation::CLOCKWISE;
+            return Orientation::clockwise;
         }
-        return Orientation::COLLINEAR;
+        return Orientation::collinear;
     }
 
     bool intersects(const Edge& edge) const {
@@ -93,7 +93,7 @@ public:
     }
 
     bool avoids(const Vector<Interval>& vector) const {
-        if(orientation(vector) != Orientation::COLLINEAR) {
+        if(orientation(vector) != Orientation::collinear) {
             return true;
         }
         const Interval dot = Vector<Interval>::dot(direction(), vector - from_);
@@ -101,7 +101,7 @@ public:
             return true;
         }
         const Vector<Interval> midpoint = (from_ + to_) / Interval(2);
-        return (vector - midpoint).len() > direction().len() / 2;
+        return (vector - midpoint).len_sqr() > direction().len_sqr() / 4;
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Edge& edge) {

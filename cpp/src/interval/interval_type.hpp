@@ -1,11 +1,10 @@
 #pragma once
 
 #include "number/number.hpp"
-#include <iostream>
 
 enum class IntervalPrintMode {
-    MIN_AND_MAX,
-    MID_AND_RAD,
+    min_and_max,
+    mid_and_rad,
 };
 
 template<typename Interval>

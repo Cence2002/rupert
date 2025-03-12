@@ -1,6 +1,5 @@
 #pragma once
 
-#include "interval/interval.hpp"
 #include "pipeline/id.hpp"
 #include <array>
 

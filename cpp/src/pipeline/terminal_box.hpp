@@ -1,7 +1,8 @@
 #pragma once
 
-#include "box.hpp"
-#include "rectangle.hpp"
+#include "pipeline/box.hpp"
+#include "pipeline/rectangle.hpp"
+#include <vector>
 
 struct TerminalBox {
 private:

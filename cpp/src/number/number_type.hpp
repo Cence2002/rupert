@@ -57,7 +57,7 @@ concept NumberType =
         { Number::nan() } -> std::same_as<Number>;
     } &&
 
-    requires(const int print_precision) {
+    requires(const size_t print_precision) {
         { Number::set_print_precision(print_precision) } -> std::same_as<void>;
     } &&
 

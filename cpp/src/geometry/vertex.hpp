@@ -72,7 +72,7 @@ public:
         return Vertex(x_ / interval, y_ / interval, z_ / interval);
     }
 
-    Interval len() const {
+    Interval len_sqr() const {
         return (x_.sqr() + y_.sqr() + z_.sqr()).sqrt();
     }
 

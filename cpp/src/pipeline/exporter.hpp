@@ -1,9 +1,7 @@
 #pragma once
 
-#include "util.hpp"
-#include "interval/interval.hpp"
-#include "config.hpp"
-#include "terminal_box.hpp"
+#include "pipeline/config.hpp"
+#include "pipeline/terminal_box.hpp"
 #include <fstream>
 
 template<IntervalType Interval>
@@ -32,7 +30,7 @@ public:
         if(file.fail()) {
             throw std::runtime_error("Failed to write to " + path.string());
         }
-        print("Exported ", terminal_boxes.size(), " terminal boxes to ", path);
+        std::cout << "Exported " << terminal_boxes.size() << " terminal boxes to " << path << std::endl;
     }
 
     void export_boxes(const std::vector<Box>& boxes) {
@@ -50,6 +48,6 @@ public:
         if(file.fail()) {
             throw std::runtime_error("Failed to write to " + path.string());
         }
-        print("Exported ", boxes.size(), " boxes to ", path);
+        std::cout << "Exported " << boxes.size() << " boxes to " << path << std::endl;
     }
 };

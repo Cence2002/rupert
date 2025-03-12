@@ -1,7 +1,6 @@
 #pragma once
 
 #include "interval/interval_type.hpp"
-#include <cmath>
 #include <algorithm>
 
 struct FloatInterval {
@@ -9,7 +8,7 @@ private:
     double min_;
     double max_;
 
-    static inline IntervalPrintMode print_mode_ = IntervalPrintMode::MIN_AND_MAX;
+    static inline IntervalPrintMode print_mode_ = IntervalPrintMode::min_and_max;
 
     explicit FloatInterval(const double min, const double max) : min_(min), max_(max) {}
 
@@ -362,10 +361,10 @@ public:
 
     friend std::ostream& operator<<(std::ostream& ostream, const FloatInterval& interval) {
         switch(print_mode_) {
-            case IntervalPrintMode::MIN_AND_MAX: {
+            case IntervalPrintMode::min_and_max: {
                 return ostream << "[" << interval.min().value() << " : " << interval.max().value() << "]";
             }
-            case IntervalPrintMode::MID_AND_RAD: {
+            case IntervalPrintMode::mid_and_rad: {
                 return ostream << "[" << interval.mid().value() << " ~ " << interval.rad().value() << "]";
             }
             default: {
