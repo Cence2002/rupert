@@ -1,5 +1,5 @@
-#include "pipeline/pipeline.hpp"
 #include "test/test.hpp"
+#include "pipeline/pipeline.hpp"
 
 int main() {
     tests();
