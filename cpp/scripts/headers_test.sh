@@ -3,7 +3,6 @@
 cd "$(dirname "${BASH_SOURCE[0]}")/../"
 
 SOURCE_DIR="src"
-
 CPP_FILE="temp.cpp"
 
 for HEADER_PATH in $(find $SOURCE_DIR -name '*.hpp'); do
