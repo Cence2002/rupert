@@ -42,9 +42,9 @@ private:
         bool is_terminal = false;
         for(size_t vertex_index = 0; vertex_index < config_.plug().vertices().size(); vertex_index++) {
             const Vertex<Interval>& plug_vertex = config_.plug().vertices()[vertex_index];
-            // for(const Vector<Interval>& projected_plug_vertex: projection_hull_advanced_approximate(plug_vertex, theta, phi)) {
-            //     debug_exporter_.cover_builder.box_builder.rectangle_builder.projection_builder.add_vertex(projected_plug_vertex);
-            // }
+            for(const Vector<Interval>& projected_plug_vertex: projection_hull_advanced_approximate(plug_vertex, theta, phi)) {
+                debug_exporter_.cover_builder.box_builder.rectangle_builder.projection_builder.add_vertex(projected_plug_vertex);
+            }
             debug_exporter_.cover_builder.box_builder.rectangle_builder.add_projection(debug_exporter_.builder);
             if(projected_hole.is_projected_vertex_outside_polygon_advanced(plug_vertex, theta, phi)) {
                 debug_exporter_.cover_builder.box_builder.rectangle_builder.add_last_as_out();
