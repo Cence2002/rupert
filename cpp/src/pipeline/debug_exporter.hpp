@@ -5,10 +5,8 @@
 #include "flatbuffers/flatbuffers_generated.h"
 #pragma GCC diagnostic pop
 
-#include "geometry/polygon.hpp"
-#include "geometry/polyhedron.hpp"
-#include "pipeline/rectangle.hpp"
-#include "pipeline/box.hpp"
+#include "geometry/geometry.hpp"
+#include "space/space.hpp"
 #include <fstream>
 
 struct ProjectionBuilder {

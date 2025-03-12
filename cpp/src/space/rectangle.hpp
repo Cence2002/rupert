@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pipeline/id.hpp"
+#include "space/id.hpp"
 #include <array>
 
 struct Rectangle {

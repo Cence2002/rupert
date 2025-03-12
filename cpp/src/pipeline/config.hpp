@@ -1,6 +1,6 @@
 #pragma once
 
-#include "geometry/polyhedron.hpp"
+#include "geometry/geometry.hpp"
 #include <cstdint>
 #include <filesystem>
 

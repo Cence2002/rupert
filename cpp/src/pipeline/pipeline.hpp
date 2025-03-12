@@ -5,7 +5,6 @@
 #include "pipeline/importer.hpp"
 #include "pipeline/exporter.hpp"
 #include "pipeline/debug_exporter.hpp"
-
 #include <thread>
 
 template<IntervalType Interval>

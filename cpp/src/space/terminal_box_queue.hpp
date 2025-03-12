@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pipeline/terminal_box.hpp"
+#include "space/terminal_box.hpp"
 #include <queue>
 #include <mutex>
 

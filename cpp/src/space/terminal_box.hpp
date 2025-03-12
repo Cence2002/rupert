@@ -1,7 +1,7 @@
 #pragma once
 
-#include "pipeline/box.hpp"
-#include "pipeline/rectangle.hpp"
+#include "space/box.hpp"
+#include "space/rectangle.hpp"
 #include <vector>
 
 struct TerminalBox {

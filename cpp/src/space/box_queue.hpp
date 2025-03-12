@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pipeline/box.hpp"
+#include "space/box.hpp"
 #include <queue>
 #include <mutex>
 #include <optional>

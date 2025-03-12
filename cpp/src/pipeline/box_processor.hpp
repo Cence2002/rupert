@@ -1,11 +1,8 @@
 #pragma once
 
-#include "geometry/transformation.hpp"
 #include "pipeline/config.hpp"
 #include "pipeline/debug_exporter.hpp"
-#include "pipeline/rectangle_queue.hpp"
-#include "pipeline/box_queue.hpp"
-#include "pipeline/terminal_box_queue.hpp"
+#include "space/space.hpp"
 
 template<IntervalType Interval>
 struct BoxProcessor {

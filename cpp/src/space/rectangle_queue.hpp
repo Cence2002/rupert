@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pipeline/rectangle.hpp"
+#include "space/rectangle.hpp"
 #include <queue>
 #include <optional>
 
