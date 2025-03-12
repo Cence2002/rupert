@@ -6,7 +6,6 @@
 #pragma GCC diagnostic pop
 
 #include "geometry/geometry.hpp"
-#include "pipeline/pipeline.hpp"
 #include <fstream>
 
 struct ProjectionBuilder {
@@ -231,7 +230,7 @@ public:
         boxes_.push_back(box_builder.build(builder));
     }
 
-    void build(flatbuffers::FlatBufferBuilder& builder) {
+    void build(flatbuffers::FlatBufferBuilder& builder) const {
         const auto descriptionOffset = builder.CreateString(description_);
         const auto cover = FlatBuffers::CreateCover(
             builder,
