@@ -1,5 +1,6 @@
 #pragma once
 
+#include "util.hpp"
 #include "interval/interval.hpp"
 #include "config.hpp"
 #include "terminal_box.hpp"

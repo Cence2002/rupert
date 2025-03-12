@@ -6,6 +6,8 @@
 #pragma GCC diagnostic pop
 
 #include "geometry/geometry.hpp"
+#include "rectangle.hpp"
+#include "box.hpp"
 #include <fstream>
 
 struct ProjectionBuilder {
