@@ -1,0 +1,105 @@
+#title: rupert
+#ranker: tight-tree
+#zoom: 1
+
+#arrowSize: 0.75
+#bendSize: 0.5
+#direction: down
+#gutter: 5
+#edgeMargin: 0
+#gravity: 1
+#edges: rounded
+#background: white
+#fill: #ddddff; #ddffdd
+#fillArrows: true
+#font: Calibri
+#fontSize: 12
+#leading: 1.25
+#lineWidth: 2
+#padding: 6
+#spacing: 40
+#stroke: #33322E
+
+[Number|
+  [float_number]->[number_type]
+  [mpfr_number]->[number_type]
+
+  [number]->[float_number]
+  [number]->[mpfr_number]
+]
+
+[Interval|
+  [interval_type]->[number]
+
+  [float_interval]->[interval_type]
+  [boost_interval]->[interval_type]
+  [mpfi_interval]->[interval_type]
+
+  [interval]->[float_interval]
+  [interval]->[boost_interval]
+  [interval]->[mpfi_interval]
+]
+
+[Geometry|
+  [vector]->[interval]
+  [vertex]->[interval]
+
+  [edge]->[vector]
+
+  [transformation]->[vector]
+  [transformation]->[vertex]
+
+  [polygon]->[edge]
+  [polygon]->[vertex]
+
+  [polyhedron]->[vertex]
+
+  [geometry]->[transformation]
+  [geometry]->[polygon]
+  [geometry]->[polyhedron]
+]
+
+[Space|
+  [id]->[interval]
+
+  [box]->[id]
+  [box_queue]->[box]
+
+  [terminal_box]->[box]
+  [terminal_box]->[rectangle]
+  [terminal_box_queue]->[terminal_box]
+
+  [rectangle]->[id]
+  [rectangle_queue]->[rectangle]
+
+  [space]->[box_queue]
+  [space]->[terminal_box_queue]
+  [space]->[rectangle_queue]
+]
+
+[Pipeline|
+  [config]->[geometry]
+
+  [importer]->[config]
+  [importer]->[space]
+
+  [debug_exporter]->[geometry]
+  [debug_exporter]->[space]
+
+  [exporter]->[config]
+  [exporter]->[space]
+
+  [box_processor]->[config]
+  [box_processor]->[debug_exporter]
+  [box_processor]->[space]
+
+  [pipeline]->[importer]
+  [pipeline]->[box_processor]
+  [pipeline]->[exporter]
+]
+
+[Pipeline]-->[Geometry]
+[Pipeline]-->[Space]
+[Geometry]-->[Interval]
+[Space]-->[Interval]
+[Interval]-->[Number]
