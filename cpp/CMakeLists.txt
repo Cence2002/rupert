@@ -75,9 +75,8 @@ include_directories(
 
 add_executable(rupert main.cpp)
 
-find_package(OpenCV REQUIRED)
 find_library(GMP_LIB gmp REQUIRED)
 find_library(GMPXX_LIB gmpxx REQUIRED)
 find_library(MPFR_LIB mpfr REQUIRED)
 find_library(MPFI_LIB mpfi REQUIRED)
-target_link_libraries(rupert PRIVATE ${OpenCV_LIBS} ${GMP_LIB} ${GMPXX_LIB} ${MPFR_LIB} ${MPFI_LIB} /usr/lib/x86_64-linux-gnu/libflatbuffers.a)
+target_link_libraries(rupert PRIVATE ${GMP_LIB} ${GMPXX_LIB} ${MPFR_LIB} ${MPFI_LIB} /usr/lib/x86_64-linux-gnu/libflatbuffers.a)
