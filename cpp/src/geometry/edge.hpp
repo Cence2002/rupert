@@ -50,6 +50,10 @@ public:
         return to_ - from_;
     }
 
+    Vector<Interval> midpoint() const {
+        return (from_ + to_) / Interval(2);
+    }
+
     Orientation orientation(const Vector<Interval>& vector) const {
         const Interval cross = Vector<Interval>::cross(direction(), vector - from_);
         if(cross.is_positive()) {
@@ -87,9 +91,7 @@ public:
         if(edge_from_dot > edge.direction().len_sqr() && edge_to_dot > edge.direction().len_sqr()) {
             return true;
         }
-        const Vector<Interval> midpoint = (from_ + to_) / Interval(2);
-        const Vector<Interval> edge_midpoint = (edge.from() + edge.to()) / Interval(2);
-        return (edge_midpoint - midpoint).len() > (direction().len() + edge.direction().len()) / 2;
+        return (edge.midpoint() - midpoint()).len() > (direction().len() + edge.direction().len()) / 2;
     }
 
     bool avoids(const Vector<Interval>& vector) const {
@@ -100,8 +102,7 @@ public:
         if(dot.is_negative() || dot > direction().len_sqr()) {
             return true;
         }
-        const Vector<Interval> midpoint = (from_ + to_) / Interval(2);
-        return (vector - midpoint).len_sqr() > direction().len_sqr() / 4;
+        return (vector - midpoint()).len() > direction().len() / 2;
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Edge& edge) {

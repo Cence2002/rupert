@@ -70,67 +70,54 @@ public:
             Vector<Interval>(projected_vertex.x(), Interval(projected_vertex.y().min())),
             Vector<Interval>(projected_vertex.x(), Interval(projected_vertex.y().max()))
         );
-        for(const Edge<Interval>& edge: edges()) {
-            if(!projected_edge.avoids(edge)) {
-                return false;
-            }
-        }
-        return true;
+        return std::ranges::all_of(edges(), [&](const Edge<Interval>& edge) {
+            return projected_edge.avoids(edge);
+        });
     }
 
     bool is_projected_vertex_avoiding_edge_advanced_fixed_phi(const Vertex<Interval>& vertex, const Interval& theta, const typename Interval::Number& phi, const Edge<Interval>& edge) const {
-        const Interval transformation_addition = vertex.z() * Interval(phi).sin();
-        const Interval transformation_division = Interval(phi).cos();
-        const Edge<Interval> transformed_edge(
-            Vector<Interval>(
-                edge.from().x(),
-                (edge.from().y() + transformation_addition) / transformation_division
-            ),
-            Vector<Interval>(
-                edge.to().x(),
-                (edge.to().y() + transformation_addition) / transformation_division
-            )
+        const Interval translation_factor = vertex.z() * Interval(phi).sin();
+        const Interval scaling_factor = Interval(phi).cos();
+        const Vector<Interval> transformed_edge_from(
+            edge.from().x(),
+            (edge.from().y() + translation_factor) / scaling_factor
         );
-        const Vector<Interval> transformed_edge_direction = transformed_edge.direction();
+        const Vector<Interval> transformed_edge_to(
+            edge.to().x(),
+            (edge.to().y() + translation_factor) / scaling_factor
+        );
+        const Edge<Interval> transformed_edge(transformed_edge_from, transformed_edge_to);
 
         const Interval radius_squared = vertex.x() * vertex.x() + vertex.y() * vertex.y();
-        const Interval double_quadratic_term = 2 * transformed_edge_direction.len_sqr();
-        const Interval linear_term = 2 * Vector<Interval>::dot(transformed_edge_direction, transformed_edge.from());
+        const Interval double_quadratic_term = 2 * transformed_edge.direction().len_sqr();
+        const Interval linear_term = 2 * Vector<Interval>::dot(transformed_edge.direction(), transformed_edge.from());
         const Interval constant_term = transformed_edge.from().len_sqr() - radius_squared;
         const Interval discriminant = linear_term.sqr() - 2 * double_quadratic_term * constant_term;
         if(!discriminant.is_positive()) {
             return true;
         }
         const Interval sqrt_discriminant = discriminant.sqrt();
-        std::array<Interval, 2> solutions = {
+        const std::array<Interval, 2> solutions = {
             (-linear_term + sqrt_discriminant) / double_quadratic_term,
             (-linear_term - sqrt_discriminant) / double_quadratic_term
         };
 
         const Vector<Interval> min_projected_vertex = projection_trivial(vertex, Interval(theta.min()), Interval(phi));
         const Vector<Interval> max_projected_vertex = projection_trivial(vertex, Interval(theta.max()), Interval(phi));
+        const Vector<Interval> transformed_min_projected_vertex = Vector<Interval>(
+            min_projected_vertex.x(),
+            (min_projected_vertex.y() + translation_factor) / scaling_factor
+        );
         const Vector<Interval> transformed_max_projected_vertex = Vector<Interval>(
             max_projected_vertex.x(),
-            (max_projected_vertex.y() + transformation_addition) / transformation_division
+            (max_projected_vertex.y() + translation_factor) / scaling_factor
         );
-        const Edge<Interval> projected_vertex_edge(
-            Vector<Interval>(
-                min_projected_vertex.x(),
-                (min_projected_vertex.y() + transformation_addition) / transformation_division
-            ),
-            Vector<Interval>(
-                max_projected_vertex.x(),
-                (max_projected_vertex.y() + transformation_addition) / transformation_division
-            )
-        );
+        const Edge<Interval> projected_vertex_edge(transformed_min_projected_vertex, transformed_max_projected_vertex);
         for(const Interval& solution: solutions) {
             if(solution.is_negative() || solution > 1) {
                 continue;
             }
-            const Vector<Interval> intersection(
-                transformed_edge.from().x() + solution * transformed_edge_direction.x(),
-                transformed_edge.from().y() + solution * transformed_edge_direction.y()
-            );
+            const Vector<Interval> intersection = transformed_edge.from() + transformed_edge.direction() * solution;
             if(!projected_vertex_edge.avoids(Edge<Interval>(Vector<Interval>(Interval(0), Interval(0)), intersection))) {
                 return false;
             }
@@ -144,12 +131,9 @@ public:
             // default to combined
             return is_projected_vertex_outside_polygon_combined(vertex, theta, Interval(phi));
         }
-        for(const Edge<Interval>& edge: edges()) {
-            if(!is_projected_vertex_avoiding_edge_advanced_fixed_phi(vertex, theta, phi, edge)) {
-                return false;
-            }
-        }
-        return true;
+        return std::ranges::all_of(edges(), [&](const Edge<Interval>& edge) {
+            return is_projected_vertex_avoiding_edge_advanced_fixed_phi(vertex, theta, phi, edge);
+        });
     }
 
     bool is_projected_vertex_outside_polygon_advanced(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) const {
