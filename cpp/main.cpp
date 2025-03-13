@@ -1,5 +1,17 @@
 #include "test/test.hpp"
 #include "pipeline/pipeline.hpp"
+#include <csignal>
+
+using IntervalMode = FloatInterval;
+
+std::optional<Pipeline<FloatInterval>> pipeline;
+
+void signal_handler(int) {
+    if(pipeline.has_value()) {
+        std::cout << "Stopping pipeline" << std::endl;
+        pipeline->stop();
+    }
+}
 
 int main() {
     tests();
@@ -22,9 +34,12 @@ int main() {
         "../../web/static"
     );
 
-    Pipeline<Interval> pipeline(config);
-    pipeline.init();
-    pipeline.start();
+    std::signal(SIGINT, signal_handler);
+
+    pipeline.emplace(config);
+    pipeline->init();
+    pipeline->start();
+    print("Pipeline stopped gracefully");
 
     return 0;
 }
