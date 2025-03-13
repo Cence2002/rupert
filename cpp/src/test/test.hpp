@@ -11,7 +11,7 @@ private:
     std::mt19937_64 engine_;
 
 public:
-    RandomNumberGenerator() : engine_(default_seed) {}
+    explicit RandomNumberGenerator() : engine_(default_seed) {}
 
     explicit RandomNumberGenerator(const std::mt19937_64::result_type seed) : engine_(seed) {}
 

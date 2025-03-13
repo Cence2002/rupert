@@ -36,7 +36,7 @@ private:
     Vector<Interval> to_;
 
 public:
-    explicit Edge(const Vector<Interval>& from, const Vector<Interval>& to) noexcept: from_(from), to_(to) {}
+    explicit Edge(const Vector<Interval>& from, const Vector<Interval>& to) noexcept : from_(from), to_(to) {}
 
     Vector<Interval> from() const {
         return from_;

@@ -10,7 +10,7 @@ private:
     std::vector<Rectangle> rectangles_;
 
 public:
-    TerminalBox(const Box& box, const std::vector<Rectangle>& rectangles) : box_(box), rectangles_(rectangles) {}
+    explicit TerminalBox(const Box& box, const std::vector<Rectangle>& rectangles) : box_(box), rectangles_(rectangles) {}
 
     static TerminalBox invalid() {
         return TerminalBox(Box::invalid(), {});

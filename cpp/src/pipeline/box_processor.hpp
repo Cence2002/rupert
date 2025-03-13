@@ -97,10 +97,10 @@ public:
         DebugExporter& debug_exporter,
         BoxQueue& box_queue,
         TerminalBoxQueue& terminal_box_queue
-    ): config_(config),
-       debug_exporter_(debug_exporter),
-       box_queue_(box_queue),
-       terminal_box_queue_(terminal_box_queue) {}
+    ) : config_(config),
+        debug_exporter_(debug_exporter),
+        box_queue_(box_queue),
+        terminal_box_queue_(terminal_box_queue) {}
 
     bool process() {
         const std::optional<Box> optional_box = box_queue_.pop();

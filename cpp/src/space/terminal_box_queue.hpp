@@ -11,7 +11,7 @@ private:
     size_t size_;
 
 public:
-    TerminalBoxQueue() : queue_(), mutex_(), size_(0) {}
+    explicit TerminalBoxQueue() : queue_(), mutex_(), size_(0) {}
 
     size_t size() const {
         return size_;

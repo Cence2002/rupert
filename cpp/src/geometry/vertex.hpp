@@ -22,7 +22,7 @@ public:
 
     Vertex& operator=(Vertex&& vertex) = default;
 
-    explicit Vertex(const Interval& x, const Interval& y, const Interval& z) noexcept: x_(x), y_(y), z_(z) {}
+    explicit Vertex(const Interval& x, const Interval& y, const Interval& z) noexcept : x_(x), y_(y), z_(z) {}
 
     Interval& x() {
         return x_;
@@ -72,8 +72,12 @@ public:
         return Vertex(x_ / interval, y_ / interval, z_ / interval);
     }
 
-    Interval len_sqr() const {
+    Interval len() const {
         return (x_.sqr() + y_.sqr() + z_.sqr()).sqrt();
+    }
+
+    Interval len_sqr() const {
+        return x_.sqr() + y_.sqr() + z_.sqr();
     }
 
     friend std::ostream& operator<<(std::ostream& ostream, const Vertex& vertex) {
