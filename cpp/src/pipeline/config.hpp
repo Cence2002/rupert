@@ -1,6 +1,7 @@
 #pragma once
 
 #include "geometry/geometry.hpp"
+#include "space/space.hpp"
 #include <cstdint>
 #include <filesystem>
 

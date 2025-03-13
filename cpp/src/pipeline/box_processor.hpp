@@ -1,8 +1,6 @@
 #pragma once
 
-#include "pipeline/config.hpp"
 #include "pipeline/debug_exporter.hpp"
-#include "space/space.hpp"
 
 template<IntervalType Interval>
 struct BoxProcessor {

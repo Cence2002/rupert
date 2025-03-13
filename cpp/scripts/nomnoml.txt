@@ -1,13 +1,14 @@
-#title: rupert
+// https://www.nomnoml.com/
+
+#title: dependencies
 #ranker: tight-tree
 #zoom: 1
 
 #arrowSize: 0.75
-#bendSize: 0.5
+#bendSize: 0.25
 #direction: down
-#gutter: 5
-#edgeMargin: 0
-#gravity: 1
+#gutter: 8
+#edgeMargin: 1
 #edges: rounded
 #background: white
 #fill: #ddddff; #ddffdd
@@ -16,8 +17,8 @@
 #fontSize: 12
 #leading: 1.25
 #lineWidth: 2
-#padding: 6
-#spacing: 40
+#padding: 4
+#spacing: 32
 #stroke: #33322E
 
 [Number|
@@ -79,22 +80,16 @@
 
 [Pipeline|
   [config]->[geometry]
+  [config]->[space]
 
-  [importer]->[config]
-  [importer]->[space]
+  [debug_exporter]->[config]
 
-  [debug_exporter]->[geometry]
-  [debug_exporter]->[space]
-
-  [exporter]->[config]
-  [exporter]->[space]
-
-  [box_processor]->[config]
   [box_processor]->[debug_exporter]
-  [box_processor]->[space]
+  [importer]->[config]
+  [exporter]->[config]
 
-  [pipeline]->[importer]
   [pipeline]->[box_processor]
+  [pipeline]->[importer]
   [pipeline]->[exporter]
 ]
 

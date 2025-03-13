@@ -1,6 +1,5 @@
 #pragma once
 
-#include "pipeline/config.hpp"
 #include "pipeline/box_processor.hpp"
 #include "pipeline/importer.hpp"
 #include "pipeline/exporter.hpp"
