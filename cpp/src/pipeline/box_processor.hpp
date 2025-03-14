@@ -84,8 +84,8 @@ private:
                 return std::nullopt;
             }
             debug_exporter_.cover_builder.box_builder.add_rectangle(debug_exporter_.builder);
-            for(const Rectangle& sub_rectangle: rectangle.subdivide()) {
-                rectangle_queue.push(sub_rectangle);
+            for(const Rectangle& rectangle_part: rectangle.parts()) {
+                rectangle_queue.push(rectangle_part);
             }
         }
         return std::nullopt;
@@ -119,8 +119,8 @@ public:
             terminal_box_queue_.push(optional_terminal_box.value());
         } else {
             std::cout << "Non Terminal Box: " << box << std::endl;
-            for(const Box& sub_box: box.subdivide()) {
-                box_queue_.push(sub_box);
+            for(const Box& box_part: box.parts()) {
+                box_queue_.push(box_part);
             }
         }
         debug_exporter_.cover_builder.add_box(debug_exporter_.builder);

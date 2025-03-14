@@ -37,7 +37,9 @@ public:
         }
 
         const size_t size = size_from_stream(file);
+
         std::vector<Box> boxes;
+        boxes.reserve(size);
         std::ranges::generate_n(std::back_inserter(boxes), size, [&] {
             return Box::from_bytes(file);
         });

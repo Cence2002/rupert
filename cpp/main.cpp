@@ -16,12 +16,10 @@ void signal_handler(int) {
 int main() {
     tests();
 
-    using Interval = FloatInterval;
+    const Polyhedron<IntervalMode> hole = Polyhedron<IntervalMode>::rhombicosidodecahedron();
+    const Polyhedron<IntervalMode> plug = Polyhedron<IntervalMode>::rhombicosidodecahedron();
 
-    const Polyhedron<Interval> hole = Polyhedron<Interval>::rhombicosidodecahedron();
-    const Polyhedron<Interval> plug = Polyhedron<Interval>::rhombicosidodecahedron();
-
-    const Config<Interval> config(
+    const Config<IntervalMode> config(
         "RID",
         hole,
         plug,

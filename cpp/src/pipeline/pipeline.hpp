@@ -45,12 +45,12 @@ private:
                 std::this_thread::sleep_for(std::chrono::seconds(1));
                 continue;
             }
-            exporter.export_terminal_boxes(terminal_box_queue_.flush());
+            exporter.export_terminal_boxes(terminal_box_queue_.pop_all());
         }
         while(terminated_thread_count_ < config_.thread_count()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
-        exporter.export_terminal_boxes(terminal_box_queue_.flush());
+        exporter.export_terminal_boxes(terminal_box_queue_.pop_all());
         exporter.export_boxes(box_queue_.pop_all());
 
         debug_exporter_.cover_builder.set_description("Exported Cover");

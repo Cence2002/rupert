@@ -56,7 +56,7 @@ public:
         return Id(static_cast<uint8_t>(depth_ + 1), static_cast<uint16_t>((bits_ << 1) | 1));
     }
 
-    std::pair<Id, Id> subdivide() const {
+    std::pair<Id, Id> parts() const {
         if(is_invalid()) {
             throw std::runtime_error("Invalid Id");
         }

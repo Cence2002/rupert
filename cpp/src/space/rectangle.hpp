@@ -33,14 +33,14 @@ public:
         return theta_id_.size() + phi_id_.size();
     }
 
-    std::array<Rectangle, 4> subdivide() const {
-        const auto [theta_id_min_half, theta_id_max_half] = theta_id_.subdivide();
-        const auto [phi_id_min_half, phi_id_max_half] = phi_id_.subdivide();
+    std::array<Rectangle, 4> parts() const {
+        const auto [theta_id_min_part, theta_id_max_part] = theta_id_.parts();
+        const auto [phi_id_min_part, phi_id_max_part] = phi_id_.parts();
         return std::array<Rectangle, 4>{
-            Rectangle(theta_id_min_half, phi_id_min_half),
-            Rectangle(theta_id_min_half, phi_id_max_half),
-            Rectangle(theta_id_max_half, phi_id_min_half),
-            Rectangle(theta_id_max_half, phi_id_max_half)
+            Rectangle(theta_id_min_part, phi_id_min_part),
+            Rectangle(theta_id_min_part, phi_id_max_part),
+            Rectangle(theta_id_max_part, phi_id_min_part),
+            Rectangle(theta_id_max_part, phi_id_max_part)
         };
     }
 

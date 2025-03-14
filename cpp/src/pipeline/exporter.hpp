@@ -40,6 +40,7 @@ public:
         }
 
         size_to_stream(file, boxes.size());
+
         for(const Box& box: boxes) {
             box.to_stream(file);
         }

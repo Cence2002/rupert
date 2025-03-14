@@ -23,7 +23,7 @@ public:
         size_ += terminal_box.size();
     }
 
-    std::vector<TerminalBox> flush() {
+    std::vector<TerminalBox> pop_all() {
         std::lock_guard<std::mutex> lock(mutex_);
         std::vector<TerminalBox> terminal_boxes;
         terminal_boxes.reserve(queue_.size());
