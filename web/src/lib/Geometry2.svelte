@@ -1,6 +1,6 @@
 <script lang="ts">
     import ThreeElement from "$lib/ThreeElement.svelte";
-    import {Cover} from "$lib/flatbuffers/flat-buffers/cover";
+    import {Boxes} from "$lib/flatbuffers/flat-buffers/boxes";
     import {Selection} from "$lib/state.svelte";
 
     import {MapControls} from "three/addons/controls/MapControls.js";
@@ -26,12 +26,12 @@
     } from "three";
     import {convexHull} from "$lib/geometry";
 
-    let {cover, selection} = $props<{
-        cover: Cover | undefined,
+    let {boxes, selection} = $props<{
+        boxes: Boxes | undefined,
         selection: Selection,
     }>();
 
-    $effect(onCover);
+    $effect(onBoxes);
 
     $effect(onSelectBox3);
 
@@ -63,24 +63,24 @@
     let rectangleProjections: Group[] = [];
     let rectangleOut: number[] = [];
 
-    function onCover() {
-        if (!cover) {
+    function onBoxes() {
+        if (!boxes) {
             return;
         }
         {
-            const coverHole = cover!.hole();
+            const boxesHole = boxes!.hole();
             let vertices: Vector3[] = [];
-            for (let index = 0; index < coverHole.verticesLength(); index++) {
-                const vertex = coverHole.vertices(index);
+            for (let index = 0; index < boxesHole.verticesLength(); index++) {
+                const vertex = boxesHole.vertices(index);
                 vertices.push(new Vector3(vertex.x(), vertex.y(), vertex.z()));
             }
             holeRadius = Math.max(...vertices.map(v => v.length()));
         }
         {
-            const coverPlug = cover!.plug();
+            const boxesPlug = boxes!.plug();
             let vertices = [];
-            for (let index = 0; index < coverPlug.verticesLength(); index++) {
-                const vertex = coverPlug.vertices(index);
+            for (let index = 0; index < boxesPlug.verticesLength(); index++) {
+                const vertex = boxesPlug.vertices(index);
                 vertices.push(new Vector3(vertex.x(), vertex.y(), vertex.z()));
             }
             plugRadius = Math.max(...vertices.map(v => v.length()));
@@ -95,7 +95,7 @@
         if (selection.selectedBox3 === null) {
             return;
         }
-        const box = cover!.boxes(selection.selectedBox3);
+        const box = boxes!.boxes(selection.selectedBox3);
 
         for (let index = 0; index < box.projectionsLength(); index++) {
             const projection = box.projections(index);
@@ -167,11 +167,11 @@
         if (selection.selectedRectangle === null) {
             return;
         }
-        const box = cover!.boxes(selection.selectedBox3);
+        const box = boxes!.boxes(selection.selectedBox3);
         const rectangle = box.rectangles(selection.selectedRectangle);
 
-        for (let index = 0; index < rectangle.outLength(); index++) {
-            rectangleOut.push(rectangle.out(index));
+        for (let index = 0; index < rectangle.outIndicesLength(); index++) {
+            rectangleOut.push(rectangle.outIndices(index));
         }
 
         for (let index = 0; index < rectangle.projectionsLength(); index++) {
@@ -187,7 +187,7 @@
             const hullMaterial = new MeshBasicMaterial({
                 color: new Color(0, 1, 0),
                 transparent: true,
-                opacity: (selection.selectedRectangle == box.in_()) ? 0.25 : (rectangleOut.includes(index) ? 0.5 : 0),
+                opacity: (selection.selectedRectangle == box.inIndex()) ? 0.25 : (rectangleOut.includes(index) ? 0.5 : 0),
                 side: FrontSide,
                 depthWrite: false,
             });

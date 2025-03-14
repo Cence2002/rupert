@@ -26,7 +26,6 @@ add_compile_options(
     -Wunused
     -Wuseless-cast
     -Wuninitialized
-    -Wstrict-overflow=5
     -Wstringop-overflow=4
 
     -Wsuggest-attribute=pure
@@ -60,7 +59,6 @@ add_compile_options(
     -Weffc++
     -Wold-style-cast
     -Wsign-promo
-    -Wno-template-id-cdtor
     -Wextra-semi
 )
 

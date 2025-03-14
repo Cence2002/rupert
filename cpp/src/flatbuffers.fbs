@@ -27,41 +27,43 @@ table Polyhedron {
 struct Interval {
   min: double;
   max: double;
+  mid: double;
+  len: double;
 }
 
 struct Id {
-  bits: uint64;
   depth: uint8;
-  interval: Interval; // helper
+  bits: uint16;
+  interval: Interval;
 }
 
-table Projection { // helper
+table Projection {
   vectors: [Vector];
 }
 
 table Rectangle {
   theta: Id;
   phi: Id;
-  projections: [Projection]; // helper
-  out: [uint8]; // helper
+  projections: [Projection];
+  out_indices: [uint32];
 }
 
 table Box {
   theta: Id;
   phi: Id;
   alpha: Id;
-  projections: [Projection]; // helper
-  projection: Polygon; // helper
+  projections: [Projection];
+  projection: Polygon;
   rectangles: [Rectangle];
-  complete: bool; // helper
-  in: int32; // helper
+  terminal: bool;
+  in_index: int32;
 }
 
-table Cover {
+table Boxes {
   description: string;
   hole: Polyhedron;
   plug: Polyhedron;
   boxes: [Box];
 }
 
-root_type Cover;
+root_type Boxes;

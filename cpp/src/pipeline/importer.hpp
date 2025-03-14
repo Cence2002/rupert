@@ -17,23 +17,22 @@ private:
 public:
     explicit Importer(const Config<Interval>& config) : config_(config) {}
 
-    bool can_import() {
-        const std::filesystem::path path = config_.boxes_path();
-        if(!std::filesystem::exists(path)) {
-            return false;
+    void restart() {
+        const std::filesystem::path boxes_path = config_.boxes_path();
+        if(std::filesystem::exists(boxes_path)) {
+            std::filesystem::remove(boxes_path);
         }
-        std::ifstream file(path, std::ios::binary);
-        if(!file.is_open()) {
-            return false;
+        const std::filesystem::path terminal_boxes_path = config_.terminal_boxes_path();
+        if(std::filesystem::exists(terminal_boxes_path)) {
+            std::filesystem::remove(terminal_boxes_path);
         }
-        return size_from_stream(file) > 0;
     }
 
     std::vector<Box> import_boxes() {
         const std::filesystem::path path = config_.boxes_path();
         std::ifstream file(path, std::ios::binary);
         if(!file.is_open()) {
-            throw std::runtime_error("Failed to open " + path.string());
+            return {};
         }
 
         const size_t size = size_from_stream(file);

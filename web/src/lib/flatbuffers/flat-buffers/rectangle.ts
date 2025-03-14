@@ -44,19 +44,19 @@ projectionsLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-out(index: number):number|null {
+outIndices(index: number):number|null {
   const offset = this.bb!.__offset(this.bb_pos, 10);
-  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
+  return offset ? this.bb!.readUint32(this.bb!.__vector(this.bb_pos + offset) + index * 4) : 0;
 }
 
-outLength():number {
+outIndicesLength():number {
   const offset = this.bb!.__offset(this.bb_pos, 10);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-outArray():Uint8Array|null {
+outIndicesArray():Uint32Array|null {
   const offset = this.bb!.__offset(this.bb_pos, 10);
-  return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
+  return offset ? new Uint32Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 }
 
 static startRectangle(builder:flatbuffers.Builder) {
@@ -87,20 +87,25 @@ static startProjectionsVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 }
 
-static addOut(builder:flatbuffers.Builder, outOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(3, outOffset, 0);
+static addOutIndices(builder:flatbuffers.Builder, outIndicesOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(3, outIndicesOffset, 0);
 }
 
-static createOutVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
-  builder.startVector(1, data.length, 1);
+static createOutIndicesVector(builder:flatbuffers.Builder, data:number[]|Uint32Array):flatbuffers.Offset;
+/**
+ * @deprecated This Uint8Array overload will be removed in the future.
+ */
+static createOutIndicesVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset;
+static createOutIndicesVector(builder:flatbuffers.Builder, data:number[]|Uint32Array|Uint8Array):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
   for (let i = data.length - 1; i >= 0; i--) {
-    builder.addInt8(data[i]!);
+    builder.addInt32(data[i]!);
   }
   return builder.endVector();
 }
 
-static startOutVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(1, numElems, 1);
+static startOutIndicesVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
 }
 
 static endRectangle(builder:flatbuffers.Builder):flatbuffers.Offset {

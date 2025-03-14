@@ -26,7 +26,7 @@ public:
         return depth_;
     }
 
-    uint64_t bits() const {
+    uint16_t bits() const {
         return bits_;
     }
 

@@ -1,6 +1,6 @@
 <script lang="ts">
     import {PaneGroup, Pane, PaneResizer} from "paneforge";
-    import {Cover} from '$lib/flatbuffers/flatbuffers_generated';
+    import {Boxes} from '$lib/flatbuffers/flatbuffers_generated';
     import {Selection} from "$lib/state.svelte";
 
     import Parameter3 from "$lib/Parameter3.svelte";
@@ -9,14 +9,14 @@
     import Geometry2 from "$lib/Geometry2.svelte";
 
     import {onMount} from 'svelte';
-    import {loadCover} from "$lib/loader";
+    import {loadBoxes} from "$lib/loader";
 
-    let cover: Cover | undefined = $state();
+    let boxes: Boxes | undefined = $state();
     let selection = new Selection();
 
     onMount(async () => {
-        cover = await loadCover("/cover.bin");
-        console.log("Fetched:", cover!.description());
+        boxes = await loadBoxes("/RID_debug.bin");
+        console.log("Loaded:", boxes!.description());
     });
 </script>
 
@@ -31,7 +31,7 @@
         <PaneGroup class="h-full w-full" direction="vertical">
             <Pane defaultSize={1}>
                 <div id="pane">
-                    <Parameter3 {cover} {selection}/>
+                    <Parameter3 {boxes} {selection}/>
                 </div>
             </Pane>
 
@@ -41,7 +41,7 @@
 
             <Pane defaultSize={1}>
                 <div id="pane">
-                    <Parameter2 {cover} {selection}/>
+                    <Parameter2 {boxes} {selection}/>
                 </div>
             </Pane>
         </PaneGroup>
@@ -53,7 +53,7 @@
 
     <Pane defaultSize={4}>
         <div id="pane">
-            <Geometry3 {cover} {selection}/>
+            <Geometry3 {boxes} {selection}/>
         </div>
     </Pane>
 
@@ -63,7 +63,7 @@
 
     <Pane defaultSize={2}>
         <div id="pane">
-            <Geometry2 {cover} {selection}/>
+            <Geometry2 {boxes} {selection}/>
         </div>
     </Pane>
 </PaneGroup>

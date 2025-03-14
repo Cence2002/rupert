@@ -1,6 +1,6 @@
 <script lang="ts">
     import ThreeElement from "$lib/ThreeElement.svelte";
-    import {Cover} from "$lib/flatbuffers/flatbuffers_generated";
+    import {Boxes} from "$lib/flatbuffers/flatbuffers_generated";
     import {Selection} from "$lib/state.svelte";
 
     import {MapControls} from 'three/addons/controls/MapControls.js';
@@ -22,12 +22,12 @@
         FrontSide, Color
     } from "three";
 
-    let {cover, selection} = $props<{
-        cover: Cover | undefined,
+    let {boxes, selection} = $props<{
+        boxes: Boxes | undefined,
         selection: Selection,
     }>();
 
-    $effect(onCover);
+    $effect(onBoxes);
 
     $effect(onSelectBox3);
 
@@ -55,8 +55,8 @@
 
     let rectangleGroups: Group[] = [];
 
-    function onCover() {
-        if (!cover) {
+    function onBoxes() {
+        if (!boxes) {
             return;
         }
     }
@@ -65,7 +65,7 @@
         if (selection.selectedBox3 === null) {
             return;
         }
-        const box = cover!.boxes(selection.selectedBox3)
+        const box = boxes!.boxes(selection.selectedBox3);
         for (let index = 0; index < box.rectanglesLength(); index++) {
             const rectangle = box.rectangles(index);
 
@@ -76,7 +76,7 @@
             const rectangleMaterial = new MeshBasicMaterial({
                 color: new Color(0, 1, 0),
                 transparent: true,
-                opacity: (index == box.in_()) ? 0.75 : (rectangle.outLength() > 0 ? 0.25 : 0.0),
+                opacity: (index == box.inIndex()) ? 0.75 : (rectangle.outIndicesLength() > 0 ? 0.25 : 0.0),
                 side: FrontSide,
                 depthWrite: false
             });
@@ -92,7 +92,7 @@
 
             const rectangleGroup = new Group();
             rectangleGroup.add(rectangleMesh);
-            if (rectangle.outLength() > 0) {
+            if (rectangle.outIndicesLength() > 0) {
                 rectangleGroup.add(rectangleEdges);
             }
 

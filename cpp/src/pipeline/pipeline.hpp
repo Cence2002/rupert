@@ -15,7 +15,7 @@ private:
 
     Importer<Interval> importer_;
     Exporter<Interval> exporter_;
-    DebugExporter debug_exporter_;
+    DebugExporter<Interval> debug_exporter_;
 
     std::vector<std::thread> processor_threads_;
     std::thread exporter_thread_;
@@ -53,10 +53,9 @@ private:
         exporter.export_terminal_boxes(terminal_box_queue_.pop_all());
         exporter.export_boxes(box_queue_.pop_all());
 
-        debug_exporter_.cover_builder.set_description("Exported Cover");
-        debug_exporter_.cover_builder.set_hole(debug_exporter_.builder, config_.hole());
-        debug_exporter_.cover_builder.set_plug(debug_exporter_.builder, config_.plug());
-        debug_exporter_.save("../../web/static/cover.bin");
+        if(config_.debug_enabled()) {
+            debug_exporter_.export_debug();
+        }
 
         mpfr_free_cache();
     }
@@ -67,24 +66,33 @@ public:
                                                         terminal_box_queue_(),
                                                         importer_(config),
                                                         exporter_(config),
-                                                        debug_exporter_(),
+                                                        debug_exporter_(config),
                                                         processor_threads_(),
                                                         exporter_thread_(),
                                                         processed_box_count_(0),
                                                         terminated_(false),
-                                                        terminated_thread_count_(0) {}
+                                                        terminated_thread_count_(0) {
+        if(config_.debug_enabled()) {
+            debug_exporter_.boxes_builder.set_description(config_.description());
+            debug_exporter_.boxes_builder.set_hole(config_.hole());
+            debug_exporter_.boxes_builder.set_plug(config_.plug());
+        }
+    }
 
     void init() {
-        if(importer_.can_import()) {
-            const std::vector<Box> boxes = importer_.import_boxes();
-            box_queue_.push_all(boxes);
-        } else {
+        if(config_.restart()) {
+            importer_.restart();
+        }
+        const std::vector<Box> boxes = importer_.import_boxes();
+        if(boxes.empty()) {
             // box_queue_.push(Box()); // TODO: Use this instead of the magic numbers
             box_queue_.push(Box(
                 Id(4, 0b0101),
                 Id(4, 0b0011),
                 Id(4, 0b1010)
             ));
+        } else {
+            box_queue_.push_all(boxes);
         }
     }
 

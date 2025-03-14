@@ -6,22 +6,22 @@ import { Box } from '../flat-buffers/box';
 import { Polyhedron } from '../flat-buffers/polyhedron';
 
 
-export class Cover {
+export class Boxes {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):Cover {
+  __init(i:number, bb:flatbuffers.ByteBuffer):Boxes {
   this.bb_pos = i;
   this.bb = bb;
   return this;
 }
 
-static getRootAsCover(bb:flatbuffers.ByteBuffer, obj?:Cover):Cover {
-  return (obj || new Cover()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+static getRootAsBoxes(bb:flatbuffers.ByteBuffer, obj?:Boxes):Boxes {
+  return (obj || new Boxes()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-static getSizePrefixedRootAsCover(bb:flatbuffers.ByteBuffer, obj?:Cover):Cover {
+static getSizePrefixedRootAsBoxes(bb:flatbuffers.ByteBuffer, obj?:Boxes):Boxes {
   bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new Cover()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+  return (obj || new Boxes()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
 description():string|null
@@ -51,7 +51,7 @@ boxesLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-static startCover(builder:flatbuffers.Builder) {
+static startBoxes(builder:flatbuffers.Builder) {
   builder.startObject(4);
 }
 
@@ -83,16 +83,16 @@ static startBoxesVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 }
 
-static endCover(builder:flatbuffers.Builder):flatbuffers.Offset {
+static endBoxes(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
 }
 
-static finishCoverBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
+static finishBoxesBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
   builder.finish(offset);
 }
 
-static finishSizePrefixedCoverBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
+static finishSizePrefixedBoxesBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
   builder.finish(offset, undefined, true);
 }
 

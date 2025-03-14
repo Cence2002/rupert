@@ -28,8 +28,10 @@ int main() {
         10000,
         2,
         2,
+        true,
+        "../../web/static",
         100000,
-        "../../web/static"
+        true
     );
 
     std::signal(SIGINT, signal_handler);

@@ -66,12 +66,12 @@ rectanglesLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-complete():boolean {
+terminal():boolean {
   const offset = this.bb!.__offset(this.bb_pos, 16);
   return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : false;
 }
 
-in_():number {
+inIndex():number {
   const offset = this.bb!.__offset(this.bb_pos, 18);
   return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
 }
@@ -128,12 +128,12 @@ static startRectanglesVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 }
 
-static addComplete(builder:flatbuffers.Builder, complete:boolean) {
-  builder.addFieldInt8(6, +complete, +false);
+static addTerminal(builder:flatbuffers.Builder, terminal:boolean) {
+  builder.addFieldInt8(6, +terminal, +false);
 }
 
-static addIn(builder:flatbuffers.Builder, in_:number) {
-  builder.addFieldInt32(7, in_, 0);
+static addInIndex(builder:flatbuffers.Builder, inIndex:number) {
+  builder.addFieldInt32(7, inIndex, 0);
 }
 
 static endBox(builder:flatbuffers.Builder):flatbuffers.Offset {

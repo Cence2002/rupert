@@ -1,6 +1,6 @@
 <script lang="ts">
     import ThreeElement from "$lib/ThreeElement.svelte";
-    import {Cover} from "$lib/flatbuffers/flat-buffers/cover";
+    import {Boxes} from "$lib/flatbuffers/flat-buffers/boxes";
     import {Selection} from "$lib/state.svelte";
 
     import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
@@ -24,12 +24,12 @@
     } from "three";
 
 
-    let {cover, selection} = $props<{
-        cover: Cover | undefined,
+    let {boxes, selection} = $props<{
+        boxes: Boxes | undefined,
         selection: Selection,
     }>();
 
-    $effect(onCover);
+    $effect(onBoxes);
 
     $effect(onSelectBox3);
 
@@ -57,13 +57,13 @@
 
     const boxGroups: Group[] = [];
 
-    function onCover() {
-        if (!cover) {
+    function onBoxes() {
+        if (!boxes) {
             return;
         }
         {
-            for (let index = 0; index < cover!.boxesLength(); index++) {
-                const box = cover!.boxes(index);
+            for (let index = 0; index < boxes!.boxesLength(); index++) {
+                const box = boxes!.boxes(index);
 
                 const theta = box.theta().interval();
                 const phi = box.phi().interval();
@@ -73,7 +73,7 @@
                 const boxMaterial = new MeshBasicMaterial({
                     color: new Color(0, 0, 1),
                     transparent: true,
-                    opacity: box.complete() ? 0.5 : 0.0,
+                    opacity: box.terminal() ? 0.5 : 0.0,
                     depthWrite: false
                 });
                 const boxMesh = new Mesh(boxGeometry, boxMaterial);
@@ -88,7 +88,7 @@
 
                 const boxGroup = new Group();
                 boxGroup.add(boxMesh);
-                if (box.complete()) {
+                if (box.terminal()) {
                     boxGroup.add(boxEdges);
                 }
 
