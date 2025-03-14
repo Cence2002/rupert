@@ -2,7 +2,7 @@
 #include "pipeline/pipeline.hpp"
 #include <csignal>
 
-using IntervalMode = FloatInterval;
+using I = FloatInterval;
 
 std::optional<Pipeline<FloatInterval>> pipeline;
 
@@ -16,10 +16,10 @@ void signal_handler(int) {
 int main() {
     tests();
 
-    const Polyhedron<IntervalMode> hole = Polyhedron<IntervalMode>::rhombicosidodecahedron();
-    const Polyhedron<IntervalMode> plug = Polyhedron<IntervalMode>::rhombicosidodecahedron();
+    const Polyhedron<I> hole = Polyhedra::rhombicosidodecahedron<I>();
+    const Polyhedron<I> plug = Polyhedra::rhombicosidodecahedron<I>();
 
-    const Config<IntervalMode> config(
+    const Config<I> config(
         "RID",
         hole,
         plug,
