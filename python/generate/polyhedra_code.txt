@@ -2,36 +2,41 @@
 
 template<IntervalType I>
 static Polyhedron<I> tetrahedron() {
-    const I c0 = I(2).sqrt() / 4;
-    return Polyhedron<I>(Polyhedron<I>::flips(Vertex<I>(c0, -c0, c0)));
+    const I c0 = I(2).sqrt() / I(4);
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        Polyhedron<I>::rotations({ Vertex<I>(c0, -c0, c0) }),
+        { Vertex<I>(-c0, -c0, -c0) }
+    }));
 }
 
 template<IntervalType I>
 static Polyhedron<I> octahedron() {
     const I c0 = I(2).sqrt() / 2;
-    return Polyhedron<I>(Polyhedron<I>::flips(Vertex<I>(I(0), I(0), c0)));
+    return Polyhedron<I>(Polyhedron<I>::permutations(Polyhedron<I>::flips(Vertex<I>(c0, I(0), I(0)))));
 }
 
 // Category: Archimedean
 
 template<IntervalType I>
 static Polyhedron<I> truncated_tetrahedron() {
-    const I c0 = I(2).sqrt() / 4;
-    const I c1 = 3 * I(2).sqrt() / 4;
+    const I c0 = I(2).sqrt() / I(4);
+    const I c1 = I(2).sqrt() * I(3) / I(4);
     return Polyhedron<I>(Polyhedron<I>::combined({
-        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c0, -c0, c1))),
-        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c1, -c0, c0))),
-        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c0, -c1, c0)))
+        Polyhedron<I>::flips(Vertex<I>(c0, c0, c1)),
+        Polyhedron<I>::flips(Vertex<I>(c1, c0, c0)),
+        Polyhedron<I>::flips(Vertex<I>(c0, c1, c0))
     }));
 }
 
 template<IntervalType I>
 static Polyhedron<I> cuboctahedron() {
-    const I c0 = I(2).sqrt() / 2;
-    return Polyhedron(Polyhedron<I>::combined({
-        Polyhedron<I>::rotations(Vertex<I>(c0, I(0), c0)),
-        Polyhedron<I>::rotations(Vertex<I>(c0, c0, I(0))),
-        Polyhedron<I>::rotations(Vertex<I>(I(0), c0, c0))
-    }));
+    const I c0 = I(2).sqrt() / I(2);
+    return Polyhedron<I>(
+        Polyhedron<I>::rotations(
+            Polyhedron<I>::flips(
+                Vertex<I>(c0, I(0), c0)
+            )
+        )
+    );
 }
 
