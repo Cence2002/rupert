@@ -70,7 +70,7 @@ def print_polyhedra_info(category, polyhedra_collection):
     print("-" * 60)
 
 
-def scrape_and_build_json(data_folder = "data"):
+def scrape_and_build_json(data_folder = "polyhedron_data"):
     categories = {}
     html_file_paths = sorted(
         glob.glob(os.path.join(data_folder, "*.html")),
@@ -92,7 +92,7 @@ def scrape_and_build_json(data_folder = "data"):
     return all_data
 
 
-final_polyhedra_dictionary = scrape_and_build_json("data")
+final_polyhedra_dictionary = scrape_and_build_json("polyhedron_data")
 output_file = "polyhedra.json"
 with open(output_file, "w", encoding="utf-8") as json_file:
     json.dump(final_polyhedra_dictionary, json_file, indent=2)
