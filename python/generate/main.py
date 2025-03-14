@@ -1,12 +1,21 @@
 import os
 import json
 from openai import OpenAI
+from dotenv import load_dotenv
+import asyncio
+
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+load_dotenv(dotenv_path)
 
 openai_api_key = os.getenv("OPENAI_API_KEY")
+if openai_api_key is None:
+    raise ValueError("OpenAI API key not found. Use set_openai_api_key to set it.")
+
+print(f"OpenAI API key: {openai_api_key[:6]} ... {openai_api_key[-6:]}")
 
 client = OpenAI(api_key=openai_api_key)
 
-model = "o1"
+model = "gpt-4o"
 
 helper_functions = """
 
@@ -289,42 +298,56 @@ Here are a few examples of what I would like you to generate. For each example, 
 Always use snake case for the function name, and lowercase variable names, with consistent naming as in the example.
 All coordinates need to be intervals, even simple integers. Use the I(int) method to generate these. Note that Intervals can only be initialized with integer constants,
 so you must define fractions like 0.5 as I(1) / 2
-Exclude all comments and output only the generated C++ (templated) function code (raw text output), without any additional information or context (even the code block ```cpp).
+Exclude all comments and output only a single generated C++ (templated) function code.
+It should be a raw text output, without the ``` around the code block.
 
 The JSON data is provided below, please remember all tasks, and think through the answer carefully before generating the single function for this polyhedron!
 
 """
 
-all_generated_code = ""
 
-with open("../scrape/polyhedra.json", "r") as json_file:
-    polyhedra = json.load(json_file)
+async def generate_response(polyhedron):
+    prompt = (
+        f"{base_prompt}\n\n"
+        f"Polyhedron Name: {polyhedron['name']}\n"
+        f"Constants: {json.dumps(polyhedron['constants'])}\n"
+        f"Vertices: {json.dumps(polyhedron['vertices'])}\n\n"
+        "Generate the corresponding C++ function."
+    )
+    response = client.responses.create(
+        model=model,
+        instructions="You are an expert C++ code generator that converts structured symbolic JSON polyhedron definition data into functions using helper functions.",
+        input=prompt,
+    )
+    return response.output_text
 
-for category, polyhedron_list in polyhedra["Polyhedra"].items():
-    for polyhedron in polyhedron_list:
-        if polyhedron["name"] != "Rhombicosidodecahedron":
-            continue
 
-        prompt = (
-            f"{base_prompt}\n\n"
-            f"Polyhedron Name: {polyhedron['name']}\n"
-            f"Constants: {json.dumps(polyhedron['constants'])}\n"
-            f"Vertices: {json.dumps(polyhedron['vertices'])}\n\n"
-            "Generate the corresponding C++ function."
-        )
+async def process_category(category, polyhedron_list):
+    code = f"// Category: {category}\n\n"
+    tasks = [generate_response(poly) for index, poly in enumerate(polyhedron_list) if index < 2]
+    responses = await asyncio.gather(*tasks)
+    for response in responses:
+        code += response + "\n\n"
+    return code
 
-        response = client.responses.create(
-            model=model,
-            instructions="You are an expert C++ code generator that converts structured symbolic JSON polyhedron definition data into functions using helper functions.",
-            input=prompt,
-        )
 
-        print(response.output_text)
-        exit(0)
+async def main():
+    all_generated_code = ""
+    with open("../scrape/polyhedra_data.json", "r") as json_file:
+        polyhedra = json.load(json_file)
+    tasks = [
+        process_category(category, polyhedron_list)
+        for index, (category, polyhedron_list) in enumerate(polyhedra["Polyhedra"].items()) if index < 2
+    ]
+    results = await asyncio.gather(*tasks)
+    for code in results:
+        all_generated_code += code
 
-        all_generated_code += generated_function + "\n\n"
+    output_file = "polyhedra_code.txt"
+    with open(output_file, "w") as code_file:
+        code_file.write(all_generated_code)
+    print(f"Saved polyhedra code to {output_file}")
 
-with open("generated_polyhedra.cpp", "w") as output_file:
-    output_file.write(all_generated_code)
 
-print("C++ code for the polyhedra functions has been generated and saved to 'generated_polyhedra.cpp'.")
+if __name__ == "__main__":
+    asyncio.run(main())
