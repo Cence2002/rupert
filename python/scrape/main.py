@@ -92,8 +92,9 @@ def scrape_and_build_json(data_folder = "polyhedron_data"):
     return all_data
 
 
-final_polyhedra_dictionary = scrape_and_build_json("polyhedron_data")
-output_file = "polyhedra_data.json"
-with open(output_file, "w", encoding="utf-8") as json_file:
-    json.dump(final_polyhedra_dictionary, json_file, indent=2)
-print(f"Saved polyhedra data to {output_file}")
+if __name__ == "__main__":
+    final_polyhedra_dictionary = scrape_and_build_json("polyhedron_data")
+    output_file = "polyhedra_data.json"
+    with open(output_file, "w", encoding="utf-8") as json_file:
+        json.dump(final_polyhedra_dictionary, json_file, indent=2)
+    print(f"Saved polyhedra data to {output_file}")
