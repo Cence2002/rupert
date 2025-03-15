@@ -142,7 +142,7 @@ public:
             // default to combined
             return is_projected_vertex_outside_polygon_combined(vertex, theta, phi);
         }
-        return is_projected_vertex_outside_polygon_combined(vertex, Interval(theta.mid()), Interval(phi.mid())) &&
+        return is_projected_vertex_outside_polygon_combined(vertex, Interval(theta.min()), Interval(phi.min())) &&
                is_projected_vertex_avoiding_polygon_advanced_fixed_theta(vertex, theta.min(), phi) &&
                is_projected_vertex_avoiding_polygon_advanced_fixed_theta(vertex, theta.max(), phi) &&
                is_projected_vertex_avoiding_polygon_advanced_fixed_phi(vertex, theta, phi.min()) &&
