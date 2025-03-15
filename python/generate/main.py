@@ -77,7 +77,7 @@ static std::vector<Vertex<Interval>> combined(const std::vector<std::vector<Vert
 
 """
 
-example_output = """
+examples = """
 
 JSON data for icosahedron example:
 
@@ -152,10 +152,10 @@ JSON data for icosahedron example:
 
 Output for icosahedron example:
 
-template<IntervalType I>
-static Polyhedron<I> icosahedron() {
-    const I c0 = (I(1) + I(5).sqrt()) / 4;
-    return Polyhedron<I>(Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(1) / 2, I(0), c0))));
+template<IntervalType Interval>
+static Polyhedron<Interval> icosahedron() {
+    const Interval c0 = (Interval(1) + Interval(5).sqrt()) / 4;
+    return Polyhedron<Interval>(rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(1) / 2, Interval(0), c0))));
 }
 
 
@@ -273,13 +273,13 @@ JSON data for dodecahedron example:
 
 Output for dodecahedron example:
 
-template<IntervalType I>
-static Polyhedron<I> dodecahedron() {
-    const I c0 = (1 + I(5).sqrt()) / 4;
-    const I c1 = (3 + I(5).sqrt()) / 4;
-    return Polyhedron(Polyhedron<I>::combined({
-        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(0), I(1) / 2, c1))),
-        Polyhedron<I>::flips(Vertex<I>(c0, c0, c0))
+template<IntervalType Interval>
+static Polyhedron<Interval> dodecahedron() {
+    const Interval c0 = (Interval(1) + Interval(5).sqrt()) / 4;
+    const Interval c1 = (Interval(3) + Interval(5).sqrt()) / 4;
+    return Polyhedron<Interval>(combine<Interval>({
+        rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(0), Interval(1) / 2, c1))),
+        flips<Interval>(Vertex<Interval>(c0, c0, c0))
     }));
 }
 
@@ -298,7 +298,7 @@ The polyhedron description is provided as a name, a set of constants, and a list
 
 Here are a few examples of what I would like you to generate. For each example, I first show you the JSON data, and an example for a nice output:
 
-{example_output}
+{examples}
 
 Always use snake case for the function name, and lowercase variable names, with consistent naming as in the example.
 All coordinates need to be intervals, even simple integers. Use the I(int) method to generate these. Note that Intervals can only be initialized with integer constants,

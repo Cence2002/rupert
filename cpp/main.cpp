@@ -16,8 +16,8 @@ void signal_handler(int) {
 int main() {
     tests();
 
-    const Polyhedron<I> hole = Polyhedra::rhombicosidodecahedron<I>();
-    const Polyhedron<I> plug = Polyhedra::rhombicosidodecahedron<I>();
+    const Polyhedron<I> plug = Archimedean::rhombicosidodecahedron<I>().normalise();
+    const Polyhedron<I> hole = Archimedean::rhombicosidodecahedron<I>().normalise();
 
     const Config<I> config(
         "RID",

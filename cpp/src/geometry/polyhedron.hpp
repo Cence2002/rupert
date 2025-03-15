@@ -12,13 +12,58 @@ private:
     static inline const Interval sqrt2 = Interval(2).sqrt();
 
 public:
-    explicit Polyhedron(const std::vector<Vertex<Interval>>& vertices) : vertices_(vertices) {}
+    explicit Polyhedron(const std::vector<Vertex<Interval>>& vertices) : vertices_(vertices) {
+        if(!is_centrally_symmetric()) {
+            throw std::runtime_error("Only centrally symmetric polyhedra are supported");
+        }
+    }
 
     const std::vector<Vertex<Interval>>& vertices() const {
         return vertices_;
     }
 
-    static std::vector<Vertex<Interval>> permutations(const std::vector<Vertex<Interval>>& vertices) {
+    Polyhedron scale(const Interval& scale) const {
+        std::vector<Vertex<Interval>> scaled_vertices;
+        for(const Vertex<Interval>& vertex: vertices_) {
+            scaled_vertices.push_back(vertex * scale);
+        }
+        return Polyhedron(scaled_vertices);
+    }
+
+    Polyhedron normalise() const {
+        Interval radius = Interval(0);
+        for(const Vertex<Interval>& vertex: vertices_) {
+            const Interval len = vertex.len();
+            if(len > radius) {
+                radius = len;
+            }
+        }
+        return scale(radius.inv());
+    }
+
+    bool is_centrally_symmetric() const {
+        return std::all_of(vertices_.begin(), vertices_.end(), [this](const Vertex<Interval>& vertex) {
+            return std::any_of(vertices_.begin(), vertices_.end(), [&vertex](const Vertex<Interval>& other_vertex) {
+                return !(vertex + other_vertex).len().is_positive();
+            });
+        });
+    }
+};
+
+namespace PolyhedronHelpers {
+    template<IntervalType Interval>
+    std::vector<Vertex<Interval>> rotations(const std::vector<Vertex<Interval>>& vertices) {
+        std::vector<Vertex<Interval>> rotations;
+        for(const Vertex<Interval>& vertex: vertices) {
+            rotations.emplace_back(vertex.x(), vertex.y(), vertex.z());
+            rotations.emplace_back(vertex.z(), vertex.x(), vertex.y());
+            rotations.emplace_back(vertex.y(), vertex.z(), vertex.x());
+        }
+        return rotations;
+    }
+
+    template<IntervalType Interval>
+    std::vector<Vertex<Interval>> permutations(const std::vector<Vertex<Interval>>& vertices) {
         std::vector<Vertex<Interval>> permutations;
         for(const Vertex<Interval>& vertex: vertices) {
             permutations.emplace_back(vertex.x(), vertex.y(), vertex.z());
@@ -31,17 +76,8 @@ public:
         return permutations;
     }
 
-    static std::vector<Vertex<Interval>> rotations(const std::vector<Vertex<Interval>>& vertices) {
-        std::vector<Vertex<Interval>> rotations;
-        for(const Vertex<Interval>& vertex: vertices) {
-            rotations.emplace_back(vertex.x(), vertex.y(), vertex.z());
-            rotations.emplace_back(vertex.z(), vertex.x(), vertex.y());
-            rotations.emplace_back(vertex.y(), vertex.z(), vertex.x());
-        }
-        return rotations;
-    }
-
-    static std::vector<Vertex<Interval>> flips(const Vertex<Interval>& vertex, const bool flip_x, const bool flip_y, const bool flip_z) {
+    template<IntervalType Interval>
+    std::vector<Vertex<Interval>> flips(const Vertex<Interval>& vertex, const bool flip_x, const bool flip_y, const bool flip_z) {
         std::vector<Vertex<Interval>> flips;
         for(const bool sign_x: flip_x ? std::vector<bool>{false, true} : std::vector<bool>{false}) {
             for(const bool sign_y: flip_y ? std::vector<bool>{false, true} : std::vector<bool>{false}) {
@@ -57,84 +93,307 @@ public:
         return flips;
     }
 
-    static std::vector<Vertex<Interval>> flips(const Vertex<Interval>& vertex) {
-        return flips({vertex}, vertex.x().is_nonzero(), vertex.y().is_nonzero(), vertex.z().is_nonzero());
+    template<IntervalType Interval>
+    std::vector<Vertex<Interval>> flips(const Vertex<Interval>& vertex) {
+        return flips<Interval>({vertex}, vertex.x().is_nonzero(), vertex.y().is_nonzero(), vertex.z().is_nonzero());
     }
 
-    static std::vector<Vertex<Interval>> combined(const std::vector<std::vector<Vertex<Interval>>>& vertices) {
+    template<IntervalType Interval>
+    std::vector<Vertex<Interval>> combine(const std::vector<std::vector<Vertex<Interval>>>& vertices) {
         std::vector<Vertex<Interval>> combined;
         for(const std::vector<Vertex<Interval>>& vertex: vertices) {
             combined.insert(combined.end(), vertex.begin(), vertex.end());
         }
         return combined;
     }
+}
 
-    Polyhedron scale(const Interval& scale) const {
-        std::vector<Vertex<Interval>> scaled_vertices;
-        for(const Vertex<Interval>& vertex: vertices_) {
-            scaled_vertices.push_back(vertex * scale);
-        }
-        return Polyhedron(scaled_vertices);
+namespace Platonic {
+    using namespace PolyhedronHelpers;
+
+    template<IntervalType Interval>
+    static Polyhedron<Interval> octahedron() {
+        const Interval c0 = Interval(2).sqrt() / 2;
+        return Polyhedron<Interval>(permutations<Interval>(flips<Interval>(Vertex<Interval>(c0, Interval(0), Interval(0)))));
     }
 
-    static Polyhedron octahedron() {
-        return Polyhedron(rotations(flips(Vertex<Interval>(0, 0, 1))));
+    template<IntervalType Interval>
+    static Polyhedron<Interval> cube() {
+        return Polyhedron<Interval>(
+            flips<Interval>(
+                Vertex<Interval>(Interval(1) / 2, Interval(1) / 2, Interval(1) / 2)
+            )
+        );
     }
 
-    static Polyhedron cube() {
-        return Polyhedron(flips(Vertex<Interval>(1, 1, 1)));
+    template<IntervalType Interval>
+    static Polyhedron<Interval> icosahedron() {
+        const Interval c0 = (Interval(1) + Interval(5).sqrt()) / 4;
+        return Polyhedron<Interval>(rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(1) / 2, Interval(0), c0))));
     }
 
-    static Polyhedron dodecahedron() {
-        const Interval c0 = (1 + Interval(5).sqrt()) / 4;
-        const Interval c1 = (3 + Interval(5).sqrt()) / 4;
-        return Polyhedron(combined({
-            rotations(flips(Vertex<Interval>(Interval(0), Interval(1) / 2, c1))),
-            flips(Vertex<Interval>(c0, c0, c0))
+    template<IntervalType Interval>
+    static Polyhedron<Interval> dodecahedron() {
+        const Interval c0 = (Interval(1) + Interval(5).sqrt()) / 4;
+        const Interval c1 = (Interval(3) + Interval(5).sqrt()) / 4;
+        return Polyhedron<Interval>(combine<Interval>({
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(0), Interval(1) / 2, c1))),
+            flips<Interval>(Vertex<Interval>(c0, c0, c0))
+        }));
+    }
+}
+
+namespace Archimedean {
+    using namespace PolyhedronHelpers;
+
+    template<IntervalType Interval>
+    static Polyhedron<Interval> cuboctahedron() {
+        const Interval c0 = Interval(2).sqrt() / 2;
+        return Polyhedron<Interval>(
+            rotations<Interval>(
+                flips<Interval>(Vertex<Interval>(c0, Interval(0), c0))
+            )
+        );
+    }
+
+    template<IntervalType Interval>
+    static Polyhedron<Interval> truncated_octahedron() {
+        const Interval c0 = Interval(2).sqrt() / 2;
+        const Interval c1 = Interval(2).sqrt();
+        return Polyhedron<Interval>(permutations<Interval>(flips<Interval>(Vertex<Interval>(c0, Interval(0), c1))));
+    }
+
+    template<IntervalType Interval>
+    static Polyhedron<Interval> truncated_cube() {
+        const Interval c0 = (Interval(1) + Interval(2).sqrt()) / 2;
+        return Polyhedron<Interval>(rotations<Interval>(flips<Interval>(Vertex<Interval>(c0, Interval(1) / 2, c0))));
+    }
+
+    template<IntervalType Interval>
+    static Polyhedron<Interval> rhombicuboctahedron() {
+        const Interval c0 = (Interval(1) + Interval(2).sqrt()) / 2;
+        return Polyhedron<Interval>(rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(1) / 2, Interval(1) / 2, c0))));
+    }
+
+    template<IntervalType Interval>
+    static Polyhedron<Interval> icosidodecahedron() {
+        const Interval c0 = (Interval(1) + Interval(5).sqrt()) / 4;
+        const Interval c1 = (Interval(3) + Interval(5).sqrt()) / 4;
+        const Interval c2 = (Interval(1) + Interval(5).sqrt()) / 2;
+        return Polyhedron<Interval>(combine<Interval>({
+            permutations<Interval>(
+                flips<Interval>(Vertex<Interval>(c2, Interval(0), Interval(0)))
+            ),
+            rotations<Interval>(
+                flips<Interval>(Vertex<Interval>(Interval(1) / 2, c0, c1))
+            )
         }));
     }
 
-    static Polyhedron icosahedron() {
-        return Polyhedron(rotations(flips(Vertex<Interval>(0, phi, 1))));
+    template<IntervalType Interval>
+    static Polyhedron<Interval> truncated_cuboctahedron() {
+        const Interval c0 = (Interval(1) + Interval(2).sqrt()) / 2;
+        const Interval c1 = (Interval(1) + Interval(2) * Interval(2).sqrt()) / 2;
+        return Polyhedron<Interval>(permutations<Interval>(
+            flips<Interval>(Vertex<Interval>(c0, Interval(1) / 2, c1))
+        ));
     }
 
-    static Polyhedron rhombicosidodecahedron() {
-        return Polyhedron(rotations(combined({
-            flips(Vertex<Interval>(1, 1, phi * phi * phi)),
-            flips(Vertex<Interval>(phi * phi, phi, 2 * phi)),
-            flips(Vertex<Interval>(2 + phi, 0, phi * phi))
-        })));
-    }
-};
-
-namespace Polyhedra {
-    template<IntervalType I>
-    static Polyhedron<I> icosahedron() {
-        const I c0 = (I(1) + I(5).sqrt()) / 4;
-        return Polyhedron<I>(Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(1) / 2, I(0), c0))));
-    }
-
-    template<IntervalType I>
-    static Polyhedron<I> dodecahedron() {
-        const I c0 = (1 + I(5).sqrt()) / 4;
-        const I c1 = (3 + I(5).sqrt()) / 4;
-        return Polyhedron(Polyhedron<I>::combined({
-            Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(0), I(1) / 2, c1))),
-            Polyhedron<I>::flips(Vertex<I>(c0, c0, c0))
+    template<IntervalType Interval>
+    static Polyhedron<Interval> truncated_icosahedron() {
+        const Interval c0 = (Interval(1) + Interval(5).sqrt()) / Interval(4);
+        const Interval c1 = (Interval(1) + Interval(5).sqrt()) / Interval(2);
+        const Interval c2 = (Interval(5) + Interval(5).sqrt()) / Interval(4);
+        const Interval c3 = (Interval(2) + Interval(5).sqrt()) / Interval(2);
+        const Interval c4 = Interval(3) * (Interval(1) + Interval(5).sqrt()) / Interval(4);
+        return Polyhedron<Interval>(combine<Interval>({
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(1) / 2, Interval(0), c4))),
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(1), c0, c3))),
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(1) / 2, c1, c2)))
         }));
     }
 
-    template<IntervalType I>
-    static Polyhedron<I> rhombicosidodecahedron() {
-        const I c0 = (I(1) + I(5).sqrt()) / 4;
-        const I c1 = (I(3) + I(5).sqrt()) / 4;
-        const I c2 = (I(1) + I(5).sqrt()) / 2;
-        const I c3 = (I(5) + I(5).sqrt()) / 4;
-        const I c4 = (I(2) + I(5).sqrt()) / 2;
-        return Polyhedron<I>(Polyhedron<I>::combined({
-            Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(1) / 2, I(1) / 2, c4))),
-            Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(0), c1, c3))),
-            Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c1, c0, c2)))
+    template<IntervalType Interval>
+    static Polyhedron<Interval> truncated_dodecahedron() {
+        const Interval c0 = (Interval(3) + Interval(5).sqrt()) / 4;
+        const Interval c1 = (Interval(1) + Interval(5).sqrt()) / 2;
+        const Interval c2 = (Interval(2) + Interval(5).sqrt()) / 2;
+        const Interval c3 = (Interval(3) + Interval(5).sqrt()) / 2;
+        const Interval c4 = (Interval(5) + Interval(3) * Interval(5).sqrt()) / 4;
+        return Polyhedron<Interval>(combine<Interval>({
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(0), Interval(1) / 2, c4))),
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(1) / 2, c0, c3))),
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(c0, c1, c2)))
+        }));
+    }
+
+    template<IntervalType Interval>
+    static Polyhedron<Interval> rhombicosidodecahedron() {
+        const Interval c0 = (Interval(1) + Interval(5).sqrt()) / 4;
+        const Interval c1 = (Interval(3) + Interval(5).sqrt()) / 4;
+        const Interval c2 = (Interval(1) + Interval(5).sqrt()) / 2;
+        const Interval c3 = (Interval(5) + Interval(5).sqrt()) / 4;
+        const Interval c4 = (Interval(2) + Interval(5).sqrt()) / 2;
+        return Polyhedron<Interval>(combine<Interval>({
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(1) / 2, Interval(1) / 2, c4))),
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(0), c1, c3))),
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(c1, c0, c2)))
+        }));
+    }
+
+    template<IntervalType Interval>
+    static Polyhedron<Interval> truncated_icosidodecahedron() {
+        const Interval c0 = (Interval(3) + Interval(5).sqrt()) / 4;
+        const Interval c1 = (Interval(1) + Interval(5).sqrt()) / 2;
+        const Interval c2 = (Interval(5) + Interval(5).sqrt()) / 4;
+        const Interval c3 = (Interval(2) + Interval(5).sqrt()) / 2;
+        const Interval c4 = Interval(3) * (Interval(1) + Interval(5).sqrt()) / 4;
+        const Interval c5 = (Interval(3) + Interval(5).sqrt()) / 2;
+        const Interval c6 = (Interval(5) + Interval(3) * Interval(5).sqrt()) / 4;
+        const Interval c7 = (Interval(4) + Interval(5).sqrt()) / 2;
+        const Interval c8 = (Interval(7) + Interval(3) * Interval(5).sqrt()) / 4;
+        const Interval c9 = (Interval(3) + Interval(2) * Interval(5).sqrt()) / 2;
+        return Polyhedron<Interval>(combine<Interval>({
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(1) / 2, Interval(1) / 2, c9))),
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(1), c0, c8))),
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(1) / 2, c3, c7))),
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(c2, c1, c6))),
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(c0, c4, c5)))
+        }));
+    }
+}
+
+namespace Catalan {
+    using namespace PolyhedronHelpers;
+
+    template<IntervalType Interval>
+    static Polyhedron<Interval> rhombic_dodecahedron() {
+        const Interval c0 = (Interval(3) * Interval(2).sqrt()) / Interval(8);
+        const Interval c1 = (Interval(3) * Interval(2).sqrt()) / Interval(4);
+        return Polyhedron<Interval>(combine<Interval>({
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(0), Interval(0), c1))),
+            flips<Interval>(Vertex<Interval>(c0, c0, c0))
+        }));
+    }
+
+    template<IntervalType Interval>
+    static Polyhedron<Interval> tetrakis_hexahedron() {
+        const Interval c0 = (Interval(3) * Interval(2).sqrt()) / 4;
+        const Interval c1 = (Interval(9) * Interval(2).sqrt()) / 8;
+        return Polyhedron<Interval>(combine<Interval>({
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(0), Interval(0), c1))),
+            flips<Interval>(Vertex<Interval>(c0, c0, c0))
+        }));
+    }
+
+    template<IntervalType Interval>
+    static Polyhedron<Interval> triakis_octahedron() {
+        const Interval c0 = Interval(1) + Interval(2).sqrt();
+        return Polyhedron<Interval>(combine<Interval>({
+            permutations<Interval>(flips<Interval>(Vertex<Interval>(c0, Interval(0), Interval(0)))),
+            flips<Interval>(Vertex<Interval>(Interval(1), Interval(1), Interval(1)))
+        }));
+    }
+
+    template<IntervalType Interval>
+    static Polyhedron<Interval> deltoidal_icositetrahedron() {
+        const Interval c0 = (Interval(4) + Interval(2).sqrt()) / 7;
+        const Interval c1 = Interval(2).sqrt();
+        return Polyhedron<Interval>(combine<Interval>({
+            permutations<Interval>(flips<Interval>(Vertex<Interval>(c1, Interval(0), Interval(0)))),
+            permutations<Interval>(flips<Interval>(Vertex<Interval>(Interval(1), Interval(1), Interval(0)))),
+            flips<Interval>(Vertex<Interval>(c0, c0, c0))
+        }));
+    }
+
+    template<IntervalType Interval>
+    static Polyhedron<Interval> rhombic_triacontahedron() {
+        const Interval c0 = Interval(5).sqrt() / Interval(4);
+        const Interval c1 = (Interval(5) + Interval(5).sqrt()) / Interval(8);
+        const Interval c2 = (Interval(5) + Interval(3) * Interval(5).sqrt()) / Interval(8);
+        return Polyhedron<Interval>(combine<Interval>({
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(c1, Interval(0), c2))),
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(0), c0, c2))),
+            flips<Interval>(Vertex<Interval>(c1, c1, c1))
+        }));
+    }
+
+    template<IntervalType Interval>
+    static Polyhedron<Interval> disdyakis_dodecahedron() {
+        const Interval c0 = Interval(2).sqrt();
+        const Interval c1 = (Interval(3) * (Interval(1) + Interval(2) * Interval(2).sqrt())) / 7;
+        const Interval c2 = (Interval(3) * (Interval(2) + Interval(3) * Interval(2).sqrt())) / 7;
+        return Polyhedron<Interval>(combine<Interval>({
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(c2, Interval(0), Interval(0)))),
+            permutations<Interval>(flips<Interval>(Vertex<Interval>(c1, c1, Interval(0)))),
+            flips<Interval>(Vertex<Interval>(c0, c0, c0))
+        }));
+    }
+
+    template<IntervalType Interval>
+    static Polyhedron<Interval> pentakis_dodecahedron() {
+        const Interval c0 = (Interval(3) * (Interval(5).sqrt() - Interval(1))) / Interval(4);
+        const Interval c1 = (Interval(9) * (Interval(9) + Interval(5).sqrt())) / Interval(76);
+        const Interval c2 = (Interval(9) * (Interval(7) + Interval(5) * Interval(5).sqrt())) / Interval(76);
+        const Interval c3 = (Interval(3) * (Interval(1) + Interval(5).sqrt())) / Interval(4);
+        return Polyhedron<Interval>(combine<Interval>({
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(0), c0, c3))),
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(c1, Interval(0), c2))),
+            flips<Interval>(Vertex<Interval>(Interval(3) / 2, Interval(3) / 2, Interval(3) / 2))
+        }));
+    }
+
+    template<IntervalType Interval>
+    static Polyhedron<Interval> triakis_icosahedron() {
+        const Interval c0 = (Interval(5) * (Interval(7) + Interval(5).sqrt())) / Interval(44);
+        const Interval c1 = (Interval(5) * (Interval(3) + Interval(2) * Interval(5).sqrt())) / Interval(22);
+        const Interval c2 = (Interval(5) + Interval(5).sqrt()) / Interval(4);
+        const Interval c3 = (Interval(5) * (Interval(13) + Interval(5) * Interval(5).sqrt())) / Interval(44);
+        const Interval c4 = (Interval(5) + Interval(3) * Interval(5).sqrt()) / Interval(4);
+        return Polyhedron<Interval>(combine<Interval>({
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(c2, Interval(0), c4))),
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(0), c0, c3))),
+            flips<Interval>(Vertex<Interval>(c1, c1, c1))
+        }));
+    }
+
+    template<IntervalType Interval>
+    static Polyhedron<Interval> deltoidal_hexecontahedron() {
+        const Interval c0 = (Interval(5) - Interval(5).sqrt()) / 4;
+        const Interval c1 = (Interval(15) + Interval(5).sqrt()) / 22;
+        const Interval c2 = Interval(5).sqrt() / 2;
+        const Interval c3 = (Interval(5) + Interval(5).sqrt()) / 6;
+        const Interval c4 = (Interval(5) + Interval(4) * Interval(5).sqrt()) / 11;
+        const Interval c5 = (Interval(5) + Interval(5).sqrt()) / 4;
+        const Interval c6 = (Interval(5) + Interval(3) * Interval(5).sqrt()) / 6;
+        const Interval c7 = (Interval(25) + Interval(9) * Interval(5).sqrt()) / 22;
+        const Interval c8 = Interval(5).sqrt();
+        return Polyhedron<Interval>(combine<Interval>({
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(0), Interval(0), c8))),
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(0), c1, c7))),
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(c3, Interval(0), c6))),
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(c0, c2, c5))),
+            flips<Interval>(Vertex<Interval>(c4, c4, c4))
+        }));
+    }
+
+    template<IntervalType Interval>
+    static Polyhedron<Interval> disdyakis_triacontahedron() {
+        const Interval c0 = Interval(3) * (Interval(15) + Interval(5).sqrt()) / Interval(44);
+        const Interval c1 = (Interval(5) - Interval(5).sqrt()) / Interval(2);
+        const Interval c2 = Interval(3) * (Interval(5) + Interval(4) * Interval(5).sqrt()) / Interval(22);
+        const Interval c3 = Interval(3) * (Interval(5) + Interval(5).sqrt()) / Interval(10);
+        const Interval c4 = Interval(5).sqrt();
+        const Interval c5 = Interval(3) * (Interval(25) + Interval(9) * Interval(5).sqrt()) / Interval(44);
+        const Interval c6 = Interval(3) * (Interval(5) + Interval(3) * Interval(5).sqrt()) / Interval(10);
+        const Interval c7 = (Interval(5) + Interval(5).sqrt()) / Interval(2);
+        const Interval c8 = Interval(3) * (Interval(5) + Interval(4) * Interval(5).sqrt()) / Interval(11);
+        return Polyhedron<Interval>(combine<Interval>({
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(c8, Interval(0), Interval(0)))),
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(c1, c7, Interval(0)))),
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(c6, c3, Interval(0)))),
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(c5, c0, c2))),
+            flips<Interval>(Vertex<Interval>(c4, c4, c4))
         }));
     }
 }
