@@ -1,21 +1,26 @@
 import os
 import json
-from openai import OpenAI
-from dotenv import load_dotenv
 import asyncio
+
+from openai import OpenAI, AsyncOpenAI
+from dotenv import load_dotenv
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
-openai_api_key = os.getenv("OPENAI_API_KEY")
-if openai_api_key is None:
-    raise ValueError("OpenAI API key not found. Use set_openai_api_key to set it.")
+client = OpenAI()
+model = "gpt-4o-mini"
 
-print(f"OpenAI API key: {openai_api_key[:6]} ... {openai_api_key[-6:]}")
+# Just to test if the API is working
+random_joke = client.responses.create(
+    model="gpt-4o-mini",
+    instructions="You are a funny comedian who has to come up with a joke about geometry.",
+    input="Tell me a funny, punchy, nerdy joke about geometry!",
+).output_text
+print(random_joke)
+print()
 
-client = OpenAI(api_key=openai_api_key)
-
-model = "gpt-4o"
+async_client = AsyncOpenAI()
 
 helper_functions = """
 
@@ -306,6 +311,15 @@ The JSON data is provided below, please remember all tasks, and think through th
 """
 
 
+async def query_api(prompt):
+    response = await async_client.chat.completions.create(
+        model=model,
+        messages=[{"role":"user", "content":prompt}],
+        n=1,
+    )
+    return response.choices[0].message.content
+
+
 async def generate_response(polyhedron):
     prompt = (
         f"{base_prompt}\n\n"
@@ -314,20 +328,18 @@ async def generate_response(polyhedron):
         f"Vertices: {json.dumps(polyhedron['vertices'])}\n\n"
         "Generate the corresponding C++ function."
     )
-    response = client.responses.create(
-        model=model,
-        instructions="You are an expert C++ code generator that converts structured symbolic JSON polyhedron definition data into functions using helper functions.",
-        input=prompt,
-    )
-    return response.output_text
+    response = await query_api(prompt)
+    print(f"Generated code for polyhedron: {polyhedron['name']}")
+    return response
 
 
 async def process_category(category, polyhedron_list):
     code = f"// Category: {category}\n\n"
-    tasks = [generate_response(poly) for index, poly in enumerate(polyhedron_list) if index < 2]
+    tasks = [generate_response(poly) for poly in polyhedron_list]
     responses = await asyncio.gather(*tasks)
     for response in responses:
         code += response + "\n\n"
+    print(f"Generated code for category: {category}")
     return code
 
 
@@ -337,7 +349,7 @@ async def main():
         polyhedra = json.load(json_file)
     tasks = [
         process_category(category, polyhedron_list)
-        for index, (category, polyhedron_list) in enumerate(polyhedra["Polyhedra"].items()) if index < 2
+        for category, polyhedron_list in polyhedra["Polyhedra"].items()
     ]
     results = await asyncio.gather(*tasks)
     for code in results:

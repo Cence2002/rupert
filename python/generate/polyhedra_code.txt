@@ -2,10 +2,10 @@
 
 template<IntervalType I>
 static Polyhedron<I> tetrahedron() {
-    const I c0 = I(2).sqrt() / I(4);
+    const I c0 = I(2).sqrt() / 4;
     return Polyhedron<I>(Polyhedron<I>::combined({
-        Polyhedron<I>::rotations({ Vertex<I>(c0, -c0, c0) }),
-        { Vertex<I>(-c0, -c0, -c0) }
+        Polyhedron<I>::rotations({Vertex<I>(c0, c0, -c0)}),
+        {Vertex<I>(-c0, -c0, -c0)}
     }));
 }
 
@@ -15,28 +15,719 @@ static Polyhedron<I> octahedron() {
     return Polyhedron<I>(Polyhedron<I>::permutations(Polyhedron<I>::flips(Vertex<I>(c0, I(0), I(0)))));
 }
 
+template<IntervalType I>
+static Polyhedron<I> cube() {
+    return Polyhedron<I>(
+        Polyhedron<I>::flips(
+            Vertex<I>(I(1) / 2, I(1) / 2, I(1) / 2)
+        )
+    );
+}
+
+template<IntervalType I>
+static Polyhedron<I> icosahedron() {
+    const I c0 = (I(1) + I(5).sqrt()) / 4;
+    return Polyhedron<I>(Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(1) / 2, I(0), c0))));
+}
+
+template<IntervalType I>
+static Polyhedron<I> dodecahedron() {
+    const I c0 = (I(1) + I(5).sqrt()) / 4;
+    const I c1 = (I(3) + I(5).sqrt()) / 4;
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(0), I(1) / 2, c1))),
+        Polyhedron<I>::flips(Vertex<I>(c0, c0, c0))
+    }));
+}
+
 // Category: Archimedean
 
 template<IntervalType I>
 static Polyhedron<I> truncated_tetrahedron() {
     const I c0 = I(2).sqrt() / I(4);
-    const I c1 = I(2).sqrt() * I(3) / I(4);
-    return Polyhedron<I>(Polyhedron<I>::combined({
-        Polyhedron<I>::flips(Vertex<I>(c0, c0, c1)),
-        Polyhedron<I>::flips(Vertex<I>(c1, c0, c0)),
-        Polyhedron<I>::flips(Vertex<I>(c0, c1, c0))
-    }));
+    const I c1 = I(3) * I(2).sqrt() / I(4);
+    return Polyhedron<I>(Polyhedron<I>::permutations(Polyhedron<I>::flips(Vertex<I>(c0, c0, c1))));
 }
 
 template<IntervalType I>
 static Polyhedron<I> cuboctahedron() {
-    const I c0 = I(2).sqrt() / I(2);
+    const I c0 = I(2).sqrt() / 2;
     return Polyhedron<I>(
         Polyhedron<I>::rotations(
-            Polyhedron<I>::flips(
-                Vertex<I>(c0, I(0), c0)
-            )
+            Polyhedron<I>::flips(Vertex<I>(c0, I(0), c0))
         )
     );
+}
+
+template<IntervalType I>
+static Polyhedron<I> truncated_octahedron() {
+    const I c0 = I(2).sqrt() / 2;
+    const I c1 = I(2).sqrt();
+    return Polyhedron<I>(Polyhedron<I>::permutations(Polyhedron<I>::flips(Vertex<I>(c0, I(0), c1))));
+}
+
+template<IntervalType I>
+static Polyhedron<I> truncated_cube() {
+    const I c0 = (I(1) + I(2).sqrt()) / 2;
+    return Polyhedron<I>(Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c0, I(1)/2, c0))));
+}
+
+template<IntervalType I>
+static Polyhedron<I> rhombicuboctahedron() {
+    const I c0 = (I(1) + I(2).sqrt()) / 2;
+    return Polyhedron<I>(Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(1) / 2, I(1) / 2, c0))));
+}
+
+template<IntervalType I>
+static Polyhedron<I> snub_cube_laevo() {
+    const I c0 = (I(3)*(I(4) - (I(17) + I(3)*I(33).sqrt()).cbrt() - (I(17) - I(3)*I(33).sqrt()).cbrt())).sqrt()) / I(6);
+    const I c1 = (I(3)*(I(2) + (I(17) + I(3)*I(33).sqrt()).cbrt() + (I(17) - I(3)*I(33).sqrt()).cbrt())).sqrt()) / I(6);
+    const I c2 = (I(3)*(I(4) + (I(199) + I(3)*I(33).sqrt()).cbrt() + (I(199) - I(3)*I(33).sqrt()).cbrt())).sqrt()) / I(6);
+    return Polyhedron<I>(Polyhedron<I>::permutations(Polyhedron<I>::flips(Vertex<I>(c1, c0, c2))));
+}
+
+template<IntervalType I>
+static Polyhedron<I> snub_cube_dextro() {
+    const I c0 = ((I(3)*(I(4) - (I(17) + I(3)*I(33).sqrt()).cbrt() - (I(17) - I(3)*I(33).sqrt()).cbrt())).sqrt())/I(6);
+    const I c1 = ((I(3)*(I(2) + (I(17) + I(3)*I(33).sqrt()).cbrt() + (I(17) - I(3)*I(33).sqrt()).cbrt())).sqrt())/I(6);
+    const I c2 = ((I(3)*(I(4) + (I(199) + I(3)*I(33).sqrt()).cbrt() + (I(199) - I(3)*I(33).sqrt()).cbrt())).sqrt())/I(6);
+    return Polyhedron<I>(Polyhedron<I>::permutations(Polyhedron<I>::flips(Vertex<I>(c1, c0, c2))));
+}
+
+template<IntervalType I>
+static Polyhedron<I> icosidodecahedron() {
+    const I c0 = (I(1) + I(5).sqrt()) / 4;
+    const I c1 = (I(3) + I(5).sqrt()) / 4;
+    const I c2 = (I(1) + I(5).sqrt()) / 2;
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        Polyhedron<I>::permutations(
+            Polyhedron<I>::flips(Vertex<I>(c2, I(0), I(0)))
+        ),
+        Polyhedron<I>::rotations(
+            Polyhedron<I>::flips(Vertex<I>(I(1) / 2, c0, c1))
+        )
+    }));
+}
+
+template<IntervalType I>
+static Polyhedron<I> truncated_cuboctahedron() {
+    const I c0 = (I(1) + I(2).sqrt()) / 2;
+    const I c1 = (I(1) + I(2)*I(2).sqrt()) / 2;
+    return Polyhedron<I>(Polyhedron<I>::permutations(
+        Polyhedron<I>::flips(Vertex<I>(c0, I(1) / 2, c1))
+    ));
+}
+
+template<IntervalType I>
+static Polyhedron<I> truncated_icosahedron() {
+    const I c0 = (I(1) + I(5).sqrt()) / I(4);
+    const I c1 = (I(1) + I(5).sqrt()) / I(2);
+    const I c2 = (I(5) + I(5).sqrt()) / I(4);
+    const I c3 = (I(2) + I(5).sqrt()) / I(2);
+    const I c4 = I(3) * (I(1) + I(5).sqrt()) / I(4);
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(1) / 2, I(0), c4))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(1), c0, c3))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(1) / 2, c1, c2)))
+    }));
+}
+
+template<IntervalType I>
+static Polyhedron<I> truncated_dodecahedron() {
+    const I c0 = (I(3) + I(5).sqrt()) / 4;
+    const I c1 = (I(1) + I(5).sqrt()) / 2;
+    const I c2 = (I(2) + I(5).sqrt()) / 2;
+    const I c3 = (I(3) + I(5).sqrt()) / 2;
+    const I c4 = (I(5) + I(3) * I(5).sqrt()) / 4;
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(1) / 2, I(0), c4))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(1) / 2, c0, c3))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c0, c1, c2)))
+    }));
+}
+
+template<IntervalType I>
+static Polyhedron<I> rhombicosidodecahedron() {
+    const I c0 = (I(1) + I(5).sqrt()) / 4;
+    const I c1 = (I(3) + I(5).sqrt()) / 4;
+    const I c2 = (I(1) + I(5).sqrt()) / 2;
+    const I c3 = (I(5) + I(5).sqrt()) / 4;
+    const I c4 = (I(2) + I(5).sqrt()) / 2;
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(1) / 2, I(1) / 2, c4))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(0), c1, c3))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c1, c0, c2)))
+    }));
+}
+
+template<IntervalType I>
+static Polyhedron<I> snub_dodecahedron_laevo() {
+    const I phi = (I(1) + I(5).sqrt()) / I(2);
+    const I x = (((phi + (phi - I(5)/I(27)).sqrt()) / I(2)).cbrt()) + (((phi - (phi - I(5)/I(27)).sqrt()) / I(2)).cbrt());
+    const I c0 = phi * (I(3) - x*x).sqrt() / I(2);
+    const I c1 = x * phi * (I(3) - x*x).sqrt() / I(2);
+    const I c2 = phi * ((x - I(1) - (I(1)/x)) * phi).sqrt() / I(2);
+    const I c3 = x*x * phi * (I(3) - x*x).sqrt() / I(2);
+    const I c4 = x * phi * ((x - I(1) - (I(1)/x)) * phi).sqrt() / I(2);
+    const I c5 = phi * (I(1) - x + (I(1) + phi)/x).sqrt() / I(2);
+    const I c6 = phi * (x + I(1) - phi).sqrt() / I(2);
+    const I c7 = x*x * phi * ((x - I(1) - (I(1)/x)) * phi).sqrt() / I(2);
+    const I c8 = x * phi * (I(1) - x + (I(1) + phi)/x).sqrt() / I(2);
+    const I c9 = ((x + I(2)) * phi + I(2)).sqrt() / I(2);
+    const I c10 = x * (x * (I(1) + phi) - phi).sqrt() / I(2);
+    const I c11 = (x*x * (I(1) + I(2)*phi) - phi).sqrt() / I(2);
+    const I c12 = phi * (x*x + x).sqrt() / I(2);
+    const I c13 = (phi * phi) * (x * (x + phi) + I(1)).sqrt() / (I(2) * x);
+    const I c14 = phi * (x * (x + phi) + I(1)).sqrt() / I(2);
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        {
+            Vertex<I>(c2, -c1, c14),
+            Vertex<I>(c2, c1, -c14),
+            Vertex<I>(-c2, c1, c14),
+            Vertex<I>(-c2, -c1, -c14),
+            Vertex<I>(c14, -c2, c1),
+            Vertex<I>(c14, c2, -c1),
+            Vertex<I>(-c14, c2, c1),
+            Vertex<I>(-c14, -c2, -c1),
+            Vertex<I>(c1, -c14, c2),
+            Vertex<I>(c1, c14, -c2),
+            Vertex<I>(-c1, c14, c2),
+            Vertex<I>(-c1, -c14, -c2)
+        },
+        {
+            Vertex<I>(c3, c4, c13),
+            Vertex<I>(c3, -c4, -c13),
+            Vertex<I>(-c3, -c4, c13),
+            Vertex<I>(-c3, c4, -c13),
+            Vertex<I>(c13, c3, c4),
+            Vertex<I>(c13, -c3, -c4),
+            Vertex<I>(-c13, -c3, c4),
+            Vertex<I>(-c13, c3, -c4),
+            Vertex<I>(c4, c13, c3),
+            Vertex<I>(c4, -c13, -c3),
+            Vertex<I>(-c4, -c13, c3),
+            Vertex<I>(-c4, c13, -c3)
+        },
+        {
+            Vertex<I>(c0, -c8, c12),
+            Vertex<I>(c0, c8, -c12),
+            Vertex<I>(-c0, c8, c12),
+            Vertex<I>(-c0, -c8, -c12),
+            Vertex<I>(c12, -c0, c8),
+            Vertex<I>(c12, c0, -c8),
+            Vertex<I>(-c12, c0, c8),
+            Vertex<I>(-c12, -c0, -c8),
+            Vertex<I>(c8, -c12, c0),
+            Vertex<I>(c8, c12, -c0),
+            Vertex<I>(-c8, c12, c0),
+            Vertex<I>(-c8, -c12, -c0)
+        },
+        {
+            Vertex<I>(c7, -c6, c11),
+            Vertex<I>(c7, c6, -c11),
+            Vertex<I>(-c7, c6, c11),
+            Vertex<I>(-c7, -c6, -c11),
+            Vertex<I>(c11, -c7, c6),
+            Vertex<I>(c11, c7, -c6),
+            Vertex<I>(-c11, c7, c6),
+            Vertex<I>(-c11, -c7, -c6),
+            Vertex<I>(c6, -c11, c7),
+            Vertex<I>(c6, c11, -c7),
+            Vertex<I>(-c6, c11, c7),
+            Vertex<I>(-c6, -c11, -c7)
+        },
+        {
+            Vertex<I>(c9, c5, c10),
+            Vertex<I>(c9, -c5, -c10),
+            Vertex<I>(-c9, -c5, c10),
+            Vertex<I>(-c9, c5, -c10),
+            Vertex<I>(c10, c9, c5),
+            Vertex<I>(c10, -c9, -c5),
+            Vertex<I>(-c10, -c9, c5),
+            Vertex<I>(-c10, c9, -c5),
+            Vertex<I>(c5, c10, c9),
+            Vertex<I>(c5, -c10, -c9),
+            Vertex<I>(-c5, -c10, c9),
+            Vertex<I>(-c5, c10, -c9)
+        }
+    }));
+}
+
+template<IntervalType I>
+static Polyhedron<I> snub_dodecahedron_dextro() {
+    const I phi = (I(1)+I(5).sqrt())/I(2);
+    const I x = ((phi+(phi-(I(5)/I(27))).sqrt())/I(2)).cbrt()+((phi-(phi-(I(5)/I(27))).sqrt())/I(2)).cbrt();
+    const I c0 = (phi*(I(3)-x*x).sqrt())/I(2);
+    const I c1 = (x*phi*(I(3)-x*x).sqrt())/I(2);
+    const I c2 = (phi*(((x-I(1))-(I(1)/x))*phi).sqrt())/I(2);
+    const I c3 = (x*x*phi*(I(3)-x*x).sqrt())/I(2);
+    const I c4 = (x*phi*(((x-I(1))-(I(1)/x))*phi).sqrt())/I(2);
+    const I c5 = (phi*(I(1)-x+((I(1)+phi)/x)).sqrt())/I(2);
+    const I c6 = (phi*(x+I(1)-phi).sqrt())/I(2);
+    const I c7 = (x*x*phi*(((x-I(1))-(I(1)/x))*phi).sqrt())/I(2);
+    const I c8 = (x*phi*(I(1)-x+((I(1)+phi)/x)).sqrt())/I(2);
+    const I c9 = (((x+I(2))*phi+I(2)).sqrt())/I(2);
+    const I c10 = (x*((x*(I(1)+phi))-phi).sqrt())/I(2);
+    const I c11 = (((x*x*(I(1)+I(2)*phi))-phi).sqrt())/I(2);
+    const I c12 = (phi*((x*x)+x).sqrt())/I(2);
+    const I c13 = ((phi*phi)*((x*(x+phi))+I(1)).sqrt())/(I(2)*x);
+    const I c14 = (phi*(((x*(x+phi))+I(1))).sqrt())/I(2);
+    const auto group1 = Polyhedron<I>::rotations({
+        Vertex<I>(c2,c1,c14),
+        Vertex<I>(c2,-c1,-c14),
+        Vertex<I>(-c2,-c1,c14),
+        Vertex<I>(-c2,c1,-c14)
+    });
+    const auto group2 = Polyhedron<I>::rotations({
+        Vertex<I>(c3,-c4,c13),
+        Vertex<I>(c3,c4,-c13),
+        Vertex<I>(-c3,c4,c13),
+        Vertex<I>(-c3,-c4,-c13)
+    });
+    const auto group3 = Polyhedron<I>::rotations({
+        Vertex<I>(c0,c8,c12),
+        Vertex<I>(c0,-c8,-c12),
+        Vertex<I>(-c0,-c8,c12),
+        Vertex<I>(-c0,c8,-c12)
+    });
+    const auto group4 = Polyhedron<I>::rotations({
+        Vertex<I>(c7,c6,c11),
+        Vertex<I>(c7,-c6,-c11),
+        Vertex<I>(-c7,-c6,c11),
+        Vertex<I>(-c7,c6,-c11)
+    });
+    const auto group5 = Polyhedron<I>::rotations({
+        Vertex<I>(c9,-c5,c10),
+        Vertex<I>(c9,c5,-c10),
+        Vertex<I>(-c9,c5,c10),
+        Vertex<I>(-c9,-c5,-c10)
+    });
+    return Polyhedron<I>(Polyhedron<I>::combined({group1,group2,group3,group4,group5}));
+}
+
+template<IntervalType I>
+static Polyhedron<I> truncated_icosidodecahedron() {
+    const I c0 = (I(3) + I(5).sqrt()) / 4;
+    const I c1 = (I(1) + I(5).sqrt()) / 2;
+    const I c2 = (I(5) + I(5).sqrt()) / 4;
+    const I c3 = (I(2) + I(5).sqrt()) / 2;
+    const I c4 = I(3) * (I(1) + I(5).sqrt()) / 4;
+    const I c5 = (I(3) + I(5).sqrt()) / 2;
+    const I c6 = (I(5) + I(3) * I(5).sqrt()) / 4;
+    const I c7 = (I(4) + I(5).sqrt()) / 2;
+    const I c8 = (I(7) + I(3) * I(5).sqrt()) / 4;
+    const I c9 = (I(3) + I(2) * I(5).sqrt()) / 2;
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(1) / 2, I(1) / 2, c9))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(1), c0, c8))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(1) / 2, c3, c7))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c2, c1, c6))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c0, c4, c5)))
+    }));
+}
+
+// Category: Catalan
+
+template<IntervalType I>
+static Polyhedron<I> triakis_tetrahedron() {
+    const I c0 = (I(9) * I(2).sqrt()) / I(20);
+    const I c1 = (I(3) * I(2).sqrt()) / I(4);
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        {
+            Vertex<I>(c1, c1, c1),
+            Vertex<I>(c1, -c1, -c1),
+            Vertex<I>(-c1, -c1, c1),
+            Vertex<I>(-c1, c1, -c1)
+        },
+        {
+            Vertex<I>(c0, -c0, c0),
+            Vertex<I>(c0, c0, -c0),
+            Vertex<I>(-c0, c0, c0),
+            Vertex<I>(-c0, -c0, -c0)
+        }
+    }));
+}
+
+template<IntervalType I>
+static Polyhedron<I> rhombic_dodecahedron() {
+    const I c0 = (I(3) * I(2).sqrt()) / I(8);
+    const I c1 = (I(3) * I(2).sqrt()) / I(4);
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(0), I(0), c1))),
+        Polyhedron<I>::flips(Vertex<I>(c0, c0, c0))
+    }));
+}
+
+template<IntervalType I>
+static Polyhedron<I> tetrakis_hexahedron() {
+    const I c0 = (I(3) * I(2).sqrt()) / 4;
+    const I c1 = (I(9) * I(2).sqrt()) / 8;
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(0), I(0), c1))),
+        Polyhedron<I>::flips(Vertex<I>(c0, c0, c0))
+    }));
+}
+
+template<IntervalType I>
+static Polyhedron<I> triakis_octahedron() {
+    const I c0 = I(1) + I(2).sqrt();
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        Polyhedron<I>::permutations(Polyhedron<I>::flips(Vertex<I>(c0, I(0), I(0)))),
+        Polyhedron<I>::flips(Vertex<I>(I(1), I(1), I(1)))
+    }));
+}
+
+template<IntervalType I>
+static Polyhedron<I> deltoidal_icositetrahedron() {
+    const I c0 = (I(4) + I(2).sqrt()) / 7;
+    const I c1 = I(2).sqrt();
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        Polyhedron<I>::permutations(Polyhedron<I>::flips(Vertex<I>(c1, I(0), I(0)))),
+        Polyhedron<I>::permutations(Polyhedron<I>::flips(Vertex<I>(I(1), I(1), I(0)))),
+        Polyhedron<I>::flips(Vertex<I>(c0, c0, c0))
+    }));
+}
+
+template<IntervalType I>
+static Polyhedron<I> pentagonal_icositetrahedron_dextro() {
+    const I c0 = (I(6)*((I(6)*(I(9) + I(33).sqrt())).cbrt() + (I(6)*(I(9) - I(33).sqrt())).cbrt() - I(6)))).sqrt() / I(12);
+    const I c1 = (I(6)*(I(6) + (I(6)*(I(9) + I(33).sqrt())).cbrt() + (I(6)*(I(9) - I(33).sqrt())).cbrt()))).sqrt() / I(12);
+    const I c2 = (I(6)*(I(18) + (I(6)*(I(9) + I(33).sqrt())).cbrt() + (I(6)*(I(9) - I(33).sqrt())).cbrt()))).sqrt() / I(12);
+    const I c3 = (I(6)*(I(14) + (I(2)*(I(1777) + I(33)*I(33).sqrt())).cbrt() + (I(2)*(I(1777) - I(33)*I(33).sqrt())).cbrt()))).sqrt() / I(12);
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        Polyhedron<I>::permutations(Polyhedron<I>::flips(Vertex<I>(c3, I(0), I(0)))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c0, c1, c2))),
+        Polyhedron<I>::flips(Vertex<I>(c1, c1, c1))
+    }));
+}
+
+template<IntervalType I>
+static Polyhedron<I> pentagonal_icositetrahedron_laevo() {
+    const I c0 = ((I(6)*((I(6)*(I(9)+I(33).sqrt())).cbrt() + (I(6)*(I(9)-I(33).sqrt())).cbrt() - I(6)))).sqrt()) / I(12);
+    const I c1 = ((I(6)*((I(6) + (I(6)*(I(9)+I(33).sqrt())).cbrt() + (I(6)*(I(9)-I(33).sqrt())).cbrt())))).sqrt()) / I(12);
+    const I c2 = ((I(6)*((I(18) + (I(6)*(I(9)+I(33).sqrt())).cbrt() + (I(6)*(I(9)-I(33).sqrt())).cbrt())))).sqrt()) / I(12);
+    const I c3 = ((I(6)*((I(14) + (I(2)*(I(1777) + I(33)*I(33).sqrt())).cbrt() + (I(2)*(I(1777) - I(33)*I(33).sqrt())).cbrt())))).sqrt()) / I(12);
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c3, I(0), I(0)))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c1, c0, c2))),
+        Polyhedron<I>::flips(Vertex<I>(c1, c1, c1))
+    }));
+}
+
+template<IntervalType I>
+static Polyhedron<I> rhombic_triacontahedron() {
+    const I c0 = I(5).sqrt() / I(4);
+    const I c1 = (I(5) + I(5).sqrt()) / I(8);
+    const I c2 = (I(5) + I(3) * I(5).sqrt()) / I(8);
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c1, I(0), c2))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(0), c0, c2))),
+        Polyhedron<I>::flips(Vertex<I>(c1, c1, c1))
+    }));
+}
+
+template<IntervalType I>
+static Polyhedron<I> disdyakis_dodecahedron() {
+    const I c0 = I(2).sqrt();
+    const I c1 = (I(3) * (I(1) + I(2) * I(2).sqrt())) / 7;
+    const I c2 = (I(3) * (I(2) + I(3) * I(2).sqrt())) / 7;
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c2, I(0), I(0)))),
+        Polyhedron<I>::permutations(Polyhedron<I>::flips(Vertex<I>(c1, c1, I(0)))),
+        Polyhedron<I>::flips(Vertex<I>(c0, c0, c0))
+    }));
+}
+
+template<IntervalType I>
+static Polyhedron<I> pentakis_dodecahedron() {
+    const I c0 = (I(3) * (I(5).sqrt() - I(1))) / I(4);
+    const I c1 = (I(9) * (I(9) + I(5).sqrt())) / I(76);
+    const I c2 = (I(9) * (I(7) + I(5) * I(5).sqrt())) / I(76);
+    const I c3 = (I(3) * (I(1) + I(5).sqrt())) / I(4);
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(0), c0, c3))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(0), c1, c2))),
+        Polyhedron<I>::flips(Vertex<I>(I(3) / 2, I(3) / 2, I(3) / 2))
+    }));
+}
+
+template<IntervalType I>
+static Polyhedron<I> triakis_icosahedron() {
+    const I c0 = (I(5)*(I(7) + I(5).sqrt())) / I(44);
+    const I c1 = (I(5)*(I(3) + I(2)*I(5).sqrt())) / I(22);
+    const I c2 = (I(5) + I(5).sqrt()) / I(4);
+    const I c3 = (I(5)*(I(13) + I(5)*I(5).sqrt())) / I(44);
+    const I c4 = (I(5) + I(3)*I(5).sqrt()) / I(4);
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c2, I(0), c4))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(0), c0, c3))),
+        Polyhedron<I>::flips(Vertex<I>(c1, c1, c1))
+    }));
+}
+
+template<IntervalType I>
+static Polyhedron<I> deltoidal_hexecontahedron() {
+    const I c0 = (I(5) - I(5).sqrt()) / 4;
+    const I c1 = (I(15) + I(5).sqrt()) / 22;
+    const I c2 = I(5).sqrt() / 2;
+    const I c3 = (I(5) + I(5).sqrt()) / 6;
+    const I c4 = (I(5) + I(4) * I(5).sqrt()) / 11;
+    const I c5 = (I(5) + I(5).sqrt()) / 4;
+    const I c6 = (I(5) + I(3) * I(5).sqrt()) / 6;
+    const I c7 = (I(25) + I(9) * I(5).sqrt()) / 22;
+    const I c8 = I(5).sqrt();
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(0), I(0), c8))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(I(0), c1, c7))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c3, I(0), c6))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c0, c2, c5))),
+        Polyhedron<I>::flips(Vertex<I>(c4, c4, c4))
+    }));
+}
+
+template<IntervalType I>
+static Polyhedron<I> pentagonal_hexecontahedron_dextro() {
+    const I phi = (I(1) + I(5).sqrt()) / 2;
+    const I x = cbrt((phi + (phi - I(5) / 27).sqrt()) / 2) + cbrt((phi - (phi - I(5) / 27).sqrt()) / 2);
+    const I c0 = phi * ((I(3) - x * x).sqrt()) / 2;
+    const I c1 = (phi * (((x - I(1) - (I(1) / x)) * phi).sqrt())) / (I(2) * x);
+    const I c2 = phi * (((x - I(1) - (I(1) / x)) * phi).sqrt()) / I(2);
+    const I c3 = (x * x) * phi * ((I(3) - x * x).sqrt()) / I(2);
+    const I c4 = phi * ((I(1) - x + ((I(1) + phi) / x)).sqrt()) / I(2);
+    const I c5 = (((x * (x + phi)) + I(1)).sqrt()) / (I(2) * x);
+    const I c6 = ((((x + I(2)) * phi) + I(2)).sqrt()) / (I(2) * x);
+    const I c7 = ((-((x * x) * (I(2) + phi)) + x * (I(1) + I(3) * phi) + I(4)).sqrt()) / I(2);
+    const I c8 = ((I(1) + phi) * ((I(1) + I(1) / x).sqrt())) / (I(2) * x);
+    const I c9 = ((I(2) + I(3) * phi - I(2) * x + (I(3) / x)).sqrt()) / I(2);
+    const I c10 = ((((x * x) * (I(392) + I(225) * phi)) + (x * (I(249) + I(670) * phi)) + (I(470) + I(157) * phi)).sqrt()) / I(62);
+    const I c11 = (phi * (((x * (x + phi)) + I(1)).sqrt())) / (I(2) * x);
+    const I c12 = (phi * ((x * x + x + I(1) + phi).sqrt())) / (I(2) * x);
+    const I c13 = (phi * ((x * x + I(2) * x * phi + I(2)).sqrt())) / (I(2) * x);
+    const I c14 = (((((x * x) * (I(1) + I(2) * phi)) - phi).sqrt())) / I(2);
+    const I c15 = phi * ((x * x + x).sqrt()) / I(2);
+    const I c16 = ((phi * phi * phi) * (((x * (x + phi)) + I(1)).sqrt())) / (I(2) * (x * x));
+    const I c17 = ((((x * x) * (I(617) + I(842) * phi)) + (x * (I(919) + I(1589) * phi)) + (I(627) + I(784) * phi)).sqrt()) / I(62);
+    const I c18 = ((phi * phi) * (((x * (x + phi)) + I(1)).sqrt())) / (I(2) * x);
+    const I c19 = phi * (((x * (x + phi)) + I(1)).sqrt()) / I(2);
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        {
+            Vertex<I>(c0, c1, c19),
+            Vertex<I>(c0, -c1, -c19),
+            Vertex<I>(-c0, -c1, c19),
+            Vertex<I>(-c0, c1, -c19),
+            Vertex<I>(c19, c0, c1),
+            Vertex<I>(c19, -c0, -c1),
+            Vertex<I>(-c19, -c0, c1),
+            Vertex<I>(-c19, c0, -c1),
+            Vertex<I>(c1, c19, c0),
+            Vertex<I>(c1, -c19, -c0),
+            Vertex<I>(-c1, -c19, c0),
+            Vertex<I>(-c1, c19, -c0)
+        },
+        Polyhedron<I>::rotations(
+            Polyhedron<I>::flips(Vertex<I>(I(0), c5, c18))
+        ),
+        Polyhedron<I>::rotations(
+            Polyhedron<I>::flips(Vertex<I>(c10, I(0), c17))
+        ),
+        {
+            Vertex<I>(c3, -c6, c16),
+            Vertex<I>(c3, c6, -c16),
+            Vertex<I>(-c3, c6, c16),
+            Vertex<I>(-c3, -c6, -c16),
+            Vertex<I>(c16, -c3, c6),
+            Vertex<I>(c16, c3, -c6),
+            Vertex<I>(-c16, c3, c6),
+            Vertex<I>(-c16, -c3, -c6),
+            Vertex<I>(c6, -c16, c3),
+            Vertex<I>(c6, c16, -c3),
+            Vertex<I>(-c6, c16, c3),
+            Vertex<I>(-c6, -c16, -c3)
+        },
+        {
+            Vertex<I>(c2, c9, c15),
+            Vertex<I>(c2, -c9, -c15),
+            Vertex<I>(-c2, -c9, c15),
+            Vertex<I>(-c2, c9, -c15),
+            Vertex<I>(c15, c2, c9),
+            Vertex<I>(c15, -c2, -c9),
+            Vertex<I>(-c15, -c2, c9),
+            Vertex<I>(-c15, c2, -c9),
+            Vertex<I>(c9, c15, c2),
+            Vertex<I>(c9, -c15, -c2),
+            Vertex<I>(-c9, -c15, c2),
+            Vertex<I>(-c9, c15, -c2)
+        },
+        {
+            Vertex<I>(c7, c8, c14),
+            Vertex<I>(c7, -c8, -c14),
+            Vertex<I>(-c7, -c8, c14),
+            Vertex<I>(-c7, c8, -c14),
+            Vertex<I>(c14, c7, c8),
+            Vertex<I>(c14, -c7, -c8),
+            Vertex<I>(-c14, -c7, c8),
+            Vertex<I>(-c14, c7, -c8),
+            Vertex<I>(c8, c14, c7),
+            Vertex<I>(c8, -c14, -c7),
+            Vertex<I>(-c8, -c14, c7),
+            Vertex<I>(-c8, c14, -c7)
+        },
+        {
+            Vertex<I>(c4, -c12, c13),
+            Vertex<I>(c4, c12, -c13),
+            Vertex<I>(-c4, c12, c13),
+            Vertex<I>(-c4, -c12, -c13),
+            Vertex<I>(c13, -c4, c12),
+            Vertex<I>(c13, c4, -c12),
+            Vertex<I>(-c13, c4, c12),
+            Vertex<I>(-c13, -c4, -c12),
+            Vertex<I>(c12, -c13, c4),
+            Vertex<I>(c12, c13, -c4),
+            Vertex<I>(-c12, c13, c4),
+            Vertex<I>(-c12, -c13, -c4)
+        },
+        Polyhedron<I>::flips(Vertex<I>(c11, c11, c11))
+    }));
+}
+
+template<IntervalType I>
+static Polyhedron<I> pentagonal_hexecontahedron_laevo() {
+    const I phi = (I(1) + I(5).sqrt()) / I(2);
+    const I x = (((phi + (phi - I(5)/I(27)).sqrt()) / I(2)).cbrt()
+               + ((phi - (phi - I(5)/I(27)).sqrt()) / I(2)).cbrt());
+    const I c0 = (phi * (I(3) - x*x).sqrt()) / I(2);
+    const I c1 = (phi * ((((x - I(1)) - (I(1)/x)) * phi).sqrt())) / (I(2)*x);
+    const I c2 = (phi * ((((x - I(1)) - (I(1)/x)) * phi).sqrt())) / I(2);
+    const I c3 = (x*x) * phi * (I(3) - x*x).sqrt() / I(2);
+    const I c4 = (phi * ((I(1) - x) + ((I(1) + phi)/x)).sqrt()) / I(2);
+    const I c5 = (((x*(x + phi)) + I(1)).sqrt()) / (I(2)*x);
+    const I c6 = ((((x + I(2)) * phi) + I(2)).sqrt()) / (I(2)*x);
+    const I c7 = (((-(x*x)*(I(2) + phi)) + (x*(I(1) + I(3)*phi)) + I(4)).sqrt()) / I(2);
+    const I c8 = (((I(1) + phi) * (I(1) + (I(1)/x)).sqrt())) / (I(2)*x);
+    const I c9 = ((I(2) + I(3)*phi - I(2)*x + (I(3)/x)).sqrt()) / I(2);
+    const I c10 = (((x*x)*(I(392) + I(225)*phi) + x*(I(249) + I(670)*phi) + (I(470) + I(157)*phi)).sqrt()) / I(62);
+    const I c11 = (phi * ((x*(x + phi)) + I(1)).sqrt()) / (I(2)*x);
+    const I c12 = (phi * ((x*x) + x + I(1) + phi).sqrt()) / (I(2)*x);
+    const I c13 = (phi * ((x*x) + I(2)*x*phi + I(2)).sqrt()) / (I(2)*x);
+    const I c14 = (((x*x)*(I(1) + I(2)*phi) - phi).sqrt()) / I(2);
+    const I c15 = phi * ((x*x + x).sqrt()) / I(2);
+    const I c16 = ((phi*phi*phi) * ((x*(x + phi)) + I(1)).sqrt()) / (I(2)*(x*x));
+    const I c17 = (((x*x)*(I(617) + I(842)*phi) + x*(I(919) + I(1589)*phi) + (I(627) + I(784)*phi)).sqrt()) / I(62);
+    const I c18 = ((phi*phi) * ((x*(x + phi)) + I(1)).sqrt()) / (I(2)*x);
+    const I c19 = phi * ((x*(x + phi)) + I(1)).sqrt() / I(2);
+    return Polyhedron<I>({
+        Vertex<I>(-c0, -c1, -c19),
+        Vertex<I>(-c0,  c1,  c19),
+        Vertex<I>( c0,  c1, -c19),
+        Vertex<I>( c0, -c1,  c19),
+        Vertex<I>(-c19, -c0, -c1),
+        Vertex<I>(-c19,  c0,  c1),
+        Vertex<I>( c19,  c0, -c1),
+        Vertex<I>( c19, -c0,  c1),
+        Vertex<I>(-c1, -c19, -c0),
+        Vertex<I>(-c1,  c19,  c0),
+        Vertex<I>( c1,  c19, -c0),
+        Vertex<I>( c1, -c19,  c0),
+        Vertex<I>( I(0), -c5, -c18),
+        Vertex<I>( I(0), -c5,  c18),
+        Vertex<I>( I(0),  c5, -c18),
+        Vertex<I>( I(0),  c5,  c18),
+        Vertex<I>(-c18, I(0), -c5),
+        Vertex<I>(-c18, I(0),  c5),
+        Vertex<I>( c18, I(0), -c5),
+        Vertex<I>( c18, I(0),  c5),
+        Vertex<I>(-c5, -c18, I(0)),
+        Vertex<I>(-c5,  c18, I(0)),
+        Vertex<I>( c5, -c18, I(0)),
+        Vertex<I>( c5,  c18, I(0)),
+        Vertex<I>(-c10, I(0), -c17),
+        Vertex<I>(-c10, I(0),  c17),
+        Vertex<I>( c10, I(0), -c17),
+        Vertex<I>( c10, I(0),  c17),
+        Vertex<I>(-c17, -c10, I(0)),
+        Vertex<I>(-c17,  c10, I(0)),
+        Vertex<I>( c17, -c10, I(0)),
+        Vertex<I>( c17,  c10, I(0)),
+        Vertex<I>( I(0), -c17, -c10),
+        Vertex<I>( I(0), -c17,  c10),
+        Vertex<I>( I(0),  c17, -c10),
+        Vertex<I>( I(0),  c17,  c10),
+        Vertex<I>(-c3,  c6, -c16),
+        Vertex<I>(-c3, -c6,  c16),
+        Vertex<I>( c3, -c6, -c16),
+        Vertex<I>( c3,  c6,  c16),
+        Vertex<I>(-c16,  c3, -c6),
+        Vertex<I>(-c16, -c3,  c6),
+        Vertex<I>( c16, -c3, -c6),
+        Vertex<I>( c16,  c3,  c6),
+        Vertex<I>(-c6,  c16, -c3),
+        Vertex<I>(-c6, -c16,  c3),
+        Vertex<I>( c6, -c16, -c3),
+        Vertex<I>( c6,  c16,  c3),
+        Vertex<I>(-c2, -c9, -c15),
+        Vertex<I>(-c2,  c9,  c15),
+        Vertex<I>( c2,  c9, -c15),
+        Vertex<I>( c2, -c9,  c15),
+        Vertex<I>(-c15, -c2, -c9),
+        Vertex<I>(-c15,  c2,  c9),
+        Vertex<I>( c15,  c2, -c9),
+        Vertex<I>( c15, -c2,  c9),
+        Vertex<I>(-c9, -c15, -c2),
+        Vertex<I>(-c9,  c15,  c2),
+        Vertex<I>( c9,  c15, -c2),
+        Vertex<I>( c9, -c15,  c2),
+        Vertex<I>(-c7, -c8, -c14),
+        Vertex<I>(-c7,  c8,  c14),
+        Vertex<I>( c7,  c8, -c14),
+        Vertex<I>( c7, -c8,  c14),
+        Vertex<I>(-c14, -c7, -c8),
+        Vertex<I>(-c14,  c7,  c8),
+        Vertex<I>( c14,  c7, -c8),
+        Vertex<I>( c14, -c7,  c8),
+        Vertex<I>(-c8, -c14, -c7),
+        Vertex<I>(-c8,  c14,  c7),
+        Vertex<I>( c8,  c14, -c7),
+        Vertex<I>( c8, -c14,  c7),
+        Vertex<I>(-c4,  c12, -c13),
+        Vertex<I>(-c4, -c12,  c13),
+        Vertex<I>( c4, -c12, -c13),
+        Vertex<I>( c4,  c12,  c13),
+        Vertex<I>(-c13,  c4, -c12),
+        Vertex<I>(-c13, -c4,  c12),
+        Vertex<I>( c13, -c4, -c12),
+        Vertex<I>( c13,  c4,  c12),
+        Vertex<I>(-c12,  c13, -c4),
+        Vertex<I>(-c12, -c13,  c4),
+        Vertex<I>( c12, -c13, -c4),
+        Vertex<I>( c12,  c13,  c4),
+        Vertex<I>(-c11, -c11, -c11),
+        Vertex<I>(-c11, -c11,  c11),
+        Vertex<I>(-c11,  c11, -c11),
+        Vertex<I>(-c11,  c11,  c11),
+        Vertex<I>( c11, -c11, -c11),
+        Vertex<I>( c11, -c11,  c11),
+        Vertex<I>( c11,  c11, -c11),
+        Vertex<I>( c11,  c11,  c11)
+    });
+}
+
+template<IntervalType I>
+static Polyhedron<I> disdyakis_triacontahedron() {
+    const I c0 = I(3)*(I(15) + I(5).sqrt()) / I(44);
+    const I c1 = (I(5) - I(5).sqrt()) / I(2);
+    const I c2 = I(3)*(I(5) + I(4)*I(5).sqrt()) / I(22);
+    const I c3 = I(3)*(I(5) + I(5).sqrt()) / I(10);
+    const I c4 = I(5).sqrt();
+    const I c5 = I(3)*(I(25) + I(9)*I(5).sqrt()) / I(44);
+    const I c6 = I(3)*(I(5) + I(3)*I(5).sqrt()) / I(10);
+    const I c7 = (I(5) + I(5).sqrt()) / I(2);
+    const I c8 = I(3)*(I(5) + I(4)*I(5).sqrt()) / I(11);
+    return Polyhedron<I>(Polyhedron<I>::combined({
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c8, I(0), I(0)))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c7, c1, I(0)))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c6, c3, I(0)))),
+        Polyhedron<I>::rotations(Polyhedron<I>::flips(Vertex<I>(c5, c2, c0))),
+        Polyhedron<I>::flips(Vertex<I>(c4, c4, c4))
+    }));
 }
 
