@@ -40,8 +40,8 @@ struct RectangleBuilder;
 struct Box;
 struct BoxBuilder;
 
-struct Boxes;
-struct BoxesBuilder;
+struct Debug;
+struct DebugBuilder;
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vector FLATBUFFERS_FINAL_CLASS {
  private:
@@ -575,8 +575,8 @@ inline flatbuffers::Offset<Box> CreateBoxDirect(
       in_index);
 }
 
-struct Boxes FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef BoxesBuilder Builder;
+struct Debug FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef DebugBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_DESCRIPTION = 4,
     VT_HOLE = 6,
@@ -610,40 +610,40 @@ struct Boxes FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
-struct BoxesBuilder {
-  typedef Boxes Table;
+struct DebugBuilder {
+  typedef Debug Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_description(flatbuffers::Offset<flatbuffers::String> description) {
-    fbb_.AddOffset(Boxes::VT_DESCRIPTION, description);
+    fbb_.AddOffset(Debug::VT_DESCRIPTION, description);
   }
   void add_hole(flatbuffers::Offset<FlatBuffers::Polyhedron> hole) {
-    fbb_.AddOffset(Boxes::VT_HOLE, hole);
+    fbb_.AddOffset(Debug::VT_HOLE, hole);
   }
   void add_plug(flatbuffers::Offset<FlatBuffers::Polyhedron> plug) {
-    fbb_.AddOffset(Boxes::VT_PLUG, plug);
+    fbb_.AddOffset(Debug::VT_PLUG, plug);
   }
   void add_boxes(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box>>> boxes) {
-    fbb_.AddOffset(Boxes::VT_BOXES, boxes);
+    fbb_.AddOffset(Debug::VT_BOXES, boxes);
   }
-  explicit BoxesBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit DebugBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  flatbuffers::Offset<Boxes> Finish() {
+  flatbuffers::Offset<Debug> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<Boxes>(end);
+    auto o = flatbuffers::Offset<Debug>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<Boxes> CreateBoxes(
+inline flatbuffers::Offset<Debug> CreateDebug(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> description = 0,
     flatbuffers::Offset<FlatBuffers::Polyhedron> hole = 0,
     flatbuffers::Offset<FlatBuffers::Polyhedron> plug = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box>>> boxes = 0) {
-  BoxesBuilder builder_(_fbb);
+  DebugBuilder builder_(_fbb);
   builder_.add_boxes(boxes);
   builder_.add_plug(plug);
   builder_.add_hole(hole);
@@ -651,7 +651,7 @@ inline flatbuffers::Offset<Boxes> CreateBoxes(
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<Boxes> CreateBoxesDirect(
+inline flatbuffers::Offset<Debug> CreateDebugDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *description = nullptr,
     flatbuffers::Offset<FlatBuffers::Polyhedron> hole = 0,
@@ -659,7 +659,7 @@ inline flatbuffers::Offset<Boxes> CreateBoxesDirect(
     const std::vector<flatbuffers::Offset<FlatBuffers::Box>> *boxes = nullptr) {
   auto description__ = description ? _fbb.CreateString(description) : 0;
   auto boxes__ = boxes ? _fbb.CreateVector<flatbuffers::Offset<FlatBuffers::Box>>(*boxes) : 0;
-  return FlatBuffers::CreateBoxes(
+  return FlatBuffers::CreateDebug(
       _fbb,
       description__,
       hole,
@@ -667,33 +667,33 @@ inline flatbuffers::Offset<Boxes> CreateBoxesDirect(
       boxes__);
 }
 
-inline const FlatBuffers::Boxes *GetBoxes(const void *buf) {
-  return flatbuffers::GetRoot<FlatBuffers::Boxes>(buf);
+inline const FlatBuffers::Debug *GetDebug(const void *buf) {
+  return flatbuffers::GetRoot<FlatBuffers::Debug>(buf);
 }
 
-inline const FlatBuffers::Boxes *GetSizePrefixedBoxes(const void *buf) {
-  return flatbuffers::GetSizePrefixedRoot<FlatBuffers::Boxes>(buf);
+inline const FlatBuffers::Debug *GetSizePrefixedDebug(const void *buf) {
+  return flatbuffers::GetSizePrefixedRoot<FlatBuffers::Debug>(buf);
 }
 
-inline bool VerifyBoxesBuffer(
+inline bool VerifyDebugBuffer(
     flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<FlatBuffers::Boxes>(nullptr);
+  return verifier.VerifyBuffer<FlatBuffers::Debug>(nullptr);
 }
 
-inline bool VerifySizePrefixedBoxesBuffer(
+inline bool VerifySizePrefixedDebugBuffer(
     flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<FlatBuffers::Boxes>(nullptr);
+  return verifier.VerifySizePrefixedBuffer<FlatBuffers::Debug>(nullptr);
 }
 
-inline void FinishBoxesBuffer(
+inline void FinishDebugBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<FlatBuffers::Boxes> root) {
+    flatbuffers::Offset<FlatBuffers::Debug> root) {
   fbb.Finish(root);
 }
 
-inline void FinishSizePrefixedBoxesBuffer(
+inline void FinishSizePrefixedDebugBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
-    flatbuffers::Offset<FlatBuffers::Boxes> root) {
+    flatbuffers::Offset<FlatBuffers::Debug> root) {
   fbb.FinishSizePrefixed(root);
 }
 

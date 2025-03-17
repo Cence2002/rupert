@@ -59,11 +59,11 @@ table Box {
   in_index: int32;
 }
 
-table Boxes {
+table Debug {
   description: string;
   hole: Polyhedron;
   plug: Polyhedron;
   boxes: [Box];
 }
 
-root_type Boxes;
+root_type Debug;

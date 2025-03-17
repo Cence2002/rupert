@@ -1,6 +1,6 @@
 <script lang="ts">
     import ThreeElement from "$lib/ThreeElement.svelte";
-    import {Boxes} from "$lib/flatbuffers/flatbuffers_generated";
+    import {Debug} from "$lib/flatbuffers/flatbuffers_generated";
     import {Selection} from "$lib/state.svelte";
     import {PI, TWO_PI} from "$lib/geometry";
 
@@ -23,8 +23,8 @@
         FrontSide, Color
     } from "three";
 
-    let {boxes, selection} = $props<{
-        boxes: Boxes | undefined,
+    let {debug, selection} = $props<{
+        debug: Debug | undefined,
         selection: Selection,
     }>();
 
@@ -54,7 +54,7 @@
     let rectangleGroups: Group[] = [];
 
     function onBoxes() {
-        if (!boxes) {
+        if (!debug) {
             return;
         }
     }
@@ -63,7 +63,7 @@
         if (selection.selectedBox3 === null) {
             return;
         }
-        const box = boxes!.boxes(selection.selectedBox3);
+        const box = debug!.boxes(selection.selectedBox3);
         for (let index = 0; index < box.rectanglesLength(); index++) {
             const rectangle = box.rectangles(index);
 

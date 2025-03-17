@@ -212,7 +212,7 @@ public:
     }
 };
 
-struct BoxesBuilder {
+struct DebugBuilder {
 private:
     flatbuffers::FlatBufferBuilder& builder_;
 
@@ -224,7 +224,7 @@ private:
 public:
     BoxBuilder box_builder;
 
-    explicit BoxesBuilder(flatbuffers::FlatBufferBuilder& builder) : builder_(builder), description_(), hole_(), plug_(), boxes_(), box_builder(builder_) {}
+    explicit DebugBuilder(flatbuffers::FlatBufferBuilder& builder) : builder_(builder), description_(), hole_(), plug_(), boxes_(), box_builder(builder_) {}
 
     void set_description(const std::string& description) {
         description_ = builder_.CreateString(description);
@@ -249,7 +249,7 @@ public:
     }
 
     void build() const {
-        const flatbuffers::Offset<FlatBuffers::Boxes> boxes = FlatBuffers::CreateBoxes(
+        const flatbuffers::Offset<FlatBuffers::Debug> boxes = FlatBuffers::CreateDebug(
             builder_,
             description_,
             hole_,
@@ -267,12 +267,12 @@ private:
     flatbuffers::FlatBufferBuilder builder_;
 
 public:
-    BoxesBuilder boxes_builder;
+    DebugBuilder debug_builder;
 
-    explicit DebugExporter(const Config<Interval>& config) : config_(config), builder_(), boxes_builder(builder_) {}
+    explicit DebugExporter(const Config<Interval>& config) : config_(config), builder_(), debug_builder(builder_) {}
 
     void export_debug() {
-        boxes_builder.build();
+        debug_builder.build();
 
         const std::filesystem::path path = config_.debug_path();
         std::ofstream file(path, std::ios::binary | std::ios::trunc);

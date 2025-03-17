@@ -1,6 +1,6 @@
 <script lang="ts">
     import ThreeElement from "$lib/ThreeElement.svelte";
-    import {Boxes} from "$lib/flatbuffers/flat-buffers/boxes";
+    import {Debug} from "$lib/flatbuffers/flat-buffers/debug";
     import {Selection} from "$lib/state.svelte";
 
     import {MapControls} from "three/addons/controls/MapControls.js";
@@ -26,8 +26,8 @@
     } from "three";
     import {convexHull} from "$lib/geometry";
 
-    let {boxes, selection} = $props<{
-        boxes: Boxes | undefined,
+    let {debug, selection} = $props<{
+        debug: Debug | undefined,
         selection: Selection,
     }>();
 
@@ -64,23 +64,23 @@
     let rectangleOut: number[] = [];
 
     function onBoxes() {
-        if (!boxes) {
+        if (!debug) {
             return;
         }
         {
-            const boxesHole = boxes!.hole();
+            const debugHole = debug!.hole();
             let vertices: Vector3[] = [];
-            for (let index = 0; index < boxesHole.verticesLength(); index++) {
-                const vertex = boxesHole.vertices(index);
+            for (let index = 0; index < debugHole.verticesLength(); index++) {
+                const vertex = debugHole.vertices(index);
                 vertices.push(new Vector3(vertex.x(), vertex.y(), vertex.z()));
             }
             holeRadius = Math.max(...vertices.map(v => v.length()));
         }
         {
-            const boxesPlug = boxes!.plug();
+            const debugPlug = debug!.plug();
             let vertices = [];
-            for (let index = 0; index < boxesPlug.verticesLength(); index++) {
-                const vertex = boxesPlug.vertices(index);
+            for (let index = 0; index < debugPlug.verticesLength(); index++) {
+                const vertex = debugPlug.vertices(index);
                 vertices.push(new Vector3(vertex.x(), vertex.y(), vertex.z()));
             }
             plugRadius = Math.max(...vertices.map(v => v.length()));
@@ -95,7 +95,7 @@
         if (selection.selectedBox3 === null) {
             return;
         }
-        const box = boxes!.boxes(selection.selectedBox3);
+        const box = debug!.boxes(selection.selectedBox3);
 
         for (let index = 0; index < box.projectionsLength(); index++) {
             const projection = box.projections(index);
@@ -167,7 +167,7 @@
         if (selection.selectedRectangle === null) {
             return;
         }
-        const box = boxes!.boxes(selection.selectedBox3);
+        const box = debug!.boxes(selection.selectedBox3);
         const rectangle = box.rectangles(selection.selectedRectangle);
 
         for (let index = 0; index < rectangle.outIndicesLength(); index++) {

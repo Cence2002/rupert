@@ -1,6 +1,6 @@
 <script lang="ts">
     import ThreeElement from "$lib/ThreeElement.svelte";
-    import {Boxes} from "$lib/flatbuffers/flat-buffers/boxes";
+    import {Debug} from "$lib/flatbuffers/flat-buffers/debug";
     import {Selection} from "$lib/state.svelte";
     import {PI, TWO_PI} from "$lib/geometry";
 
@@ -25,8 +25,8 @@
     } from "three";
 
 
-    let {boxes, selection} = $props<{
-        boxes: Boxes | undefined,
+    let {debug, selection} = $props<{
+        debug: Debug | undefined,
         selection: Selection,
     }>();
 
@@ -56,12 +56,12 @@
     const boxGroups: Group[] = [];
 
     function onBoxes() {
-        if (!boxes) {
+        if (!debug) {
             return;
         }
         {
-            for (let index = 0; index < boxes!.boxesLength(); index++) {
-                const box = boxes!.boxes(index);
+            for (let index = 0; index < debug!.boxesLength(); index++) {
+                const box = debug!.boxes(index);
 
                 const theta = box.theta().interval();
                 const phi = box.phi().interval();

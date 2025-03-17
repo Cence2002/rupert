@@ -1,6 +1,6 @@
 <script lang="ts">
     import ThreeElement from "$lib/ThreeElement.svelte";
-    import {Boxes} from "$lib/flatbuffers/flat-buffers/boxes";
+    import {Debug} from "$lib/flatbuffers/flat-buffers/debug";
     import {Selection} from "$lib/state.svelte";
 
     import {
@@ -31,8 +31,8 @@
     import {lerp} from "three/src/math/MathUtils.js";
     import {convexHull} from "$lib/geometry";
 
-    let {boxes, selection} = $props<{
-        boxes: Boxes | undefined,
+    let {debug, selection} = $props<{
+        debug: Debug | undefined,
         selection: Selection,
     }>();
 
@@ -82,14 +82,14 @@
     let plug_phi_t = 0;
 
     function onBoxes() {
-        if (!boxes) {
+        if (!debug) {
             return;
         }
         {
-            const boxesHole = boxes!.hole();
+            const debugHole = debug!.hole();
             let vertices: Vector3[] = [];
-            for (let index = 0; index < boxesHole.verticesLength(); index++) {
-                const vertex = boxesHole.vertices(index);
+            for (let index = 0; index < debugHole.verticesLength(); index++) {
+                const vertex = debugHole.vertices(index);
                 vertices.push(new Vector3(vertex.x(), vertex.y(), vertex.z()));
             }
             holeRadius = Math.max(...vertices.map(v => v.length()));
@@ -117,10 +117,10 @@
             scene.add(holeGroup);
         }
         {
-            const boxesPlug = boxes!.plug();
+            const debugPlug = debug!.plug();
             let vertices = [];
-            for (let index = 0; index < boxesPlug.verticesLength(); index++) {
-                const vertex = boxesPlug.vertices(index);
+            for (let index = 0; index < debugPlug.verticesLength(); index++) {
+                const vertex = debugPlug.vertices(index);
                 vertices.push(new Vector3(vertex.x(), vertex.y(), vertex.z()));
             }
             plugRadius = Math.max(...vertices.map(v => v.length()));
@@ -156,7 +156,7 @@
         if (selection.selectedBox3 === null) {
             return;
         }
-        const box = boxes!.boxes(selection.selectedBox3);
+        const box = debug!.boxes(selection.selectedBox3);
 
         for (let index = 0; index < box.projectionsLength(); index++) {
             const projection = box.projections(index);
@@ -212,9 +212,9 @@
             scene.add(projectionEdge);
         }
 
-        const boxesHole = boxes!.hole();
-        for (let index = 0; index < boxesHole.verticesLength(); index++) {
-            const vertex = boxesHole.vertices(index);
+        const debugHole = debug!.hole();
+        for (let index = 0; index < debugHole.verticesLength(); index++) {
+            const vertex = debugHole.vertices(index);
             const holeVertex = new Vector3(vertex.x(), vertex.y(), vertex.z());
 
             const resolution = 8;
@@ -307,7 +307,7 @@
         if (selection.selectedRectangle === null) {
             return;
         }
-        const box = boxes!.boxes(selection.selectedBox3);
+        const box = debug!.boxes(selection.selectedBox3);
         const rectangle = box.rectangles(selection.selectedRectangle);
 
         for (let index = 0; index < rectangle.outIndicesLength(); index++) {
@@ -349,9 +349,9 @@
             scene.add(group);
         }
 
-        const boxesPlug = boxes!.plug();
-        for (let index = 0; index < boxesPlug.verticesLength(); index++) {
-            const vertex = boxesPlug.vertices(index);
+        const debugPlug = debug!.plug();
+        for (let index = 0; index < debugPlug.verticesLength(); index++) {
+            const vertex = debugPlug.vertices(index);
             const holeVertex = new Vector3(vertex.x(), vertex.y(), vertex.z());
 
             function parametric(theta_t: number, phi_t: number, target: Vector3) {
@@ -437,7 +437,7 @@
         renderer.render(scene, camera);
 
         if (holeGroup && selection.selectedBox3 !== null) {
-            const box = boxes!.boxes(selection.selectedBox3);
+            const box = debug!.boxes(selection.selectedBox3);
 
             const theta_interval = box.theta().interval();
             const phi_interval = box.phi().interval();
@@ -454,7 +454,7 @@
             hole_alpha_t += 0.1 / Math.sqrt(3);
         }
         if (plugGroup && selection.selectedBox3 !== null && selection.selectedRectangle !== null) {
-            const box = boxes!.boxes(selection.selectedBox3);
+            const box = debug!.boxes(selection.selectedBox3);
             const rectangle = box.rectangles(selection.selectedRectangle);
 
             const theta_interval = rectangle.theta().interval();
