@@ -24,12 +24,12 @@ static getSizePrefixedRootAsDebug(bb:flatbuffers.ByteBuffer, obj?:Debug):Debug {
   return (obj || new Debug()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-hole(obj?:Polyhedron):Polyhedron|null {
+plug(obj?:Polyhedron):Polyhedron|null {
   const offset = this.bb!.__offset(this.bb_pos, 4);
   return offset ? (obj || new Polyhedron()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 }
 
-plug(obj?:Polyhedron):Polyhedron|null {
+hole(obj?:Polyhedron):Polyhedron|null {
   const offset = this.bb!.__offset(this.bb_pos, 6);
   return offset ? (obj || new Polyhedron()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 }
@@ -48,12 +48,12 @@ static startDebug(builder:flatbuffers.Builder) {
   builder.startObject(3);
 }
 
-static addHole(builder:flatbuffers.Builder, holeOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(0, holeOffset, 0);
+static addPlug(builder:flatbuffers.Builder, plugOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(0, plugOffset, 0);
 }
 
-static addPlug(builder:flatbuffers.Builder, plugOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(1, plugOffset, 0);
+static addHole(builder:flatbuffers.Builder, holeOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(1, holeOffset, 0);
 }
 
 static addBoxes(builder:flatbuffers.Builder, boxesOffset:flatbuffers.Offset) {
