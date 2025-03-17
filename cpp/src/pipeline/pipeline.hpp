@@ -73,7 +73,6 @@ public:
                                                         terminated_(false),
                                                         terminated_thread_count_(0) {
         if(config_.debug_enabled()) {
-            debug_exporter_.debug_builder.set_description(config_.description());
             debug_exporter_.debug_builder.set_hole(config_.hole());
             debug_exporter_.debug_builder.set_plug(config_.plug());
         }

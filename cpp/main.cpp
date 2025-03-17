@@ -21,8 +21,8 @@ int main() {
 
     const Config<I> config(
         "RID",
-        hole,
         plug,
+        hole,
         1,
         64,
         10000,
