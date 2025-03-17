@@ -3,13 +3,13 @@
     import {Debug} from '$lib/flatbuffers/flatbuffers_generated';
     import {Selection} from "$lib/state.svelte";
 
-    import Parameter3 from "$lib/plots/Boxes.svelte";
-    import Parameter2 from "$lib/plots/Rectangles.svelte";
-    import Geometry3 from "$lib/plots/Main.svelte";
-    import Geometry2 from "$lib/plots/Projection.svelte";
+    import Parameter3 from "$lib/plot/Boxes.svelte";
+    import Parameter2 from "$lib/plot/Rectangles.svelte";
+    import Geometry3 from "$lib/plot/Main.svelte";
+    import Geometry2 from "$lib/plot/Projection.svelte";
 
     import {onMount} from 'svelte';
-    import {loadDebug} from "$lib/loader";
+    import {loadDebug} from "$lib/loader/debug";
 
     let debug: Debug | undefined = $state();
     let selection = new Selection();
