@@ -578,14 +578,10 @@ inline flatbuffers::Offset<Box> CreateBoxDirect(
 struct Debug FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef DebugBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_DESCRIPTION = 4,
-    VT_HOLE = 6,
-    VT_PLUG = 8,
-    VT_BOXES = 10
+    VT_HOLE = 4,
+    VT_PLUG = 6,
+    VT_BOXES = 8
   };
-  const flatbuffers::String *description() const {
-    return GetPointer<const flatbuffers::String *>(VT_DESCRIPTION);
-  }
   const FlatBuffers::Polyhedron *hole() const {
     return GetPointer<const FlatBuffers::Polyhedron *>(VT_HOLE);
   }
@@ -597,8 +593,6 @@ struct Debug FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_DESCRIPTION) &&
-           verifier.VerifyString(description()) &&
            VerifyOffset(verifier, VT_HOLE) &&
            verifier.VerifyTable(hole()) &&
            VerifyOffset(verifier, VT_PLUG) &&
@@ -614,9 +608,6 @@ struct DebugBuilder {
   typedef Debug Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_description(flatbuffers::Offset<flatbuffers::String> description) {
-    fbb_.AddOffset(Debug::VT_DESCRIPTION, description);
-  }
   void add_hole(flatbuffers::Offset<FlatBuffers::Polyhedron> hole) {
     fbb_.AddOffset(Debug::VT_HOLE, hole);
   }
@@ -639,7 +630,6 @@ struct DebugBuilder {
 
 inline flatbuffers::Offset<Debug> CreateDebug(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> description = 0,
     flatbuffers::Offset<FlatBuffers::Polyhedron> hole = 0,
     flatbuffers::Offset<FlatBuffers::Polyhedron> plug = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box>>> boxes = 0) {
@@ -647,21 +637,17 @@ inline flatbuffers::Offset<Debug> CreateDebug(
   builder_.add_boxes(boxes);
   builder_.add_plug(plug);
   builder_.add_hole(hole);
-  builder_.add_description(description);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<Debug> CreateDebugDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const char *description = nullptr,
     flatbuffers::Offset<FlatBuffers::Polyhedron> hole = 0,
     flatbuffers::Offset<FlatBuffers::Polyhedron> plug = 0,
     const std::vector<flatbuffers::Offset<FlatBuffers::Box>> *boxes = nullptr) {
-  auto description__ = description ? _fbb.CreateString(description) : 0;
   auto boxes__ = boxes ? _fbb.CreateVector<flatbuffers::Offset<FlatBuffers::Box>>(*boxes) : 0;
   return FlatBuffers::CreateDebug(
       _fbb,
-      description__,
       hole,
       plug,
       boxes__);

@@ -20,7 +20,7 @@
 
     onMount(async () => {
         debug = await loadDebug(debugFilename);
-        console.log("Loaded:", debug!.description());
+        console.log("Loaded debug");
     });
 </script>
 

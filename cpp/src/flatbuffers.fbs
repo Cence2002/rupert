@@ -60,7 +60,6 @@ table Box {
 }
 
 table Debug {
-  description: string;
   hole: Polyhedron;
   plug: Polyhedron;
   boxes: [Box];

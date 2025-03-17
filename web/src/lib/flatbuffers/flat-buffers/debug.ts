@@ -24,51 +24,40 @@ static getSizePrefixedRootAsDebug(bb:flatbuffers.ByteBuffer, obj?:Debug):Debug {
   return (obj || new Debug()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-description():string|null
-description(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
-description(optionalEncoding?:any):string|Uint8Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
-}
-
 hole(obj?:Polyhedron):Polyhedron|null {
-  const offset = this.bb!.__offset(this.bb_pos, 6);
+  const offset = this.bb!.__offset(this.bb_pos, 4);
   return offset ? (obj || new Polyhedron()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 }
 
 plug(obj?:Polyhedron):Polyhedron|null {
-  const offset = this.bb!.__offset(this.bb_pos, 8);
+  const offset = this.bb!.__offset(this.bb_pos, 6);
   return offset ? (obj || new Polyhedron()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
 }
 
 boxes(index: number, obj?:Box):Box|null {
-  const offset = this.bb!.__offset(this.bb_pos, 10);
+  const offset = this.bb!.__offset(this.bb_pos, 8);
   return offset ? (obj || new Box()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
 }
 
 boxesLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 10);
+  const offset = this.bb!.__offset(this.bb_pos, 8);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
 static startDebug(builder:flatbuffers.Builder) {
-  builder.startObject(4);
-}
-
-static addDescription(builder:flatbuffers.Builder, descriptionOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(0, descriptionOffset, 0);
+  builder.startObject(3);
 }
 
 static addHole(builder:flatbuffers.Builder, holeOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(1, holeOffset, 0);
+  builder.addFieldOffset(0, holeOffset, 0);
 }
 
 static addPlug(builder:flatbuffers.Builder, plugOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(2, plugOffset, 0);
+  builder.addFieldOffset(1, plugOffset, 0);
 }
 
 static addBoxes(builder:flatbuffers.Builder, boxesOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(3, boxesOffset, 0);
+  builder.addFieldOffset(2, boxesOffset, 0);
 }
 
 static createBoxesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {

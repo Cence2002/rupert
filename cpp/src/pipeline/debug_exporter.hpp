@@ -216,7 +216,6 @@ struct DebugBuilder {
 private:
     flatbuffers::FlatBufferBuilder& builder_;
 
-    flatbuffers::Offset<flatbuffers::String> description_;
     flatbuffers::Offset<FlatBuffers::Polyhedron> hole_;
     flatbuffers::Offset<FlatBuffers::Polyhedron> plug_;
     std::vector<flatbuffers::Offset<FlatBuffers::Box>> boxes_;
@@ -224,11 +223,7 @@ private:
 public:
     BoxBuilder box_builder;
 
-    explicit DebugBuilder(flatbuffers::FlatBufferBuilder& builder) : builder_(builder), description_(), hole_(), plug_(), boxes_(), box_builder(builder_) {}
-
-    void set_description(const std::string& description) {
-        description_ = builder_.CreateString(description);
-    }
+    explicit DebugBuilder(flatbuffers::FlatBufferBuilder& builder) : builder_(builder), hole_(), plug_(), boxes_(), box_builder(builder_) {}
 
     template<IntervalType Interval>
     void set_hole(const Polyhedron<Interval>& polyhedron) {
@@ -251,7 +246,6 @@ public:
     void build() const {
         const flatbuffers::Offset<FlatBuffers::Debug> boxes = FlatBuffers::CreateDebug(
             builder_,
-            description_,
             hole_,
             plug_,
             builder_.CreateVector(boxes_)
