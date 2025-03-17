@@ -1,6 +1,9 @@
 import {Vector2} from "three";
 
 
+export const PI = Math.PI;
+export const TWO_PI = 2 * Math.PI;
+
 export function convexHull(points: Vector2[]): Vector2[] {
     if (points.length < 3) return points;
 

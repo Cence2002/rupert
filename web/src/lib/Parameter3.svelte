@@ -2,6 +2,7 @@
     import ThreeElement from "$lib/ThreeElement.svelte";
     import {Boxes} from "$lib/flatbuffers/flat-buffers/boxes";
     import {Selection} from "$lib/state.svelte";
+    import {PI, TWO_PI} from "$lib/geometry";
 
     import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
     import {
@@ -32,9 +33,6 @@
     $effect(onBoxes);
 
     $effect(onSelectBox3);
-
-    const PI = Math.PI;
-    const TWO_PI = 2 * Math.PI;
 
     const scene = new Scene();
     scene.up.set(0, 0, 1);

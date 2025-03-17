@@ -2,6 +2,7 @@
     import ThreeElement from "$lib/ThreeElement.svelte";
     import {Boxes} from "$lib/flatbuffers/flatbuffers_generated";
     import {Selection} from "$lib/state.svelte";
+    import {PI, TWO_PI} from "$lib/geometry";
 
     import {MapControls} from 'three/addons/controls/MapControls.js';
     import {
@@ -32,9 +33,6 @@
     $effect(onSelectBox3);
 
     $effect(onSelectRectangle);
-
-    const PI = Math.PI;
-    const TWO_PI = 2 * Math.PI;
 
     const scene = new Scene();
     scene.up.set(0, 1, 0);
