@@ -1,11 +1,8 @@
 import type {Vector3} from "three";
 import type {Box, Edge, Rectangle} from "$lib/types";
 
-export abstract class Loader {
-    constructor(public path: string) {
-    }
-
-    abstract load(): void;
+export abstract class AbstractLoader {
+    abstract load(path: string): void;
 
     // Boxes plot
     abstract getBoxes(): Box[];
@@ -14,9 +11,9 @@ export abstract class Loader {
     abstract getRectangles(boxIndex: number): Rectangle[];
 
     // Main plot
-    abstract getHole(): Vector3[];
-
     abstract getPlug(): Vector3[];
+
+    abstract getHole(): Vector3[];
 
     // Projection plot
     abstract getHoleProjectionHull(boxIndex: number): Edge[];

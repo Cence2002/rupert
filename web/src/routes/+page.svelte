@@ -9,7 +9,7 @@
     import Geometry2 from "$lib/plot/Projection.svelte";
 
     import {onMount} from 'svelte';
-    import {loadDebug} from "$lib/loader/debug";
+    import {DebugLoader, loadDebug} from "$lib/loader/debug";
 
     let debug: Debug | undefined = $state();
     let selection = new Selection();
@@ -17,6 +17,9 @@
     let description = "RID";
     let terminalBoxesFilename = description + "_terminal_boxes.bin";
     let debugFilename = description + "_debug.bin";
+
+    let debugLoader = new DebugLoader();
+    debugLoader.load(debugFilename);
 
     onMount(async () => {
         debug = await loadDebug(debugFilename);

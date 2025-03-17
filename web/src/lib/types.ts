@@ -38,8 +38,8 @@ export class Box {
 
 export class Edge {
     constructor(
-        public start: Vector2,
-        public end: Vector2
+        public from: Vector2,
+        public to: Vector2
     ) {
     }
 }
