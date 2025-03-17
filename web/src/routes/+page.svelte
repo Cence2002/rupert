@@ -3,10 +3,10 @@
     import {Boxes} from '$lib/flatbuffers/flatbuffers_generated';
     import {Selection} from "$lib/state.svelte";
 
-    import Parameter3 from "$lib/Parameter3.svelte";
-    import Parameter2 from "$lib/Parameter2.svelte";
-    import Geometry3 from "$lib/Geometry3.svelte";
-    import Geometry2 from "$lib/Geometry2.svelte";
+    import Parameter3 from "$lib/plots/Boxes.svelte";
+    import Parameter2 from "$lib/plots/Rectangles.svelte";
+    import Geometry3 from "$lib/plots/Main.svelte";
+    import Geometry2 from "$lib/plots/Projection.svelte";
 
     import {onMount} from 'svelte';
     import {loadBoxes} from "$lib/loader";
