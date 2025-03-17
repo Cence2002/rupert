@@ -19,12 +19,12 @@ private:
                 for(const Vector<Interval>& rotated_projected_hole_vertex: rotated_projected_hole_vertices) {
                     all_projected_hole_vertices.push_back(rotated_projected_hole_vertex);
                     if(config_.debug_enabled()) {
-                        debug_exporter_.boxes_builder.box_builder.projection_builder.add_vertex(rotated_projected_hole_vertex);
+                        debug_exporter_.debug_builder.box_builder.projection_builder.add_vertex(rotated_projected_hole_vertex);
                     }
                 }
             }
             if(config_.debug_enabled()) {
-                debug_exporter_.boxes_builder.box_builder.add_projection();
+                debug_exporter_.debug_builder.box_builder.add_projection();
             }
         }
         const Interval alpha_step = Interval(box.alpha<Interval>().rad()) / config_.rotation_resolution();
@@ -41,16 +41,18 @@ private:
             const Vertex<Interval>& plug_vertex = config_.plug().vertices()[vertex_index];
             if(config_.debug_enabled()) {
                 for(const Vector<Interval>& projected_plug_vertex: projection_hull_advanced_approximate(plug_vertex, theta, phi)) {
-                    debug_exporter_.boxes_builder.box_builder.rectangle_builder.projection_builder.add_vertex(projected_plug_vertex);
+                    debug_exporter_.debug_builder.box_builder.rectangle_builder.projection_builder.add_vertex(projected_plug_vertex);
                 }
-                debug_exporter_.boxes_builder.box_builder.rectangle_builder.add_projection();
+                debug_exporter_.debug_builder.box_builder.rectangle_builder.add_projection();
             }
             if(projected_hole.is_projected_vertex_outside_polygon_advanced(plug_vertex, theta, phi)) {
                 if(config_.debug_enabled()) {
-                    debug_exporter_.boxes_builder.box_builder.rectangle_builder.add_last_as_out_index();
+                    debug_exporter_.debug_builder.box_builder.rectangle_builder.add_last_as_out_index();
                 }
                 is_terminal = true;
-                break; // TODO: Make this optional in the config
+                if(!config_.debug_enabled()) {
+                    break;
+                }
             }
         }
         return is_terminal;
@@ -67,7 +69,7 @@ private:
     std::optional<TerminalBox> get_optional_terminal_box(const Box& box) {
         Polygon<Interval> projected_hole = get_projected_hole(box);
         if(config_.debug_enabled()) {
-            debug_exporter_.boxes_builder.box_builder.set_projection(projected_hole);
+            debug_exporter_.debug_builder.box_builder.set_projection(projected_hole);
         }
         RectangleQueue rectangle_queue;
         std::vector<Rectangle> rectangles;
@@ -82,24 +84,24 @@ private:
                 return std::nullopt;
             }
             if(config_.debug_enabled()) {
-                debug_exporter_.boxes_builder.box_builder.rectangle_builder.set_rectangle(rectangle);
+                debug_exporter_.debug_builder.box_builder.rectangle_builder.set_rectangle(rectangle);
             }
             if(is_rectangle_terminal(rectangle, projected_hole)) {
                 if(config_.debug_enabled()) {
-                    debug_exporter_.boxes_builder.box_builder.add_rectangle();
+                    debug_exporter_.debug_builder.box_builder.add_rectangle();
                 }
                 rectangles.push_back(rectangle);
                 continue;
             }
             if(is_box_nonterminal(rectangle, projected_hole)) {
                 if(config_.debug_enabled()) {
-                    debug_exporter_.boxes_builder.box_builder.add_rectangle();
-                    debug_exporter_.boxes_builder.box_builder.set_last_as_in_index();
+                    debug_exporter_.debug_builder.box_builder.add_rectangle();
+                    debug_exporter_.debug_builder.box_builder.set_last_as_in_index();
                 }
                 return std::nullopt;
             }
             if(config_.debug_enabled()) {
-                debug_exporter_.boxes_builder.box_builder.add_rectangle();
+                debug_exporter_.debug_builder.box_builder.add_rectangle();
             }
             for(const Rectangle& rectangle_part: rectangle.parts()) {
                 rectangle_queue.push(rectangle_part);
@@ -130,9 +132,9 @@ public:
         }
         const std::optional<TerminalBox> optional_terminal_box = get_optional_terminal_box(box);
         if(config_.debug_enabled()) {
-            debug_exporter_.boxes_builder.box_builder.set_box(box);
-            debug_exporter_.boxes_builder.box_builder.set_terminal(optional_terminal_box.has_value());
-            debug_exporter_.boxes_builder.add_box();
+            debug_exporter_.debug_builder.box_builder.set_box(box);
+            debug_exporter_.debug_builder.box_builder.set_terminal(optional_terminal_box.has_value());
+            debug_exporter_.debug_builder.add_box();
         }
         if(optional_terminal_box.has_value()) {
             std::cout << "Terminal Box: " << box << std::endl;
