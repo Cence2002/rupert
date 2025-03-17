@@ -14,17 +14,16 @@
     let boxes: Boxes | undefined = $state();
     let selection = new Selection();
 
+    let description = "RID";
+    let terminalBoxesFilename = description + "_terminal_boxes.bin";
+    let debugFilename = description + "_debug.bin";
+
     onMount(async () => {
-        boxes = await loadBoxes("/RID_debug.bin");
+        boxes = await loadBoxes(debugFilename);
         console.log("Loaded:", boxes!.description());
     });
 </script>
 
-
-<!--<button onclick={() => selection.selectBox3(selection.selectedBox3 === null ? 1 : selection.selectedBox3 + 1)}>Increment Box3</button>-->
-<!--<button onclick={() => selection.selectBox2(selection.selectedBox2 === null ? 1 : selection.selectedBox2 + 1)}>Increment Box2</button>-->
-<!--<p>Selected Box3 Index: {selection.selectedBox3 === null ? "null" : selection.selectedBox3}</p>-->
-<!--<p>Selected Box2 Index: {selection.selectedBox2 === null ? "null" : selection.selectedBox2}</p>-->
 
 <PaneGroup class="h-full w-full" direction="horizontal">
     <Pane defaultSize={2}>
