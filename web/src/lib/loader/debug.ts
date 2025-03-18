@@ -17,6 +17,39 @@ import {AbstractLoader} from "$lib/loader/loader";
 import {Interval, Id, Rectangle, Box, Edge} from "$lib/types";
 import {Vector2, Vector3} from "three";
 
+function parseInterval(interval): Interval {
+    return new Interval(
+        interval.min(),
+        interval.max(),
+        interval.mid(),
+        interval.len()
+    );
+}
+
+function parseId(id): Id {
+    return new Id(
+        id.depth(),
+        id.bits(),
+        parseInterval(id.interval())
+    );
+}
+
+function parseVector(vector): Vector3 {
+    return new Vector3(
+        vector.x(),
+        vector.y(),
+        vector.z()
+    );
+}
+
+function parseVertex(vertex): Vector3 {
+    return new Vector3(
+        vertex.x(),
+        vertex.y(),
+        vertex.z()
+    );
+}
+
 export class DebugLoader extends AbstractLoader {
     public data;
 
@@ -30,43 +63,11 @@ export class DebugLoader extends AbstractLoader {
             return boxes;
         }
         for (let boxIndex = 0; boxIndex < this.data!.boxesLength(); boxIndex++) {
-            let box = this.data.boxes(boxIndex);
-            const thetaInterval = new Interval(
-                box.theta().interval().min(),
-                box.theta().interval().max(),
-                box.theta().interval().mid(),
-                box.theta().interval().len()
-            );
-            const phiInterval = new Interval(
-                box.phi().interval().min(),
-                box.phi().interval().max(),
-                box.phi().interval().mid(),
-                box.phi().interval().len()
-            );
-            const alphaInterval = new Interval(
-                box.alpha().interval().min(),
-                box.alpha().interval().max(),
-                box.alpha().interval().mid(),
-                box.alpha().interval().len()
-            );
-            const thetaId = new Id(
-                box.theta().depth(),
-                box.theta().bits(),
-                thetaInterval
-            );
-            const phiId = new Id(
-                box.phi().depth(),
-                box.phi().bits(),
-                phiInterval
-            );
-            const alphaId = new Id(
-                box.alpha().depth(),
-                box.alpha().bits(),
-                alphaInterval);
+            const box = this.data.boxes(boxIndex);
             boxes.push(new Box(
-                thetaId,
-                phiId,
-                alphaId,
+                parseId(box.theta()),
+                parseId(box.phi()),
+                parseId(box.alpha()),
                 box.terminal()
             ));
         }
@@ -80,33 +81,11 @@ export class DebugLoader extends AbstractLoader {
         }
         let box = this.data.boxes(boxIndex);
         for (let rectangleIndex = 0; rectangleIndex < box.rectanglesLength(); rectangleIndex++) {
-            let rectangle = box.rectangles(rectangleIndex);
-            const thetaInterval = new Interval(
-                rectangle.theta().interval().min(),
-                rectangle.theta().interval().max(),
-                rectangle.theta().interval().mid(),
-                rectangle.theta().interval().len()
-            );
-            const phiInterval = new Interval(
-                rectangle.phi().interval().min(),
-                rectangle.phi().interval().max(),
-                rectangle.phi().interval().mid(),
-                rectangle.phi().interval().len()
-            );
-            const thetaId = new Id(
-                rectangle.theta().depth(),
-                rectangle.theta().bits(),
-                thetaInterval
-            );
-            const phiId = new Id(
-                rectangle.phi().depth(),
-                rectangle.phi().bits(),
-                phiInterval
-            );
+            const rectangle = box.rectangles(rectangleIndex);
             rectangles.push(new Rectangle(
-                thetaId,
-                phiId,
-                rectangle.outIndicesLength() > 0
+                parseId(rectangle.theta()),
+                parseId(rectangle.phi()),
+                rectangle.terminal()
             ));
         }
         return rectangles;
