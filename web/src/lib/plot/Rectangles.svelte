@@ -22,8 +22,10 @@
         Raycaster,
         FrontSide, Color
     } from "three";
+    import type {AbstractLoader} from "$lib/loader/loader";
 
-    let {debug, selection} = $props<{
+    let {loader, debug, selection} = $props<{
+        loader: AbstractLoader,
         debug: Debug | undefined,
         selection: Selection,
     }>();
@@ -63,34 +65,35 @@
         if (selection.selectedBox3 === null) {
             return;
         }
-        const box = debug!.boxes(selection.selectedBox3);
-        for (let index = 0; index < box.rectanglesLength(); index++) {
-            const rectangle = box.rectangles(index);
+        const rectangles = loader.getRectangles(selection.selectedBox3);
+        for (let index = 0; index < rectangles.length; index++) {
+            const rectangle = rectangles[index];
 
-            const theta = rectangle.theta().interval();
-            const phi = rectangle.phi().interval();
+            const thetaInterval = rectangle.theta.interval;
+            const phiInterval = rectangle.phi.interval;
 
-            const rectangleGeometry = new PlaneGeometry((theta.max() - theta.min()) / TWO_PI, (phi.max() - phi.min()) / PI);
+            const rectangleGeometry = new PlaneGeometry(thetaInterval.len / TWO_PI, phiInterval.len / PI);
             const rectangleMaterial = new MeshBasicMaterial({
                 color: new Color(0, 1, 0),
                 transparent: true,
-                opacity: (index == box.inIndex()) ? 0.75 : (rectangle.outIndicesLength() > 0 ? 0.25 : 0.0),
+                // opacity: (index == box.inIndex()) ? 0.75 : (rectangle.outIndicesLength() > 0 ? 0.25 : 0.0),
+                opacity: (index == loader.getHoleInIndex(selection.selectedBox3)) ? 0.75 : (loader.getPlugOutIndices(selection.selectedBox3, index).length > 0 ? 0.25 : 0.0),
                 side: FrontSide,
                 depthWrite: false
             });
             const rectangleMesh = new Mesh(rectangleGeometry, rectangleMaterial);
-            rectangleMesh.position.set((theta.min() + theta.max()) / 2 / TWO_PI, (phi.min() + phi.max()) / 2 / PI, 0);
+            rectangleMesh.position.set(thetaInterval.mid / TWO_PI, phiInterval.mid / PI, 0);
 
             const rectangleEdgesGeometry = new EdgesGeometry(rectangleGeometry);
             const rectangleEdgesMaterial = new LineBasicMaterial({
                 color: new Color(0.5, 0.5, 0.5),
             });
             const rectangleEdges = new LineSegments(rectangleEdgesGeometry, rectangleEdgesMaterial);
-            rectangleEdges.position.set((theta.min() + theta.max()) / 2 / TWO_PI, (phi.min() + phi.max()) / 2 / PI, 0);
+            rectangleEdges.position.set(thetaInterval.mid / TWO_PI, phiInterval.mid / PI, 0);
 
             const rectangleGroup = new Group();
             rectangleGroup.add(rectangleMesh);
-            if (rectangle.outIndicesLength() > 0) {
+            if (loader.getPlugOutIndices(selection.selectedBox3, index).length > 0) {
                 rectangleGroup.add(rectangleEdges);
             }
 

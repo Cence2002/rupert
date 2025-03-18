@@ -18,10 +18,10 @@
     let terminalBoxesFilename = description + "_terminal_boxes.bin";
     let debugFilename = description + "_debug.bin";
 
-    let debugLoader = new DebugLoader();
-    debugLoader.load(debugFilename);
+    let loader = new DebugLoader();
 
     onMount(async () => {
+        await loader.load(debugFilename);
         debug = await loadDebug(debugFilename);
         console.log("Loaded debug");
     });
@@ -33,7 +33,7 @@
         <PaneGroup class="h-full w-full" direction="vertical">
             <Pane defaultSize={1}>
                 <div id="pane">
-                    <Boxes {debug} {selection}/>
+                    <Boxes {loader} {debug} {selection}/>
                 </div>
             </Pane>
 
@@ -43,7 +43,7 @@
 
             <Pane defaultSize={1}>
                 <div id="pane">
-                    <Rectangles {debug} {selection}/>
+                    <Rectangles {loader} {debug} {selection}/>
                 </div>
             </Pane>
         </PaneGroup>
@@ -55,7 +55,7 @@
 
     <Pane defaultSize={4}>
         <div id="pane">
-            <Main {debug} {selection}/>
+            <Main {loader} {debug} {selection}/>
         </div>
     </Pane>
 

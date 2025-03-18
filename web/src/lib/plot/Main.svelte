@@ -30,10 +30,12 @@
     import {AxesHelper} from "three";
     import {lerp} from "three/src/math/MathUtils.js";
     import {convexHull} from "$lib/geometry";
+    import type {AbstractLoader} from "$lib/loader/loader";
 
-    let {debug, selection} = $props<{
+    let {loader, debug, selection} = $props<{
+        loader: AbstractLoader,
         debug: Debug | undefined,
-        selection: Selection,
+        selection: Selection
     }>();
 
     $effect(onBoxes);
@@ -86,12 +88,7 @@
             return;
         }
         {
-            const debugHole = debug!.hole();
-            let vertices: Vector3[] = [];
-            for (let index = 0; index < debugHole.verticesLength(); index++) {
-                const vertex = debugHole.vertices(index);
-                vertices.push(new Vector3(vertex.x(), vertex.y(), vertex.z()));
-            }
+            let vertices = loader.getHole();
             holeRadius = Math.max(...vertices.map(v => v.length()));
             camera.position.setZ(2 * holeRadius);
             controls.target.setZ(2 * holeRadius);
@@ -117,12 +114,7 @@
             scene.add(holeGroup);
         }
         {
-            const debugPlug = debug!.plug();
-            let vertices = [];
-            for (let index = 0; index < debugPlug.verticesLength(); index++) {
-                const vertex = debugPlug.vertices(index);
-                vertices.push(new Vector3(vertex.x(), vertex.y(), vertex.z()));
-            }
+            let vertices = loader.getPlug();
             plugRadius = Math.max(...vertices.map(v => v.length()));
 
             const plug = new ConvexGeometry(vertices);

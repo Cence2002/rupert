@@ -23,9 +23,11 @@
         Color,
         SphereGeometry,
     } from "three";
+    import type {AbstractLoader} from "$lib/loader/loader";
 
 
-    let {debug, selection} = $props<{
+    let {loader, debug, selection} = $props<{
+        loader: AbstractLoader,
         debug: Debug | undefined,
         selection: Selection,
     }>();
@@ -60,33 +62,34 @@
             return;
         }
         {
-            for (let index = 0; index < debug!.boxesLength(); index++) {
-                const box = debug!.boxes(index);
+            const boxes = loader.getBoxes();
+            for (let index = 0; index < boxes.length; index++) {
+                const box = boxes[index];
 
-                const theta = box.theta().interval();
-                const phi = box.phi().interval();
-                const alpha = box.alpha().interval();
+                const thetaInterval = box.theta.interval;
+                const phiInterval = box.phi.interval;
+                const alphaInterval = box.alpha.interval;
 
-                const boxGeometry = new BoxGeometry((theta.max() - theta.min()) / TWO_PI, (phi.max() - phi.min()) / PI, (alpha.max() - alpha.min()) / TWO_PI);
+                const boxGeometry = new BoxGeometry(thetaInterval.len / TWO_PI, phiInterval.len / PI, alphaInterval.len / TWO_PI);
                 const boxMaterial = new MeshBasicMaterial({
                     color: new Color(0, 0, 1),
                     transparent: true,
-                    opacity: box.terminal() ? 0.5 : 0.0,
+                    opacity: box.terminal ? 0.5 : 0.0,
                     depthWrite: false
                 });
                 const boxMesh = new Mesh(boxGeometry, boxMaterial);
-                boxMesh.position.set((theta.min() + theta.max()) / 2 / TWO_PI, (phi.min() + phi.max()) / 2 / PI, (alpha.min() + alpha.max()) / 2 / TWO_PI);
+                boxMesh.position.set(thetaInterval.mid / TWO_PI, phiInterval.mid / PI, alphaInterval.mid / TWO_PI);
 
                 const boxEdgesGeometry = new EdgesGeometry(boxGeometry);
                 const boxEdgesMaterial = new LineBasicMaterial({
                     color: new Color(0.5, 0.5, 0.5),
                 });
                 const boxEdges = new LineSegments(boxEdgesGeometry, boxEdgesMaterial);
-                boxEdges.position.set((theta.min() + theta.max()) / 2 / TWO_PI, (phi.min() + phi.max()) / 2 / PI, (alpha.min() + alpha.max()) / 2 / TWO_PI);
+                boxEdges.position.set(thetaInterval.mid / TWO_PI, phiInterval.mid / PI, alphaInterval.mid / TWO_PI);
 
                 const boxGroup = new Group();
                 boxGroup.add(boxMesh);
-                if (box.terminal()) {
+                if (box.terminal) {
                     boxGroup.add(boxEdges);
                 }
 
