@@ -28,14 +28,6 @@
         selection: State,
     }>();
 
-    export function printAfterLoad() {
-        if (selection.loaded) {
-            console.log("Load finished");
-        }
-    }
-
-    $effect(printAfterLoad);
-
     $effect(onBoxes);
 
     $effect(onSelectBox3);
