@@ -1,4 +1,5 @@
-export class Selection {
+export class State {
+    public loaded: boolean = $state(false);
     public selectedBox3: number | null = $state(null);
     public selectedRectangle: number | null = $state(null);
 

@@ -1,7 +1,7 @@
 <script lang="ts">
     import ThreeElement from "$lib/ThreeElement.svelte";
     import {Debug} from "$lib/flatbuffers/flat-buffers/debug";
-    import {Selection} from "$lib/state.svelte";
+    import {State} from "$lib/state.svelte";
 
     import {
         Mesh,
@@ -35,7 +35,7 @@
     let {loader, debug, selection} = $props<{
         loader: AbstractLoader,
         debug: Debug | undefined,
-        selection: Selection
+        selection: State
     }>();
 
     $effect(onBoxes);

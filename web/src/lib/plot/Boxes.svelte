@@ -1,7 +1,6 @@
 <script lang="ts">
     import ThreeElement from "$lib/ThreeElement.svelte";
-    import {Debug} from "$lib/flatbuffers/flat-buffers/debug";
-    import {Selection} from "$lib/state.svelte";
+    import {State} from "$lib/state.svelte";
     import {PI, TWO_PI} from "$lib/geometry";
 
     import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
@@ -19,18 +18,23 @@
         AxesHelper,
         Raycaster,
         Group,
-        Vector3,
         Color,
         SphereGeometry,
     } from "three";
     import type {AbstractLoader} from "$lib/loader/loader";
 
-
-    let {loader, debug, selection} = $props<{
+    let {loader, selection} = $props<{
         loader: AbstractLoader,
-        debug: Debug | undefined,
-        selection: Selection,
+        selection: State,
     }>();
+
+    export function printAfterLoad() {
+        if (selection.loaded) {
+            console.log("Load finished");
+        }
+    }
+
+    $effect(printAfterLoad);
 
     $effect(onBoxes);
 
@@ -58,7 +62,7 @@
     const boxGroups: Group[] = [];
 
     function onBoxes() {
-        if (!debug) {
+        if (!selection.loaded) {
             return;
         }
         {

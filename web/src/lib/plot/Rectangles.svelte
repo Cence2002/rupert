@@ -1,7 +1,6 @@
 <script lang="ts">
     import ThreeElement from "$lib/ThreeElement.svelte";
-    import {Debug} from "$lib/flatbuffers/flatbuffers_generated";
-    import {Selection} from "$lib/state.svelte";
+    import {State} from "$lib/state.svelte";
     import {PI, TWO_PI} from "$lib/geometry";
 
     import {MapControls} from 'three/addons/controls/MapControls.js';
@@ -24,13 +23,10 @@
     } from "three";
     import type {AbstractLoader} from "$lib/loader/loader";
 
-    let {loader, debug, selection} = $props<{
+    let {loader, selection} = $props<{
         loader: AbstractLoader,
-        debug: Debug | undefined,
-        selection: Selection,
+        selection: State,
     }>();
-
-    $effect(onBoxes);
 
     $effect(onSelectBox3);
 
@@ -54,12 +50,6 @@
     controls.zoomToCursor = true;
 
     let rectangleGroups: Group[] = [];
-
-    function onBoxes() {
-        if (!debug) {
-            return;
-        }
-    }
 
     function onSelectBox3() {
         if (selection.selectedBox3 === null) {

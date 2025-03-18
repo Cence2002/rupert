@@ -1,7 +1,7 @@
 <script lang="ts">
     import ThreeElement from "$lib/ThreeElement.svelte";
     import {Debug} from "$lib/flatbuffers/flat-buffers/debug";
-    import {Selection} from "$lib/state.svelte";
+    import {State} from "$lib/state.svelte";
 
     import {MapControls} from "three/addons/controls/MapControls.js";
     import {
@@ -28,7 +28,7 @@
 
     let {debug, selection} = $props<{
         debug: Debug | undefined,
-        selection: Selection,
+        selection: State,
     }>();
 
     $effect(onBoxes);

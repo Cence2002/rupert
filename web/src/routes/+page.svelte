@@ -1,7 +1,7 @@
 <script lang="ts">
     import {PaneGroup, Pane, PaneResizer} from "paneforge";
     import {Debug} from '$lib/flatbuffers/flatbuffers_generated';
-    import {Selection} from "$lib/state.svelte";
+    import {State} from "$lib/state.svelte";
 
     import Boxes from "$lib/plot/Boxes.svelte";
     import Rectangles from "$lib/plot/Rectangles.svelte";
@@ -11,8 +11,7 @@
     import {onMount} from 'svelte';
     import {DebugLoader, loadDebug} from "$lib/loader/debug";
 
-    let debug: Debug | undefined = $state();
-    let selection = new Selection();
+    let selection = new State();
 
     let description = "RID";
     let terminalBoxesFilename = description + "_terminal_boxes.bin";
@@ -20,8 +19,11 @@
 
     let loader = new DebugLoader();
 
+    let debug: Debug | undefined = $state();
+
     onMount(async () => {
         await loader.load(debugFilename);
+        selection.loaded = true;
         debug = await loadDebug(debugFilename);
         console.log("Loaded debug");
     });
@@ -33,7 +35,7 @@
         <PaneGroup class="h-full w-full" direction="vertical">
             <Pane defaultSize={1}>
                 <div id="pane">
-                    <Boxes {loader} {debug} {selection}/>
+                    <Boxes {loader} {selection}/>
                 </div>
             </Pane>
 
@@ -43,7 +45,7 @@
 
             <Pane defaultSize={1}>
                 <div id="pane">
-                    <Rectangles {loader} {debug} {selection}/>
+                    <Rectangles {loader} {selection}/>
                 </div>
             </Pane>
         </PaneGroup>
