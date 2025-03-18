@@ -3,7 +3,9 @@ import {Vector2} from "three";
 export class Interval {
     constructor(
         public min: number,
-        public max: number
+        public max: number,
+        public mid: number,
+        public len: number
     ) {
     }
 }
