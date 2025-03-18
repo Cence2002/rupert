@@ -3,10 +3,10 @@
     import {Debug} from '$lib/flatbuffers/flatbuffers_generated';
     import {Selection} from "$lib/state.svelte";
 
-    import Parameter3 from "$lib/plot/Boxes.svelte";
-    import Parameter2 from "$lib/plot/Rectangles.svelte";
-    import Geometry3 from "$lib/plot/Main.svelte";
-    import Geometry2 from "$lib/plot/Projection.svelte";
+    import Boxes from "$lib/plot/Boxes.svelte";
+    import Rectangles from "$lib/plot/Rectangles.svelte";
+    import Main from "$lib/plot/Main.svelte";
+    import Projection from "$lib/plot/Projection.svelte";
 
     import {onMount} from 'svelte';
     import {DebugLoader, loadDebug} from "$lib/loader/debug";
@@ -33,7 +33,7 @@
         <PaneGroup class="h-full w-full" direction="vertical">
             <Pane defaultSize={1}>
                 <div id="pane">
-                    <Parameter3 {debug} {selection}/>
+                    <Boxes {debug} {selection}/>
                 </div>
             </Pane>
 
@@ -43,7 +43,7 @@
 
             <Pane defaultSize={1}>
                 <div id="pane">
-                    <Parameter2 {debug} {selection}/>
+                    <Rectangles {debug} {selection}/>
                 </div>
             </Pane>
         </PaneGroup>
@@ -55,7 +55,7 @@
 
     <Pane defaultSize={4}>
         <div id="pane">
-            <Geometry3 {debug} {selection}/>
+            <Main {debug} {selection}/>
         </div>
     </Pane>
 
@@ -65,7 +65,7 @@
 
     <Pane defaultSize={2}>
         <div id="pane">
-            <Geometry2 {debug} {selection}/>
+            <Projection {debug} {selection}/>
         </div>
     </Pane>
 </PaneGroup>
