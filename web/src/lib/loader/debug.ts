@@ -34,11 +34,10 @@ function parseId(id): Id {
     );
 }
 
-function parseVector(vector): Vector3 {
-    return new Vector3(
+function parseVector(vector): Vector2 {
+    return new Vector2(
         vector.x(),
         vector.y(),
-        vector.z()
     );
 }
 
@@ -57,21 +56,41 @@ export class DebugLoader extends AbstractLoader {
         this.data = await loadDebug(path);
     }
 
+    getBox(boxIndex: number): Box {
+        if (this.data === undefined) {
+            return;
+        }
+        const box = this.data.boxes(boxIndex);
+        return new Box(
+            parseId(box.theta()),
+            parseId(box.phi()),
+            parseId(box.alpha()),
+            box.terminal()
+        );
+    }
+
     getBoxes(): Box[] {
         let boxes = [];
         if (this.data === undefined) {
             return boxes;
         }
         for (let boxIndex = 0; boxIndex < this.data!.boxesLength(); boxIndex++) {
-            const box = this.data.boxes(boxIndex);
-            boxes.push(new Box(
-                parseId(box.theta()),
-                parseId(box.phi()),
-                parseId(box.alpha()),
-                box.terminal()
-            ));
+            boxes.push(this.getBox(boxIndex));
         }
         return boxes;
+    }
+
+    getRectangle(boxIndex: number, rectangleIndex: number): Rectangle {
+        if (this.data === undefined) {
+            return;
+        }
+        const box = this.data.boxes(boxIndex);
+        const rectangle = box.rectangles(rectangleIndex);
+        return new Rectangle(
+            parseId(rectangle.theta()),
+            parseId(rectangle.phi()),
+            rectangle.outIndicesLength() > 0
+        );
     }
 
     getRectangles(boxIndex: number): Rectangle[] {
@@ -81,12 +100,7 @@ export class DebugLoader extends AbstractLoader {
         }
         let box = this.data.boxes(boxIndex);
         for (let rectangleIndex = 0; rectangleIndex < box.rectanglesLength(); rectangleIndex++) {
-            const rectangle = box.rectangles(rectangleIndex);
-            rectangles.push(new Rectangle(
-                parseId(rectangle.theta()),
-                parseId(rectangle.phi()),
-                rectangle.terminal()
-            ));
+            rectangles.push(this.getRectangle(boxIndex, rectangleIndex));
         }
         return rectangles;
     }
@@ -98,7 +112,7 @@ export class DebugLoader extends AbstractLoader {
         }
         for (let vertexIndex = 0; vertexIndex < this.data.plug().verticesLength(); vertexIndex++) {
             let plugVertex = this.data.plug().vertices(vertexIndex);
-            plug.push(new Vector3(plugVertex.x(), plugVertex.y(), plugVertex.z()));
+            plug.push(parseVertex(plugVertex));
         }
         return plug;
     }
@@ -110,25 +124,9 @@ export class DebugLoader extends AbstractLoader {
         }
         for (let vertexIndex = 0; vertexIndex < this.data.hole().verticesLength(); vertexIndex++) {
             let holeVertex = this.data.hole().vertices(vertexIndex);
-            hole.push(new Vector3(holeVertex.x(), holeVertex.y(), holeVertex.z()));
+            hole.push(parseVertex(holeVertex));
         }
         return hole;
-    }
-
-    getHoleProjectionHull(boxIndex: number): Edge[] {
-        let holeProjectionHull = [];
-        if (this.data === undefined) {
-            return holeProjectionHull;
-        }
-        let box = this.data.boxes(boxIndex);
-        for (let edgeIndex = 0; edgeIndex < box.projection().edgesLength(); edgeIndex++) {
-            let edge = box.projection.edges(edgeIndex);
-            holeProjectionHull.push(new Edge(
-                new Vector2(edge.start().x(), edge.start().y()),
-                new Vector2(edge.end().x(), edge.end().y())
-            ));
-        }
-        return holeProjectionHull;
     }
 
     getHoleInIndex(boxIndex: number): number {
@@ -139,38 +137,55 @@ export class DebugLoader extends AbstractLoader {
         return box.inIndex();
     }
 
-    getHoleVertexProjections(boxIndex: number): Vector3[][] {
+    getHoleProjectionHull(boxIndex: number): Edge[] {
+        let holeProjectionHull = [];
+        if (this.data === undefined) {
+            return holeProjectionHull;
+        }
+        let box = this.data.boxes(boxIndex);
+        for (let edgeIndex = 0; edgeIndex < box.projection().edgesLength(); edgeIndex++) {
+            let edge = box.projection().edges(edgeIndex);
+            holeProjectionHull.push(new Edge(
+                parseVector(edge.from()),
+                parseVector(edge.to())
+            ));
+        }
+        return holeProjectionHull;
+    }
+
+    getHoleVertexProjections(boxIndex: number): Vector2[][] {
         let holeVertexProjections = [];
         if (this.data === undefined) {
             return holeVertexProjections;
         }
         let box = this.data.boxes(boxIndex);
-        for (let vertexIndex = 0; vertexIndex < box.projection().verticesLength(); vertexIndex++) {
-            let vertex = box.projection.vertices(vertexIndex);
-            let projections = [];
-            for (let projectionIndex = 0; projectionIndex < vertex.projectionsLength(); projectionIndex++) {
-                let projection = vertex.projections(projectionIndex);
-                projections.push(new Vector3(projection.x(), projection.y(), projection.z()));
+        for (let projectionIndex = 0; projectionIndex < box.projectionsLength(); projectionIndex++) {
+            let projection = box.projections(projectionIndex);
+            let vertexProjections = [];
+            for (let vectorIndex = 0; vectorIndex < projection.vectorsLength(); vectorIndex++) {
+                let vector = projection.vectors(vectorIndex);
+                vertexProjections.push(parseVector(vector));
             }
-            holeVertexProjections.push(projections);
+            holeVertexProjections.push(vertexProjections);
         }
         return holeVertexProjections;
     }
 
-    getPlugVertexProjections(boxIndex: number): Vector3[][] {
+    getPlugVertexProjections(boxIndex: number, rectangleIndex: number): Vector2[][] {
         let plugVertexProjections = [];
         if (this.data === undefined) {
             return plugVertexProjections;
         }
         let box = this.data.boxes(boxIndex);
-        for (let vertexIndex = 0; vertexIndex < box.projection().verticesLength(); vertexIndex++) {
-            let vertex = box.projection.vertices(vertexIndex);
-            let projections = [];
-            for (let projectionIndex = 0; projectionIndex < vertex.projectionsLength(); projectionIndex++) {
-                let projection = vertex.projections(projectionIndex);
-                projections.push(new Vector3(projection.x(), projection.y(), projection.z()));
+        let rectangle = box.rectangles(rectangleIndex);
+        for (let projectionIndex = 0; projectionIndex < rectangle.projectionsLength(); projectionIndex++) {
+            let projection = rectangle.projections(projectionIndex);
+            let vertexProjections = [];
+            for (let vectorIndex = 0; vectorIndex < projection.vectorsLength(); vectorIndex++) {
+                let vector = projection.vectors(vectorIndex);
+                vertexProjections.push(parseVector(vector));
             }
-            plugVertexProjections.push(projections);
+            plugVertexProjections.push(vertexProjections);
         }
         return plugVertexProjections;
     }
