@@ -25,7 +25,7 @@
     import {lerp} from "three/src/math/MathUtils.js";
     import type {AbstractLoader} from "$lib/loader/loader";
 
-    let {loader, state, getProjectionScene} = $props<{
+    const {loader, state, getProjectionScene} = $props<{
         loader: AbstractLoader,
         state: State
         getProjectionScene: () => Scene | null
@@ -79,7 +79,7 @@
             return;
         }
         {
-            let vertices = loader.getHole();
+            const vertices = loader.getHole();
             holeRadius = Math.max(...vertices.map((v: Vector3) => v.length()));
             camera.position.setZ(2 * holeRadius);
             controls.target.setZ(2 * holeRadius);
@@ -105,7 +105,7 @@
             scene.add(holeGroup);
         }
         {
-            let vertices = loader.getPlug();
+            const vertices = loader.getPlug();
             plugRadius = Math.max(...vertices.map((v: Vector3) => v.length()));
 
             const plug = new ConvexGeometry(vertices);
@@ -114,13 +114,13 @@
                 transparent: true,
                 opacity: 0.5
             });
-            let plugMesh = new Mesh(plug, plugMaterial);
+            const plugMesh = new Mesh(plug, plugMaterial);
 
             const plugEdges = new EdgesGeometry(plug);
             const plugEdgesMaterial = new LineBasicMaterial({
                 color: new Color(0.5, 0.5, 0.5)
             });
-            let plugEdgesMesh = new LineSegments(plugEdges, plugEdgesMaterial);
+            const plugEdgesMesh = new LineSegments(plugEdges, plugEdgesMaterial);
 
             plugGroup = new Group();
             plugGroup.add(plugMesh);
@@ -212,13 +212,13 @@
                     rotatedProjectedHoleVertices.push(rotatedProjectedHoleVertex);
                 }
             }
-            for (let mesh of rotatedProjectedHoleVertices) {
+            for (const mesh of rotatedProjectedHoleVertices) {
                 scene.add(mesh);
             }
         }
 
         return () => {
-            for (let mesh of rotatedProjectedHoleVertices) {
+            for (const mesh of rotatedProjectedHoleVertices) {
                 scene.remove(mesh);
             }
             rotatedProjectedHoleVertices = [];

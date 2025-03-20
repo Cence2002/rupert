@@ -11,13 +11,13 @@
     import {DebugLoader} from "$lib/loader/debug";
     import type {Scene} from "three";
 
-    let state = new State();
+    const state = new State();
 
-    let description = "RID";
-    // let terminalBoxesFilename = description + "_terminal_boxes.bin";
-    let debugFilename = description + "_debug.bin";
+    const description = "RID";
+    // const terminalBoxesFilename = description + "_terminal_boxes.bin";
+    const debugFilename = description + "_debug.bin";
 
-    let loader = new DebugLoader();
+    const loader = new DebugLoader();
 
     let projectionScene: Scene | null = null;
 

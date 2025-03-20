@@ -26,7 +26,7 @@
     import {convexHull} from "$lib/geometry";
     import type {AbstractLoader} from "$lib/loader/loader";
 
-    let {loader, state, setProjectionScene} = $props<{
+    const {loader, state, setProjectionScene} = $props<{
         loader: AbstractLoader,
         state: State,
         setProjectionScene: (scene: Scene) => void,
@@ -94,7 +94,7 @@
 
                 projections.push(group);
             }
-            for (let group of projections) {
+            for (const group of projections) {
                 scene.add(group);
             }
         }
@@ -114,17 +114,17 @@
                 projectionEdges.push(edgeMesh);
             }
 
-            for (let projectionEdge of projectionEdges) {
+            for (const projectionEdge of projectionEdges) {
                 scene.add(projectionEdge);
             }
         }
 
         return () => {
-            for (let group of projections) {
+            for (const group of projections) {
                 scene.remove(group);
             }
             projections = [];
-            for (let edge of projectionEdges) {
+            for (const edge of projectionEdges) {
                 scene.remove(edge);
             }
             projectionEdges = [];
@@ -172,13 +172,13 @@
 
                 rectangleProjections.push(group);
             }
-            for (let group of rectangleProjections) {
+            for (const group of rectangleProjections) {
                 scene.add(group);
             }
         }
 
         return () => {
-            for (let group of rectangleProjections) {
+            for (const group of rectangleProjections) {
                 scene.remove(group);
             }
             rectangleProjections = [];

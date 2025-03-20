@@ -23,7 +23,7 @@
     import type {AbstractLoader} from "$lib/loader/loader";
     import type {Interval} from "$lib/types";
 
-    let {loader, state} = $props<{
+    const {loader, state} = $props<{
         loader: AbstractLoader,
         state: State,
     }>();
