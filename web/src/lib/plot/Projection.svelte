@@ -26,9 +26,10 @@
     } from "three";
     import {convexHull} from "$lib/geometry";
 
-    let {debug, selection} = $props<{
+    let {debug, selection, setProjectionScene} = $props<{
         debug: Debug | undefined,
         selection: State,
+        setProjectionScene: (scene: Scene) => void,
     }>();
 
     $effect(onBoxes);
@@ -39,6 +40,7 @@
 
 
     const scene = new Scene();
+    setProjectionScene(scene);
     scene.up.set(0, 1, 0);
 
     const camera = new OrthographicCamera(0, 0, 0, 0, -1, 1);

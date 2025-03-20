@@ -31,9 +31,10 @@
     import {convexHull} from "$lib/geometry";
     import type {AbstractLoader} from "$lib/loader/loader";
 
-    let {loader, selection} = $props<{
+    let {loader, selection, getProjectionScene} = $props<{
         loader: AbstractLoader,
         selection: State
+        getProjectionScene: () => Scene | null
     }>();
 
     $effect(onBoxes);
@@ -51,6 +52,7 @@
     camera.position.set(0, -100, 0);
 
     const renderer = new WebGLRenderer({antialias: true});
+    renderer.autoClear = false;
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableRotate = true;
@@ -425,6 +427,11 @@
     }
 
     function draw() {
+        renderer.clear();
+        const projectionScene = getProjectionScene();
+        if (projectionScene) {
+            renderer.render(projectionScene, camera);
+        }
         renderer.render(scene, camera);
 
         if (holeGroup && selection.selectedBox3 !== null) {

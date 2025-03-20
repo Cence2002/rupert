@@ -10,6 +10,7 @@
 
     import {onMount} from 'svelte';
     import {DebugLoader, loadDebug} from "$lib/loader/debug";
+    import type {Scene} from "three";
 
     let selection = new State();
 
@@ -20,6 +21,17 @@
     let loader = new DebugLoader();
 
     let debug: Debug | undefined = $state();
+
+    let projectionScene: Scene | null = null;
+
+    function setProjectionScene(scene: Scene) {
+        projectionScene = scene;
+        console.log(projectionScene);
+    }
+
+    function getProjectionScene() {
+        return projectionScene;
+    }
 
     onMount(async () => {
         await loader.load(debugFilename);
@@ -57,7 +69,7 @@
 
     <Pane defaultSize={4}>
         <div id="pane">
-            <Main {loader} {debug} {selection}/>
+            <Main {loader} {debug} {selection} {getProjectionScene}/>
         </div>
     </Pane>
 
@@ -67,7 +79,7 @@
 
     <Pane defaultSize={2}>
         <div id="pane">
-            <Projection {debug} {selection}/>
+            <Projection {debug} {selection} {setProjectionScene}/>
         </div>
     </Pane>
 </PaneGroup>
