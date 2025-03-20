@@ -23,7 +23,7 @@
     import type {AbstractLoader} from "$lib/loader/loader";
     import type {Interval} from "$lib/types";
 
-    let {loader, state} = $props<{
+    const {loader, state} = $props<{
         loader: AbstractLoader,
         state: State,
     }>();
@@ -61,7 +61,7 @@
         }
         {
             const boxes = loader.getBoxes();
-            for (let box of boxes) {
+            for (const box of boxes) {
                 const theta: Interval = box.theta.interval;
                 const phi: Interval = box.phi.interval;
                 const alpha: Interval = box.alpha.interval;
