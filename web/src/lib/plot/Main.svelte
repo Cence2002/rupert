@@ -13,12 +13,7 @@
         Vector3,
         Group,
         Color,
-        Vector2,
-        Shape,
-        ShapeGeometry,
         DoubleSide,
-        BufferGeometry,
-        Line,
         Quaternion,
         OrthographicCamera,
         SphereGeometry,
@@ -28,7 +23,6 @@
     import {ParametricGeometry} from 'three/addons/geometries/ParametricGeometry.js';
     import {AxesHelper} from "three";
     import {lerp} from "three/src/math/MathUtils.js";
-    import {convexHull} from "$lib/geometry";
     import type {AbstractLoader} from "$lib/loader/loader";
 
     let {loader, selection, getProjectionScene} = $props<{
@@ -71,9 +65,6 @@
     let rotatedProjectedHoleVertices: Mesh[] = [];
     let projectedPlugVertices: Mesh[] = [];
 
-    let projectionEdges: Line[] = [];
-    let projections: Group[] = [];
-    let rectangleProjections: Group[] = [];
     let rectangleOut: number[] = [];
 
     let hole_theta_t = 0;

@@ -16,12 +16,12 @@
         LineBasicMaterial,
         LineSegments,
         AxesHelper,
-        FrontSide,
         Group,
         Vector3,
         Line,
         BufferGeometry,
-        Color, DoubleSide
+        Color,
+        DoubleSide
     } from "three";
     import {convexHull} from "$lib/geometry";
     import type {AbstractLoader} from "$lib/loader/loader";

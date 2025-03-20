@@ -16,7 +16,6 @@
         LineSegments,
         AxesHelper,
         Group,
-        Vector3,
         Vector2,
         Raycaster,
         FrontSide, Color
