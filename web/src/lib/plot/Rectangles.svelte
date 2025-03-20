@@ -119,7 +119,7 @@
         };
     }
 
-    function onClick(mouse: Vector2) {
+    function onDoubleClick(mouse: Vector2) {
         const raycaster = new Raycaster();
         raycaster.setFromCamera(mouse, camera);
 
@@ -194,4 +194,4 @@
     }
 </script>
 
-<ThreeElement {setup} {resize} {draw} {onClick}/>
+<ThreeElement {setup} {resize} {draw} {onDoubleClick}/>

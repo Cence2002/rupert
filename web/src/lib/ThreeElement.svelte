@@ -7,7 +7,7 @@
     export let setup: (width: number, height: number) => HTMLCanvasElement;
     export let draw: () => void;
     export let resize: (width: number, height: number) => void;
-    export let onClick: (mouse: Vector2) => void = () => {
+    export let onDoubleClick: (mouse: Vector2) => void = () => {
     };
 
     let container: HTMLDivElement;
@@ -15,19 +15,19 @@
     let animationFrame: number;
     let running = true;
 
-    function handleClick(event: MouseEvent) {
+    function handleDoubleClick(event: MouseEvent) {
         const mouse = new Vector2(
             lerp(-1, 1, event.offsetX / container.offsetWidth),
             lerp(1, -1, event.offsetY / container.offsetHeight)
         );
-        onClick(mouse);
+        onDoubleClick(mouse);
     }
 
     onMount(() => {
         canvas = setup(container.clientWidth, container.clientHeight);
         container.appendChild(canvas);
 
-        canvas.addEventListener("dblclick", handleClick);
+        canvas.addEventListener("dblclick", handleDoubleClick);
 
         function animate() {
             if (!running) {
