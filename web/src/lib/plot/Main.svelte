@@ -1,5 +1,5 @@
 <script lang="ts">
-    import ThreeElement from "$lib/ThreeElement.svelte";
+    import ThreePlot from "$lib/ThreePlot.svelte";
     import {State} from "$lib/state.svelte";
 
     import {
@@ -368,4 +368,4 @@
     }
 </script>
 
-<ThreeElement {setup} {resize} {draw}/>
+<ThreePlot {setup} {resize} {draw}/>

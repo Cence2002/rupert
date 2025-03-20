@@ -1,5 +1,5 @@
 <script lang="ts">
-    import ThreeElement from "$lib/ThreeElement.svelte";
+    import ThreePlot from "$lib/ThreePlot.svelte";
     import {State} from "$lib/state.svelte";
     import {PI, TWO_PI} from "$lib/geometry";
 
@@ -191,4 +191,4 @@
     }
 </script>
 
-<ThreeElement {setup} {resize} {draw} {onDoubleClick}/>
+<ThreePlot {setup} {resize} {draw} {onDoubleClick}/>

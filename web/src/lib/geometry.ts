@@ -15,9 +15,8 @@ export function convexHull(points: Vector2[]): Vector2[] {
         hull.push(current);
         let next = points[0] === current ? points[1]! : points[0]!;
 
-        for (let i = 0; i < points.length; i++) {
-            let point = points[i]!;
-            let cross = (next.x - current.x) * (point.y - current.y) - (next.y - current.y) * (point.x - current.x);
+        for (let point of points) {
+            let cross = new Vector2().subVectors(next, current).cross(new Vector2().subVectors(point, current));
             if (cross < 0 || (cross === 0 && current.distanceTo(point) > current.distanceTo(next))) {
                 next = point;
             }
