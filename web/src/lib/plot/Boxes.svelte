@@ -18,10 +18,10 @@
         AxesHelper,
         Raycaster,
         Group,
-        Color,
-        SphereGeometry,
+        Color, Float32BufferAttribute, BufferGeometry,
     } from "three";
     import type {AbstractLoader} from "$lib/loader/loader";
+    import type {Interval} from "$lib/types";
 
     let {loader, state} = $props<{
         loader: AbstractLoader,
@@ -35,21 +35,23 @@
     const scene = new Scene();
     scene.up.set(0, 0, 1);
 
-    const camera = new PerspectiveCamera(60, 1, 0.001, 1000);
+    const camera = new PerspectiveCamera(60, 1, 0.01, 100);
     camera.up.set(0, 0, 1);
     camera.lookAt(0.5, 0.5, 0.5);
-    camera.position.set(0.5, -1.5, 0.5);
+    camera.position.set(0.5, -1, 0.5);
 
     const renderer = new WebGLRenderer({antialias: true});
 
     const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0.5, 0.5, 0.5);
     controls.enableRotate = true;
     controls.enableZoom = true;
+    controls.zoomToCursor = true;
     controls.enablePan = true;
-    controls.target.set(0.5, 0.5, 0.5);
-
-    const center = new Mesh(new SphereGeometry(0.01), new MeshBasicMaterial({color: new Color(1, 1, 1)}));
-    scene.add(center);
+    controls.screenSpacePanning = true;
+    controls.minDistance = 0.05;
+    controls.maxDistance = 5;
+    controls.rotateSpeed = 0.5;
 
     const boxGroups: Group[] = [];
 
@@ -59,39 +61,38 @@
         }
         {
             const boxes = loader.getBoxes();
-            for (let index = 0; index < boxes.length; index++) {
-                const box = boxes[index];
+            for (let box of boxes) {
+                const theta: Interval = box.theta.interval;
+                const phi: Interval = box.phi.interval;
+                const alpha: Interval = box.alpha.interval;
 
-                const thetaInterval = box.theta.interval;
-                const phiInterval = box.phi.interval;
-                const alphaInterval = box.alpha.interval;
-
-                const boxGeometry = new BoxGeometry(thetaInterval.len / TWO_PI, phiInterval.len / PI, alphaInterval.len / TWO_PI);
+                const boxGeometry = new BoxGeometry(theta.len / TWO_PI, phi.len / PI, alpha.len / TWO_PI);
                 const boxMaterial = new MeshBasicMaterial({
                     color: new Color(0, 0, 1),
                     transparent: true,
-                    opacity: box.terminal ? 0.5 : 0.0,
+                    opacity: box.terminal ? 0.5 : 0.05,
                     depthWrite: false
                 });
                 const boxMesh = new Mesh(boxGeometry, boxMaterial);
-                boxMesh.position.set(thetaInterval.mid / TWO_PI, phiInterval.mid / PI, alphaInterval.mid / TWO_PI);
-
-                const boxEdgesGeometry = new EdgesGeometry(boxGeometry);
-                const boxEdgesMaterial = new LineBasicMaterial({
-                    color: new Color(0.5, 0.5, 0.5),
-                });
-                const boxEdges = new LineSegments(boxEdgesGeometry, boxEdgesMaterial);
-                boxEdges.position.set(thetaInterval.mid / TWO_PI, phiInterval.mid / PI, alphaInterval.mid / TWO_PI);
+                boxMesh.position.set(theta.mid / TWO_PI, phi.mid / PI, alpha.mid / TWO_PI);
 
                 const boxGroup = new Group();
                 boxGroup.add(boxMesh);
+
                 if (box.terminal) {
+                    const boxEdgesGeometry = new EdgesGeometry(boxGeometry);
+                    const boxEdgesMaterial = new LineBasicMaterial({
+                        color: new Color(0.5, 0.5, 0.5),
+                    });
+                    const boxEdges = new LineSegments(boxEdgesGeometry, boxEdgesMaterial);
+                    boxEdges.position.set(theta.mid / TWO_PI, phi.mid / PI, alpha.mid / TWO_PI);
                     boxGroup.add(boxEdges);
                 }
 
                 boxGroups.push(boxGroup);
             }
         }
+
         {
             for (const boxGroup of boxGroups) {
                 scene.add(boxGroup);
@@ -104,13 +105,12 @@
             return () => {
             };
         }
-        const boxGroup = boxGroups[state.selectedBox]!;
-        const box = boxGroup.children[0] as Mesh;
+        const box = boxGroups[state.selectedBox]!.children[0] as Mesh;
         const boxMaterial = box.material as MeshBasicMaterial;
         const originalColor = boxMaterial.color.clone();
         boxMaterial.color.copy(new Color(1, 0, 0));
         const boxMaterialOpacity = boxMaterial.opacity;
-        boxMaterial.opacity = 0.9;
+        boxMaterial.opacity = 0.5;
 
         return () => {
             boxMaterial.color.copy(originalColor);
@@ -122,10 +122,11 @@
         const raycaster = new Raycaster();
         raycaster.setFromCamera(mouse, camera);
 
-        const intersections = raycaster.intersectObjects(boxGroups
-                .map(group => group.children[0] as Mesh)
-                .filter(mesh => (mesh.material as MeshBasicMaterial).opacity > 0),
-            false);
+        const boxes = boxGroups
+        .map(group => group.children[0] as Mesh)
+        .filter(mesh => (mesh.material as MeshBasicMaterial).opacity > 0);
+
+        const intersections = raycaster.intersectObjects(boxes, false);
 
         function getVolume(geometry: BoxGeometry) {
             const {width, height, depth} = geometry.parameters;
@@ -134,10 +135,10 @@
 
         intersections.sort((intersection, otherIntersection) => {
             const volume = getVolume((intersection.object as Mesh).geometry as BoxGeometry);
-            const volumeSize = getVolume((otherIntersection.object as Mesh).geometry as BoxGeometry);
-            const volumeDifference = volume - volumeSize;
+            const otherVolume = getVolume((otherIntersection.object as Mesh).geometry as BoxGeometry);
+            const volumeRatio = volume / otherVolume;
             const distanceDifference = intersection.distance - otherIntersection.distance;
-            return distanceDifference - volumeDifference / 1000;
+            return distanceDifference - Math.log(volumeRatio) / 1000;
         });
 
         if (intersections.length === 0) {
@@ -150,28 +151,39 @@
             return;
         }
 
-        const selectedBox = boxGroups[state.selectedBox]!.children[0] as Mesh;
-        const selectedBoxIndex = intersections.findIndex(intersection => intersection.object === selectedBox);
-        const newselectedBoxIndex = selectedBoxIndex === -1 ? 0 : (selectedBoxIndex + 1) % intersections.length;
-        const newselectedBox = intersections[newselectedBoxIndex]!.object as Mesh;
-        const newselectedBoxIndexInGroups = boxGroups.findIndex(group => group.children[0] === newselectedBox);
-        state.selectBox(newselectedBoxIndexInGroups);
+        const box = boxGroups[state.selectedBox]!.children[0] as Mesh;
+        const boxIndex = intersections.findIndex(intersection => intersection.object === box);
+        const newBoxIndex = boxIndex === -1 ? 0 : (boxIndex + 1) % intersections.length;
+        const newBox = intersections[newBoxIndex]!.object as Mesh;
+        const newBoxGroupIndex = boxGroups.findIndex(group => group.children[0] === newBox);
+        state.selectBox(newBoxGroupIndex);
     }
 
     function setup(width: number, height: number) {
         resize(width, height);
 
         {
-            const axesHelper = new AxesHelper(10);
+            const axesHelper = new AxesHelper(2);
             scene.add(axesHelper);
         }
 
         {
-            const domainGeometry = new BoxGeometry(1, 1, 1);
-            const domainEdgesGeometry = new EdgesGeometry(domainGeometry);
-            const domainEdgesMaterial = new LineBasicMaterial({color: 0x7f7f7f});
+            const edgePositions = [
+                1, 0, 0, 1, 1, 0,
+                1, 0, 0, 1, 0, 1,
+                0, 1, 0, 0, 1, 1,
+                0, 1, 0, 1, 1, 0,
+                0, 0, 1, 1, 0, 1,
+                0, 0, 1, 0, 1, 1,
+                1, 1, 1, 0, 1, 1,
+                1, 1, 1, 1, 0, 1,
+                1, 1, 1, 1, 1, 0,
+            ];
+            const domainEdgesGeometry = new BufferGeometry();
+            domainEdgesGeometry.setAttribute('position', new Float32BufferAttribute(edgePositions, 3));
+            const domainEdgesMaterial = new LineBasicMaterial({opacity: 0.5});
+            domainEdgesMaterial.color.copy(new Color(0.5, 0.5, 0.5));
             const domainEdges = new LineSegments(domainEdgesGeometry, domainEdgesMaterial);
-            domainEdges.position.set(0.5, 0.5, 0.5);
             scene.add(domainEdges);
         }
 
@@ -180,7 +192,6 @@
 
     function draw() {
         renderer.render(scene, camera);
-        center.position.copy(controls.target);
     }
 
     function resize(width: number, height: number) {
