@@ -150,59 +150,6 @@
         }
 
         {
-            const vertexProjections = loader.getHoleVertexProjections(selection.selectedBox3);
-            for (let index = 0; index < vertexProjections.length; index++) {
-                const vertices: Vector2[] = vertexProjections[index];
-
-                const hull = new Shape(convexHull(vertices));
-                const hullGeometry = new ShapeGeometry(hull);
-                const hullMaterial = new MeshBasicMaterial({
-                    color: new Color(0, 0, 1),
-                    transparent: true,
-                    opacity: 0.25,
-                    side: DoubleSide,
-                    depthWrite: false
-                });
-                const hullMesh = new Mesh(hullGeometry, hullMaterial);
-
-                const hullEdgesGeometry = new EdgesGeometry(hullGeometry);
-                const hullEdgesMaterial = new LineBasicMaterial({
-                    color: new Color(0.5, 0.5, 0.5),
-                });
-                const hullEdges = new LineSegments(hullEdgesGeometry, hullEdgesMaterial);
-
-                const group = new Group();
-                group.add(hullMesh);
-                group.add(hullEdges);
-
-                projections.push(group);
-            }
-            for (let group of projections) {
-                scene.add(group);
-            }
-        }
-
-        {
-            const projection = loader.getHoleProjectionHull(selection.selectedBox3);
-            for (let index = 0; index < projection.length; index++) {
-                const edge = projection[index];
-                const edgeGeometry = new BufferGeometry().setFromPoints([
-                    new Vector3(edge.from.x, edge.from.y, 0),
-                    new Vector3(edge.to.x, edge.to.y, 0)
-                ]);
-                const edgeMaterial = new LineBasicMaterial({
-                    color: new Color(1, 1, 1),
-                });
-                const edgeMesh = new Line(edgeGeometry, edgeMaterial);
-                projectionEdges.push(edgeMesh);
-            }
-
-            for (let projectionEdge of projectionEdges) {
-                scene.add(projectionEdge);
-            }
-        }
-
-        {
             const box = loader.getBox(selection.selectedBox3);
             const loaderHole = loader.getHole();
             for (let index = 0; index < loaderHole.length; index++) {
@@ -280,14 +227,6 @@
         }
 
         return () => {
-            for (let group of projections) {
-                scene.remove(group);
-            }
-            projections = [];
-            for (let edge of projectionEdges) {
-                scene.remove(edge);
-            }
-            projectionEdges = [];
             for (let mesh of rotatedProjectedHoleVertices) {
                 scene.remove(mesh);
             }
@@ -304,39 +243,6 @@
             const rectangleOutIndices = loader.getPlugOutIndices(selection.selectedBox3, selection.selectedRectangle);
             for (let index = 0; index < rectangleOutIndices.length; index++) {
                 rectangleOut.push(rectangleOutIndices[index]);
-            }
-        }
-
-        {
-            const loaderRectangleProjections = loader.getPlugVertexProjections(selection.selectedBox3, selection.selectedRectangle);
-            for (let index = 0; index < loaderRectangleProjections.length; index++) {
-                const vertices = loaderRectangleProjections[index];
-
-                const hull = new Shape(vertices);
-                const hullGeometry = new ShapeGeometry(hull);
-                const hullMaterial = new MeshBasicMaterial({
-                    color: new Color(0, 1, 0),
-                    transparent: true,
-                    opacity: (selection.selectedRectangle == loader.getHoleInIndex(selection.selectedBox3)) ? 0.25 : (rectangleOut.includes(index) ? 0.5 : 0),
-                    side: DoubleSide,
-                    depthWrite: false,
-                });
-                const hullMesh = new Mesh(hullGeometry, hullMaterial);
-
-                const hullEdgesGeometry = new EdgesGeometry(hullGeometry);
-                const hullEdgesMaterial = new LineBasicMaterial({
-                    color: new Color(0.5, 0.5, 0.5),
-                });
-                const hullEdges = new LineSegments(hullEdgesGeometry, hullEdgesMaterial);
-
-                const group = new Group();
-                group.add(hullMesh);
-                group.add(hullEdges);
-
-                rectangleProjections.push(group);
-            }
-            for (let group of rectangleProjections) {
-                scene.add(group);
             }
         }
 
@@ -369,10 +275,6 @@
             }
         }
         return () => {
-            for (let group of rectangleProjections) {
-                scene.remove(group);
-            }
-            rectangleProjections = [];
             rectangleOut = [];
             for (let group of projectedPlugVertices) {
                 scene.remove(group);

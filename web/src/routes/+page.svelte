@@ -26,7 +26,6 @@
 
     function setProjectionScene(scene: Scene) {
         projectionScene = scene;
-        console.log(projectionScene);
     }
 
     function getProjectionScene() {
@@ -35,8 +34,8 @@
 
     onMount(async () => {
         await loader.load(debugFilename);
-        selection.loaded = true;
         debug = await loadDebug(debugFilename);
+        selection.loaded = true;
         console.log("Loaded debug");
     });
 </script>
@@ -69,7 +68,7 @@
 
     <Pane defaultSize={4}>
         <div id="pane">
-            <Main {loader} {debug} {selection} {getProjectionScene}/>
+            <Main {loader} {selection} {getProjectionScene}/>
         </div>
     </Pane>
 
@@ -79,7 +78,7 @@
 
     <Pane defaultSize={2}>
         <div id="pane">
-            <Projection {debug} {selection} {setProjectionScene}/>
+            <Projection {loader} {selection} {setProjectionScene}/>
         </div>
     </Pane>
 </PaneGroup>
