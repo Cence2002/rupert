@@ -27,7 +27,7 @@
         state: State,
     }>();
 
-    $effect(onSelectBox3);
+    $effect(onSelectBox);
 
     $effect(onSelectRectangle);
 
@@ -50,7 +50,7 @@
 
     let rectangleGroups: Group[] = [];
 
-    function onSelectBox3(): () => void {
+    function onSelectBox(): () => void {
         if (state.selectedBox === null) {
             return () => {
             };

@@ -28,9 +28,9 @@
         state: State,
     }>();
 
-    $effect(onBoxes);
+    $effect(onLoad);
 
-    $effect(onSelectBox3);
+    $effect(onSelectBox);
 
     const scene = new Scene();
     scene.up.set(0, 0, 1);
@@ -53,7 +53,7 @@
 
     const boxGroups: Group[] = [];
 
-    function onBoxes() {
+    function onLoad() {
         if (!state.loaded) {
             return;
         }
@@ -99,7 +99,7 @@
         }
     }
 
-    function onSelectBox3(): () => void {
+    function onSelectBox(): () => void {
         if (state.selectedBox === null) {
             return () => {
             };

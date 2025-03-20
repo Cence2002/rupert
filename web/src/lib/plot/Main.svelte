@@ -31,9 +31,9 @@
         getProjectionScene: () => Scene | null
     }>();
 
-    $effect(onBoxes);
+    $effect(onLoad);
 
-    $effect(onSelectBox3);
+    $effect(onSelectBox);
 
     $effect(onSelectRectangle);
 
@@ -74,7 +74,7 @@
     let plug_theta_t = 0;
     let plug_phi_t = 0;
 
-    function onBoxes(): void {
+    function onLoad() {
         if (!state.loaded) {
             return;
         }
@@ -134,7 +134,7 @@
         }
     }
 
-    function onSelectBox3(): () => void {
+    function onSelectBox(): () => void {
         if (state.selectedBox === null) {
             return () => {
             };
