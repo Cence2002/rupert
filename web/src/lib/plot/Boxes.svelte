@@ -35,20 +35,20 @@
     const scene = new Scene();
     scene.up.set(0, 0, 1);
 
-    const camera = new PerspectiveCamera(60, 1, 0.01, 100);
+    const camera = new PerspectiveCamera(45, 1, 0.01, 100);
     camera.up.set(0, 0, 1);
     camera.lookAt(0.5, 0.5, 0.5);
-    camera.position.set(0.5, -1, 0.5);
+    camera.position.set(0.5, -1.5, 0.5);
 
     const renderer = new WebGLRenderer({antialias: true});
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.target.set(0.5, 0.5, 0.5);
+    controls.enablePan = true;
+    controls.screenSpacePanning = true;
     controls.enableRotate = true;
     controls.enableZoom = true;
     controls.zoomToCursor = true;
-    controls.enablePan = true;
-    controls.screenSpacePanning = true;
     controls.minDistance = 0.05;
     controls.maxDistance = 5;
     controls.rotateSpeed = 0.5;
@@ -59,6 +59,7 @@
         if (!state.loaded) {
             return;
         }
+
         {
             const boxes = loader.getBoxes();
             for (const box of boxes) {
@@ -66,11 +67,13 @@
                 const phi: Interval = box.phi.interval;
                 const alpha: Interval = box.alpha.interval;
 
+                const isTerminal = box.terminal;
+
                 const boxGeometry = new BoxGeometry(theta.len / TWO_PI, phi.len / PI, alpha.len / TWO_PI);
                 const boxMaterial = new MeshBasicMaterial({
                     color: new Color(0, 0, 1),
                     transparent: true,
-                    opacity: box.terminal ? 0.5 : 0.05,
+                    opacity: isTerminal ? 0.5 : 0.05,
                     depthWrite: false
                 });
                 const boxMesh = new Mesh(boxGeometry, boxMaterial);
@@ -79,7 +82,7 @@
                 const boxGroup = new Group();
                 boxGroup.add(boxMesh);
 
-                if (box.terminal) {
+                if (isTerminal) {
                     const boxEdgesGeometry = new EdgesGeometry(boxGeometry);
                     const boxEdgesMaterial = new LineBasicMaterial({
                         color: new Color(0.5, 0.5, 0.5),
@@ -105,12 +108,13 @@
             return () => {
             };
         }
+
         const box = boxGroups[state.selectedBox]!.children[0] as Mesh;
         const boxMaterial = box.material as MeshBasicMaterial;
         const originalColor = boxMaterial.color.clone();
         boxMaterial.color.copy(new Color(1, 0, 0));
         const boxMaterialOpacity = boxMaterial.opacity;
-        boxMaterial.opacity = 0.5;
+        boxMaterial.opacity = 0.75;
 
         return () => {
             boxMaterial.color.copy(originalColor);
@@ -147,7 +151,8 @@
         }
 
         if (state.selectedBox === null) {
-            state.selectBox(boxGroups.findIndex(group => group.children[0] === intersections[0]!.object));
+            const newBoxIndex = boxGroups.findIndex(group => group.children[0] === intersections[0]!.object);
+            state.selectBox(newBoxIndex);
             return;
         }
 
@@ -168,7 +173,7 @@
         }
 
         {
-            const edgePositions = [
+            const edgeBuffer = [
                 1, 0, 0, 1, 1, 0,
                 1, 0, 0, 1, 0, 1,
                 0, 1, 0, 0, 1, 1,
@@ -179,12 +184,11 @@
                 1, 1, 1, 1, 0, 1,
                 1, 1, 1, 1, 1, 0,
             ];
-            const domainEdgesGeometry = new BufferGeometry();
-            domainEdgesGeometry.setAttribute('position', new Float32BufferAttribute(edgePositions, 3));
-            const domainEdgesMaterial = new LineBasicMaterial({opacity: 0.5});
-            domainEdgesMaterial.color.copy(new Color(0.5, 0.5, 0.5));
-            const domainEdges = new LineSegments(domainEdgesGeometry, domainEdgesMaterial);
-            scene.add(domainEdges);
+            const edgesGeometry = new BufferGeometry();
+            edgesGeometry.setAttribute('position', new Float32BufferAttribute(edgeBuffer, 3));
+            const edgesMaterial = new LineBasicMaterial({color: new Color(0.5, 0.5, 0.5)});
+            const edges = new LineSegments(edgesGeometry, edgesMaterial);
+            scene.add(edges);
         }
 
         return renderer.domElement;
@@ -197,7 +201,9 @@
     function resize(width: number, height: number) {
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
+
         renderer.setSize(width, height);
+
         controls.update();
     }
 </script>

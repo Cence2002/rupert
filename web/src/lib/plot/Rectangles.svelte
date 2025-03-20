@@ -18,9 +18,10 @@
         Group,
         Vector2,
         Raycaster,
-        FrontSide, Color
+        FrontSide, Color, BufferGeometry, Float32BufferAttribute
     } from "three";
     import type {AbstractLoader} from "$lib/loader/loader";
+    import type {Interval} from "$lib/types";
 
     let {loader, state} = $props<{
         loader: AbstractLoader,
@@ -43,10 +44,12 @@
 
     const controls = new MapControls(camera, renderer.domElement);
     controls.enablePan = true;
-    controls.enableZoom = true;
-    controls.enableRotate = false;
     controls.screenSpacePanning = true;
+    controls.enableZoom = true;
     controls.zoomToCursor = true;
+    controls.enableRotate = false;
+    controls.minZoom = 0.25;
+    controls.maxZoom = 25;
 
     let rectangleGroups: Group[] = [];
 
@@ -55,43 +58,50 @@
             return () => {
             };
         }
-        const rectangles = loader.getRectangles(state.selectedBox);
-        for (let index = 0; index < rectangles.length; index++) {
-            const rectangle = rectangles[index];
 
-            const thetaInterval = rectangle.theta.interval;
-            const phiInterval = rectangle.phi.interval;
+        {
+            const rectangles = loader.getRectangles(state.selectedBox);
+            for (let index = 0; index < rectangles.length; index++) {
+                const rectangle = rectangles[index];
 
-            const rectangleGeometry = new PlaneGeometry(thetaInterval.len / TWO_PI, phiInterval.len / PI);
-            const rectangleMaterial = new MeshBasicMaterial({
-                color: new Color(0, 1, 0),
-                transparent: true,
-                // opacity: (index == box.inIndex()) ? 0.75 : (rectangle.outIndicesLength() > 0 ? 0.25 : 0.0),
-                opacity: (index == loader.getHoleInIndex(state.selectedBox)) ? 0.75 : (loader.getPlugOutIndices(state.selectedBox, index).length > 0 ? 0.25 : 0.0),
-                side: FrontSide,
-                depthWrite: false
-            });
-            const rectangleMesh = new Mesh(rectangleGeometry, rectangleMaterial);
-            rectangleMesh.position.set(thetaInterval.mid / TWO_PI, phiInterval.mid / PI, 0);
+                const theta: Interval = rectangle.theta.interval;
+                const phi: Interval = rectangle.phi.interval;
 
-            const rectangleEdgesGeometry = new EdgesGeometry(rectangleGeometry);
-            const rectangleEdgesMaterial = new LineBasicMaterial({
-                color: new Color(0.5, 0.5, 0.5),
-            });
-            const rectangleEdges = new LineSegments(rectangleEdgesGeometry, rectangleEdgesMaterial);
-            rectangleEdges.position.set(thetaInterval.mid / TWO_PI, phiInterval.mid / PI, 0);
+                const isIn = index == loader.getHoleInIndex(state.selectedBox);
+                const isTerminal = loader.getPlugOutIndices(state.selectedBox, index).length > 0;
 
-            const rectangleGroup = new Group();
-            rectangleGroup.add(rectangleMesh);
-            if (loader.getPlugOutIndices(state.selectedBox, index).length > 0) {
-                rectangleGroup.add(rectangleEdges);
+                const rectangleGeometry = new PlaneGeometry(theta.len / TWO_PI, phi.len / PI);
+                const rectangleMaterial = new MeshBasicMaterial({
+                    color: new Color(0, 1, 0),
+                    transparent: true,
+                    opacity: isIn ? 0.75 : (isTerminal ? 0.25 : 0.05),
+                    side: FrontSide,
+                    depthWrite: false
+                });
+                const rectangleMesh = new Mesh(rectangleGeometry, rectangleMaterial);
+                rectangleMesh.position.set(theta.mid / TWO_PI, phi.mid / PI, 0);
+
+                const rectangleGroup = new Group();
+                rectangleGroup.add(rectangleMesh);
+
+                if (isTerminal) {
+                    const rectangleEdgesGeometry = new EdgesGeometry(rectangleGeometry);
+                    const rectangleEdgesMaterial = new LineBasicMaterial({
+                        color: new Color(0.5, 0.5, 0.5),
+                    });
+                    const rectangleEdges = new LineSegments(rectangleEdgesGeometry, rectangleEdgesMaterial);
+                    rectangleEdges.position.set(theta.mid / TWO_PI, phi.mid / PI, 0);
+                    rectangleGroup.add(rectangleEdges);
+                }
+
+                rectangleGroups.push(rectangleGroup);
             }
-
-            rectangleGroups.push(rectangleGroup);
         }
 
-        for (const rectangleGroup of rectangleGroups.values()) {
-            scene.add(rectangleGroup);
+        {
+            for (const rectangleGroup of rectangleGroups.values()) {
+                scene.add(rectangleGroup);
+            }
         }
 
         return () => {
@@ -107,13 +117,14 @@
             return () => {
             };
         }
-        const rectangleGroup = rectangleGroups[state.selectedRectangle]!;
-        const rectangle = rectangleGroup.children[0] as Mesh;
+
+        const rectangle = rectangleGroups[state.selectedRectangle]!.children[0] as Mesh;
         const rectangleMaterial = rectangle.material as MeshBasicMaterial;
         const originalColor = rectangleMaterial.color.clone();
         rectangleMaterial.color.copy(new Color(1, 0, 0));
         const originalOpacity = rectangleMaterial.opacity;
-        rectangleMaterial.opacity = 0.9;
+        rectangleMaterial.opacity = 0.75;
+
         return () => {
             rectangleMaterial.color.copy(originalColor);
             rectangleMaterial.opacity = originalOpacity;
@@ -124,10 +135,11 @@
         const raycaster = new Raycaster();
         raycaster.setFromCamera(mouse, camera);
 
-        const intersections = raycaster.intersectObjects(rectangleGroups
-            .map(group => group.children[0] as Mesh)
-            .filter(mesh => (mesh.material as MeshBasicMaterial).opacity > 0),
-            false);
+        const rectangles = rectangleGroups
+        .map(group => group.children[0] as Mesh)
+        .filter(mesh => (mesh.material as MeshBasicMaterial).opacity > 0);
+
+        const intersections = raycaster.intersectObjects(rectangles, false);
 
         function getArea(geometry: PlaneGeometry) {
             const vertices = geometry.parameters;
@@ -136,8 +148,8 @@
 
         intersections.sort((intersection, otherIntersection) => {
             const area = getArea((intersection.object as Mesh).geometry as PlaneGeometry);
-            const areaSize = getArea((otherIntersection.object as Mesh).geometry as PlaneGeometry);
-            const areaDifference = area - areaSize;
+            const otherArea = getArea((otherIntersection.object as Mesh).geometry as PlaneGeometry);
+            const areaDifference = area - otherArea;
             return -areaDifference;
         });
 
@@ -147,33 +159,37 @@
         }
 
         if (state.selectedRectangle === null) {
-            state.selectRectangle(rectangleGroups.findIndex(group => group.children[0] === intersections[0]!.object));
+            const newRectangleIndex = rectangleGroups.findIndex(group => group.children[0] === intersections[0]!.object);
+            state.selectRectangle(newRectangleIndex);
             return;
         }
 
-        const selectedRectangle = rectangleGroups[state.selectedRectangle]!.children[0] as Mesh;
-        const selectedRectangleIndex = intersections.findIndex(intersection => intersection.object === selectedRectangle);
-        const newselectedRectangleIndex = selectedRectangleIndex === -1 ? 0 : (selectedRectangleIndex + 1) % intersections.length;
-        const newselectedRectangle = intersections[newselectedRectangleIndex]!.object as Mesh;
-        const newselectedRectangleIndexInGroups = rectangleGroups.findIndex(group => group.children[0] === newselectedRectangle);
-        state.selectRectangle(newselectedRectangleIndexInGroups);
+        const rectangle = rectangleGroups[state.selectedRectangle]!.children[0] as Mesh;
+        const rectangleIndex = intersections.findIndex(intersection => intersection.object === rectangle);
+        const newRectangleIndex = rectangleIndex === -1 ? 0 : (rectangleIndex + 1) % intersections.length;
+        const newRectangle = intersections[newRectangleIndex]!.object as Mesh;
+        const newRectangleGroupIndex = rectangleGroups.findIndex(group => group.children[0] === newRectangle);
+        state.selectRectangle(newRectangleGroupIndex);
     }
 
     function setup(width: number, height: number) {
         resize(width, height);
 
         {
-            const axesHelper = new AxesHelper(10);
+            const axesHelper = new AxesHelper(2);
             scene.add(axesHelper);
         }
 
         {
-            const domainGeometry = new PlaneGeometry(1, 1);
-            const domainEdgesGeometry = new EdgesGeometry(domainGeometry);
-            const domainEdgesMaterial = new LineBasicMaterial({color: 0x7f7f7f});
-            const domainEdges = new LineSegments(domainEdgesGeometry, domainEdgesMaterial);
-            domainEdges.position.set(0.5, 0.5, 0);
-            scene.add(domainEdges);
+            const edgeBuffer = [
+                1, 1, 0, 1, 0, 0,
+                1, 1, 0, 0, 1, 0,
+            ]
+            const edgeGeometry = new BufferGeometry();
+            edgeGeometry.setAttribute('position', new Float32BufferAttribute(edgeBuffer, 3));
+            const edgeMaterial = new LineBasicMaterial({color: new Color(0.5, 0.5, 0.5)});
+            const edge = new LineSegments(edgeGeometry, edgeMaterial);
+            scene.add(edge);
         }
 
         return renderer.domElement;
@@ -190,7 +206,9 @@
         camera.top = (1 + zoom) / 2;
         camera.bottom = (1 - zoom) / 2;
         camera.updateProjectionMatrix();
+
         renderer.setSize(width, height);
+
         controls.update();
     }
 </script>
