@@ -25,9 +25,9 @@
     import {lerp} from "three/src/math/MathUtils.js";
     import type {AbstractLoader} from "$lib/loader/loader";
 
-    let {loader, selection, getProjectionScene} = $props<{
+    let {loader, state, getProjectionScene} = $props<{
         loader: AbstractLoader,
-        selection: State
+        state: State
         getProjectionScene: () => Scene | null
     }>();
 
@@ -75,7 +75,7 @@
     let plug_phi_t = 0;
 
     function onBoxes(): void {
-        if (!selection.loaded) {
+        if (!state.loaded) {
             return;
         }
         {
@@ -135,13 +135,13 @@
     }
 
     function onSelectBox3(): () => void {
-        if (selection.selectedBox3 === null) {
+        if (state.selectedBox === null) {
             return () => {
             };
         }
 
         {
-            const box = loader.getBox(selection.selectedBox3);
+            const box = loader.getBox(state.selectedBox);
             const loaderHole = loader.getHole();
             for (let index = 0; index < loaderHole.length; index++) {
                 const holeVertex = loaderHole[index];
@@ -226,20 +226,20 @@
     }
 
     function onSelectRectangle(): () => void {
-        if (selection.selectedRectangle === null) {
+        if (state.selectedRectangle === null) {
             return () => {
             };
         }
 
         {
-            const rectangleOutIndices = loader.getPlugOutIndices(selection.selectedBox3, selection.selectedRectangle);
+            const rectangleOutIndices = loader.getPlugOutIndices(state.selectedBox, state.selectedRectangle);
             for (let index = 0; index < rectangleOutIndices.length; index++) {
                 rectangleOut.push(rectangleOutIndices[index]);
             }
         }
 
         {
-            const rectangle = loader.getRectangle(selection.selectedBox3, selection.selectedRectangle);
+            const rectangle = loader.getRectangle(state.selectedBox, state.selectedRectangle);
             const loaderPlug = loader.getPlug();
             for (let index = 0; index < loaderPlug.length; index++) {
                 const holeVertex = loaderPlug[index];
@@ -328,8 +328,8 @@
         }
         renderer.render(scene, camera);
 
-        if (holeGroup && selection.selectedBox3 !== null) {
-            const box = loader.getBox(selection.selectedBox3);
+        if (holeGroup && state.selectedBox !== null) {
+            const box = loader.getBox(state.selectedBox);
 
             holeGroup.quaternion.copy(projection_rotation_quaternion(
                 lerp(box.theta.interval.min, box.theta.interval.max, (Math.sin(hole_theta_t) + 1) / 2),
@@ -341,8 +341,8 @@
             hole_phi_t += 0.1 / Math.sqrt(2);
             hole_alpha_t += 0.1 / Math.sqrt(3);
         }
-        if (plugGroup && selection.selectedBox3 !== null && selection.selectedRectangle !== null) {
-            const rectangle = loader.getRectangle(selection.selectedBox3, selection.selectedRectangle);
+        if (plugGroup && state.selectedBox !== null && state.selectedRectangle !== null) {
+            const rectangle = loader.getRectangle(state.selectedBox, state.selectedRectangle);
 
             plugGroup.quaternion.copy(projection_rotation_quaternion(
                 lerp(rectangle.theta.interval.min, rectangle.theta.interval.max, (Math.sin(plug_theta_t) + 1) / 2),

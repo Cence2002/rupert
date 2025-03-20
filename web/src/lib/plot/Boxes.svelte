@@ -23,9 +23,9 @@
     } from "three";
     import type {AbstractLoader} from "$lib/loader/loader";
 
-    let {loader, selection} = $props<{
+    let {loader, state} = $props<{
         loader: AbstractLoader,
-        selection: State,
+        state: State,
     }>();
 
     $effect(onBoxes);
@@ -54,7 +54,7 @@
     const boxGroups: Group[] = [];
 
     function onBoxes() {
-        if (!selection.loaded) {
+        if (!state.loaded) {
             return;
         }
         {
@@ -100,11 +100,11 @@
     }
 
     function onSelectBox3(): () => void {
-        if (selection.selectedBox3 === null) {
+        if (state.selectedBox === null) {
             return () => {
             };
         }
-        const boxGroup = boxGroups[selection.selectedBox3]!;
+        const boxGroup = boxGroups[state.selectedBox]!;
         const box = boxGroup.children[0] as Mesh;
         const boxMaterial = box.material as MeshBasicMaterial;
         const originalColor = boxMaterial.color.clone();
@@ -141,21 +141,21 @@
         });
 
         if (intersections.length === 0) {
-            selection.selectBox3(null);
+            state.unselectBox();
             return;
         }
 
-        if (selection.selectedBox3 === null) {
-            selection.selectBox3(boxGroups.findIndex(group => group.children[0] === intersections[0]!.object));
+        if (state.selectedBox === null) {
+            state.selectBox(boxGroups.findIndex(group => group.children[0] === intersections[0]!.object));
             return;
         }
 
-        const selectedBox3 = boxGroups[selection.selectedBox3]!.children[0] as Mesh;
-        const selectedBox3Index = intersections.findIndex(intersection => intersection.object === selectedBox3);
-        const newSelectedBox3Index = selectedBox3Index === -1 ? 0 : (selectedBox3Index + 1) % intersections.length;
-        const newSelectedBox3 = intersections[newSelectedBox3Index]!.object as Mesh;
-        const newSelectedBox3IndexInGroups = boxGroups.findIndex(group => group.children[0] === newSelectedBox3);
-        selection.selectBox3(newSelectedBox3IndexInGroups);
+        const selectedBox = boxGroups[state.selectedBox]!.children[0] as Mesh;
+        const selectedBoxIndex = intersections.findIndex(intersection => intersection.object === selectedBox);
+        const newselectedBoxIndex = selectedBoxIndex === -1 ? 0 : (selectedBoxIndex + 1) % intersections.length;
+        const newselectedBox = intersections[newselectedBoxIndex]!.object as Mesh;
+        const newselectedBoxIndexInGroups = boxGroups.findIndex(group => group.children[0] === newselectedBox);
+        state.selectBox(newselectedBoxIndexInGroups);
     }
 
     function setup(width: number, height: number) {

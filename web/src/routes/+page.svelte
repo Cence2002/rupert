@@ -11,7 +11,7 @@
     import {DebugLoader} from "$lib/loader/debug";
     import type {Scene} from "three";
 
-    let selection = new State();
+    let state = new State();
 
     let description = "RID";
     // let terminalBoxesFilename = description + "_terminal_boxes.bin";
@@ -31,7 +31,7 @@
 
     onMount(async () => {
         await loader.load(debugFilename);
-        selection.loaded = true;
+        state.onLoaded();
     });
 </script>
 
@@ -41,7 +41,7 @@
         <PaneGroup class="h-full w-full" direction="vertical">
             <Pane defaultSize={1}>
                 <div id="pane">
-                    <Boxes {loader} {selection}/>
+                    <Boxes {loader} {state}/>
                 </div>
             </Pane>
 
@@ -51,7 +51,7 @@
 
             <Pane defaultSize={1}>
                 <div id="pane">
-                    <Rectangles {loader} {selection}/>
+                    <Rectangles {loader} {state}/>
                 </div>
             </Pane>
         </PaneGroup>
@@ -63,7 +63,7 @@
 
     <Pane defaultSize={4}>
         <div id="pane">
-            <Main {loader} {selection} {getProjectionScene}/>
+            <Main {loader} {state} {getProjectionScene}/>
         </div>
     </Pane>
 
@@ -73,7 +73,7 @@
 
     <Pane defaultSize={2}>
         <div id="pane">
-            <Projection {loader} {selection} {setProjectionScene}/>
+            <Projection {loader} {state} {setProjectionScene}/>
         </div>
     </Pane>
 </PaneGroup>

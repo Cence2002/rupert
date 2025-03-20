@@ -26,9 +26,9 @@
     import {convexHull} from "$lib/geometry";
     import type {AbstractLoader} from "$lib/loader/loader";
 
-    let {loader, selection, setProjectionScene} = $props<{
+    let {loader, state, setProjectionScene} = $props<{
         loader: AbstractLoader,
-        selection: State,
+        state: State,
         setProjectionScene: (scene: Scene) => void,
     }>();
 
@@ -61,13 +61,13 @@
     let rectangleOut: number[] = [];
 
     function onSelectBox3(): () => void {
-        if (selection.selectedBox3 === null) {
+        if (state.selectedBox === null) {
             return () => {
             };
         }
 
         {
-            const vertexProjections = loader.getHoleVertexProjections(selection.selectedBox3);
+            const vertexProjections = loader.getHoleVertexProjections(state.selectedBox);
             for (let index = 0; index < vertexProjections.length; index++) {
                 const vertices: Vector2[] = vertexProjections[index];
 
@@ -100,7 +100,7 @@
         }
 
         {
-            const projection = loader.getHoleProjectionHull(selection.selectedBox3);
+            const projection = loader.getHoleProjectionHull(state.selectedBox);
             for (let index = 0; index < projection.length; index++) {
                 const edge = projection[index];
                 const edgeGeometry = new BufferGeometry().setFromPoints([
@@ -132,20 +132,20 @@
     }
 
     function onSelectRectangle(): () => void {
-        if (selection.selectedRectangle === null) {
+        if (state.selectedRectangle === null) {
             return () => {
             };
         }
 
         {
-            const rectangleOutIndices = loader.getPlugOutIndices(selection.selectedBox3, selection.selectedRectangle);
+            const rectangleOutIndices = loader.getPlugOutIndices(state.selectedBox, state.selectedRectangle);
             for (let index = 0; index < rectangleOutIndices.length; index++) {
                 rectangleOut.push(rectangleOutIndices[index]);
             }
         }
 
         {
-            const loaderRectangleProjections = loader.getPlugVertexProjections(selection.selectedBox3, selection.selectedRectangle);
+            const loaderRectangleProjections = loader.getPlugVertexProjections(state.selectedBox, state.selectedRectangle);
             for (let index = 0; index < loaderRectangleProjections.length; index++) {
                 const vertices = loaderRectangleProjections[index];
 
@@ -154,7 +154,7 @@
                 const hullMaterial = new MeshBasicMaterial({
                     color: new Color(0, 1, 0),
                     transparent: true,
-                    opacity: (selection.selectedRectangle == loader.getHoleInIndex(selection.selectedBox3)) ? 0.25 : (rectangleOut.includes(index) ? 0.5 : 0),
+                    opacity: (state.selectedRectangle == loader.getHoleInIndex(state.selectedBox)) ? 0.25 : (rectangleOut.includes(index) ? 0.5 : 0),
                     side: DoubleSide,
                     depthWrite: false,
                 });

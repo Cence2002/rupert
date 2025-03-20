@@ -22,9 +22,9 @@
     } from "three";
     import type {AbstractLoader} from "$lib/loader/loader";
 
-    let {loader, selection} = $props<{
+    let {loader, state} = $props<{
         loader: AbstractLoader,
-        selection: State,
+        state: State,
     }>();
 
     $effect(onSelectBox3);
@@ -51,11 +51,11 @@
     let rectangleGroups: Group[] = [];
 
     function onSelectBox3(): () => void {
-        if (selection.selectedBox3 === null) {
+        if (state.selectedBox === null) {
             return () => {
             };
         }
-        const rectangles = loader.getRectangles(selection.selectedBox3);
+        const rectangles = loader.getRectangles(state.selectedBox);
         for (let index = 0; index < rectangles.length; index++) {
             const rectangle = rectangles[index];
 
@@ -67,7 +67,7 @@
                 color: new Color(0, 1, 0),
                 transparent: true,
                 // opacity: (index == box.inIndex()) ? 0.75 : (rectangle.outIndicesLength() > 0 ? 0.25 : 0.0),
-                opacity: (index == loader.getHoleInIndex(selection.selectedBox3)) ? 0.75 : (loader.getPlugOutIndices(selection.selectedBox3, index).length > 0 ? 0.25 : 0.0),
+                opacity: (index == loader.getHoleInIndex(state.selectedBox)) ? 0.75 : (loader.getPlugOutIndices(state.selectedBox, index).length > 0 ? 0.25 : 0.0),
                 side: FrontSide,
                 depthWrite: false
             });
@@ -83,7 +83,7 @@
 
             const rectangleGroup = new Group();
             rectangleGroup.add(rectangleMesh);
-            if (loader.getPlugOutIndices(selection.selectedBox3, index).length > 0) {
+            if (loader.getPlugOutIndices(state.selectedBox, index).length > 0) {
                 rectangleGroup.add(rectangleEdges);
             }
 
@@ -103,11 +103,11 @@
     }
 
     function onSelectRectangle(): () => void {
-        if (selection.selectedRectangle === null) {
+        if (state.selectedRectangle === null) {
             return () => {
             };
         }
-        const rectangleGroup = rectangleGroups[selection.selectedRectangle]!;
+        const rectangleGroup = rectangleGroups[state.selectedRectangle]!;
         const rectangle = rectangleGroup.children[0] as Mesh;
         const rectangleMaterial = rectangle.material as MeshBasicMaterial;
         const originalColor = rectangleMaterial.color.clone();
@@ -142,21 +142,21 @@
         });
 
         if (intersections.length === 0) {
-            selection.selectRectangle(null);
+            state.unselectRectangle();
             return;
         }
 
-        if (selection.selectedRectangle === null) {
-            selection.selectRectangle(rectangleGroups.findIndex(group => group.children[0] === intersections[0]!.object));
+        if (state.selectedRectangle === null) {
+            state.selectRectangle(rectangleGroups.findIndex(group => group.children[0] === intersections[0]!.object));
             return;
         }
 
-        const selectedRectangle = rectangleGroups[selection.selectedRectangle]!.children[0] as Mesh;
+        const selectedRectangle = rectangleGroups[state.selectedRectangle]!.children[0] as Mesh;
         const selectedRectangleIndex = intersections.findIndex(intersection => intersection.object === selectedRectangle);
-        const newSelectedRectangleIndex = selectedRectangleIndex === -1 ? 0 : (selectedRectangleIndex + 1) % intersections.length;
-        const newSelectedRectangle = intersections[newSelectedRectangleIndex]!.object as Mesh;
-        const newSelectedRectangleIndexInGroups = rectangleGroups.findIndex(group => group.children[0] === newSelectedRectangle);
-        selection.selectRectangle(newSelectedRectangleIndexInGroups);
+        const newselectedRectangleIndex = selectedRectangleIndex === -1 ? 0 : (selectedRectangleIndex + 1) % intersections.length;
+        const newselectedRectangle = intersections[newselectedRectangleIndex]!.object as Mesh;
+        const newselectedRectangleIndexInGroups = rectangleGroups.findIndex(group => group.children[0] === newselectedRectangle);
+        state.selectRectangle(newselectedRectangleIndexInGroups);
     }
 
     function setup(width: number, height: number) {
