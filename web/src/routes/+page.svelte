@@ -1,6 +1,5 @@
 <script lang="ts">
     import {PaneGroup, Pane, PaneResizer} from "paneforge";
-    import {Debug} from '$lib/flatbuffers/flatbuffers_generated';
     import {State} from "$lib/state.svelte";
 
     import Boxes from "$lib/plot/Boxes.svelte";
@@ -9,7 +8,7 @@
     import Projection from "$lib/plot/Projection.svelte";
 
     import {onMount} from 'svelte';
-    import {DebugLoader, loadDebug} from "$lib/loader/debug";
+    import {DebugLoader} from "$lib/loader/debug";
     import type {Scene} from "three";
 
     let selection = new State();
@@ -19,8 +18,6 @@
     let debugFilename = description + "_debug.bin";
 
     let loader = new DebugLoader();
-
-    let debug: Debug | undefined = $state();
 
     let projectionScene: Scene | null = null;
 
@@ -34,9 +31,7 @@
 
     onMount(async () => {
         await loader.load(debugFilename);
-        debug = await loadDebug(debugFilename);
         selection.loaded = true;
-        console.log("Loaded debug");
     });
 </script>
 

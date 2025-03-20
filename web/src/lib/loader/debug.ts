@@ -1,18 +1,5 @@
 import * as flatbuffers from 'flatbuffers';
-
 import {Debug} from '$lib/flatbuffers/flatbuffers_generated';
-
-export async function loadDebug(filename: string): Promise<Debug | undefined> {
-    const response = await fetch(filename);
-    if (!response.ok) {
-        console.error("Failed to load file:", response.statusText);
-        return undefined;
-    }
-    const buffer = new Uint8Array(await response.arrayBuffer());
-    const byteBuffer = new flatbuffers.ByteBuffer(buffer);
-    return Debug.getRootAsDebug(byteBuffer);
-}
-
 import {AbstractLoader} from "$lib/loader/loader";
 import {Interval, Id, Rectangle, Box, Edge} from "$lib/types";
 import {Vector2, Vector3} from "three";
@@ -53,7 +40,14 @@ export class DebugLoader extends AbstractLoader {
     public data;
 
     async load(path: string): Promise<void> {
-        this.data = await loadDebug(path);
+        const response = await fetch(path);
+        if (!response.ok) {
+            console.error("Failed to load file:", response.statusText);
+            return undefined;
+        }
+        const buffer = new Uint8Array(await response.arrayBuffer());
+        const byteBuffer = new flatbuffers.ByteBuffer(buffer);
+        this.data = Debug.getRootAsDebug(byteBuffer);
     }
 
     getBox(boxIndex: number): Box {
