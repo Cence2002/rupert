@@ -50,9 +50,10 @@
 
     let rectangleGroups: Group[] = [];
 
-    function onSelectBox3() {
+    function onSelectBox3(): () => void {
         if (selection.selectedBox3 === null) {
-            return;
+            return () => {
+            };
         }
         const rectangles = loader.getRectangles(selection.selectedBox3);
         for (let index = 0; index < rectangles.length; index++) {
@@ -101,11 +102,12 @@
         };
     }
 
-    function onSelectRectangle() {
+    function onSelectRectangle(): () => void {
         if (selection.selectedRectangle === null) {
-            return;
+            return () => {
+            };
         }
-        const rectangleGroup = rectangleGroups[selection.selectedRectangle];
+        const rectangleGroup = rectangleGroups[selection.selectedRectangle]!;
         const rectangle = rectangleGroup.children[0] as Mesh;
         const rectangleMaterial = rectangle.material as MeshBasicMaterial;
         const originalColor = rectangleMaterial.color.clone();
@@ -123,8 +125,8 @@
         raycaster.setFromCamera(mouse, camera);
 
         const intersections = raycaster.intersectObjects(rectangleGroups
-                .map(group => group.children[0] as Mesh)
-                .filter(mesh => (mesh.material as MeshBasicMaterial).opacity > 0),
+            .map(group => group.children[0] as Mesh)
+            .filter(mesh => (mesh.material as MeshBasicMaterial).opacity > 0),
             false);
 
         function getArea(geometry: PlaneGeometry) {
@@ -145,14 +147,14 @@
         }
 
         if (selection.selectedRectangle === null) {
-            selection.selectRectangle(rectangleGroups.findIndex(group => group.children[0] === intersections[0].object));
+            selection.selectRectangle(rectangleGroups.findIndex(group => group.children[0] === intersections[0]!.object));
             return;
         }
 
-        const selectedRectangle = rectangleGroups[selection.selectedRectangle].children[0] as Mesh;
+        const selectedRectangle = rectangleGroups[selection.selectedRectangle]!.children[0] as Mesh;
         const selectedRectangleIndex = intersections.findIndex(intersection => intersection.object === selectedRectangle);
         const newSelectedRectangleIndex = selectedRectangleIndex === -1 ? 0 : (selectedRectangleIndex + 1) % intersections.length;
-        const newSelectedRectangle = intersections[newSelectedRectangleIndex].object as Mesh;
+        const newSelectedRectangle = intersections[newSelectedRectangleIndex]!.object as Mesh;
         const newSelectedRectangleIndexInGroups = rectangleGroups.findIndex(group => group.children[0] === newSelectedRectangle);
         selection.selectRectangle(newSelectedRectangleIndexInGroups);
     }

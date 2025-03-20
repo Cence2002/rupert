@@ -99,11 +99,12 @@
         }
     }
 
-    function onSelectBox3() {
+    function onSelectBox3(): () => void {
         if (selection.selectedBox3 === null) {
-            return;
+            return () => {
+            };
         }
-        const boxGroup = boxGroups[selection.selectedBox3];
+        const boxGroup = boxGroups[selection.selectedBox3]!;
         const box = boxGroup.children[0] as Mesh;
         const boxMaterial = box.material as MeshBasicMaterial;
         const originalColor = boxMaterial.color.clone();
@@ -145,14 +146,14 @@
         }
 
         if (selection.selectedBox3 === null) {
-            selection.selectBox3(boxGroups.findIndex(group => group.children[0] === intersections[0].object));
+            selection.selectBox3(boxGroups.findIndex(group => group.children[0] === intersections[0]!.object));
             return;
         }
 
-        const selectedBox3 = boxGroups[selection.selectedBox3].children[0] as Mesh;
+        const selectedBox3 = boxGroups[selection.selectedBox3]!.children[0] as Mesh;
         const selectedBox3Index = intersections.findIndex(intersection => intersection.object === selectedBox3);
         const newSelectedBox3Index = selectedBox3Index === -1 ? 0 : (selectedBox3Index + 1) % intersections.length;
-        const newSelectedBox3 = intersections[newSelectedBox3Index].object as Mesh;
+        const newSelectedBox3 = intersections[newSelectedBox3Index]!.object as Mesh;
         const newSelectedBox3IndexInGroups = boxGroups.findIndex(group => group.children[0] === newSelectedBox3);
         selection.selectBox3(newSelectedBox3IndexInGroups);
     }

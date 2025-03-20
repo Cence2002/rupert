@@ -74,13 +74,13 @@
     let plug_theta_t = 0;
     let plug_phi_t = 0;
 
-    function onBoxes() {
+    function onBoxes(): void {
         if (!selection.loaded) {
             return;
         }
         {
             let vertices = loader.getHole();
-            holeRadius = Math.max(...vertices.map(v => v.length()));
+            holeRadius = Math.max(...vertices.map((v: Vector3) => v.length()));
             camera.position.setZ(2 * holeRadius);
             controls.target.setZ(2 * holeRadius);
 
@@ -106,7 +106,7 @@
         }
         {
             let vertices = loader.getPlug();
-            plugRadius = Math.max(...vertices.map(v => v.length()));
+            plugRadius = Math.max(...vertices.map((v: Vector3) => v.length()));
 
             const plug = new ConvexGeometry(vertices);
             const plugMaterial = new MeshBasicMaterial({
@@ -130,14 +130,14 @@
         }
 
         {
-            controls.object.zoom = 4.0 / (holeRadius + plugRadius);
             camera.updateProjectionMatrix();
         }
     }
 
-    function onSelectBox3() {
+    function onSelectBox3(): () => void {
         if (selection.selectedBox3 === null) {
-            return;
+            return () => {
+            };
         }
 
         {
@@ -225,9 +225,10 @@
         };
     }
 
-    function onSelectRectangle() {
+    function onSelectRectangle(): () => void {
         if (selection.selectedRectangle === null) {
-            return;
+            return () => {
+            };
         }
 
         {

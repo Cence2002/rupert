@@ -32,8 +32,6 @@
         setProjectionScene: (scene: Scene) => void,
     }>();
 
-    $effect(onBoxes);
-
     $effect(onSelectBox3);
 
     $effect(onSelectRectangle);
@@ -57,35 +55,15 @@
     controls.screenSpacePanning = true;
     controls.zoomToCursor = true;
 
-    let holeRadius: number;
-    let plugRadius: number;
-
     let projectionEdges: Line[] = [];
     let projections: Group[] = [];
     let rectangleProjections: Group[] = [];
     let rectangleOut: number[] = [];
 
-    function onBoxes() {
-        if (!selection.loaded) {
-            return;
-        }
-        {
-            let vertices = loader.getHole();
-            holeRadius = Math.max(...vertices.map(v => v.length()));
-        }
-        {
-            let vertices = loader.getPlug();
-            plugRadius = Math.max(...vertices.map(v => v.length()));
-        }
-        {
-            controls.object.zoom = 2.0 / Math.max(holeRadius, plugRadius);
-            camera.updateProjectionMatrix();
-        }
-    }
-
-    function onSelectBox3() {
+    function onSelectBox3(): () => void {
         if (selection.selectedBox3 === null) {
-            return;
+            return () => {
+            };
         }
 
         {
@@ -153,9 +131,10 @@
         };
     }
 
-    function onSelectRectangle() {
+    function onSelectRectangle(): () => void {
         if (selection.selectedRectangle === null) {
-            return;
+            return () => {
+            };
         }
 
         {

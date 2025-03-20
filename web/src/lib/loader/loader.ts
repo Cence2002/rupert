@@ -2,15 +2,15 @@ import type {Vector2, Vector3} from "three";
 import type {Box, Edge, Rectangle} from "$lib/types";
 
 export abstract class AbstractLoader {
-    abstract async load(path: string): Promise<void>;
+    abstract load(path: string): Promise<void>;
 
     // Boxes plot
-    abstract getBox(boxIndex: number): Box;
+    abstract getBox(boxIndex: number): Box | null;
 
     abstract getBoxes(): Box[];
 
     // Rectangles plot
-    abstract getRectangle(boxIndex: number, rectangleIndex: number): Rectangle;
+    abstract getRectangle(boxIndex: number, rectangleIndex: number): Rectangle | null;
 
     abstract getRectangles(boxIndex: number): Rectangle[];
 

@@ -1,9 +1,10 @@
 import * as flatbuffers from 'flatbuffers';
-import {Debug} from '$lib/flatbuffers/flatbuffers_generated';
+import {Debug, Vector, Vertex} from '$lib/flatbuffers/flatbuffers_generated';
 import {AbstractLoader} from "$lib/loader/loader";
 import {Interval, Id, Rectangle, Box, Edge} from "$lib/types";
 import {Vector2, Vector3} from "three";
 
+// @ts-ignore
 function parseInterval(interval): Interval {
     return new Interval(
         interval.min(),
@@ -13,6 +14,7 @@ function parseInterval(interval): Interval {
     );
 }
 
+// @ts-ignore
 function parseId(id): Id {
     return new Id(
         id.depth(),
@@ -21,14 +23,14 @@ function parseId(id): Id {
     );
 }
 
-function parseVector(vector): Vector2 {
+function parseVector(vector: Vector): Vector2 {
     return new Vector2(
         vector.x(),
         vector.y(),
     );
 }
 
-function parseVertex(vertex): Vector3 {
+function parseVertex(vertex: Vertex): Vector3 {
     return new Vector3(
         vertex.x(),
         vertex.y(),
@@ -37,7 +39,7 @@ function parseVertex(vertex): Vector3 {
 }
 
 export class DebugLoader extends AbstractLoader {
-    public data;
+    public data: Debug | undefined;
 
     async load(path: string): Promise<void> {
         const response = await fetch(path);
@@ -50,11 +52,11 @@ export class DebugLoader extends AbstractLoader {
         this.data = Debug.getRootAsDebug(byteBuffer);
     }
 
-    getBox(boxIndex: number): Box {
+    getBox(boxIndex: number): Box | null {
         if (this.data === undefined) {
-            return;
+            return null;
         }
-        const box = this.data.boxes(boxIndex);
+        const box = this.data.boxes(boxIndex)!;
         return new Box(
             parseId(box.theta()),
             parseId(box.phi()),
@@ -64,22 +66,22 @@ export class DebugLoader extends AbstractLoader {
     }
 
     getBoxes(): Box[] {
-        let boxes = [];
+        let boxes: Box[] = [];
         if (this.data === undefined) {
             return boxes;
         }
         for (let boxIndex = 0; boxIndex < this.data!.boxesLength(); boxIndex++) {
-            boxes.push(this.getBox(boxIndex));
+            boxes.push(this.getBox(boxIndex)!);
         }
         return boxes;
     }
 
-    getRectangle(boxIndex: number, rectangleIndex: number): Rectangle {
+    getRectangle(boxIndex: number, rectangleIndex: number): Rectangle | null {
         if (this.data === undefined) {
-            return;
+            return null;
         }
-        const box = this.data.boxes(boxIndex);
-        const rectangle = box.rectangles(rectangleIndex);
+        const box = this.data.boxes(boxIndex)!;
+        const rectangle = box.rectangles(rectangleIndex)!;
         return new Rectangle(
             parseId(rectangle.theta()),
             parseId(rectangle.phi()),
@@ -88,36 +90,36 @@ export class DebugLoader extends AbstractLoader {
     }
 
     getRectangles(boxIndex: number): Rectangle[] {
-        let rectangles = [];
+        let rectangles: Rectangle[] = [];
         if (this.data === undefined) {
             return rectangles;
         }
-        let box = this.data.boxes(boxIndex);
+        let box = this.data.boxes(boxIndex)!;
         for (let rectangleIndex = 0; rectangleIndex < box.rectanglesLength(); rectangleIndex++) {
-            rectangles.push(this.getRectangle(boxIndex, rectangleIndex));
+            rectangles.push(this.getRectangle(boxIndex, rectangleIndex)!);
         }
         return rectangles;
     }
 
     getPlug(): Vector3[] {
-        let plug = [];
+        let plug: Vector3[] = [];
         if (this.data === undefined) {
             return plug;
         }
-        for (let vertexIndex = 0; vertexIndex < this.data.plug().verticesLength(); vertexIndex++) {
-            let plugVertex = this.data.plug().vertices(vertexIndex);
+        for (let vertexIndex = 0; vertexIndex < this.data.plug()!.verticesLength(); vertexIndex++) {
+            let plugVertex = this.data.plug()!.vertices(vertexIndex)!;
             plug.push(parseVertex(plugVertex));
         }
         return plug;
     }
 
     getHole(): Vector3[] {
-        let hole = [];
+        let hole: Vector3[] = [];
         if (this.data === undefined) {
             return hole;
         }
-        for (let vertexIndex = 0; vertexIndex < this.data.hole().verticesLength(); vertexIndex++) {
-            let holeVertex = this.data.hole().vertices(vertexIndex);
+        for (let vertexIndex = 0; vertexIndex < this.data.hole()!.verticesLength(); vertexIndex++) {
+            let holeVertex = this.data.hole()!.vertices(vertexIndex)!;
             hole.push(parseVertex(holeVertex));
         }
         return hole;
@@ -127,37 +129,37 @@ export class DebugLoader extends AbstractLoader {
         if (this.data === undefined) {
             return -1;
         }
-        let box = this.data.boxes(boxIndex);
+        let box = this.data.boxes(boxIndex)!;
         return box.inIndex();
     }
 
     getHoleProjectionHull(boxIndex: number): Edge[] {
-        let holeProjectionHull = [];
+        let holeProjectionHull: Edge[] = [];
         if (this.data === undefined) {
             return holeProjectionHull;
         }
-        let box = this.data.boxes(boxIndex);
-        for (let edgeIndex = 0; edgeIndex < box.projection().edgesLength(); edgeIndex++) {
-            let edge = box.projection().edges(edgeIndex);
+        let box = this.data.boxes(boxIndex)!;
+        for (let edgeIndex = 0; edgeIndex < box.projection()!.edgesLength(); edgeIndex++) {
+            let edge = box.projection()!.edges(edgeIndex)!;
             holeProjectionHull.push(new Edge(
-                parseVector(edge.from()),
-                parseVector(edge.to())
+                parseVector(edge.from()!),
+                parseVector(edge.to()!)
             ));
         }
         return holeProjectionHull;
     }
 
     getHoleVertexProjections(boxIndex: number): Vector2[][] {
-        let holeVertexProjections = [];
+        let holeVertexProjections: Vector2[][] = [];
         if (this.data === undefined) {
             return holeVertexProjections;
         }
-        let box = this.data.boxes(boxIndex);
+        let box = this.data.boxes(boxIndex)!;
         for (let projectionIndex = 0; projectionIndex < box.projectionsLength(); projectionIndex++) {
-            let projection = box.projections(projectionIndex);
+            let projection = box.projections(projectionIndex)!;
             let vertexProjections = [];
             for (let vectorIndex = 0; vectorIndex < projection.vectorsLength(); vectorIndex++) {
-                let vector = projection.vectors(vectorIndex);
+                let vector = projection.vectors(vectorIndex)!;
                 vertexProjections.push(parseVector(vector));
             }
             holeVertexProjections.push(vertexProjections);
@@ -166,17 +168,17 @@ export class DebugLoader extends AbstractLoader {
     }
 
     getPlugVertexProjections(boxIndex: number, rectangleIndex: number): Vector2[][] {
-        let plugVertexProjections = [];
+        let plugVertexProjections: Vector2[][] = [];
         if (this.data === undefined) {
             return plugVertexProjections;
         }
-        let box = this.data.boxes(boxIndex);
-        let rectangle = box.rectangles(rectangleIndex);
+        let box = this.data.boxes(boxIndex)!;
+        let rectangle = box.rectangles(rectangleIndex)!;
         for (let projectionIndex = 0; projectionIndex < rectangle.projectionsLength(); projectionIndex++) {
-            let projection = rectangle.projections(projectionIndex);
+            let projection = rectangle.projections(projectionIndex)!;
             let vertexProjections = [];
             for (let vectorIndex = 0; vectorIndex < projection.vectorsLength(); vectorIndex++) {
-                let vector = projection.vectors(vectorIndex);
+                let vector = projection.vectors(vectorIndex)!;
                 vertexProjections.push(parseVector(vector));
             }
             plugVertexProjections.push(vertexProjections);
@@ -185,14 +187,14 @@ export class DebugLoader extends AbstractLoader {
     }
 
     getPlugOutIndices(boxIndex: number, rectangleIndex: number): number[] {
-        let outIndices = [];
+        let outIndices: number[] = [];
         if (this.data === undefined) {
             return outIndices;
         }
-        let box = this.data.boxes(boxIndex);
-        let rectangle = box.rectangles(rectangleIndex);
+        let box = this.data.boxes(boxIndex)!;
+        let rectangle = box.rectangles(rectangleIndex)!;
         for (let outIndex = 0; outIndex < rectangle.outIndicesLength(); outIndex++) {
-            outIndices.push(rectangle.outIndices(outIndex));
+            outIndices.push(rectangle.outIndices(outIndex)!);
         }
         return outIndices;
     }

@@ -14,7 +14,7 @@
     let selection = new State();
 
     let description = "RID";
-    let terminalBoxesFilename = description + "_terminal_boxes.bin";
+    // let terminalBoxesFilename = description + "_terminal_boxes.bin";
     let debugFilename = description + "_debug.bin";
 
     let loader = new DebugLoader();
