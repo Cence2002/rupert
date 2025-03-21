@@ -7,7 +7,6 @@
         Scene,
         WebGLRenderer,
         OrthographicCamera,
-        Vector2,
         Shape,
         ShapeGeometry,
         MeshBasicMaterial,
@@ -68,7 +67,7 @@
         }
 
         {
-            for (let holeVertexProjection: Vector2[] of loader.getHoleVertexProjections(state.selectedBox)) {
+            for (const holeVertexProjection of loader.getHoleVertexProjections(state.selectedBox)) {
                 const hull = new Shape(convexHull(holeVertexProjection));
                 const hullGeometry = new ShapeGeometry(hull);
                 const hullMaterial = new MeshBasicMaterial({
