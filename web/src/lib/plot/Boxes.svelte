@@ -60,46 +60,41 @@
             return;
         }
 
-        {
-            const boxes = loader.getBoxes();
-            for (const box of boxes) {
-                const theta: Interval = box.theta.interval;
-                const phi: Interval = box.phi.interval;
-                const alpha: Interval = box.alpha.interval;
+        for (const box of loader.getBoxes()) {
+            const theta: Interval = box.theta.interval;
+            const phi: Interval = box.phi.interval;
+            const alpha: Interval = box.alpha.interval;
 
-                const isTerminal = box.terminal;
+            const isTerminal = box.terminal;
 
-                const boxGeometry = new BoxGeometry(theta.len / TWO_PI, phi.len / PI, alpha.len / TWO_PI);
-                const boxMaterial = new MeshBasicMaterial({
-                    color: new Color(0, 0, 1),
-                    transparent: true,
-                    opacity: isTerminal ? 0.5 : 0.05,
-                    depthWrite: false
+            const boxGeometry = new BoxGeometry(theta.len / TWO_PI, phi.len / PI, alpha.len / TWO_PI);
+            const boxMaterial = new MeshBasicMaterial({
+                color: new Color(0, 0, 1),
+                transparent: true,
+                opacity: isTerminal ? 0.5 : 0.05,
+                depthWrite: false
+            });
+            const boxMesh = new Mesh(boxGeometry, boxMaterial);
+            boxMesh.position.set(theta.mid / TWO_PI, phi.mid / PI, alpha.mid / TWO_PI);
+
+            const boxGroup = new Group();
+            boxGroup.add(boxMesh);
+
+            if (isTerminal) {
+                const boxEdgesGeometry = new EdgesGeometry(boxGeometry);
+                const boxEdgesMaterial = new LineBasicMaterial({
+                    color: new Color(0.5, 0.5, 0.5),
                 });
-                const boxMesh = new Mesh(boxGeometry, boxMaterial);
-                boxMesh.position.set(theta.mid / TWO_PI, phi.mid / PI, alpha.mid / TWO_PI);
-
-                const boxGroup = new Group();
-                boxGroup.add(boxMesh);
-
-                if (isTerminal) {
-                    const boxEdgesGeometry = new EdgesGeometry(boxGeometry);
-                    const boxEdgesMaterial = new LineBasicMaterial({
-                        color: new Color(0.5, 0.5, 0.5),
-                    });
-                    const boxEdges = new LineSegments(boxEdgesGeometry, boxEdgesMaterial);
-                    boxEdges.position.set(theta.mid / TWO_PI, phi.mid / PI, alpha.mid / TWO_PI);
-                    boxGroup.add(boxEdges);
-                }
-
-                boxGroups.push(boxGroup);
+                const boxEdges = new LineSegments(boxEdgesGeometry, boxEdgesMaterial);
+                boxEdges.position.set(theta.mid / TWO_PI, phi.mid / PI, alpha.mid / TWO_PI);
+                boxGroup.add(boxEdges);
             }
+
+            boxGroups.push(boxGroup);
         }
 
-        {
-            for (const boxGroup of boxGroups) {
-                scene.add(boxGroup);
-            }
+        for (const boxGroup of boxGroups) {
+            scene.add(boxGroup);
         }
     }
 

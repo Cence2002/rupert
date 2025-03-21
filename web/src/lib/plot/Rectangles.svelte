@@ -59,49 +59,45 @@
             };
         }
 
-        {
-            const rectangles = loader.getRectangles(state.selectedBox);
-            for (let index = 0; index < rectangles.length; index++) {
-                const rectangle = rectangles[index];
+        const rectangles = loader.getRectangles(state.selectedBox);
+        for (let index = 0; index < rectangles.length; index++) {
+            const rectangle = rectangles[index];
 
-                const theta: Interval = rectangle.theta.interval;
-                const phi: Interval = rectangle.phi.interval;
+            const theta: Interval = rectangle.theta.interval;
+            const phi: Interval = rectangle.phi.interval;
 
-                const isIn = index == loader.getHoleInIndex(state.selectedBox);
-                const isTerminal = loader.getPlugOutIndices(state.selectedBox, index).length > 0;
+            const isIn = index == loader.getHoleInIndex(state.selectedBox);
+            const isTerminal = loader.getPlugOutIndices(state.selectedBox, index).length > 0;
 
-                const rectangleGeometry = new PlaneGeometry(theta.len / TWO_PI, phi.len / PI);
-                const rectangleMaterial = new MeshBasicMaterial({
-                    color: new Color(0, 1, 0),
-                    transparent: true,
-                    opacity: isIn ? 0.75 : (isTerminal ? 0.25 : 0.05),
-                    side: FrontSide,
-                    depthWrite: false
+            const rectangleGeometry = new PlaneGeometry(theta.len / TWO_PI, phi.len / PI);
+            const rectangleMaterial = new MeshBasicMaterial({
+                color: new Color(0, 1, 0),
+                transparent: true,
+                opacity: isIn ? 0.75 : (isTerminal ? 0.25 : 0.05),
+                side: FrontSide,
+                depthWrite: false
+            });
+            const rectangleMesh = new Mesh(rectangleGeometry, rectangleMaterial);
+            rectangleMesh.position.set(theta.mid / TWO_PI, phi.mid / PI, 0);
+
+            const rectangleGroup = new Group();
+            rectangleGroup.add(rectangleMesh);
+
+            if (isTerminal) {
+                const rectangleEdgesGeometry = new EdgesGeometry(rectangleGeometry);
+                const rectangleEdgesMaterial = new LineBasicMaterial({
+                    color: new Color(0.5, 0.5, 0.5),
                 });
-                const rectangleMesh = new Mesh(rectangleGeometry, rectangleMaterial);
-                rectangleMesh.position.set(theta.mid / TWO_PI, phi.mid / PI, 0);
-
-                const rectangleGroup = new Group();
-                rectangleGroup.add(rectangleMesh);
-
-                if (isTerminal) {
-                    const rectangleEdgesGeometry = new EdgesGeometry(rectangleGeometry);
-                    const rectangleEdgesMaterial = new LineBasicMaterial({
-                        color: new Color(0.5, 0.5, 0.5),
-                    });
-                    const rectangleEdges = new LineSegments(rectangleEdgesGeometry, rectangleEdgesMaterial);
-                    rectangleEdges.position.set(theta.mid / TWO_PI, phi.mid / PI, 0);
-                    rectangleGroup.add(rectangleEdges);
-                }
-
-                rectangleGroups.push(rectangleGroup);
+                const rectangleEdges = new LineSegments(rectangleEdgesGeometry, rectangleEdgesMaterial);
+                rectangleEdges.position.set(theta.mid / TWO_PI, phi.mid / PI, 0);
+                rectangleGroup.add(rectangleEdges);
             }
+
+            rectangleGroups.push(rectangleGroup);
         }
 
-        {
-            for (const rectangleGroup of rectangleGroups.values()) {
-                scene.add(rectangleGroup);
-            }
+        for (const rectangleGroup of rectangleGroups.values()) {
+            scene.add(rectangleGroup);
         }
 
         return () => {

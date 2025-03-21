@@ -20,7 +20,7 @@ export abstract class AbstractLoader {
     abstract getHole(): Vector3[];
 
     // Projection plot
-    abstract getHoleProjectionHull(boxIndex: number): Edge[];
+    abstract getHoleProjection(boxIndex: number): Edge[];
 
     abstract getHoleInIndex(boxIndex: number): number;
 

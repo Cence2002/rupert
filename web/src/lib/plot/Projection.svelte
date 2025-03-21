@@ -36,7 +36,6 @@
 
     $effect(onSelectRectangle);
 
-
     const scene = new Scene();
     setProjectionScene(scene);
     scene.up.set(0, 1, 0);
@@ -50,15 +49,17 @@
 
     const controls = new MapControls(camera, renderer.domElement);
     controls.enablePan = true;
-    controls.enableZoom = true;
-    controls.enableRotate = false;
     controls.screenSpacePanning = true;
+    controls.enableZoom = true;
     controls.zoomToCursor = true;
+    controls.enableRotate = false;
+    controls.minZoom = 0.5;
+    controls.maxZoom = 50;
 
-    let projectionEdges: Line[] = [];
-    let projections: Group[] = [];
-    let rectangleProjections: Group[] = [];
-    let rectangleOut: number[] = [];
+    let holeProjection: Line[] = [];
+    let holeVertexProjections: Group[] = [];
+    let plugVertexProjections: Group[] = [];
+    let plugOutIndices: number[] = [];
 
     function onSelectBox(): () => void {
         if (state.selectedBox === null) {
@@ -67,67 +68,60 @@
         }
 
         {
-            const vertexProjections = loader.getHoleVertexProjections(state.selectedBox);
-            for (let index = 0; index < vertexProjections.length; index++) {
-                const vertices: Vector2[] = vertexProjections[index];
-
-                const hull = new Shape(convexHull(vertices));
+            for (let holeVertexProjection: Vector2[] of loader.getHoleVertexProjections(state.selectedBox)) {
+                const hull = new Shape(convexHull(holeVertexProjection));
                 const hullGeometry = new ShapeGeometry(hull);
                 const hullMaterial = new MeshBasicMaterial({
                     color: new Color(0, 0, 1),
                     transparent: true,
-                    opacity: 0.25,
+                    opacity: 0.5,
                     side: DoubleSide,
                     depthWrite: false
                 });
                 const hullMesh = new Mesh(hullGeometry, hullMaterial);
 
                 const hullEdgesGeometry = new EdgesGeometry(hullGeometry);
-                const hullEdgesMaterial = new LineBasicMaterial({
-                    color: new Color(0.5, 0.5, 0.5),
-                });
+                const hullEdgesMaterial = new LineBasicMaterial({color: new Color(0.5, 0.5, 0.5),});
                 const hullEdges = new LineSegments(hullEdgesGeometry, hullEdgesMaterial);
 
                 const group = new Group();
                 group.add(hullMesh);
                 group.add(hullEdges);
 
-                projections.push(group);
+                holeVertexProjections.push(group);
             }
-            for (const group of projections) {
-                scene.add(group);
+
+            for (const holeVertexProjection of holeVertexProjections) {
+                scene.add(holeVertexProjection);
             }
         }
 
         {
-            const projection = loader.getHoleProjectionHull(state.selectedBox);
-            for (let index = 0; index < projection.length; index++) {
-                const edge = projection[index];
+            for (const edge of loader.getHoleProjection(state.selectedBox)) {
                 const edgeGeometry = new BufferGeometry().setFromPoints([
                     new Vector3(edge.from.x, edge.from.y, 0),
                     new Vector3(edge.to.x, edge.to.y, 0)
                 ]);
-                const edgeMaterial = new LineBasicMaterial({
-                    color: new Color(1, 1, 1),
-                });
+                const edgeMaterial = new LineBasicMaterial({color: new Color(1, 1, 1)});
                 const edgeMesh = new Line(edgeGeometry, edgeMaterial);
-                projectionEdges.push(edgeMesh);
+                holeProjection.push(edgeMesh);
             }
 
-            for (const projectionEdge of projectionEdges) {
-                scene.add(projectionEdge);
+            for (const edge of holeProjection) {
+                scene.add(edge);
             }
         }
 
         return () => {
-            for (const group of projections) {
+            for (const group of holeVertexProjections) {
                 scene.remove(group);
             }
-            projections = [];
-            for (const edge of projectionEdges) {
+            holeVertexProjections = [];
+
+            for (const edge of holeProjection) {
                 scene.remove(edge);
             }
-            projectionEdges = [];
+            holeProjection = [];
         };
     }
 
@@ -138,51 +132,52 @@
         }
 
         {
-            const rectangleOutIndices = loader.getPlugOutIndices(state.selectedBox, state.selectedRectangle);
-            for (let index = 0; index < rectangleOutIndices.length; index++) {
-                rectangleOut.push(rectangleOutIndices[index]);
+            for (const rectangleOutIndex of loader.getPlugOutIndices(state.selectedBox, state.selectedRectangle)) {
+                plugOutIndices.push(rectangleOutIndex);
             }
         }
 
         {
             const loaderRectangleProjections = loader.getPlugVertexProjections(state.selectedBox, state.selectedRectangle);
+            const isIn = state.selectedRectangle == loader.getHoleInIndex(state.selectedBox);
             for (let index = 0; index < loaderRectangleProjections.length; index++) {
                 const vertices = loaderRectangleProjections[index];
+
+                const isOut = plugOutIndices.includes(index);
 
                 const hull = new Shape(vertices);
                 const hullGeometry = new ShapeGeometry(hull);
                 const hullMaterial = new MeshBasicMaterial({
                     color: new Color(0, 1, 0),
                     transparent: true,
-                    opacity: (state.selectedRectangle == loader.getHoleInIndex(state.selectedBox)) ? 0.25 : (rectangleOut.includes(index) ? 0.5 : 0),
+                    opacity: isIn ? 0.25 : (isOut ? 0.75 : 0.05),
                     side: DoubleSide,
                     depthWrite: false,
                 });
                 const hullMesh = new Mesh(hullGeometry, hullMaterial);
 
                 const hullEdgesGeometry = new EdgesGeometry(hullGeometry);
-                const hullEdgesMaterial = new LineBasicMaterial({
-                    color: new Color(0.5, 0.5, 0.5),
-                });
+                const hullEdgesMaterial = new LineBasicMaterial({color: new Color(0.5, 0.5, 0.5)});
                 const hullEdges = new LineSegments(hullEdgesGeometry, hullEdgesMaterial);
 
                 const group = new Group();
                 group.add(hullMesh);
                 group.add(hullEdges);
 
-                rectangleProjections.push(group);
+                plugVertexProjections.push(group);
             }
-            for (const group of rectangleProjections) {
-                scene.add(group);
+            for (const plugVertexProjection of plugVertexProjections) {
+                scene.add(plugVertexProjection);
             }
         }
 
         return () => {
-            for (const group of rectangleProjections) {
-                scene.remove(group);
+            for (const plugVertexProjection of plugVertexProjections) {
+                scene.remove(plugVertexProjection);
             }
-            rectangleProjections = [];
-            rectangleOut = [];
+            plugVertexProjections = [];
+
+            plugOutIndices = [];
         };
     }
 
@@ -190,7 +185,7 @@
         resize(width, height);
 
         {
-            const axesHelper = new AxesHelper(10);
+            const axesHelper = new AxesHelper(2);
             scene.add(axesHelper);
         }
 
@@ -208,7 +203,9 @@
         camera.top = zoom / 2;
         camera.bottom = -zoom / 2;
         camera.updateProjectionMatrix();
+
         renderer.setSize(width, height);
+
         controls.update();
     }
 </script>

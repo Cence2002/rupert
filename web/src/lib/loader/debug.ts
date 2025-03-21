@@ -133,7 +133,7 @@ export class DebugLoader extends AbstractLoader {
         return box.inIndex();
     }
 
-    getHoleProjectionHull(boxIndex: number): Edge[] {
+    getHoleProjection(boxIndex: number): Edge[] {
         const holeProjectionHull: Edge[] = [];
         if (this.data === undefined) {
             return holeProjectionHull;
