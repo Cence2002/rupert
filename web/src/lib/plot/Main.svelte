@@ -38,23 +38,27 @@
     $effect(onSelectRectangle);
 
     const scene = new Scene();
-    scene.up.set(0, 0, 1);
+    scene.up.set(0, 0, 0);
 
-    const camera = new OrthographicCamera(-4, 4, 4, -4, 0.001, 1000);
+    const camera = new OrthographicCamera(0, 0, 0, 0, 0.01, 100);
     camera.up.set(0, 0, 1);
-    camera.lookAt(0, 0, 2);
-    camera.position.set(0, -100, 0);
+    camera.lookAt(0, 0, 1);
+    camera.position.set(0, -5, 1);
 
     const renderer = new WebGLRenderer({antialias: true});
     renderer.autoClear = false;
 
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableRotate = true;
-    controls.enableZoom = true;
+    controls.target.set(0, 0, 1);
     controls.enablePan = true;
-
-    const center = new Mesh(new SphereGeometry(0.01), new MeshBasicMaterial({color: new Color(1, 1, 1)}));
-    scene.add(center);
+    controls.screenSpacePanning = true;
+    controls.panSpeed = 0.1;
+    controls.enableRotate = true;
+    controls.rotateSpeed = 0.1;
+    controls.enableZoom = true;
+    controls.zoomToCursor = true;
+    controls.minZoom = 0.01;
+    controls.maxZoom = 100;
 
     let holeGroup: Group;
     let holeRadius: number;
@@ -81,8 +85,6 @@
         {
             const vertices = loader.getHole();
             holeRadius = Math.max(...vertices.map((v: Vector3) => v.length()));
-            camera.position.setZ(2 * holeRadius);
-            controls.target.setZ(2 * holeRadius);
 
             const hole = new ConvexGeometry(vertices);
             const holeMaterial = new MeshBasicMaterial({
@@ -127,10 +129,6 @@
             plugGroup.add(plugEdgesMesh);
             plugGroup.position.set(0, 0, 2 * holeRadius + plugRadius);
             scene.add(plugGroup);
-        }
-
-        {
-            camera.updateProjectionMatrix();
         }
     }
 
@@ -353,17 +351,18 @@
             plug_theta_t += 0.1;
             plug_phi_t += 0.1 / Math.sqrt(2);
         }
-        center.position.copy(controls.target);
     }
 
-    function resize(width: number, height: number, zoom: number = 10) {
+    function resize(width: number, height: number, zoom: number = 8) {
         const aspect = width / height;
         camera.left = -zoom * aspect / 2;
         camera.right = zoom * aspect / 2;
         camera.top = zoom / 2;
         camera.bottom = -zoom / 2;
         camera.updateProjectionMatrix();
+
         renderer.setSize(width, height);
+
         controls.update();
     }
 </script>
