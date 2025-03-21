@@ -162,29 +162,25 @@
     function setup(width: number, height: number) {
         resize(width, height);
 
-        {
-            const axesHelper = new AxesHelper(2);
-            scene.add(axesHelper);
-        }
+        const axesHelper = new AxesHelper(2);
+        scene.add(axesHelper);
 
-        {
-            const edgeBuffer = [
-                1, 0, 0, 1, 1, 0,
-                1, 0, 0, 1, 0, 1,
-                0, 1, 0, 0, 1, 1,
-                0, 1, 0, 1, 1, 0,
-                0, 0, 1, 1, 0, 1,
-                0, 0, 1, 0, 1, 1,
-                1, 1, 1, 0, 1, 1,
-                1, 1, 1, 1, 0, 1,
-                1, 1, 1, 1, 1, 0,
-            ];
-            const edgesGeometry = new BufferGeometry();
-            edgesGeometry.setAttribute('position', new Float32BufferAttribute(edgeBuffer, 3));
-            const edgesMaterial = new LineBasicMaterial({color: new Color(0.5, 0.5, 0.5)});
-            const edges = new LineSegments(edgesGeometry, edgesMaterial);
-            scene.add(edges);
-        }
+        const edgeBuffer = [
+            1, 0, 0, 1, 1, 0,
+            1, 0, 0, 1, 0, 1,
+            0, 1, 0, 0, 1, 1,
+            0, 1, 0, 1, 1, 0,
+            0, 0, 1, 1, 0, 1,
+            0, 0, 1, 0, 1, 1,
+            1, 1, 1, 0, 1, 1,
+            1, 1, 1, 1, 0, 1,
+            1, 1, 1, 1, 1, 0,
+        ];
+        const edgesGeometry = new BufferGeometry();
+        edgesGeometry.setAttribute('position', new Float32BufferAttribute(edgeBuffer, 3));
+        const edgesMaterial = new LineBasicMaterial({color: new Color(0.5, 0.5, 0.5)});
+        const edges = new LineSegments(edgesGeometry, edgesMaterial);
+        scene.add(edges);
 
         return renderer.domElement;
     }
