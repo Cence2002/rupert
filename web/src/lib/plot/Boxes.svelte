@@ -46,12 +46,13 @@
     controls.target.set(0.5, 0.5, 0.5);
     controls.enablePan = true;
     controls.screenSpacePanning = true;
+    controls.panSpeed = 0.1;
     controls.enableRotate = true;
+    controls.rotateSpeed = 0.1;
     controls.enableZoom = true;
     controls.zoomToCursor = true;
-    controls.minDistance = 0.05;
-    controls.maxDistance = 5;
-    controls.rotateSpeed = 0.5;
+    controls.minDistance = 0.01;
+    controls.maxDistance = 100;
 
     const boxGroups: Group[] = [];
 

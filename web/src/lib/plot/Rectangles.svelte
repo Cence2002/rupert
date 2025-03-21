@@ -45,11 +45,11 @@
     const controls = new MapControls(camera, renderer.domElement);
     controls.enablePan = true;
     controls.screenSpacePanning = true;
+    controls.enableRotate = false;
     controls.enableZoom = true;
     controls.zoomToCursor = true;
-    controls.enableRotate = false;
-    controls.minZoom = 0.25;
-    controls.maxZoom = 25;
+    controls.minZoom = 0.01;
+    controls.maxZoom = 100;
 
     let rectangleGroups: Group[] = [];
 
