@@ -137,10 +137,10 @@ public:
             debug_exporter_.debug_builder.add_box();
         }
         if(optional_terminal_box.has_value()) {
-            std::cout << "Terminal Box: " << box << std::endl;
+            // std::cout << "Terminal Box: " << box << std::endl; // TODO: enable
             terminal_box_queue_.push(optional_terminal_box.value());
         } else {
-            std::cout << "Non Terminal Box: " << box << std::endl;
+            // std::cout << "Non Terminal Box: " << box << std::endl; // TODO: enable
             for(const Box& box_part: box.parts()) {
                 box_queue_.push(box_part);
             }
