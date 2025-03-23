@@ -6,8 +6,21 @@ using I = FloatInterval;
 
 std::optional<Pipeline<FloatInterval>> pipeline;
 
-void signal_handler(int) {
+void signal_handler(const int signal) {
     if(pipeline.has_value()) {
+        switch(signal) {
+            case SIGTERM: {
+                std::cout << "Received SIGTERM" << std::endl;
+                break;
+            }
+            case SIGINT: {
+                std::cout << "Received SIGINT" << std::endl;
+                break;
+            }
+            default: {
+                std::cout << "Received signal " << signal << std::endl;
+            }
+        }
         std::cout << "Stopping pipeline" << std::endl;
         pipeline->stop();
     }
@@ -24,17 +37,18 @@ int main() {
         plug,
         hole,
         1,
-        64,
+        1000000,
         10000,
         2,
         2,
         true,
         "../../web/static",
         100000,
-        true
+        false
     );
 
     std::signal(SIGINT, signal_handler);
+    std::signal(SIGTERM, signal_handler);
 
     pipeline.emplace(config);
     pipeline->init();
