@@ -5,7 +5,7 @@ set -e
 sudo apt update
 
 sudo apt install -y \
-    build-essential \  # includes gcc, g++, make
+    build-essential \
     cmake \
     libboost-all-dev \
     libgmp-dev \
