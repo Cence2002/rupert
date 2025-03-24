@@ -16,7 +16,6 @@
         DoubleSide,
         Quaternion,
         OrthographicCamera,
-        SphereGeometry,
     } from "three";
     import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
     import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
@@ -24,6 +23,7 @@
     import {AxesHelper} from "three";
     import {lerp} from "three/src/math/MathUtils.js";
     import type {AbstractLoader} from "$lib/loader/loader";
+    import {transformHoleVertex, transformPlugVertex, TWO_PI} from "$lib/geometry";
 
     const {loader, state, getProjectionScene} = $props<{
         loader: AbstractLoader,
@@ -42,14 +42,14 @@
 
     const camera = new OrthographicCamera(0, 0, 0, 0, 0.01, 100);
     camera.up.set(0, 0, 1);
-    camera.lookAt(0, 0, 1);
-    camera.position.set(0, -5, 1);
+    camera.lookAt(0, 0, 0);
+    camera.position.set(0, -10, 0);
 
     const renderer = new WebGLRenderer({antialias: true});
     renderer.autoClear = false;
 
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.target.set(0, 0, 1);
+    controls.target.set(0, 0, 0);
     controls.enablePan = true;
     controls.screenSpacePanning = true;
     controls.panSpeed = 0.1;
@@ -71,12 +71,34 @@
 
     let rectangleOut: number[] = [];
 
-    let hole_theta_t = 0;
-    let hole_phi_t = 0;
-    let hole_alpha_t = 0;
+    class Wave {
+        private phase: number = Math.random() * Math.PI * 2;
+        private readonly frequency: number;
 
-    let plug_theta_t = 0;
-    let plug_phi_t = 0;
+        constructor(frequency: number) {
+            this.frequency = frequency;
+        }
+
+        public value(time: number): number {
+            return Math.sin(this.phase + this.frequency * time * TWO_PI);
+        }
+
+        public normalizedValue(time: number): number {
+            return (this.value(time) + 1) / 2;
+        }
+    }
+
+    const startTime: number = Date.now();
+    const animationSpeed: number = 1;
+    const holeAnimation: { theta: Wave, phi: Wave, alpha: Wave } = {
+        theta: new Wave(animationSpeed / Math.sqrt(1)),
+        phi: new Wave(animationSpeed / Math.sqrt(2)),
+        alpha: new Wave(animationSpeed / Math.sqrt(3))
+    };
+    const plugAnimation: { theta: Wave, phi: Wave } = {
+        theta: new Wave(animationSpeed / Math.sqrt(1)),
+        phi: new Wave(animationSpeed / Math.sqrt(2))
+    };
 
     function onLoad() {
         if (!state.loaded) {
@@ -85,6 +107,11 @@
         {
             const vertices = loader.getHole();
             holeRadius = Math.max(...vertices.map((v: Vector3) => v.length()));
+            camera.position.setZ(2 * holeRadius);
+            camera.lookAt(0, 0, 2 * holeRadius);
+            camera.updateProjectionMatrix();
+            controls.target.set(0, 0, 2 * holeRadius);
+            controls.update();
 
             const hole = new ConvexGeometry(vertices);
             const holeMaterial = new MeshBasicMaterial({
@@ -147,15 +174,9 @@
                 const resolution = 8;
 
                 for (let theta_index = 0; theta_index <= resolution; theta_index++) {
-                    const theta = lerp(box.theta.interval.min, box.theta.interval.max, theta_index / resolution);
 
                     function parametric(phi_t: number, alpha_t: number, target: Vector3) {
-                        const phi = lerp(box.phi.interval.min, box.phi.interval.max, phi_t);
-                        const alpha = lerp(box.alpha.interval.min, box.alpha.interval.max, alpha_t);
-
-                        const projected_vertex = project(holeVertex, theta, phi);
-                        const rotated_projected_vertex = rotate(projected_vertex, alpha);
-                        target.copy(rotated_projected_vertex);
+                        transformHoleVertex(holeVertex, box, theta_index / resolution, phi_t, alpha_t, target);
                     }
 
                     const projectedHoleVertexGeometry = new ParametricGeometry(parametric, 8, 8);
@@ -168,15 +189,9 @@
                     rotatedProjectedHoleVertices.push(rotatedProjectedHoleVertex);
                 }
                 for (let phi_index = 0; phi_index <= resolution; phi_index++) {
-                    const phi = lerp(box.phi.interval.min, box.phi.interval.max, phi_index / resolution);
 
                     function parametric(theta_t: number, alpha_t: number, target: Vector3) {
-                        const theta = lerp(box.theta.interval.min, box.theta.interval.max, theta_t);
-                        const alpha = lerp(box.alpha.interval.min, box.alpha.interval.max, alpha_t);
-
-                        const projected_vertex = project(holeVertex, theta, phi);
-                        const rotated_projected_vertex = rotate(projected_vertex, alpha);
-                        target.copy(rotated_projected_vertex);
+                        transformHoleVertex(holeVertex, box, theta_t, phi_index / resolution, alpha_t, target);
                     }
 
                     const projectedHoleVertexGeometry = new ParametricGeometry(parametric, 8, 8);
@@ -189,15 +204,9 @@
                     rotatedProjectedHoleVertices.push(rotatedProjectedHoleVertex);
                 }
                 for (let alpha_index = 0; alpha_index <= resolution; alpha_index++) {
-                    const alpha = lerp(box.alpha.interval.min, box.alpha.interval.max, alpha_index / resolution);
 
                     function parametric(theta_t: number, phi_t: number, target: Vector3) {
-                        const theta = lerp(box.theta.interval.min, box.theta.interval.max, theta_t);
-                        const phi = lerp(box.phi.interval.min, box.phi.interval.max, phi_t);
-
-                        const projected_vertex = project(holeVertex, theta, phi);
-                        const rotated_projected_vertex = rotate(projected_vertex, alpha);
-                        target.copy(rotated_projected_vertex);
+                        transformHoleVertex(holeVertex, box, theta_t, phi_t, alpha_index / resolution, target);
                     }
 
                     const projectedHoleVertexGeometry = new ParametricGeometry(parametric, 8, 8);
@@ -242,14 +251,11 @@
             for (let index = 0; index < loaderPlug.length; index++) {
                 const holeVertex = loaderPlug[index];
 
+                //TODO: handle the case when vertex is on the z-axis, as the parametric surface will collapse to a line
                 function parametric(theta_t: number, phi_t: number, target: Vector3) {
-                    const theta = lerp(rectangle.theta.interval.min, rectangle.theta.interval.max, theta_t);
-                    const phi = lerp(rectangle.phi.interval.min, rectangle.phi.interval.max, phi_t);
-
-                    //TODO: handle the case when vertex is on the z-axis, as the parametric surface will collapse to a line
-                    const projected_vertex = project(holeVertex, theta, phi);
-                    target.copy(projected_vertex);
+                    transformPlugVertex(holeVertex, rectangle, theta_t, phi_t, target);
                 }
+
 
                 const projectedPlugVertexGeometry = new ParametricGeometry(parametric, 8, 8);
                 const projectedPlugVertexMaterial = new MeshBasicMaterial({
@@ -273,28 +279,6 @@
         };
     }
 
-    function project(vertex: Vector3, theta: number, phi: number): Vector3 {
-        const cos_theta = Math.cos(theta);
-        const sin_theta = Math.sin(theta);
-        const cos_phi = Math.cos(phi);
-        const sin_phi = Math.sin(phi);
-        return new Vector3(
-            -vertex.x * sin_theta + vertex.y * cos_theta,
-            (vertex.x * cos_theta + vertex.y * sin_theta) * cos_phi - vertex.z * sin_phi,
-            -(vertex.x * cos_theta + vertex.y * sin_theta) * sin_phi - vertex.z * cos_phi
-        );
-    }
-
-    function rotate(vertex: Vector3, alpha: number): Vector3 {
-        const cos_alpha = Math.cos(alpha);
-        const sin_alpha = Math.sin(alpha);
-        return new Vector3(
-            vertex.x * cos_alpha - vertex.y * sin_alpha,
-            vertex.x * sin_alpha + vertex.y * cos_alpha,
-            vertex.z
-        );
-    }
-
     function projection_rotation_quaternion(theta: number, phi: number, alpha: number): Quaternion {
         const q_init_0 = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI);
         const q_init_1 = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI / 2);
@@ -306,51 +290,49 @@
         return q_total;
     }
 
+    function updateAnimation() {
+        const currentTime = Date.now();
+        const time = (currentTime - startTime) / 1000;
+
+        if (holeGroup && state.selectedBox !== null) {
+            const box = loader.getBox(state.selectedBox);
+
+            holeGroup.quaternion.copy(projection_rotation_quaternion(
+                lerp(box.theta.interval.min, box.theta.interval.max, holeAnimation.theta.normalizedValue(time)),
+                lerp(box.phi.interval.min, box.phi.interval.max, holeAnimation.phi.normalizedValue(time)),
+                lerp(box.alpha.interval.min, box.alpha.interval.max, holeAnimation.alpha.normalizedValue(time))
+            ));
+        }
+        if (plugGroup && state.selectedBox !== null && state.selectedRectangle !== null) {
+            const rectangle = loader.getRectangle(state.selectedBox, state.selectedRectangle);
+
+            plugGroup.quaternion.copy(projection_rotation_quaternion(
+                lerp(rectangle.theta.interval.min, rectangle.theta.interval.max, plugAnimation.theta.normalizedValue(time)),
+                lerp(rectangle.phi.interval.min, rectangle.phi.interval.max, plugAnimation.phi.normalizedValue(time)),
+                0
+            ));
+        }
+    }
+
 
     function setup(width: number, height: number) {
         resize(width, height);
 
-        {
-            const axesHelper = new AxesHelper(10);
-            scene.add(axesHelper);
-        }
+        const axesHelper = new AxesHelper(2);
+        scene.add(axesHelper);
 
         return renderer.domElement;
     }
 
     function draw() {
+        updateAnimation();
+
         renderer.clear();
         const projectionScene = getProjectionScene();
         if (projectionScene) {
             renderer.render(projectionScene, camera);
         }
         renderer.render(scene, camera);
-
-        if (holeGroup && state.selectedBox !== null) {
-            const box = loader.getBox(state.selectedBox);
-
-            holeGroup.quaternion.copy(projection_rotation_quaternion(
-                lerp(box.theta.interval.min, box.theta.interval.max, (Math.sin(hole_theta_t) + 1) / 2),
-                lerp(box.phi.interval.min, box.phi.interval.max, (Math.sin(hole_phi_t) + 1) / 2),
-                lerp(box.alpha.interval.min, box.alpha.interval.max, (Math.sin(hole_alpha_t) + 1) / 2)
-            ));
-
-            hole_theta_t += 0.1;
-            hole_phi_t += 0.1 / Math.sqrt(2);
-            hole_alpha_t += 0.1 / Math.sqrt(3);
-        }
-        if (plugGroup && state.selectedBox !== null && state.selectedRectangle !== null) {
-            const rectangle = loader.getRectangle(state.selectedBox, state.selectedRectangle);
-
-            plugGroup.quaternion.copy(projection_rotation_quaternion(
-                lerp(rectangle.theta.interval.min, rectangle.theta.interval.max, (Math.sin(plug_theta_t) + 1) / 2),
-                lerp(rectangle.phi.interval.min, rectangle.phi.interval.max, (Math.sin(plug_phi_t) + 1) / 2),
-                0
-            ));
-
-            plug_theta_t += 0.1;
-            plug_phi_t += 0.1 / Math.sqrt(2);
-        }
     }
 
     function resize(width: number, height: number, zoom: number = 8) {
