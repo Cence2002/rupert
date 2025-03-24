@@ -1,6 +1,6 @@
 <script lang="ts">
     import ThreePlot from "$lib/ThreePlot.svelte";
-    import {State} from "$lib/state.svelte";
+    import {State} from "$lib/State.svelte";
 
     import {
         Mesh,
@@ -22,8 +22,8 @@
     import {ParametricGeometry} from 'three/addons/geometries/ParametricGeometry.js';
     import {AxesHelper} from "three";
     import {lerp} from "three/src/math/MathUtils.js";
-    import type {AbstractLoader} from "$lib/loader/loader";
-    import {transformHoleVertex, transformPlugVertex, TWO_PI} from "$lib/geometry";
+    import type {AbstractLoader} from "$lib/loader/AbstractLoader";
+    import {transformHoleVertex, transformPlugVertex, TWO_PI} from "$lib/Geometry";
 
     const {loader, state, getProjectionScene} = $props<{
         loader: AbstractLoader,

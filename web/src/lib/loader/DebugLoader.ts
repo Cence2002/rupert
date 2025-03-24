@@ -1,7 +1,7 @@
 import * as flatbuffers from 'flatbuffers';
 import {Debug, Vector, Vertex} from '$lib/flatbuffers/flatbuffers_generated';
-import {AbstractLoader} from "$lib/loader/loader";
-import {Interval, Id, Rectangle, Box, Edge} from "$lib/types";
+import {AbstractLoader} from "$lib/loader/AbstractLoader";
+import {Interval, Id, Rectangle, Box, Edge} from "$lib/Types";
 import {Vector2, Vector3} from "three";
 
 // @ts-ignore

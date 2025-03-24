@@ -1,6 +1,6 @@
 <script lang="ts">
     import ThreePlot from "$lib/ThreePlot.svelte";
-    import {State} from "$lib/state.svelte";
+    import {State} from "$lib/State.svelte";
 
     import {MapControls} from "three/addons/controls/MapControls.js";
     import {
@@ -22,8 +22,8 @@
         Color,
         DoubleSide
     } from "three";
-    import {convexHull} from "$lib/geometry";
-    import type {AbstractLoader} from "$lib/loader/loader";
+    import {convexHull} from "$lib/Geometry";
+    import type {AbstractLoader} from "$lib/loader/AbstractLoader";
 
     const {loader, state, setProjectionScene} = $props<{
         loader: AbstractLoader,

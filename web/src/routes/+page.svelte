@@ -1,12 +1,12 @@
 <script lang="ts">
     import {PaneGroup, Pane, PaneResizer} from "paneforge";
-    import {State} from "$lib/state.svelte";
+    import {State} from "$lib/State.svelte";
     import Boxes from "$lib/plot/Boxes.svelte";
     import Rectangles from "$lib/plot/Rectangles.svelte";
     import Main from "$lib/plot/Main.svelte";
     import Projection from "$lib/plot/Projection.svelte";
     import {onMount} from 'svelte';
-    import {DebugLoader} from "$lib/loader/debug";
+    import {DebugLoader} from "$lib/loader/DebugLoader";
     import type {Scene} from "three";
 
     const description = "RID";

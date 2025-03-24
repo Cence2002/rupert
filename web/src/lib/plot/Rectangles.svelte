@@ -1,7 +1,7 @@
 <script lang="ts">
     import ThreePlot from "$lib/ThreePlot.svelte";
-    import {State} from "$lib/state.svelte";
-    import {PI, TWO_PI} from "$lib/geometry";
+    import {State} from "$lib/State.svelte";
+    import {PI, TWO_PI} from "$lib/Geometry";
 
     import {MapControls} from 'three/addons/controls/MapControls.js';
     import {
@@ -20,8 +20,8 @@
         Raycaster,
         FrontSide, Color, BufferGeometry, Float32BufferAttribute
     } from "three";
-    import type {AbstractLoader} from "$lib/loader/loader";
-    import type {Interval} from "$lib/types";
+    import type {AbstractLoader} from "$lib/loader/AbstractLoader";
+    import type {Interval} from "$lib/Types";
 
     const {loader, state} = $props<{
         loader: AbstractLoader,
