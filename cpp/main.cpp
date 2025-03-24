@@ -37,14 +37,14 @@ int main() {
         plug,
         hole,
         1,
-        1000000,
+        64,
         10000,
         2,
         2,
         true,
         "../../web/static",
         100000,
-        false
+        true
     );
 
     std::signal(SIGINT, signal_handler);

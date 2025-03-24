@@ -12,8 +12,39 @@ private:
         os.write(reinterpret_cast<const char*>(&size), sizeof(size));
     }
 
+    static void float_to_stream(std::ostream& os, const double value) {
+        os.write(reinterpret_cast<const char*>(&value), sizeof(value));
+    }
+
 public:
     explicit Exporter(const Config<Interval>& config) : config_(config) {}
+
+    void export_polyhedra(const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug) {
+        const std::filesystem::path path = config_.polyhedra_path();
+        std::ofstream file(path, std::ios::binary | std::ios::trunc);
+        if(!file.is_open()) {
+            throw std::runtime_error("Failed to open " + path.string());
+        }
+
+        size_to_stream(file, hole.vertices().size());
+        for(const Vertex<Interval>& vertex: hole.vertices()) {
+            float_to_stream(file, vertex.x().mid().float_value());
+            float_to_stream(file, vertex.y().mid().float_value());
+            float_to_stream(file, vertex.z().mid().float_value());
+        }
+
+        size_to_stream(file, plug.vertices().size());
+        for(const Vertex<Interval>& vertex: plug.vertices()) {
+            float_to_stream(file, vertex.x().mid().float_value());
+            float_to_stream(file, vertex.y().mid().float_value());
+            float_to_stream(file, vertex.z().mid().float_value());
+        }
+
+        if(file.fail()) {
+            throw std::runtime_error("Failed to write to " + path.string());
+        }
+        std::cout << "Exported polyhedra to " << path << std::endl;
+    }
 
     void export_terminal_boxes(const std::vector<TerminalBox>& terminal_boxes) {
         const std::filesystem::path path = config_.terminal_boxes_path();

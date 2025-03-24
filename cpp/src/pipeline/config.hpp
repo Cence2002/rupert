@@ -25,6 +25,7 @@ private:
     size_t export_size_threshold_;
     bool debug_enabled_;
 
+    std::string polyhedra_filename_;
     std::string terminal_boxes_filename_;
     std::string boxes_filename_;
     std::string debug_filename_;
@@ -43,6 +44,7 @@ public:
         std::string directory,
         const size_t export_size_threshold,
         const bool debug_enabled = false,
+        std::string polyhedra_filename = "polyhedra.bin",
         std::string terminal_boxes_filename = "terminal_boxes.bin",
         std::string boxes_filename = "boxes.bin",
         std::string debug_filename = "debug.bin"
@@ -58,6 +60,7 @@ public:
         directory_(std::move(directory)),
         export_size_threshold_(export_size_threshold),
         debug_enabled_(debug_enabled),
+        polyhedra_filename_(std::move(polyhedra_filename)),
         terminal_boxes_filename_(std::move(terminal_boxes_filename)),
         boxes_filename_(std::move(boxes_filename)),
         debug_filename_(std::move(debug_filename)) {
@@ -118,6 +121,10 @@ public:
 
     std::filesystem::path path(const std::string& suffix) const {
         return directory_ / (description_ + "_" + suffix);
+    }
+
+    std::filesystem::path polyhedra_path() const {
+        return path(polyhedra_filename_);
     }
 
     std::filesystem::path terminal_boxes_path() const {

@@ -76,6 +76,7 @@ public:
             debug_exporter_.debug_builder.set_hole(config_.hole());
             debug_exporter_.debug_builder.set_plug(config_.plug());
         }
+        exporter_.export_polyhedra(config_.hole(), config_.plug());
     }
 
     void init() {
