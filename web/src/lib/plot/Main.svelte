@@ -173,50 +173,30 @@
 
                 const resolution = 8;
 
-                for (let theta_index = 0; theta_index <= resolution; theta_index++) {
-
-                    function parametric(phi_t: number, alpha_t: number, target: Vector3) {
-                        transformHoleVertex(holeVertex, box, theta_index / resolution, phi_t, alpha_t, target);
+                const parametricFactories = [
+                    (index: number) => (phi_t: number, alpha_t: number, target: Vector3) => {
+                        transformHoleVertex(holeVertex, box, index / resolution, phi_t, alpha_t, target);
+                    },
+                    (index: number) => (theta_t: number, alpha_t: number, target: Vector3) => {
+                        transformHoleVertex(holeVertex, box, theta_t, index / resolution, alpha_t, target);
+                    },
+                    (index: number) => (theta_t: number, phi_t: number, target: Vector3) => {
+                        transformHoleVertex(holeVertex, box, theta_t, phi_t, index / resolution, target);
                     }
+                ];
 
-                    const projectedHoleVertexGeometry = new ParametricGeometry(parametric, 8, 8);
-                    const projectedHoleVertexMaterial = new MeshBasicMaterial({
-                        color: new Color(0.0, 0.0, 1.0),
-                        side: DoubleSide,
-                    });
-                    const rotatedProjectedHoleVertex = new Mesh(projectedHoleVertexGeometry, projectedHoleVertexMaterial);
-                    rotatedProjectedHoleVertex.position.set(0, 0, holeRadius);
-                    rotatedProjectedHoleVertices.push(rotatedProjectedHoleVertex);
-                }
-                for (let phi_index = 0; phi_index <= resolution; phi_index++) {
-
-                    function parametric(theta_t: number, alpha_t: number, target: Vector3) {
-                        transformHoleVertex(holeVertex, box, theta_t, phi_index / resolution, alpha_t, target);
+                for (const factory of parametricFactories) {
+                    for (let i = 0; i <= resolution; i++) {
+                        const parametric = factory(i);
+                        const geometry = new ParametricGeometry(parametric, 8, 8);
+                        const material = new MeshBasicMaterial({
+                            color: new Color(0.0, 0.0, 1.0),
+                            side: DoubleSide,
+                        });
+                        const mesh = new Mesh(geometry, material);
+                        mesh.position.set(0, 0, holeRadius);
+                        rotatedProjectedHoleVertices.push(mesh);
                     }
-
-                    const projectedHoleVertexGeometry = new ParametricGeometry(parametric, 8, 8);
-                    const projectedHoleVertexMaterial = new MeshBasicMaterial({
-                        color: new Color(0.0, 0.0, 1.0),
-                        side: DoubleSide,
-                    });
-                    const rotatedProjectedHoleVertex = new Mesh(projectedHoleVertexGeometry, projectedHoleVertexMaterial);
-                    rotatedProjectedHoleVertex.position.set(0, 0, holeRadius);
-                    rotatedProjectedHoleVertices.push(rotatedProjectedHoleVertex);
-                }
-                for (let alpha_index = 0; alpha_index <= resolution; alpha_index++) {
-
-                    function parametric(theta_t: number, phi_t: number, target: Vector3) {
-                        transformHoleVertex(holeVertex, box, theta_t, phi_t, alpha_index / resolution, target);
-                    }
-
-                    const projectedHoleVertexGeometry = new ParametricGeometry(parametric, 8, 8);
-                    const projectedHoleVertexMaterial = new MeshBasicMaterial({
-                        color: new Color(0.0, 0.0, 1.0),
-                        side: DoubleSide,
-                    });
-                    const rotatedProjectedHoleVertex = new Mesh(projectedHoleVertexGeometry, projectedHoleVertexMaterial);
-                    rotatedProjectedHoleVertex.position.set(0, 0, holeRadius);
-                    rotatedProjectedHoleVertices.push(rotatedProjectedHoleVertex);
                 }
             }
             for (const mesh of rotatedProjectedHoleVertices) {
@@ -255,7 +235,6 @@
                 function parametric(theta_t: number, phi_t: number, target: Vector3) {
                     transformPlugVertex(holeVertex, rectangle, theta_t, phi_t, target);
                 }
-
 
                 const projectedPlugVertexGeometry = new ParametricGeometry(parametric, 8, 8);
                 const projectedPlugVertexMaterial = new MeshBasicMaterial({
