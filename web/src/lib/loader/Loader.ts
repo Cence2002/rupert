@@ -184,22 +184,27 @@ export class Loader extends AbstractLoader {
 
 
     getHoleProjection(boxIndex: number) {
+        //TODO: Implement
         return [];
     }
 
     getHoleInIndex(boxIndex: number) {
+        //TODO: Implement
         return 0;
     }
 
     getHoleVertexProjections(boxIndex: number) {
+        //TODO: Implement
         return [];
     }
 
     getPlugVertexProjections(boxIndex: number, rectangleIndex: number) {
+        //TODO: Implement
         return [];
     }
 
     getPlugOutIndices(boxIndex: number, holeIndex: number) {
+        //TODO: Implement
         return [];
     }
 }
