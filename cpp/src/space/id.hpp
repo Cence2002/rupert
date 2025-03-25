@@ -90,18 +90,4 @@ public:
         const uint16_t bits = packed & static_cast<uint16_t>((1 << depth) - 1);
         return Id(depth, bits);
     }
-
-    void to_stream(std::ostream& os) const {
-        const uint16_t packed = pack();
-        os.write(reinterpret_cast<const char*>(&packed), sizeof(packed));
-    }
-
-    static Id from_stream(std::istream& is) {
-        uint16_t packed;
-        is.read(reinterpret_cast<char*>(&packed), sizeof(packed));
-        if(is.gcount() != sizeof(packed)) {
-            throw std::runtime_error("Failed to read Id from stream");
-        }
-        return unpack(packed);
-    }
 };
