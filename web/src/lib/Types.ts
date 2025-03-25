@@ -1,5 +1,9 @@
 import {Vector2} from "three";
 
+//TODO: Replace with interfaces
+//TODO: Add other types (Polygon, Polyhedron, etc.)
+//TODO: Use override keyword for methods
+
 export class Interval {
     constructor(
         public min: number,
@@ -34,6 +38,14 @@ export class Box {
         public phi: Id,
         public alpha: Id,
         public terminal: boolean
+    ) {
+    }
+}
+
+export class TerminalBox {
+    constructor(
+        public box: Box,
+        public rectangles: Rectangle[]
     ) {
     }
 }
