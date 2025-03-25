@@ -8,7 +8,7 @@ struct Exporter {
 private:
     const Config<Interval>& config_;
 
-    static void size_to_stream(std::ostream& os, const size_t size) {
+    static void size_to_stream(std::ostream& os, const uint32_t size) {
         os.write(reinterpret_cast<const char*>(&size), sizeof(size));
     }
 
@@ -23,7 +23,7 @@ private:
     }
 
     static void polyhedron_to_stream(std::ostream& os, const Polyhedron<Interval>& polyhedron) {
-        size_to_stream(os, polyhedron.vertices().size());
+        size_to_stream(os, static_cast<uint32_t>(polyhedron.vertices().size()));
         for(const Vertex<Interval>& vertex: polyhedron.vertices()) {
             vertex_to_stream(os, vertex);
         }
@@ -47,7 +47,7 @@ private:
 
     static void terminal_box_to_stream(std::ostream& os, const TerminalBox& terminal_box) {
         box_to_stream(os, terminal_box.box());
-        size_to_stream(os, terminal_box.rectangles().size());
+        size_to_stream(os, static_cast<uint32_t>(terminal_box.rectangles().size()));
         for(const Rectangle& rectangle: terminal_box.rectangles()) {
             rectangle_to_stream(os, rectangle);
         }
@@ -96,7 +96,7 @@ public:
             throw std::runtime_error("Failed to open " + path.string());
         }
 
-        size_to_stream(file, boxes.size());
+        size_to_stream(file, static_cast<uint32_t>(boxes.size()));
         for(const Box& box: boxes) {
             box_to_stream(file, box);
         }

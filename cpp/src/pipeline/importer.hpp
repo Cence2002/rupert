@@ -8,8 +8,8 @@ struct Importer {
 private:
     const Config<Interval>& config_;
 
-    static size_t size_from_stream(std::istream& is) {
-        size_t size;
+    static uint32_t size_from_stream(std::istream& is) {
+        uint32_t size;
         is.read(reinterpret_cast<char*>(&size), sizeof(size));
         return size;
     }
@@ -48,7 +48,7 @@ public:
             return {};
         }
 
-        const size_t size = size_from_stream(file);
+        const uint32_t size = size_from_stream(file);
         std::vector<Box> boxes;
         boxes.reserve(size);
         std::ranges::generate_n(std::back_inserter(boxes), size, [&] {
