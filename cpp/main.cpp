@@ -36,7 +36,7 @@ int main() {
         "RID",
         plug,
         hole,
-        1,
+        10,
         64,
         10000,
         2,
@@ -44,7 +44,7 @@ int main() {
         true,
         "../../web/static",
         100000,
-        true
+        false
     );
 
     std::signal(SIGINT, signal_handler);
