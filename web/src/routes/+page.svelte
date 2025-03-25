@@ -6,14 +6,16 @@
     import Main from "$lib/plot/Main.svelte";
     import Projection from "$lib/plot/Projection.svelte";
     import {onMount} from 'svelte';
+    import {Loader} from "$lib/loader/Loader";
     import {DebugLoader} from "$lib/loader/DebugLoader";
     import type {Scene} from "three";
 
-    const description = "RID";
-    // const terminalBoxesFilename = description + "_terminal_boxes.bin";
+    const description = "RID2";
+    const polyhedraFilename = description + "_polyhedra.bin";
+    const terminalBoxesFilename = description + "_terminal_boxes.bin";
     const debugFilename = description + "_debug.bin";
 
-    const loader = new DebugLoader();
+    const loader = new Loader();
 
     const state = new State();
 
@@ -28,7 +30,9 @@
     }
 
     onMount(async () => {
-        await loader.load(debugFilename);
+        await loader.loadPolyhedra(polyhedraFilename);
+        await loader.load(terminalBoxesFilename);
+        // await loader.load(debugFilename);
         state.onLoaded();
     });
 </script>

@@ -67,7 +67,7 @@
             const phi: Interval = rectangle.phi.interval;
 
             const isIn = index == loader.getHoleInIndex(state.selectedBox);
-            const isTerminal = loader.getPlugOutIndices(state.selectedBox, index).length > 0;
+            const isTerminal = loader.getRectangle(state.selectedBox, index).terminal;
 
             const rectangleGeometry = new PlaneGeometry(theta.len / TWO_PI, phi.len / PI);
             const rectangleMaterial = new MeshBasicMaterial({
