@@ -10,7 +10,7 @@
     import {DebugLoader} from "$lib/loader/DebugLoader";
     import type {Scene} from "three";
 
-    const description = "RID2";
+    const description = "RID";
     const polyhedraFilename = description + "_polyhedra.bin";
     const terminalBoxesFilename = description + "_terminal_boxes.bin";
     const debugFilename = description + "_debug.bin";
