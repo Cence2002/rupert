@@ -57,15 +57,4 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const Rectangle& rectangle) {
         return os << "T" << rectangle.theta_id_ << " P" << rectangle.phi_id_;
     }
-
-    void to_stream(std::ostream& os) const {
-        theta_id_.to_stream(os);
-        phi_id_.to_stream(os);
-    }
-
-    static Rectangle from_bytes(std::istream& is) {
-        const Id theta_id = Id::from_stream(is);
-        const Id phi_id = Id::from_stream(is);
-        return Rectangle(theta_id, phi_id);
-    }
 };

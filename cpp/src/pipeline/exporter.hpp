@@ -16,6 +16,43 @@ private:
         os.write(reinterpret_cast<const char*>(&value), sizeof(value));
     }
 
+    static void vertex_to_stream(std::ostream& os, const Vertex<Interval>& vertex) {
+        float_to_stream(os, vertex.x().mid().float_value());
+        float_to_stream(os, vertex.y().mid().float_value());
+        float_to_stream(os, vertex.z().mid().float_value());
+    }
+
+    static void polyhedron_to_stream(std::ostream& os, const Polyhedron<Interval>& polyhedron) {
+        size_to_stream(os, polyhedron.vertices().size());
+        for(const Vertex<Interval>& vertex: polyhedron.vertices()) {
+            vertex_to_stream(os, vertex);
+        }
+    }
+
+    static void id_to_stream(std::ostream& os, const Id& id) {
+        const uint16_t packed = id.pack();
+        os.write(reinterpret_cast<const char*>(&packed), sizeof(packed));
+    }
+
+    static void box_to_stream(std::ostream& os, const Box& box) {
+        id_to_stream(os, box.theta_id());
+        id_to_stream(os, box.phi_id());
+        id_to_stream(os, box.alpha_id());
+    }
+
+    static void rectangle_to_stream(std::ostream& os, const Rectangle& rectangle) {
+        id_to_stream(os, rectangle.theta_id());
+        id_to_stream(os, rectangle.phi_id());
+    }
+
+    static void terminal_box_to_stream(std::ostream& os, const TerminalBox& terminal_box) {
+        box_to_stream(os, terminal_box.box());
+        size_to_stream(os, terminal_box.rectangles().size());
+        for(const Rectangle& rectangle: terminal_box.rectangles()) {
+            rectangle_to_stream(os, rectangle);
+        }
+    }
+
 public:
     explicit Exporter(const Config<Interval>& config) : config_(config) {}
 
@@ -26,19 +63,8 @@ public:
             throw std::runtime_error("Failed to open " + path.string());
         }
 
-        size_to_stream(file, hole.vertices().size());
-        for(const Vertex<Interval>& vertex: hole.vertices()) {
-            float_to_stream(file, vertex.x().mid().float_value());
-            float_to_stream(file, vertex.y().mid().float_value());
-            float_to_stream(file, vertex.z().mid().float_value());
-        }
-
-        size_to_stream(file, plug.vertices().size());
-        for(const Vertex<Interval>& vertex: plug.vertices()) {
-            float_to_stream(file, vertex.x().mid().float_value());
-            float_to_stream(file, vertex.y().mid().float_value());
-            float_to_stream(file, vertex.z().mid().float_value());
-        }
+        polyhedron_to_stream(file, hole);
+        polyhedron_to_stream(file, plug);
 
         if(file.fail()) {
             throw std::runtime_error("Failed to write to " + path.string());
@@ -54,7 +80,7 @@ public:
         }
 
         for(const TerminalBox& terminal_box: terminal_boxes) {
-            terminal_box.to_stream(file);
+            terminal_box_to_stream(file, terminal_box);
         }
 
         if(file.fail()) {
@@ -71,9 +97,8 @@ public:
         }
 
         size_to_stream(file, boxes.size());
-
         for(const Box& box: boxes) {
-            box.to_stream(file);
+            box_to_stream(file, box);
         }
 
         if(file.fail()) {

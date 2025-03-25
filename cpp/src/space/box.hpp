@@ -72,17 +72,4 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const Box& box) {
         return os << "T" << box.theta_id_ << " P" << box.phi_id_ << " A" << box.alpha_id_;
     }
-
-    void to_stream(std::ostream& os) const {
-        theta_id_.to_stream(os);
-        phi_id_.to_stream(os);
-        alpha_id_.to_stream(os);
-    }
-
-    static Box from_bytes(std::istream& is) {
-        const Id theta_id = Id::from_stream(is);
-        const Id phi_id = Id::from_stream(is);
-        const Id alpha_id = Id::from_stream(is);
-        return Box(theta_id, phi_id, alpha_id);
-    }
 };

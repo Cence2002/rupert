@@ -14,6 +14,19 @@ private:
         return size;
     }
 
+    static Id id_from_stream(std::istream& is) {
+        uint16_t packed;
+        is.read(reinterpret_cast<char*>(&packed), sizeof(packed));
+        return Id::unpack(packed);
+    }
+
+    static Box box_from_stream(std::istream& is) {
+        const Id theta_id = id_from_stream(is);
+        const Id phi_id = id_from_stream(is);
+        const Id alpha_id = id_from_stream(is);
+        return Box(theta_id, phi_id, alpha_id);
+    }
+
 public:
     explicit Importer(const Config<Interval>& config) : config_(config) {}
 
@@ -36,11 +49,10 @@ public:
         }
 
         const size_t size = size_from_stream(file);
-
         std::vector<Box> boxes;
         boxes.reserve(size);
         std::ranges::generate_n(std::back_inserter(boxes), size, [&] {
-            return Box::from_bytes(file);
+            return box_from_stream(file);
         });
 
         if(file.fail()) {
