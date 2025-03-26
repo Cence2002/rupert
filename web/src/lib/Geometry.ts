@@ -1,6 +1,5 @@
 import {Vector2, Vector3} from "three";
-import {lerp} from "three/src/math/MathUtils";
-import type {Box} from "$lib/types";
+import type {Rectangle, Box} from "$lib/Types";
 
 export const PI = Math.PI;
 export const TWO_PI = 2 * Math.PI;
@@ -51,9 +50,13 @@ function rotateVertex(vertex: Vector3, alpha: number): Vector3 {
     );
 }
 
-export function transformPlugVertex(vertex: Vector3, box: Box, theta_t: number, phi_t: number, target: Vector3) {
-    const theta = lerp(box.theta.interval.min, box.theta.interval.max, theta_t);
-    const phi = lerp(box.phi.interval.min, box.phi.interval.max, phi_t);
+function lerp(min: number, max: number, t: number): number {
+    return min + t * (max - min);
+}
+
+export function transformPlugVertex(vertex: Vector3, rectangle: Rectangle, theta_t: number, phi_t: number, target: Vector3) {
+    const theta = lerp(rectangle.theta.interval.min, rectangle.theta.interval.max, theta_t);
+    const phi = lerp(rectangle.phi.interval.min, rectangle.phi.interval.max, phi_t);
 
     const projected_vertex = projectVertex(vertex, theta, phi);
     target.copy(projected_vertex);
