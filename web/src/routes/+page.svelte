@@ -7,13 +7,13 @@
     import Projection from "$lib/plot/Projection.svelte";
     import {onMount} from 'svelte';
     import {Loader} from "$lib/loader/Loader";
-    import {DebugLoader} from "$lib/loader/DebugLoader";
+    // import {DebugLoader} from "$lib/loader/DebugLoader";
     import type {Scene} from "three";
 
     const description = "RID";
     const polyhedraFilename = description + "_polyhedra.bin";
     const terminalBoxesFilename = description + "_terminal_boxes.bin";
-    const debugFilename = description + "_debug.bin";
+    // const debugFilename = description + "_debug.bin";
 
     const loader = new Loader();
 
