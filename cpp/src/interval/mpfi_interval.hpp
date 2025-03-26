@@ -46,15 +46,12 @@ public:
     template<IntegerType Integer>
     explicit MpfiInterval(const Integer integer) {
         mpfi_init(interval_);
-        assert_same_precision(integer);
         mpfi_set_si(interval_, integer);
     }
 
     template<IntegerType Integer>
     explicit MpfiInterval(const Integer min, const Integer max) {
         mpfi_init(interval_);
-        assert_same_precision(min);
-        assert_same_precision(max);
         mpfi_interv_si(interval_, min, max);
     }
 

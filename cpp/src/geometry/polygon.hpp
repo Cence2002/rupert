@@ -230,7 +230,9 @@ Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vertices, con
             }
         }
         std::ranges::stable_sort(to_indices, [&](const size_t index, const size_t other_index) {
-            return (vertices[index] - from_vertex).len_sqr().min() < (vertices[other_index] - from_vertex).len_sqr().min();
+            const Interval len = (vertices[index] - from_vertex).len();
+            const Interval other_len = (vertices[other_index] - from_vertex).len();
+            return (other_len - len).is_positive();
         });
         std::vector<Edge<Interval>> new_edges;
         for(const size_t to_index: to_indices) {

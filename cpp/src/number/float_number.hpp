@@ -42,62 +42,6 @@ public:
         return value_;
     }
 
-    bool operator==(const FloatNumber& number) const {
-        return value_ == number.value_;
-    }
-
-    template<IntegerType Integer>
-    bool operator==(const Integer integer) const {
-        return value_ == static_cast<double>(integer);
-    }
-
-    template<IntegerType Integer>
-    friend bool operator==(const Integer integer, const FloatNumber& number) {
-        return static_cast<double>(integer) == number.value_;
-    }
-
-    bool operator!=(const FloatNumber& number) const {
-        return value_ != number.value_;
-    }
-
-    template<IntegerType Integer>
-    bool operator!=(const Integer integer) const {
-        return value_ != static_cast<double>(integer);
-    }
-
-    template<IntegerType Integer>
-    friend bool operator!=(const Integer integer, const FloatNumber& number) {
-        return static_cast<double>(integer) != number.value_;
-    }
-
-    bool operator>(const FloatNumber& number) const {
-        return value_ > number.value_;
-    }
-
-    template<IntegerType Integer>
-    bool operator>(const Integer integer) const {
-        return value_ > static_cast<double>(integer);
-    }
-
-    template<IntegerType Integer>
-    friend bool operator>(const Integer integer, const FloatNumber& number) {
-        return static_cast<double>(integer) > number.value_;
-    }
-
-    bool operator<(const FloatNumber& number) const {
-        return value_ < number.value_;
-    }
-
-    template<IntegerType Integer>
-    bool operator<(const Integer integer) const {
-        return value_ < static_cast<double>(integer);
-    }
-
-    template<IntegerType Integer>
-    friend bool operator<(const Integer integer, const FloatNumber& number) {
-        return static_cast<double>(integer) < number.value_;
-    }
-
     bool is_positive() const {
         return value_ > 0.0;
     }

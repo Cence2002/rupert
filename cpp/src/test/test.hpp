@@ -91,14 +91,11 @@ public:
     }
 
     std::pair<Interval_0, Interval_1> random_intervals(const int resolution) {
-        const auto [min_0, min_1] = random_numbers(resolution);
-        const auto [max_0, max_1] = random_numbers(resolution);
-        if(min_0.is_nan() || max_0.is_nan() || min_1.is_nan() || max_1.is_nan()) {
-            return {
-                Interval_0::nan(),
-                Interval_1::nan()
-            };
+        if(rng_.uniform_int(0, 1000) == 0) {
+            return {Interval_0::nan(), Interval_1::nan()};
         }
+        const auto [min_0, min_1] = random_integers(resolution);
+        const auto [max_0, max_1] = random_integers(resolution);
         const bool swap_0 = min_0 > max_0;
         const bool swap_1 = min_1 > max_1;
         return {

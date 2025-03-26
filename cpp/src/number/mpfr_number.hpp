@@ -76,62 +76,6 @@ public:
         return mpfr_get_d(value_, MPFR_RNDN);
     }
 
-    bool operator==(const MpfrNumber& number) const {
-        return mpfr_equal_p(value_, number.value_);
-    }
-
-    template<IntegerType Integer>
-    bool operator==(const Integer integer) const {
-        return mpfr_cmp_si(value_, integer) == 0;
-    }
-
-    template<IntegerType Integer>
-    friend bool operator==(const Integer integer, const MpfrNumber& number) {
-        return mpfr_cmp_si(number.value_, integer) == 0;
-    }
-
-    bool operator!=(const MpfrNumber& number) const {
-        return !operator==(number);
-    }
-
-    template<IntegerType Integer>
-    bool operator!=(const Integer integer) const {
-        return !operator==(integer);
-    }
-
-    template<IntegerType Integer>
-    friend bool operator!=(const Integer integer, const MpfrNumber& number) {
-        return !operator==(integer, number);
-    }
-
-    bool operator>(const MpfrNumber& number) const {
-        return mpfr_cmp(value_, number.value_) > 0;
-    }
-
-    template<IntegerType Integer>
-    bool operator>(const Integer integer) const {
-        return mpfr_cmp_si(value_, integer) > 0;
-    }
-
-    template<IntegerType Integer>
-    friend bool operator>(const Integer integer, const MpfrNumber& number) {
-        return mpfr_cmp_si(number.value_, integer) < 0;
-    }
-
-    bool operator<(const MpfrNumber& number) const {
-        return mpfr_cmp(value_, number.value_) < 0;
-    }
-
-    template<IntegerType Integer>
-    bool operator<(const Integer integer) const {
-        return mpfr_cmp_si(value_, integer) < 0;
-    }
-
-    template<IntegerType Integer>
-    friend bool operator<(const Integer integer, const MpfrNumber& number) {
-        return mpfr_cmp_si(number.value_, integer) > 0;
-    }
-
     bool is_positive() const {
         return mpfr_sgn(value_) > 0;
     }
