@@ -101,18 +101,6 @@ export class DebugLoader extends AbstractLoader {
         return rectangles;
     }
 
-    getPlug(): Vector3[] {
-        const plug: Vector3[] = [];
-        if (this.data === undefined) {
-            return plug;
-        }
-        for (let vertexIndex = 0; vertexIndex < this.data.plug()!.verticesLength(); vertexIndex++) {
-            const plugVertex = this.data.plug()!.vertices(vertexIndex)!;
-            plug.push(parseVertex(plugVertex));
-        }
-        return plug;
-    }
-
     getHole(): Vector3[] {
         const hole: Vector3[] = [];
         if (this.data === undefined) {
@@ -123,6 +111,18 @@ export class DebugLoader extends AbstractLoader {
             hole.push(parseVertex(holeVertex));
         }
         return hole;
+    }
+
+    getPlug(): Vector3[] {
+        const plug: Vector3[] = [];
+        if (this.data === undefined) {
+            return plug;
+        }
+        for (let vertexIndex = 0; vertexIndex < this.data.plug()!.verticesLength(); vertexIndex++) {
+            const plugVertex = this.data.plug()!.vertices(vertexIndex)!;
+            plug.push(parseVertex(plugVertex));
+        }
+        return plug;
     }
 
     getHoleInIndex(boxIndex: number): number {

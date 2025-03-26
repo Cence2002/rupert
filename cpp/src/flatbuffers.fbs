@@ -60,8 +60,8 @@ table Box {
 }
 
 table Debug {
-  plug: Polyhedron;
   hole: Polyhedron;
+  plug: Polyhedron;
   boxes: [Box];
 }
 

@@ -578,25 +578,25 @@ inline flatbuffers::Offset<Box> CreateBoxDirect(
 struct Debug FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef DebugBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_PLUG = 4,
-    VT_HOLE = 6,
+    VT_HOLE = 4,
+    VT_PLUG = 6,
     VT_BOXES = 8
   };
-  const FlatBuffers::Polyhedron *plug() const {
-    return GetPointer<const FlatBuffers::Polyhedron *>(VT_PLUG);
-  }
   const FlatBuffers::Polyhedron *hole() const {
     return GetPointer<const FlatBuffers::Polyhedron *>(VT_HOLE);
+  }
+  const FlatBuffers::Polyhedron *plug() const {
+    return GetPointer<const FlatBuffers::Polyhedron *>(VT_PLUG);
   }
   const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box>> *boxes() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box>> *>(VT_BOXES);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_PLUG) &&
-           verifier.VerifyTable(plug()) &&
            VerifyOffset(verifier, VT_HOLE) &&
            verifier.VerifyTable(hole()) &&
+           VerifyOffset(verifier, VT_PLUG) &&
+           verifier.VerifyTable(plug()) &&
            VerifyOffset(verifier, VT_BOXES) &&
            verifier.VerifyVector(boxes()) &&
            verifier.VerifyVectorOfTables(boxes()) &&
@@ -608,11 +608,11 @@ struct DebugBuilder {
   typedef Debug Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_plug(flatbuffers::Offset<FlatBuffers::Polyhedron> plug) {
-    fbb_.AddOffset(Debug::VT_PLUG, plug);
-  }
   void add_hole(flatbuffers::Offset<FlatBuffers::Polyhedron> hole) {
     fbb_.AddOffset(Debug::VT_HOLE, hole);
+  }
+  void add_plug(flatbuffers::Offset<FlatBuffers::Polyhedron> plug) {
+    fbb_.AddOffset(Debug::VT_PLUG, plug);
   }
   void add_boxes(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box>>> boxes) {
     fbb_.AddOffset(Debug::VT_BOXES, boxes);
@@ -630,26 +630,26 @@ struct DebugBuilder {
 
 inline flatbuffers::Offset<Debug> CreateDebug(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<FlatBuffers::Polyhedron> plug = 0,
     flatbuffers::Offset<FlatBuffers::Polyhedron> hole = 0,
+    flatbuffers::Offset<FlatBuffers::Polyhedron> plug = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBuffers::Box>>> boxes = 0) {
   DebugBuilder builder_(_fbb);
   builder_.add_boxes(boxes);
-  builder_.add_hole(hole);
   builder_.add_plug(plug);
+  builder_.add_hole(hole);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<Debug> CreateDebugDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<FlatBuffers::Polyhedron> plug = 0,
     flatbuffers::Offset<FlatBuffers::Polyhedron> hole = 0,
+    flatbuffers::Offset<FlatBuffers::Polyhedron> plug = 0,
     const std::vector<flatbuffers::Offset<FlatBuffers::Box>> *boxes = nullptr) {
   auto boxes__ = boxes ? _fbb.CreateVector<flatbuffers::Offset<FlatBuffers::Box>>(*boxes) : 0;
   return FlatBuffers::CreateDebug(
       _fbb,
-      plug,
       hole,
+      plug,
       boxes__);
 }
 

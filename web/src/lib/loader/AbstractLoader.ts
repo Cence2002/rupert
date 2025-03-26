@@ -15,9 +15,9 @@ export abstract class AbstractLoader {
     abstract getRectangles(boxIndex: number): Rectangle[];
 
     // Main plot
-    abstract getPlug(): Vector3[];
-
     abstract getHole(): Vector3[];
+
+    abstract getPlug(): Vector3[];
 
     // Projection plot
     abstract getHoleProjection(boxIndex: number): Edge[];
@@ -28,5 +28,5 @@ export abstract class AbstractLoader {
 
     abstract getPlugVertexProjections(boxIndex: number, rectangleIndex: number): Vector2[][];
 
-    abstract getPlugOutIndices(boxIndex: number, holeIndex: number): number[];
+    abstract getPlugOutIndices(boxIndex: number, rectangleIndex: number): number[];
 }

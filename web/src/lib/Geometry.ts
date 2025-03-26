@@ -54,14 +54,6 @@ function lerp(min: number, max: number, t: number): number {
     return min + t * (max - min);
 }
 
-export function transformPlugVertex(vertex: Vector3, rectangle: Rectangle, theta_t: number, phi_t: number, target: Vector3) {
-    const theta = lerp(rectangle.theta.interval.min, rectangle.theta.interval.max, theta_t);
-    const phi = lerp(rectangle.phi.interval.min, rectangle.phi.interval.max, phi_t);
-
-    const projected_vertex = projectVertex(vertex, theta, phi);
-    target.copy(projected_vertex);
-}
-
 export function transformHoleVertex(vertex: Vector3, box: Box, theta_t: number, phi_t: number, alpha_t: number, target: Vector3) {
     const theta = lerp(box.theta.interval.min, box.theta.interval.max, theta_t);
     const phi = lerp(box.phi.interval.min, box.phi.interval.max, phi_t);
@@ -70,4 +62,12 @@ export function transformHoleVertex(vertex: Vector3, box: Box, theta_t: number, 
     const projected_vertex = projectVertex(vertex, theta, phi);
     const rotated_projected_vertex = rotateVertex(projected_vertex, alpha);
     target.copy(rotated_projected_vertex);
+}
+
+export function transformPlugVertex(vertex: Vector3, rectangle: Rectangle, theta_t: number, phi_t: number, target: Vector3) {
+    const theta = lerp(rectangle.theta.interval.min, rectangle.theta.interval.max, theta_t);
+    const phi = lerp(rectangle.phi.interval.min, rectangle.phi.interval.max, phi_t);
+
+    const projected_vertex = projectVertex(vertex, theta, phi);
+    target.copy(projected_vertex);
 }

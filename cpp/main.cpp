@@ -29,14 +29,14 @@ void signal_handler(const int signal) {
 int main() {
     tests();
 
-    const Polyhedron<I> plug = Archimedean::rhombicosidodecahedron<I>().normalise();
     const Polyhedron<I> hole = Archimedean::rhombicosidodecahedron<I>().normalise();
+    const Polyhedron<I> plug = Archimedean::rhombicosidodecahedron<I>().normalise();
 
     const Config<I> config(
         "RID",
-        plug,
         hole,
-        10,
+        plug,
+        1,
         64,
         10000,
         2,
@@ -44,7 +44,7 @@ int main() {
         true,
         "../../web/static",
         100000,
-        false
+        true
     );
 
     std::signal(SIGINT, signal_handler);

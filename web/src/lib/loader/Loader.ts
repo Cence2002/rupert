@@ -174,14 +174,13 @@ export class Loader extends AbstractLoader {
         return this.terminalBoxes[boxIndex]!.rectangles;
     }
 
-    getPlug(): Vector3[] {
-        return this.plug;
-    }
-
     getHole(): Vector3[] {
         return this.hole;
     }
 
+    getPlug(): Vector3[] {
+        return this.plug;
+    }
 
     getHoleProjection(boxIndex: number) {
         const box = this.getBox(boxIndex);
