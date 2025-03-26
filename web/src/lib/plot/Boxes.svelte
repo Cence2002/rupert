@@ -11,17 +11,22 @@
         PerspectiveCamera,
         Scene,
         WebGLRenderer,
-        EdgesGeometry,
         LineBasicMaterial,
         LineSegments,
         Vector2,
         AxesHelper,
         Raycaster,
-        Group,
-        Color, Float32BufferAttribute, BufferGeometry,
+        Color,
+        Float32BufferAttribute,
+        BufferGeometry,
+        Matrix4,
+        InstancedMesh,
+        Vector3,
+        AmbientLight,
+        DirectionalLight, DoubleSide,
     } from "three";
     import type {AbstractLoader} from "$lib/loader/AbstractLoader";
-    import type {Interval} from "$lib/Types";
+    import {Box, Interval} from "$lib/Types";
 
     const {loader, state} = $props<{
         loader: AbstractLoader,
@@ -54,67 +59,69 @@
     controls.minDistance = 0.01;
     controls.maxDistance = 100;
 
-    const boxGroups: Group[] = [];
+    let boxInstancedMesh: InstancedMesh;
 
     function onLoad() {
         if (!state.loaded) {
             return;
         }
 
-        for (const box of loader.getBoxes()) {
+        const boxes: Box[] = loader.getBoxes();
+        const boxGeometry = new BoxGeometry(1, 1, 1);
+        const boxMaterial = new MeshBasicMaterial({
+            color: new Color(0, 0, 1),
+            transparent: true,
+            opacity: 0.25,
+            depthWrite: false,
+            side: DoubleSide,
+        });
+        boxInstancedMesh = new InstancedMesh(boxGeometry, boxMaterial, boxes.length);
+
+        const boxMatrix = new Matrix4();
+        for (let boxIndex = 0; boxIndex < boxes.length; boxIndex++) {
+            const box = boxes[boxIndex];
             const theta: Interval = box.theta.interval;
             const phi: Interval = box.phi.interval;
             const alpha: Interval = box.alpha.interval;
 
-            const isTerminal = box.terminal;
-
-            const boxGeometry = new BoxGeometry(theta.len / TWO_PI, phi.len / PI, alpha.len / TWO_PI);
-            const boxMaterial = new MeshBasicMaterial({
-                color: new Color(0, 0, 1),
-                transparent: true,
-                opacity: isTerminal ? 0.5 : 0.05,
-                depthWrite: false
-            });
-            const boxMesh = new Mesh(boxGeometry, boxMaterial);
-            boxMesh.position.set(theta.mid / TWO_PI, phi.mid / PI, alpha.mid / TWO_PI);
-
-            const boxGroup = new Group();
-            boxGroup.add(boxMesh);
-
-            if (isTerminal) {
-                const boxEdgesGeometry = new EdgesGeometry(boxGeometry);
-                const boxEdgesMaterial = new LineBasicMaterial({
-                    color: new Color(0.5, 0.5, 0.5),
-                });
-                const boxEdges = new LineSegments(boxEdgesGeometry, boxEdgesMaterial);
-                boxEdges.position.set(theta.mid / TWO_PI, phi.mid / PI, alpha.mid / TWO_PI);
-                boxGroup.add(boxEdges);
-            }
-
-            boxGroups.push(boxGroup);
+            boxMatrix.identity();
+            boxMatrix.makeTranslation(theta.mid / TWO_PI, phi.mid / PI, alpha.mid / TWO_PI);
+            boxMatrix.scale(new Vector3(theta.len / TWO_PI, phi.len / PI, alpha.len / TWO_PI));
+            boxInstancedMesh.setMatrixAt(boxIndex, boxMatrix);
         }
-
-        for (const boxGroup of boxGroups) {
-            scene.add(boxGroup);
-        }
+        scene.add(boxInstancedMesh);
+        const ambientLight = new AmbientLight(0xffffff, 0.4); // soft white light
+        scene.add(ambientLight);
+        const directionalLight = new DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(1, -2, 2);
+        scene.add(directionalLight);
     }
 
-    function onSelectBox(): () => void {
+    function onSelectBox() {
         if (state.selectedBox === null) {
-            return () => {
-            };
+            return;
         }
 
-        const box = boxGroups[state.selectedBox]!.children[0] as Mesh;
-        const boxMaterial = box.material as MeshBasicMaterial;
-        const originalColor = boxMaterial.color.clone();
-        boxMaterial.color.copy(new Color(1, 0, 0));
-        const boxMaterialOpacity = boxMaterial.opacity;
-        boxMaterial.opacity = 0.75;
+        const box = loader.getBox(state.selectedBox);
+        const theta: Interval = box.theta.interval;
+        const phi: Interval = box.phi.interval;
+        const alpha: Interval = box.alpha.interval;
+
+        const boxGeometry = new BoxGeometry(theta.len / TWO_PI, phi.len / PI, alpha.len / TWO_PI);
+        const boxMaterial = new MeshBasicMaterial({
+            color: new Color(1, 0, 0),
+            transparent: true,
+            opacity: 0.5,
+            depthWrite: true,
+            side: DoubleSide,
+        });
+        const boxMesh = new Mesh(boxGeometry, boxMaterial);
+        boxMesh.position.set(theta.mid / TWO_PI, phi.mid / PI, alpha.mid / TWO_PI);
+        boxMesh.scale.set(1.05, 1.05, 1.05);
+        scene.add(boxMesh);
 
         return () => {
-            boxMaterial.color.copy(originalColor);
-            boxMaterial.opacity = boxMaterialOpacity;
+            scene.remove(boxMesh);
         };
     }
 
@@ -122,42 +129,38 @@
         const raycaster = new Raycaster();
         raycaster.setFromCamera(mouse, camera);
 
-        const boxes = boxGroups
-        .map(group => group.children[0] as Mesh)
-        .filter(mesh => (mesh.material as MeshBasicMaterial).opacity > 0);
+        const intersectedInstances = raycaster.intersectObject(boxInstancedMesh, false);
+        const intersectedInstanceIds = [...new Set(
+            intersectedInstances.map(hit => hit.instanceId)
+        )];
 
-        const intersections = raycaster.intersectObjects(boxes, false);
 
         function getVolume(geometry: BoxGeometry) {
             const {width, height, depth} = geometry.parameters;
             return width * height * depth;
         }
 
-        intersections.sort((intersection, otherIntersection) => {
-            const volume = getVolume((intersection.object as Mesh).geometry as BoxGeometry);
-            const otherVolume = getVolume((otherIntersection.object as Mesh).geometry as BoxGeometry);
-            const volumeRatio = volume / otherVolume;
-            const distanceDifference = intersection.distance - otherIntersection.distance;
-            return distanceDifference - Math.log(volumeRatio) / 1000;
-        });
-
-        if (intersections.length === 0) {
+        if (intersectedInstanceIds.length === 0) {
             state.unselectBox();
             return;
         }
 
+        intersectedInstanceIds.sort((intersectedInstanceId, otherIntersectedInstanceId) => {
+            const volume = getVolume((boxInstancedMesh.geometry as BoxGeometry));
+            const otherVolume = getVolume((boxInstancedMesh.geometry as BoxGeometry));
+            const volumeRatio = volume / otherVolume;
+            const distanceDifference = intersectedInstanceId - otherIntersectedInstanceId;
+            return distanceDifference - Math.log(volumeRatio) / 1000;
+        });
+
         if (state.selectedBox === null) {
-            const newBoxIndex = boxGroups.findIndex(group => group.children[0] === intersections[0]!.object);
-            state.selectBox(newBoxIndex);
+            state.selectBox(intersectedInstanceIds[0]);
             return;
         }
 
-        const box = boxGroups[state.selectedBox]!.children[0] as Mesh;
-        const boxIndex = intersections.findIndex(intersection => intersection.object === box);
-        const newBoxIndex = boxIndex === -1 ? 0 : (boxIndex + 1) % intersections.length;
-        const newBox = intersections[newBoxIndex]!.object as Mesh;
-        const newBoxGroupIndex = boxGroups.findIndex(group => group.children[0] === newBox);
-        state.selectBox(newBoxGroupIndex);
+        const selectedInstanceId = intersectedInstanceIds.indexOf(state.selectedBox);
+        const newSelectedInstanceId = (selectedInstanceId + 1) % intersectedInstanceIds.length;
+        state.selectBox(intersectedInstanceIds[newSelectedInstanceId]);
     }
 
     function setup(width: number, height: number) {
