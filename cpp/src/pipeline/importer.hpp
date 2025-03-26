@@ -31,13 +31,9 @@ public:
     explicit Importer(const Config<Interval>& config) : config_(config) {}
 
     void restart() {
-        const std::filesystem::path boxes_path = config_.boxes_path();
-        if(std::filesystem::exists(boxes_path)) {
-            std::filesystem::remove(boxes_path);
-        }
-        const std::filesystem::path terminal_boxes_path = config_.terminal_boxes_path();
-        if(std::filesystem::exists(terminal_boxes_path)) {
-            std::filesystem::remove(terminal_boxes_path);
+        const std::filesystem::path directory_path = config_.directory_path();
+        if(std::filesystem::exists(directory_path)) {
+            std::filesystem::remove_all(directory_path);
         }
     }
 

@@ -148,7 +148,7 @@ export class Loader extends AbstractLoader {
         this.plug = plug;
     }
 
-    async load(path: string): Promise<void> {
+    async loadTerminalBoxes(path: string): Promise<void> {
         const response = await fetch(path);
         if (!response.ok) {
             console.error("Failed to load file:", response.statusText);
@@ -156,6 +156,11 @@ export class Loader extends AbstractLoader {
         }
         const buffer = await response.arrayBuffer();
         this.terminalBoxes = parseAllTerminalBoxes(buffer);
+    }
+
+    async load(directory: string): Promise<void> {
+        await this.loadPolyhedra(directory + "/polyhedra.bin");
+        await this.loadTerminalBoxes(directory + "/terminal_boxes.bin");
     }
 
     getBox(boxIndex: number): Box {

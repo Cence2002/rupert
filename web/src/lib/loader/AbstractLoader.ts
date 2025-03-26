@@ -2,7 +2,7 @@ import type {Vector2, Vector3} from "three";
 import type {Box, Edge, Rectangle} from "$lib/Types";
 
 export abstract class AbstractLoader {
-    abstract load(path: string): Promise<void>;
+    abstract load(directory: string): Promise<void>;
 
     // Boxes plot
     abstract getBox(boxIndex: number): Box | null;

@@ -41,7 +41,7 @@ function parseVertex(vertex: Vertex): Vector3 {
 export class DebugLoader extends AbstractLoader {
     public data: Debug | undefined;
 
-    async load(path: string): Promise<void> {
+    async loadDebug(path: string): Promise<void> {
         const response = await fetch(path);
         if (!response.ok) {
             console.error("Failed to load file:", response.statusText);
@@ -50,6 +50,10 @@ export class DebugLoader extends AbstractLoader {
         const buffer = new Uint8Array(await response.arrayBuffer());
         const byteBuffer = new flatbuffers.ByteBuffer(buffer);
         this.data = Debug.getRootAsDebug(byteBuffer);
+    }
+
+    async load(directory: string): Promise<void> {
+        await this.loadDebug(directory + "/debug.bin");
     }
 
     getBox(boxIndex: number): Box | null {

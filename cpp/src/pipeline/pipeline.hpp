@@ -76,13 +76,14 @@ public:
             debug_exporter_.debug_builder.set_hole(config_.hole());
             debug_exporter_.debug_builder.set_plug(config_.plug());
         }
-        exporter_.export_polyhedra(config_.hole(), config_.plug());
     }
 
     void init() {
         if(config_.restart()) {
             importer_.restart();
         }
+        exporter_.create_directory();
+        exporter_.export_polyhedra(config_.hole(), config_.plug());
         const std::vector<Box> boxes = importer_.import_boxes();
         if(boxes.empty()) {
             // box_queue_.push(Box()); // TODO: Use this instead of the magic numbers

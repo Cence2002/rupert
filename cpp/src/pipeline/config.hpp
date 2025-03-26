@@ -9,7 +9,7 @@
 template<IntervalType Interval>
 struct Config {
 private:
-    std::string description_;
+    std::string run_name_;
 
     Polyhedron<Interval> hole_;
     Polyhedron<Interval> plug_;
@@ -25,14 +25,9 @@ private:
     size_t export_size_threshold_;
     bool debug_enabled_;
 
-    std::string polyhedra_filename_;
-    std::string terminal_boxes_filename_;
-    std::string boxes_filename_;
-    std::string debug_filename_;
-
 public:
     Config(
-        std::string description,
+        std::string run_name,
         const Polyhedron<Interval>& hole,
         const Polyhedron<Interval>& plug,
         const uint8_t thread_count,
@@ -43,12 +38,8 @@ public:
         const bool restart,
         std::string directory,
         const size_t export_size_threshold,
-        const bool debug_enabled = false,
-        std::string polyhedra_filename = "polyhedra.bin",
-        std::string terminal_boxes_filename = "terminal_boxes.bin",
-        std::string boxes_filename = "boxes.bin",
-        std::string debug_filename = "debug.bin"
-    ) : description_(std::move(description)),
+        const bool debug_enabled = false
+    ) : run_name_(std::move(run_name)),
         hole_(hole),
         plug_(plug),
         thread_count_(thread_count),
@@ -59,13 +50,9 @@ public:
         restart_(restart),
         directory_(std::move(directory)),
         export_size_threshold_(export_size_threshold),
-        debug_enabled_(debug_enabled),
-        polyhedra_filename_(std::move(polyhedra_filename)),
-        terminal_boxes_filename_(std::move(terminal_boxes_filename)),
-        boxes_filename_(std::move(boxes_filename)),
-        debug_filename_(std::move(debug_filename)) {
-        if(!std::regex_match(description_, std::regex("^[a-zA-Z0-9_]+$"))) {
-            throw std::runtime_error(description_ + " is not a valid description (only letters, digits, and underscores are allowed)");
+        debug_enabled_(debug_enabled) {
+        if(!std::regex_match(run_name_, std::regex("^[a-zA-Z0-9_]+$"))) {
+            throw std::runtime_error(run_name_ + " is not a valid name (only letters, digits, and underscores are allowed)");
         }
         if(!std::filesystem::exists(directory_)) {
             throw std::runtime_error(directory_.string() + " does not exist");
@@ -75,8 +62,8 @@ public:
         }
     }
 
-    std::string description() const {
-        return description_;
+    std::string run_name() const {
+        return run_name_;
     }
 
     const Polyhedron<Interval>& hole() const {
@@ -119,30 +106,31 @@ public:
         return export_size_threshold_;
     }
 
-    std::filesystem::path path(const std::string& suffix) const {
-        return directory_ / (description_ + "_" + suffix);
+    bool debug_enabled() const {
+        return debug_enabled_;
+    }
+
+    std::filesystem::path path(const std::string& file_name) const {
+        return directory_ / run_name_ / file_name;
+    }
+
+    std::filesystem::path directory_path() const {
+        return directory_ / run_name_;
     }
 
     std::filesystem::path polyhedra_path() const {
-        return path(polyhedra_filename_);
+        return path("polyhedra.bin");
     }
 
     std::filesystem::path terminal_boxes_path() const {
-        return path(terminal_boxes_filename_);
+        return path("terminal_boxes.bin");
     }
 
     std::filesystem::path boxes_path() const {
-        return path(boxes_filename_);
+        return path("boxes.bin");
     }
 
     std::filesystem::path debug_path() const {
-        if(!debug_enabled_) {
-            throw std::runtime_error("Debug is disabled");
-        }
-        return path(debug_filename_);
-    }
-
-    bool debug_enabled() const {
-        return debug_enabled_;
+        return path("debug.bin");
     }
 };

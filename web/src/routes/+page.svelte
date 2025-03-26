@@ -11,12 +11,9 @@
     import type {Scene} from "three";
     import type {AbstractLoader} from "$lib/loader/AbstractLoader";
 
-    const description = "RID";
-    const polyhedraFilename = description + "_polyhedra.bin";
-    const terminalBoxesFilename = description + "_terminal_boxes.bin";
-    const debugFilename = description + "_debug.bin";
+    const directory: string = "RID"
 
-    const debug: boolean = false;
+    const debug: boolean = true;
     const loader: AbstractLoader = debug ? new DebugLoader() : new Loader();
 
     const state = new State();
@@ -33,10 +30,9 @@
 
     onMount(async () => {
         if (debug) {
-            await loader.load(debugFilename);
+            await loader.load(directory);
         } else {
-            await loader.loadPolyhedra(polyhedraFilename);
-            await loader.load(terminalBoxesFilename);
+            await loader.load(directory);
         }
         state.onLoaded();
     });

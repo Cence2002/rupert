@@ -56,6 +56,13 @@ private:
 public:
     explicit Exporter(const Config<Interval>& config) : config_(config) {}
 
+    void create_directory() {
+        const std::filesystem::path directory_path = config_.directory_path();
+        if(!std::filesystem::exists(directory_path)) {
+            std::filesystem::create_directory(directory_path);
+        }
+    }
+
     void export_polyhedra(const Polyhedron<Interval>& hole, const Polyhedron<Interval>& plug) {
         const std::filesystem::path path = config_.polyhedra_path();
         std::ofstream file(path, std::ios::binary | std::ios::trunc);
