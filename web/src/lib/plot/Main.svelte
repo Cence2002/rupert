@@ -168,8 +168,7 @@
         {
             const box = loader.getBox(state.selectedBox);
             const loaderHole = loader.getHole();
-            for (let index = 0; index < loaderHole.length; index++) {
-                const holeVertex = loaderHole[index];
+            for (const holeVertex of loaderHole) {
 
                 const resolution = 8;
 
@@ -186,8 +185,8 @@
                 ];
 
                 for (const factory of parametricFactories) {
-                    for (let i = 0; i <= resolution; i++) {
-                        const parametric = factory(i);
+                    for (let index = 0; index <= resolution; index++) {
+                        const parametric = factory(index);
                         const geometry = new ParametricGeometry(parametric, 8, 8);
                         const material = new MeshBasicMaterial({
                             color: new Color(0.0, 0.0, 1.0),
