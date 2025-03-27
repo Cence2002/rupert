@@ -1,12 +1,10 @@
 <script lang="ts">
     import ThreePlot from "$lib/ThreePlot.svelte";
     import {State} from "$lib/State.svelte";
-    import {PI, TWO_PI} from "$lib/Geometry";
 
     import {MapControls} from 'three/addons/controls/MapControls.js';
     import {
         PlaneGeometry,
-        Mesh,
         MeshBasicMaterial,
         OrthographicCamera,
         Scene,
@@ -15,13 +13,19 @@
         LineBasicMaterial,
         LineSegments,
         AxesHelper,
-        Group,
         Vector2,
         Raycaster,
-        FrontSide, Color, BufferGeometry, Float32BufferAttribute
+        FrontSide,
+        Color,
+        BufferGeometry,
+        Float32BufferAttribute,
+        Matrix4,
+        Vector3,
+        InstancedMesh,
+        Quaternion,
+        Mesh,
     } from "three";
     import type {AbstractLoader} from "$lib/loader/AbstractLoader";
-    import type {Interval} from "$lib/Types";
 
     const {loader, state} = $props<{
         loader: AbstractLoader,
@@ -51,7 +55,32 @@
     controls.minZoom = 0.01;
     controls.maxZoom = 100;
 
-    let rectangleGroups: Group[] = [];
+    let rectangles: InstancedMesh | null = null;
+    let rectangleEdges: LineSegments | null = null;
+
+    const rectangleMaterial = new MeshBasicMaterial({
+        color: new Color(0, 1, 0),
+        transparent: true,
+        opacity: 0.25,
+        side: FrontSide,
+        depthWrite: false
+    });
+
+    const rectangleInMaterial = new MeshBasicMaterial({
+        color: new Color(0, 1, 0),
+        transparent: false,
+        side: FrontSide,
+    });
+
+    const rectangleEdgesMaterial = new LineBasicMaterial({
+        color: new Color(0.5, 1, 0.5),
+        transparent: false
+    });
+
+    const selectedRectangleEdgeMaterial = new LineBasicMaterial({
+        color: new Color(1, 0, 0),
+        transparent: true
+    });
 
     function onSelectBox(): () => void {
         if (state.selectedBox === null) {
@@ -59,113 +88,136 @@
             };
         }
 
-        const rectangles = loader.getRectangles(state.selectedBox);
-        for (let index = 0; index < rectangles.length; index++) {
-            const rectangle = rectangles[index];
+        const rectangleGeometry = new PlaneGeometry(1, 1);
+        rectangles = new InstancedMesh(rectangleGeometry, rectangleMaterial, loader.getRectangleCount(state.selectedBox));
 
-            const theta: Interval = rectangle.theta.interval;
-            const phi: Interval = rectangle.phi.interval;
+        const vertices = [
+            new Vector3(-0.5, -0.5, 0),
+            new Vector3(0.5, -0.5, 0),
+            new Vector3(0.5, 0.5, 0),
+            new Vector3(-0.5, 0.5, 0)
+        ];
+        const vertexIndices = [
+            [0, 1], [1, 2], [2, 3], [3, 0]
+        ];
 
-            const isIn = index == loader.getHoleInIndex(state.selectedBox);
-            const isTerminal = loader.getRectangle(state.selectedBox, index).terminal;
+        const matrix = new Matrix4();
+        const edgeBuffer: number[] = [];
+        for (const [rectangleIndex, rectangle] of loader.getRectangles(state.selectedBox).entries()) {
+            matrix.identity();
+            matrix.makeTranslation(rectangle.position());
+            matrix.scale(rectangle.scale());
+            rectangles.setMatrixAt(rectangleIndex, matrix);
 
-            const rectangleGeometry = new PlaneGeometry(theta.len / TWO_PI, phi.len / PI);
-            const rectangleMaterial = new MeshBasicMaterial({
-                color: new Color(0, 1, 0),
-                transparent: true,
-                opacity: isIn ? 0.75 : (isTerminal ? 0.25 : 0.05),
-                side: FrontSide,
-                depthWrite: false
-            });
-            const rectangleMesh = new Mesh(rectangleGeometry, rectangleMaterial);
-            rectangleMesh.position.set(theta.mid / TWO_PI, phi.mid / PI, 0);
-
-            const rectangleGroup = new Group();
-            rectangleGroup.add(rectangleMesh);
-
-            if (isTerminal) {
-                const rectangleEdgesGeometry = new EdgesGeometry(rectangleGeometry);
-                const rectangleEdgesMaterial = new LineBasicMaterial({
-                    color: new Color(0.5, 0.5, 0.5),
-                });
-                const rectangleEdges = new LineSegments(rectangleEdgesGeometry, rectangleEdgesMaterial);
-                rectangleEdges.position.set(theta.mid / TWO_PI, phi.mid / PI, 0);
-                rectangleGroup.add(rectangleEdges);
+            if (!rectangle.terminal) {
+                continue;
             }
-
-            rectangleGroups.push(rectangleGroup);
+            const transformedVertices = vertices.map(vertex => vertex.clone().applyMatrix4(matrix));
+            for (const [vertexIndex, otherVertexIndex] of vertexIndices) {
+                const vertex = transformedVertices[vertexIndex];
+                const otherVertex = transformedVertices[otherVertexIndex];
+                edgeBuffer.push(vertex.x, vertex.y, vertex.z);
+                edgeBuffer.push(otherVertex.x, otherVertex.y, otherVertex.z);
+            }
         }
+        scene.add(rectangles);
 
-        for (const rectangleGroup of rectangleGroups.values()) {
-            scene.add(rectangleGroup);
+        const rectangleEdgesGeometry = new BufferGeometry();
+        rectangleEdgesGeometry.setAttribute('position', new Float32BufferAttribute(edgeBuffer, 3));
+        rectangleEdges = new LineSegments(rectangleEdgesGeometry, rectangleEdgesMaterial);
+        scene.add(rectangleEdges);
+
+        let rectangleIn: Mesh | null = null;
+        {
+            const holeInIndex: number | null = loader.getHoleInIndex(state.selectedBox);
+            if (holeInIndex !== null) {
+                const rectangle = loader.getRectangle(state.selectedBox, holeInIndex)!;
+                const rectangleInGeometry = new PlaneGeometry(1, 1);
+                rectangleIn = new Mesh(rectangleInGeometry, rectangleInMaterial);
+                rectangleIn.position.copy(rectangle.position());
+                rectangleIn.scale.copy(rectangle.scale());
+                scene.add(rectangleIn);
+            }
         }
 
         return () => {
-            for (const rectangleGroup of rectangleGroups.values()) {
-                scene.remove(rectangleGroup);
+            scene.remove(rectangles!);
+            rectangles!.dispose();
+            rectangles = null;
+
+            scene.remove(rectangleEdges!);
+            rectangleEdgesGeometry.dispose();
+            rectangleEdges = null;
+
+            if (rectangleIn !== null) {
+                scene.remove(rectangleIn);
+                rectangleIn = null;
             }
-            rectangleGroups = [];
         };
     }
 
-    function onSelectRectangle(): () => void {
-        if (state.selectedRectangle === null) {
-            return () => {
-            };
-        }
+    function onSelectRectangle() {
+        if (state.selectedRectangle === null || !rectangles) return;
 
-        const rectangle = rectangleGroups[state.selectedRectangle]!.children[0] as Mesh;
-        const rectangleMaterial = rectangle.material as MeshBasicMaterial;
-        const originalColor = rectangleMaterial.color.clone();
-        rectangleMaterial.color.copy(new Color(1, 0, 0));
-        const originalOpacity = rectangleMaterial.opacity;
-        rectangleMaterial.opacity = 0.75;
+        const rectangle = loader.getRectangle(state.selectedBox, state.selectedRectangle);
+
+        const selectedRectangleGeometry = new PlaneGeometry(1, 1);
+        const selectedRectangleEdgesGeometry = new EdgesGeometry(selectedRectangleGeometry);
+        const selectedRectangle = new LineSegments(selectedRectangleEdgesGeometry, selectedRectangleEdgeMaterial);
+        selectedRectangle.position.copy(rectangle.position());
+        selectedRectangle.scale.copy(rectangle.scale());
+
+        scene.add(selectedRectangle);
 
         return () => {
-            rectangleMaterial.color.copy(originalColor);
-            rectangleMaterial.opacity = originalOpacity;
+            scene.remove(selectedRectangle);
+            selectedRectangleGeometry.dispose();
+            selectedRectangleEdgesGeometry.dispose();
         };
     }
 
     function onDoubleClick(mouse: Vector2) {
+        if (rectangles === null) {
+            return;
+        }
+
         const raycaster = new Raycaster();
         raycaster.setFromCamera(mouse, camera);
 
-        const rectangles = rectangleGroups
-        .map(group => group.children[0] as Mesh)
-        .filter(mesh => (mesh.material as MeshBasicMaterial).opacity > 0);
+        const intersectedInstances = raycaster.intersectObject(rectangles, false);
 
-        const intersections = raycaster.intersectObjects(rectangles, false);
-
-        function getArea(geometry: PlaneGeometry) {
-            const vertices = geometry.parameters;
-            return vertices.width * vertices.height;
-        }
-
-        intersections.sort((intersection, otherIntersection) => {
-            const area = getArea((intersection.object as Mesh).geometry as PlaneGeometry);
-            const otherArea = getArea((otherIntersection.object as Mesh).geometry as PlaneGeometry);
-            const areaDifference = area - otherArea;
-            return -areaDifference;
-        });
-
-        if (intersections.length === 0) {
+        if (intersectedInstances.length === 0) {
             state.unselectRectangle();
             return;
         }
 
-        if (state.selectedRectangle === null) {
-            const newRectangleIndex = rectangleGroups.findIndex(group => group.children[0] === intersections[0]!.object);
-            state.selectRectangle(newRectangleIndex);
+        function getArea(matrix: Matrix4) {
+            const scale = new Vector3();
+            matrix.decompose(new Vector3(), new Quaternion(), scale);
+            return scale.x * scale.y;
+        }
+
+        intersectedInstances.sort((intersectedInstance, otherIntersectedInstance) => {
+            const intersectedInstanceMatrix = new Matrix4();
+            const otherIntersectedInstanceMatrix = new Matrix4();
+            rectangles!.getMatrixAt(intersectedInstance.instanceId!, intersectedInstanceMatrix);
+            rectangles!.getMatrixAt(otherIntersectedInstance.instanceId!, otherIntersectedInstanceMatrix);
+            const area = getArea(intersectedInstanceMatrix);
+            const otherArea = getArea(otherIntersectedInstanceMatrix);
+            const distanceDifference = intersectedInstance.distance - otherIntersectedInstance.distance;
+            return distanceDifference - Math.log(area / otherArea) / 1000;
+        });
+
+        const instanceIds = intersectedInstances.map(i => i.instanceId);
+
+        if (state.selectedRectangle === null || !instanceIds.includes(state.selectedRectangle)) {
+            state.selectRectangle(instanceIds[0]);
             return;
         }
 
-        const rectangle = rectangleGroups[state.selectedRectangle]!.children[0] as Mesh;
-        const rectangleIndex = intersections.findIndex(intersection => intersection.object === rectangle);
-        const newRectangleIndex = rectangleIndex === -1 ? 0 : (rectangleIndex + 1) % intersections.length;
-        const newRectangle = intersections[newRectangleIndex]!.object as Mesh;
-        const newRectangleGroupIndex = rectangleGroups.findIndex(group => group.children[0] === newRectangle);
-        state.selectRectangle(newRectangleGroupIndex);
+        const selectedInstanceIdIndex = instanceIds.indexOf(state.selectedRectangle);
+        const newSelectedInstanceIdIndex = (selectedInstanceIdIndex + 1) % instanceIds.length;
+        state.selectRectangle(instanceIds[newSelectedInstanceIdIndex]);
     }
 
     function setup(width: number, height: number) {
@@ -177,12 +229,16 @@
         const edgeBuffer = [
             1, 1, 0, 1, 0, 0,
             1, 1, 0, 0, 1, 0,
-        ]
-        const edgeGeometry = new BufferGeometry();
-        edgeGeometry.setAttribute('position', new Float32BufferAttribute(edgeBuffer, 3));
-        const edgeMaterial = new LineBasicMaterial({color: new Color(0.5, 0.5, 0.5)});
-        const edge = new LineSegments(edgeGeometry, edgeMaterial);
-        scene.add(edge);
+        ];
+        const domainEdgesGeometry = new BufferGeometry();
+        domainEdgesGeometry.setAttribute('position', new Float32BufferAttribute(edgeBuffer, 3));
+        const domainEdgesMaterial = new LineBasicMaterial({
+            color: new Color(1, 1, 1),
+            transparent: true,
+            opacity: 0.5,
+        });
+        const domainEdges = new LineSegments(domainEdgesGeometry, domainEdgesMaterial);
+        scene.add(domainEdges);
 
         return renderer.domElement;
     }

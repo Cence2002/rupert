@@ -80,6 +80,13 @@ export class DebugLoader extends AbstractLoader {
         return boxes;
     }
 
+    getBoxCount(): number {
+        if (this.data === undefined) {
+            return 0;
+        }
+        return this.data.boxesLength();
+    }
+
     getRectangle(boxIndex: number, rectangleIndex: number): Rectangle | null {
         if (this.data === undefined) {
             return null;
@@ -103,6 +110,14 @@ export class DebugLoader extends AbstractLoader {
             rectangles.push(this.getRectangle(boxIndex, rectangleIndex)!);
         }
         return rectangles;
+    }
+
+    getRectangleCount(boxIndex: number): number {
+        if (this.data === undefined) {
+            return 0;
+        }
+        const box = this.data.boxes(boxIndex)!;
+        return box.rectanglesLength();
     }
 
     getHole(): Vector3[] {
@@ -129,12 +144,13 @@ export class DebugLoader extends AbstractLoader {
         return plug;
     }
 
-    getHoleInIndex(boxIndex: number): number {
+    getHoleInIndex(boxIndex: number): number | null {
         if (this.data === undefined) {
-            return -1;
+            return null;
         }
         const box = this.data.boxes(boxIndex)!;
-        return box.inIndex();
+        const inIndex = box.inIndex()
+        return inIndex === -1 ? null : inIndex;
     }
 
     getHoleProjection(boxIndex: number): Edge[] {

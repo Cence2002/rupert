@@ -1,4 +1,5 @@
-import {Vector2} from "three";
+import {Vector2, Vector3} from "three";
+import {PI, TWO_PI} from "$lib/Geometry";
 
 //TODO: Replace with interfaces
 //TODO: Add other types (Polygon, Polyhedron, etc.)
@@ -30,6 +31,22 @@ export class Rectangle {
         public terminal: boolean
     ) {
     }
+
+    public position(): Vector3 {
+        return new Vector3(
+            this.theta.interval.mid / TWO_PI,
+            this.phi.interval.mid / PI,
+            0,
+        );
+    }
+
+    public scale(): Vector3 {
+        return new Vector3(
+            this.theta.interval.len / TWO_PI,
+            this.phi.interval.len / PI,
+            1,
+        );
+    }
 }
 
 export class Box {
@@ -39,6 +56,22 @@ export class Box {
         public alpha: Id,
         public terminal: boolean
     ) {
+    }
+
+    public position(): Vector3 {
+        return new Vector3(
+            this.theta.interval.mid / TWO_PI,
+            this.phi.interval.mid / PI,
+            this.alpha.interval.mid / TWO_PI,
+        );
+    }
+
+    public scale(): Vector3 {
+        return new Vector3(
+            this.theta.interval.len / TWO_PI,
+            this.phi.interval.len / PI,
+            this.alpha.interval.len / TWO_PI,
+        );
     }
 }
 

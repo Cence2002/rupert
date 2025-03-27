@@ -9,10 +9,14 @@ export abstract class AbstractLoader {
 
     abstract getBoxes(): Box[];
 
+    abstract getBoxCount(): number;
+
     // Rectangles plot
     abstract getRectangle(boxIndex: number, rectangleIndex: number): Rectangle | null;
 
     abstract getRectangles(boxIndex: number): Rectangle[];
+    
+    abstract getRectangleCount(boxIndex: number): number;
 
     // Main plot
     abstract getHole(): Vector3[];
@@ -22,7 +26,7 @@ export abstract class AbstractLoader {
     // Projection plot
     abstract getHoleProjection(boxIndex: number): Edge[];
 
-    abstract getHoleInIndex(boxIndex: number): number;
+    abstract getHoleInIndex(boxIndex: number): number | null;
 
     abstract getHoleVertexProjections(boxIndex: number): Vector2[][];
 

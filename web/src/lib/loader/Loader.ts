@@ -171,12 +171,20 @@ export class Loader extends AbstractLoader {
         return this.terminalBoxes.map(terminalBox => terminalBox.box);
     }
 
+    getBoxCount(): number {
+        return this.terminalBoxes.length;
+    }
+
     getRectangle(boxIndex: number, rectangleIndex: number): Rectangle {
         return this.terminalBoxes[boxIndex]!.rectangles[rectangleIndex]!;
     }
 
     getRectangles(boxIndex: number): Rectangle[] {
         return this.terminalBoxes[boxIndex]!.rectangles;
+    }
+
+    getRectangleCount(boxIndex: number): number {
+        return this.terminalBoxes[boxIndex]!.rectangles.length;
     }
 
     getHole(): Vector3[] {
@@ -210,8 +218,8 @@ export class Loader extends AbstractLoader {
         return edges;
     }
 
-    getHoleInIndex(boxIndex: number) {
-        return -1;
+    getHoleInIndex(boxIndex: number): number | null {
+        return null;
     }
 
     getHoleVertexProjections(boxIndex: number) {
