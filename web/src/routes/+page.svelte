@@ -11,9 +11,9 @@
     import type {Scene} from "three";
     import type {AbstractLoader} from "$lib/loader/AbstractLoader";
 
-    const directory: string = "RID"
+    const directory: string = "RID";
+    const debug: boolean = false;
 
-    const debug: boolean = true;
     const loader: AbstractLoader = debug ? new DebugLoader() : new Loader();
 
     const state = new State();
@@ -29,11 +29,7 @@
     }
 
     onMount(async () => {
-        if (debug) {
-            await loader.load(directory);
-        } else {
-            await loader.load(directory);
-        }
+        await loader.load(directory);
         state.onLoaded();
     });
 </script>
