@@ -218,10 +218,6 @@ export class Loader implements AbstractLoader {
         return edges;
     }
 
-    getHoleInIndex(boxIndex: number): number | null {
-        return null;
-    }
-
     getHoleVertexProjections(boxIndex: number) {
         const box = this.getBox(boxIndex);
         const holeVertexProjections: Vector2[][] = [];
@@ -240,6 +236,10 @@ export class Loader implements AbstractLoader {
             holeVertexProjections.push(holeVertexProjection);
         }
         return holeVertexProjections;
+    }
+
+    getInRectangleIndex(boxIndex: number): number | null {
+        return null;
     }
 
     getPlugVertexProjections(boxIndex: number, rectangleIndex: number) {
@@ -286,7 +286,7 @@ export class Loader implements AbstractLoader {
         return plugVertexProjections;
     }
 
-    getPlugOutIndices(boxIndex: number, holeIndex: number) {
+    getOutVertexIndices(boxIndex: number, holeIndex: number) {
         return [];
     }
 }

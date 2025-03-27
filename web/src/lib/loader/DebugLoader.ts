@@ -144,15 +144,6 @@ export class DebugLoader implements AbstractLoader {
         return plug;
     }
 
-    getHoleInIndex(boxIndex: number): number | null {
-        if (this.data === undefined) {
-            return null;
-        }
-        const box = this.data.boxes(boxIndex)!;
-        const inIndex = box.inIndex()
-        return inIndex === -1 ? null : inIndex;
-    }
-
     getHoleProjection(boxIndex: number): Edge[] {
         const holeProjectionHull: Edge[] = [];
         if (this.data === undefined) {
@@ -167,6 +158,15 @@ export class DebugLoader implements AbstractLoader {
             ));
         }
         return holeProjectionHull;
+    }
+
+    getInRectangleIndex(boxIndex: number): number | null {
+        if (this.data === undefined) {
+            return null;
+        }
+        const box = this.data.boxes(boxIndex)!;
+        const inIndex = box.inIndex()
+        return inIndex === -1 ? null : inIndex;
     }
 
     getHoleVertexProjections(boxIndex: number): Vector2[][] {
@@ -206,7 +206,7 @@ export class DebugLoader implements AbstractLoader {
         return plugVertexProjections;
     }
 
-    getPlugOutIndices(boxIndex: number, rectangleIndex: number): number[] {
+    getOutVertexIndices(boxIndex: number, rectangleIndex: number): number[] {
         const outIndices: number[] = [];
         if (this.data === undefined) {
             return outIndices;

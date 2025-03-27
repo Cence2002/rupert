@@ -55,9 +55,6 @@
     controls.minZoom = 0.01;
     controls.maxZoom = 100;
 
-    let holeProjectionEdges: Line[] = [];
-    let holeVertexProjectionGroups: Group[] = [];
-
     const holeVertexProjectionsMaterial = new MeshBasicMaterial({
         color: new Color(0, 0, 1),
         transparent: true,
@@ -72,7 +69,7 @@
             };
         }
 
-        let holeProjectionEdges: Line[] = [];
+        const holeProjectionEdges: Line[] = [];
         for (const holeProjectionEdgeData of loader.getHoleProjection(state.selectedBox)) {
             const holeProjectionEdgeGeometry = new BufferGeometry().setFromPoints([
                 new Vector3(holeProjectionEdgeData.from.x, holeProjectionEdgeData.from.y, 0),
@@ -88,7 +85,7 @@
             scene.add(edge);
         }
 
-        let holeVertexProjectionGroups: Group[] = [];
+        const holeVertexProjectionGroups: Group[] = [];
         for (const holeVertexProjectionData of loader.getHoleVertexProjections(state.selectedBox)) {
             const holeVertexProjectionShape = new Shape(convexHull(holeVertexProjectionData));
             const holeVertexProjectionGeometry = new ShapeGeometry(holeVertexProjectionShape);
@@ -113,12 +110,10 @@
             for (const holeProjectionEdge of holeProjectionEdges) {
                 scene.remove(holeProjectionEdge);
             }
-            holeProjectionEdges = [];
 
             for (const holeVertexProjectionGroup of holeVertexProjectionGroups) {
                 scene.remove(holeVertexProjectionGroup);
             }
-            holeVertexProjectionGroups = [];
         };
     }
 

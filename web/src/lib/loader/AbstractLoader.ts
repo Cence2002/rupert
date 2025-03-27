@@ -32,11 +32,11 @@ export interface AbstractLoader {
 
     getHoleProjection(boxIndex: number): Edge[];
 
-    getHoleInIndex(boxIndex: number): number | null;
-
     getHoleVertexProjections(boxIndex: number): Vector2[][];
+
+    getInRectangleIndex(boxIndex: number): number | null;
 
     getPlugVertexProjections(boxIndex: number, rectangleIndex: number): Vector2[][];
 
-    getPlugOutIndices(boxIndex: number, rectangleIndex: number): number[];
+    getOutVertexIndices(boxIndex: number, rectangleIndex: number): number[];
 }
