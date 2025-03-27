@@ -27,7 +27,7 @@ concept NumberType =
     } &&
 
     requires(const Number number) {
-        { number.value() } -> std::same_as<typename Number::Value const&>;
+        { number.value() } -> std::same_as<const typename Number::Value&>;
     } &&
 
     requires(const Number number, const Number other_number, const int integer) {
