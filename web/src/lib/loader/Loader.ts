@@ -1,4 +1,4 @@
-import {AbstractLoader} from "$lib/loader/AbstractLoader";
+import type {AbstractLoader} from "$lib/loader/AbstractLoader";
 import {Vector2, Vector3} from "three";
 import {Interval, Id, Rectangle, Box, Edge, TerminalBox} from "$lib/Types";
 import {convexHull, PI, transformHoleVertex, transformPlugVertex, TWO_PI} from "$lib/Geometry";
@@ -131,7 +131,7 @@ export function parseAllTerminalBoxes(buffer: ArrayBuffer): TerminalBox[] {
     return result;
 }
 
-export class Loader extends AbstractLoader {
+export class Loader implements AbstractLoader {
     public hole: Vector3[] = [];
     public plug: Vector3[] = [];
     public terminalBoxes: TerminalBox[] = [];

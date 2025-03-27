@@ -1,36 +1,42 @@
 import type {Vector2, Vector3} from "three";
 import type {Box, Edge, Rectangle} from "$lib/Types";
 
-export abstract class AbstractLoader {
-    abstract load(directory: string): Promise<void>;
+export interface AbstractLoader {
+    // Load data
+
+    load(directory: string): Promise<void>;
 
     // Boxes plot
-    abstract getBox(boxIndex: number): Box | null;
 
-    abstract getBoxes(): Box[];
+    getBox(boxIndex: number): Box | null;
 
-    abstract getBoxCount(): number;
+    getBoxes(): Box[];
+
+    getBoxCount(): number;
 
     // Rectangles plot
-    abstract getRectangle(boxIndex: number, rectangleIndex: number): Rectangle | null;
 
-    abstract getRectangles(boxIndex: number): Rectangle[];
-    
-    abstract getRectangleCount(boxIndex: number): number;
+    getRectangle(boxIndex: number, rectangleIndex: number): Rectangle | null;
+
+    getRectangles(boxIndex: number): Rectangle[];
+
+    getRectangleCount(boxIndex: number): number;
 
     // Main plot
-    abstract getHole(): Vector3[];
 
-    abstract getPlug(): Vector3[];
+    getHole(): Vector3[];
+
+    getPlug(): Vector3[];
 
     // Projection plot
-    abstract getHoleProjection(boxIndex: number): Edge[];
 
-    abstract getHoleInIndex(boxIndex: number): number | null;
+    getHoleProjection(boxIndex: number): Edge[];
 
-    abstract getHoleVertexProjections(boxIndex: number): Vector2[][];
+    getHoleInIndex(boxIndex: number): number | null;
 
-    abstract getPlugVertexProjections(boxIndex: number, rectangleIndex: number): Vector2[][];
+    getHoleVertexProjections(boxIndex: number): Vector2[][];
 
-    abstract getPlugOutIndices(boxIndex: number, rectangleIndex: number): number[];
+    getPlugVertexProjections(boxIndex: number, rectangleIndex: number): Vector2[][];
+
+    getPlugOutIndices(boxIndex: number, rectangleIndex: number): number[];
 }

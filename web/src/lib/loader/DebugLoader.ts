@@ -1,6 +1,6 @@
 import * as flatbuffers from 'flatbuffers';
 import {Debug, Vector, Vertex} from '$lib/flatbuffers/flatbuffers_generated';
-import {AbstractLoader} from "$lib/loader/AbstractLoader";
+import type {AbstractLoader} from "$lib/loader/AbstractLoader";
 import {Interval, Id, Rectangle, Box, Edge} from "$lib/Types";
 import {Vector2, Vector3} from "three";
 
@@ -38,7 +38,7 @@ function parseVertex(vertex: Vertex): Vector3 {
     );
 }
 
-export class DebugLoader extends AbstractLoader {
+export class DebugLoader implements AbstractLoader {
     public data: Debug | undefined;
 
     async loadDebug(path: string): Promise<void> {
