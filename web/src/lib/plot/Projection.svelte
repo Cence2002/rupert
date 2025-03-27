@@ -41,7 +41,7 @@
 
     const camera = new OrthographicCamera(0, 0, 0, 0, -1, 1);
     camera.up.set(0, 1, 0);
-    camera.lookAt(0.5, 0.5, 0);
+    camera.lookAt(0, 0, 0);
     camera.position.set(0, 0, 0);
 
     const renderer = new WebGLRenderer({antialias: true});
@@ -55,10 +55,16 @@
     controls.minZoom = 0.01;
     controls.maxZoom = 100;
 
-    let holeProjection: Line[] = [];
-    let holeVertexProjections: Group[] = [];
-    let plugVertexProjections: Group[] = [];
-    let plugOutIndices: number[] = [];
+    let holeProjectionEdges: Line[] = [];
+    let holeVertexProjectionGroups: Group[] = [];
+
+    const holeVertexProjectionsMaterial = new MeshBasicMaterial({
+        color: new Color(0, 0, 1),
+        transparent: true,
+        opacity: 0.5,
+        side: DoubleSide,
+        depthWrite: false
+    });
 
     function onSelectBox(): () => void {
         if (state.selectedBox === null) {
@@ -66,57 +72,53 @@
             };
         }
 
-        for (const holeVertexProjection of loader.getHoleVertexProjections(state.selectedBox)) {
-            const hull = new Shape(convexHull(holeVertexProjection));
-            const hullGeometry = new ShapeGeometry(hull);
-            const hullMaterial = new MeshBasicMaterial({
-                color: new Color(0, 0, 1),
-                transparent: true,
-                opacity: 0.5,
-                side: DoubleSide,
-                depthWrite: false
-            });
-            const hullMesh = new Mesh(hullGeometry, hullMaterial);
-
-            const hullEdgesGeometry = new EdgesGeometry(hullGeometry);
-            const hullEdgesMaterial = new LineBasicMaterial({color: new Color(0.5, 0.5, 0.5),});
-            const hullEdges = new LineSegments(hullEdgesGeometry, hullEdgesMaterial);
-
-            const group = new Group();
-            group.add(hullMesh);
-            group.add(hullEdges);
-
-            holeVertexProjections.push(group);
-        }
-
-        for (const holeVertexProjection of holeVertexProjections) {
-            scene.add(holeVertexProjection);
-        }
-
-        for (const edge of loader.getHoleProjection(state.selectedBox)) {
-            const edgeGeometry = new BufferGeometry().setFromPoints([
-                new Vector3(edge.from.x, edge.from.y, 0),
-                new Vector3(edge.to.x, edge.to.y, 0)
+        let holeProjectionEdges: Line[] = [];
+        for (const holeProjectionEdgeData of loader.getHoleProjection(state.selectedBox)) {
+            const holeProjectionEdgeGeometry = new BufferGeometry().setFromPoints([
+                new Vector3(holeProjectionEdgeData.from.x, holeProjectionEdgeData.from.y, 0),
+                new Vector3(holeProjectionEdgeData.to.x, holeProjectionEdgeData.to.y, 0)
             ]);
-            const edgeMaterial = new LineBasicMaterial({color: new Color(1, 1, 1)});
-            const edgeMesh = new Line(edgeGeometry, edgeMaterial);
-            holeProjection.push(edgeMesh);
+            const holeProjectionEdgeMaterial = new LineBasicMaterial({color: new Color(1, 1, 1)});
+            const holeProjectionEdge = new Line(holeProjectionEdgeGeometry, holeProjectionEdgeMaterial);
+
+            holeProjectionEdges.push(holeProjectionEdge);
         }
 
-        for (const edge of holeProjection) {
+        for (const edge of holeProjectionEdges) {
             scene.add(edge);
         }
 
-        return () => {
-            for (const group of holeVertexProjections) {
-                scene.remove(group);
-            }
-            holeVertexProjections = [];
+        let holeVertexProjectionGroups: Group[] = [];
+        for (const holeVertexProjectionData of loader.getHoleVertexProjections(state.selectedBox)) {
+            const holeVertexProjectionShape = new Shape(convexHull(holeVertexProjectionData));
+            const holeVertexProjectionGeometry = new ShapeGeometry(holeVertexProjectionShape);
+            const holeVertexProjection = new Mesh(holeVertexProjectionGeometry, holeVertexProjectionsMaterial);
 
-            for (const edge of holeProjection) {
-                scene.remove(edge);
+            const holeVertexProjectionEdgesGeometry = new EdgesGeometry(holeVertexProjectionGeometry);
+            const holeVertexProjectionEdgesMaterial = new LineBasicMaterial({color: new Color(0.5, 0.5, 0.5),});
+            const holeVertexProjectionEdges = new LineSegments(holeVertexProjectionEdgesGeometry, holeVertexProjectionEdgesMaterial);
+
+            const holeVertexProjectionGroup = new Group();
+            holeVertexProjectionGroup.add(holeVertexProjection);
+            holeVertexProjectionGroup.add(holeVertexProjectionEdges);
+
+            holeVertexProjectionGroups.push(holeVertexProjectionGroup);
+        }
+
+        for (const holeVertexProjectionGroup of holeVertexProjectionGroups) {
+            scene.add(holeVertexProjectionGroup);
+        }
+
+        return () => {
+            for (const holeProjectionEdge of holeProjectionEdges) {
+                scene.remove(holeProjectionEdge);
             }
-            holeProjection = [];
+            holeProjectionEdges = [];
+
+            for (const holeVertexProjectionGroup of holeVertexProjectionGroups) {
+                scene.remove(holeVertexProjectionGroup);
+            }
+            holeVertexProjectionGroups = [];
         };
     }
 
@@ -126,57 +128,52 @@
             };
         }
 
-        for (const rectangleOutIndex of loader.getPlugOutIndices(state.selectedBox, state.selectedRectangle)) {
-            plugOutIndices.push(rectangleOutIndex);
-        }
+        const outVertexIndices = loader.getPlugOutIndices(state.selectedBox, state.selectedRectangle);
 
-        const loaderRectangleProjections = loader.getPlugVertexProjections(state.selectedBox, state.selectedRectangle);
-        const isIn = state.selectedRectangle == loader.getHoleInIndex(state.selectedBox);
-        for (let index = 0; index < loaderRectangleProjections.length; index++) {
-            const vertices = loaderRectangleProjections[index];
+        let plugVertexProjectionGroups: Group[] = [];
+        const isInRectangle = state.selectedRectangle == loader.getHoleInIndex(state.selectedBox);
+        for (const [vertexIndex, plugVertexProjection] of loader.getPlugVertexProjections(state.selectedBox, state.selectedRectangle).entries()) {
+            const isOutVertex = outVertexIndices.includes(vertexIndex);
 
-            const isOut = plugOutIndices.includes(index);
-
-            const hull = new Shape(vertices);
-            const hullGeometry = new ShapeGeometry(hull);
-            const hullMaterial = new MeshBasicMaterial({
+            const plugVertexProjectionShape = new Shape(plugVertexProjection);
+            const plugVertexProjectionGeometry = new ShapeGeometry(plugVertexProjectionShape);
+            const plugVertexProjectionMaterial = new MeshBasicMaterial({
                 color: new Color(0, 1, 0),
                 transparent: true,
-                opacity: isIn ? 0.25 : (isOut ? 0.75 : 0.05),
+                opacity: (isInRectangle || isOutVertex) ? 0.5 : 0.25,
                 side: DoubleSide,
                 depthWrite: false,
             });
-            const hullMesh = new Mesh(hullGeometry, hullMaterial);
+            const plugVertexProjectionMesh = new Mesh(plugVertexProjectionGeometry, plugVertexProjectionMaterial);
 
-            const hullEdgesGeometry = new EdgesGeometry(hullGeometry);
-            const hullEdgesMaterial = new LineBasicMaterial({color: new Color(0.5, 0.5, 0.5)});
-            const hullEdges = new LineSegments(hullEdgesGeometry, hullEdgesMaterial);
+            const plugVertexProjectionEdgesGeometry = new EdgesGeometry(plugVertexProjectionGeometry);
+            const plugVertexProjectionEdgesMaterial = new LineBasicMaterial({color: new Color(0.5, 0.5, 0.5)});
+            const plugVertexProjectionEdges = new LineSegments(plugVertexProjectionEdgesGeometry, plugVertexProjectionEdgesMaterial);
 
-            const group = new Group();
-            group.add(hullMesh);
-            group.add(hullEdges);
+            const plugVertexProjectionGroup = new Group();
+            plugVertexProjectionGroup.add(plugVertexProjectionMesh);
+            plugVertexProjectionGroup.add(plugVertexProjectionEdges);
 
-            plugVertexProjections.push(group);
+            plugVertexProjectionGroups.push(plugVertexProjectionGroup);
         }
-        for (const plugVertexProjection of plugVertexProjections) {
+        for (const plugVertexProjection of plugVertexProjectionGroups) {
             scene.add(plugVertexProjection);
         }
 
         return () => {
-            for (const plugVertexProjection of plugVertexProjections) {
-                scene.remove(plugVertexProjection);
+            for (const plugVertexProjectionGroup of plugVertexProjectionGroups) {
+                scene.remove(plugVertexProjectionGroup);
             }
-            plugVertexProjections = [];
-
-            plugOutIndices = [];
         };
     }
 
     function setup(width: number, height: number) {
         resize(width, height);
 
-        const axesHelper = new AxesHelper(2);
-        scene.add(axesHelper);
+        {
+            const axesHelper = new AxesHelper(2);
+            scene.add(axesHelper);
+        }
 
         return renderer.domElement;
     }

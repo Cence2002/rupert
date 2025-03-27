@@ -127,31 +127,29 @@
         rectangleEdges = new LineSegments(rectangleEdgesGeometry, rectangleEdgesMaterial);
         scene.add(rectangleEdges);
 
-        let rectangleIn: Mesh | null = null;
+        let inRectangle: Mesh | null = null;
         {
-            const holeInIndex: number | null = loader.getHoleInIndex(state.selectedBox);
-            if (holeInIndex !== null) {
-                const rectangle = loader.getRectangle(state.selectedBox, holeInIndex)!;
-                const rectangleInGeometry = new PlaneGeometry(1, 1);
-                rectangleIn = new Mesh(rectangleInGeometry, rectangleInMaterial);
-                rectangleIn.position.copy(rectangle.position());
-                rectangleIn.scale.copy(rectangle.scale());
-                scene.add(rectangleIn);
+            const inRectangleIndex: number | null = loader.getHoleInIndex(state.selectedBox);
+            if (inRectangleIndex !== null) {
+                const inRectangleTemp = loader.getRectangle(state.selectedBox, inRectangleIndex)!;
+                const inRectangleGeometry = new PlaneGeometry(1, 1);
+                inRectangle = new Mesh(inRectangleGeometry, rectangleInMaterial);
+                inRectangle.position.copy(inRectangleTemp.position());
+                inRectangle.scale.copy(inRectangleTemp.scale());
+                scene.add(inRectangle);
             }
         }
 
         return () => {
             scene.remove(rectangles!);
-            rectangles!.dispose();
             rectangles = null;
 
             scene.remove(rectangleEdges!);
-            rectangleEdgesGeometry.dispose();
             rectangleEdges = null;
 
-            if (rectangleIn !== null) {
-                scene.remove(rectangleIn);
-                rectangleIn = null;
+            if (inRectangle !== null) {
+                scene.remove(inRectangle);
+                inRectangle = null;
             }
         };
     }
@@ -171,8 +169,6 @@
 
         return () => {
             scene.remove(selectedRectangle);
-            selectedRectangleGeometry.dispose();
-            selectedRectangleEdgesGeometry.dispose();
         };
     }
 

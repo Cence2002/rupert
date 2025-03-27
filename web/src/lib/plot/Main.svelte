@@ -71,7 +71,7 @@
     let transformedHoleVertices: Mesh[] = [];
     let transformedPlugVertices: Mesh[] = [];
 
-    const resolution = 8;
+    const resolution = 4;
 
     const holeMaterial = new MeshBasicMaterial({
         color: new Color(0, 0, 1),
@@ -213,7 +213,6 @@
         return () => {
             for (const transformedHoleVertex of transformedHoleVertices) {
                 scene.remove(transformedHoleVertex);
-                transformedHoleVertex.geometry.dispose();
             }
             transformedHoleVertices = [];
         };
@@ -250,7 +249,6 @@
         return () => {
             for (const transformedPlugVertex of transformedPlugVertices) {
                 scene.remove(transformedPlugVertex);
-                transformedPlugVertex.geometry.dispose();
             }
             transformedPlugVertices = [];
         };

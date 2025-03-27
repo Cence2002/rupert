@@ -148,7 +148,6 @@
 
         return () => {
             scene.remove(selectedBoxEdges);
-            selectedBoxEdgesGeometry.dispose();
         };
     }
 
