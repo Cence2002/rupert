@@ -3,6 +3,7 @@ import type {Rectangle, Box} from "$lib/Types";
 
 export const PI = Math.PI;
 export const TWO_PI = 2 * Math.PI;
+export const PHI = (1 + Math.sqrt(5)) / 2;
 
 export function convexHull(points: Vector2[]): Vector2[] {
     if (points.length < 3) return points;

@@ -15,7 +15,7 @@
         Color,
         DoubleSide,
         Quaternion,
-        OrthographicCamera,
+        OrthographicCamera, Vector2, Raycaster,
     } from "three";
     import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
     import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
@@ -23,13 +23,15 @@
     import {AxesHelper} from "three";
     import {lerp} from "three/src/math/MathUtils.js";
     import type {AbstractLoader} from "$lib/loader/AbstractLoader";
-    import {transformHoleVertex, transformPlugVertex, TWO_PI} from "$lib/Geometry";
+    import {PHI, transformHoleVertex, transformPlugVertex, TWO_PI} from "$lib/Geometry";
 
     const {loader, state, getProjectionScene} = $props<{
         loader: AbstractLoader,
         state: State
         getProjectionScene: () => Scene | null
     }>();
+
+    let projectionScene: Scene | null = null;
 
     $effect(onLoad);
 
@@ -40,7 +42,7 @@
     const scene = new Scene();
     scene.up.set(0, 0, 0);
 
-    const camera = new OrthographicCamera(0, 0, 0, 0, 0.01, 100);
+    const camera = new OrthographicCamera(0, 0, 0, 0, 0.001, 100);
     camera.up.set(0, 0, 1);
     camera.lookAt(0, 0, 0);
     camera.position.set(0, -10, 0);
@@ -52,26 +54,46 @@
     controls.target.set(0, 0, 0);
     controls.enablePan = true;
     controls.screenSpacePanning = true;
-    controls.panSpeed = 0.1;
+    controls.panSpeed = 0.5;
     controls.enableRotate = true;
-    controls.rotateSpeed = 0.1;
+    controls.rotateSpeed = 0.5;
     controls.enableZoom = true;
     controls.zoomToCursor = true;
     controls.minZoom = 0.01;
     controls.maxZoom = 100;
 
-    let holeGroup: Group;
     let holeRadius: number;
+    let holeGroup: Group;
 
-    let plugGroup: Group;
     let plugRadius: number;
+    let plugGroup: Group;
 
-    let rotatedProjectedHoleVertices: Mesh[] = [];
-    let projectedPlugVertices: Mesh[] = [];
+    let transformedHoleVertices: Mesh[] | null = null;
+    let transformedPlugVertices: Mesh[] | null = null;
 
-    let rectangleOut: number[] = [];
+    const resolution = 8;
 
-    class Wave {
+    const holeMaterial = new MeshBasicMaterial({
+        color: new Color(0, 0, 1),
+        transparent: true,
+        opacity: 0.5,
+    });
+
+    const holeEdgesMaterial = new LineBasicMaterial({
+        color: new Color(0.5, 0.5, 1.0),
+    });
+
+    const plugMaterial = new MeshBasicMaterial({
+        color: new Color(0, 1, 0),
+        transparent: true,
+        opacity: 0.5,
+    });
+
+    const plugEdgesMaterial = new LineBasicMaterial({
+        color: new Color(0.5, 1.0, 0.5),
+    });
+
+    class Animation {
         private phase: number = Math.random() * Math.PI * 2;
         private readonly frequency: number;
 
@@ -90,41 +112,36 @@
 
     const startTime: number = Date.now();
     const animationSpeed: number = 1;
-    const holeAnimation: { theta: Wave, phi: Wave, alpha: Wave } = {
-        theta: new Wave(animationSpeed / Math.sqrt(1)),
-        phi: new Wave(animationSpeed / Math.sqrt(2)),
-        alpha: new Wave(animationSpeed / Math.sqrt(3))
+
+    const holeAnimation: { theta: Animation, phi: Animation, alpha: Animation } = {
+        theta: new Animation(animationSpeed),
+        phi: new Animation(animationSpeed / PHI),
+        alpha: new Animation(animationSpeed / (PHI * PHI))
     };
-    const plugAnimation: { theta: Wave, phi: Wave } = {
-        theta: new Wave(animationSpeed / Math.sqrt(1)),
-        phi: new Wave(animationSpeed / Math.sqrt(2))
+    const plugAnimation: { theta: Animation, phi: Animation } = {
+        theta: new Animation(animationSpeed),
+        phi: new Animation(animationSpeed / PHI)
     };
 
     function onLoad() {
         if (!state.loaded) {
             return;
         }
+
         {
             const vertices = loader.getHole();
             holeRadius = Math.max(...vertices.map((v: Vector3) => v.length()));
+
             camera.position.setZ(2 * holeRadius);
             camera.lookAt(0, 0, 2 * holeRadius);
             camera.updateProjectionMatrix();
             controls.target.set(0, 0, 2 * holeRadius);
             controls.update();
 
-            const hole = new ConvexGeometry(vertices);
-            const holeMaterial = new MeshBasicMaterial({
-                color: new Color(0, 0, 1),
-                transparent: true,
-                opacity: 0.5
-            });
-            const holeMesh = new Mesh(hole, holeMaterial);
+            const holeGeometry = new ConvexGeometry(vertices);
+            const holeMesh = new Mesh(holeGeometry, holeMaterial);
 
-            const holeEdges = new EdgesGeometry(hole);
-            const holeEdgesMaterial = new LineBasicMaterial({
-                color: new Color(0.5, 0.5, 0.5)
-            });
+            const holeEdges = new EdgesGeometry(holeGeometry);
             const holeEdgesMesh = new LineSegments(holeEdges, holeEdgesMaterial);
 
             holeGroup = new Group();
@@ -133,22 +150,15 @@
             holeGroup.position.set(0, 0, holeRadius);
             scene.add(holeGroup);
         }
+
         {
             const vertices = loader.getPlug();
             plugRadius = Math.max(...vertices.map((v: Vector3) => v.length()));
 
-            const plug = new ConvexGeometry(vertices);
-            const plugMaterial = new MeshBasicMaterial({
-                color: new Color(0, 1, 0),
-                transparent: true,
-                opacity: 0.5
-            });
-            const plugMesh = new Mesh(plug, plugMaterial);
+            const plugGeometry = new ConvexGeometry(vertices);
+            const plugMesh = new Mesh(plugGeometry, plugMaterial);
 
-            const plugEdges = new EdgesGeometry(plug);
-            const plugEdgesMaterial = new LineBasicMaterial({
-                color: new Color(0.5, 0.5, 0.5)
-            });
+            const plugEdges = new EdgesGeometry(plugGeometry);
             const plugEdgesMesh = new LineSegments(plugEdges, plugEdgesMaterial);
 
             plugGroup = new Group();
@@ -168,10 +178,8 @@
         {
             const box = loader.getBox(state.selectedBox);
             const loaderHole = loader.getHole();
+            transformedHoleVertices = [];
             for (const holeVertex of loaderHole) {
-
-                const resolution = 8;
-
                 const parametricFactories = [
                     (index: number) => (phi_t: number, alpha_t: number, target: Vector3) => {
                         transformHoleVertex(holeVertex, box, index / resolution, phi_t, alpha_t, target);
@@ -184,30 +192,31 @@
                     }
                 ];
 
-                for (const factory of parametricFactories) {
+                for (const parametricFactory of parametricFactories) {
                     for (let index = 0; index <= resolution; index++) {
-                        const parametric = factory(index);
-                        const geometry = new ParametricGeometry(parametric, 8, 8);
+                        const parametric = parametricFactory(index);
+                        const geometry = new ParametricGeometry(parametric, resolution, resolution);
                         const material = new MeshBasicMaterial({
                             color: new Color(0.0, 0.0, 1.0),
                             side: DoubleSide,
                         });
                         const mesh = new Mesh(geometry, material);
                         mesh.position.set(0, 0, holeRadius);
-                        rotatedProjectedHoleVertices.push(mesh);
+                        transformedHoleVertices.push(mesh);
                     }
                 }
             }
-            for (const mesh of rotatedProjectedHoleVertices) {
-                scene.add(mesh);
+            for (const transformedHoleVertex of transformedHoleVertices) {
+                scene.add(transformedHoleVertex);
             }
         }
 
         return () => {
-            for (const mesh of rotatedProjectedHoleVertices) {
-                scene.remove(mesh);
+            for (const transformedHoleVertex of transformedHoleVertices) {
+                scene.remove(transformedHoleVertex);
+                transformedHoleVertex.geometry.dispose();
             }
-            rotatedProjectedHoleVertices = [];
+            transformedHoleVertices = null;
         };
     }
 
@@ -218,42 +227,34 @@
         }
 
         {
-            const rectangleOutIndices = loader.getPlugOutIndices(state.selectedBox, state.selectedRectangle);
-            for (let index = 0; index < rectangleOutIndices.length; index++) {
-                rectangleOut.push(rectangleOutIndices[index]);
-            }
-        }
-
-        {
             const rectangle = loader.getRectangle(state.selectedBox, state.selectedRectangle);
-            const loaderPlug = loader.getPlug();
-            for (let index = 0; index < loaderPlug.length; index++) {
-                const holeVertex = loaderPlug[index];
-
+            transformedPlugVertices = [];
+            for (const plugVertex of loader.getPlug()) {
                 //TODO: handle the case when vertex is on the z-axis, as the parametric surface will collapse to a line
                 function parametric(theta_t: number, phi_t: number, target: Vector3) {
-                    transformPlugVertex(holeVertex, rectangle, theta_t, phi_t, target);
+                    transformPlugVertex(plugVertex, rectangle, theta_t, phi_t, target);
                 }
 
-                const projectedPlugVertexGeometry = new ParametricGeometry(parametric, 8, 8);
-                const projectedPlugVertexMaterial = new MeshBasicMaterial({
+                const transformedPlugVertexGeometry = new ParametricGeometry(parametric, resolution, resolution);
+                const transformedPlugVertexMaterial = new MeshBasicMaterial({
                     color: new Color(0.0, 1.0, 0.0),
                     side: DoubleSide,
                 });
-                const projectedPlugVertex = new Mesh(projectedPlugVertexGeometry, projectedPlugVertexMaterial);
-                projectedPlugVertex.position.set(0, 0, 2 * holeRadius + plugRadius);
-                projectedPlugVertices.push(projectedPlugVertex);
+                const transformedPlugVertex = new Mesh(transformedPlugVertexGeometry, transformedPlugVertexMaterial);
+                transformedPlugVertex.position.set(0, 0, 2 * holeRadius + plugRadius);
+                transformedPlugVertices.push(transformedPlugVertex);
             }
-            for (let group of projectedPlugVertices) {
-                scene.add(group);
+            for (const transformedPlugVertex of transformedPlugVertices) {
+                scene.add(transformedPlugVertex);
             }
         }
+
         return () => {
-            rectangleOut = [];
-            for (let group of projectedPlugVertices) {
-                scene.remove(group);
+            for (const transformedPlugVertex of transformedPlugVertices) {
+                scene.remove(transformedPlugVertex);
+                transformedPlugVertex.geometry.dispose();
             }
-            projectedPlugVertices = [];
+            transformedPlugVertices = null;
         };
     }
 
@@ -281,6 +282,7 @@
                 lerp(box.alpha.interval.min, box.alpha.interval.max, holeAnimation.alpha.normalizedValue(time))
             ));
         }
+
         if (plugGroup && state.selectedBox !== null && state.selectedRectangle !== null) {
             const rectangle = loader.getRectangle(state.selectedBox, state.selectedRectangle);
 
@@ -292,12 +294,17 @@
         }
     }
 
-
     function setup(width: number, height: number) {
         resize(width, height);
 
-        const axesHelper = new AxesHelper(2);
-        scene.add(axesHelper);
+        {
+            const axesHelper = new AxesHelper(2);
+            scene.add(axesHelper);
+        }
+
+        {
+            projectionScene = getProjectionScene();
+        }
 
         return renderer.domElement;
     }
@@ -306,10 +313,10 @@
         updateAnimation();
 
         renderer.clear();
-        const projectionScene = getProjectionScene();
-        if (projectionScene) {
+        if (projectionScene !== null) {
             renderer.render(projectionScene, camera);
         }
+
         renderer.render(scene, camera);
     }
 
