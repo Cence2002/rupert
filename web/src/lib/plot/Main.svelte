@@ -68,8 +68,8 @@
     let plugRadius: number;
     let plugGroup: Group;
 
-    let transformedHoleVertices: Mesh[] | null = null;
-    let transformedPlugVertices: Mesh[] | null = null;
+    let transformedHoleVertices: Mesh[] = [];
+    let transformedPlugVertices: Mesh[] = [];
 
     const resolution = 8;
 
@@ -178,7 +178,6 @@
         {
             const box = loader.getBox(state.selectedBox);
             const loaderHole = loader.getHole();
-            transformedHoleVertices = [];
             for (const holeVertex of loaderHole) {
                 const parametricFactories = [
                     (index: number) => (phi_t: number, alpha_t: number, target: Vector3) => {
@@ -216,7 +215,7 @@
                 scene.remove(transformedHoleVertex);
                 transformedHoleVertex.geometry.dispose();
             }
-            transformedHoleVertices = null;
+            transformedHoleVertices = [];
         };
     }
 
@@ -228,7 +227,6 @@
 
         {
             const rectangle = loader.getRectangle(state.selectedBox, state.selectedRectangle);
-            transformedPlugVertices = [];
             for (const plugVertex of loader.getPlug()) {
                 //TODO: handle the case when vertex is on the z-axis, as the parametric surface will collapse to a line
                 function parametric(theta_t: number, phi_t: number, target: Vector3) {
@@ -254,7 +252,7 @@
                 scene.remove(transformedPlugVertex);
                 transformedPlugVertex.geometry.dispose();
             }
-            transformedPlugVertices = null;
+            transformedPlugVertices = [];
         };
     }
 
@@ -281,6 +279,8 @@
                 lerp(box.phi.interval.min, box.phi.interval.max, holeAnimation.phi.normalizedValue(time)),
                 lerp(box.alpha.interval.min, box.alpha.interval.max, holeAnimation.alpha.normalizedValue(time))
             ));
+        } else if (holeGroup) {
+            holeGroup.quaternion.copy(projection_rotation_quaternion(0, 0, 0));
         }
 
         if (plugGroup && state.selectedBox !== null && state.selectedRectangle !== null) {
@@ -291,6 +291,8 @@
                 lerp(rectangle.phi.interval.min, rectangle.phi.interval.max, plugAnimation.phi.normalizedValue(time)),
                 0
             ));
+        } else if (plugGroup) {
+            plugGroup.quaternion.copy(projection_rotation_quaternion(0, 0, 0));
         }
     }
 
