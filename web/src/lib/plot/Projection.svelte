@@ -123,10 +123,10 @@
             };
         }
 
-        const outVertexIndices = loader.getPlugOutIndices(state.selectedBox, state.selectedRectangle);
+        const outVertexIndices = loader.getOutVertexIndices(state.selectedBox, state.selectedRectangle);
 
         let plugVertexProjectionGroups: Group[] = [];
-        const isInRectangle = state.selectedRectangle == loader.getHoleInIndex(state.selectedBox);
+        const isInRectangle = state.selectedRectangle == loader.getInRectangleIndex(state.selectedBox);
         for (const [vertexIndex, plugVertexProjection] of loader.getPlugVertexProjections(state.selectedBox, state.selectedRectangle).entries()) {
             const isOutVertex = outVertexIndices.includes(vertexIndex);
 

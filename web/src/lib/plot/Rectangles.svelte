@@ -129,7 +129,7 @@
 
         let inRectangle: Mesh | null = null;
         {
-            const inRectangleIndex: number | null = loader.getHoleInIndex(state.selectedBox);
+            const inRectangleIndex: number | null = loader.getInRectangleIndex(state.selectedBox);
             if (inRectangleIndex !== null) {
                 const inRectangleTemp = loader.getRectangle(state.selectedBox, inRectangleIndex)!;
                 const inRectangleGeometry = new PlaneGeometry(1, 1);
@@ -172,7 +172,7 @@
         };
     }
 
-    function onDoubleClick(mouse: Vector2) {
+    function onClick(mouse: Vector2) {
         if (rectangles === null) {
             return;
         }
@@ -257,4 +257,4 @@
     }
 </script>
 
-<ThreePlot {setup} {resize} {draw} {onDoubleClick}/>
+<ThreePlot {setup} {resize} {draw} {onClick}/>

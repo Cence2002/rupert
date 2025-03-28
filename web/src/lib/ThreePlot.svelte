@@ -7,27 +7,42 @@
     export let setup: (width: number, height: number) => HTMLCanvasElement;
     export let draw: () => void;
     export let resize: (width: number, height: number) => void;
-    export let onDoubleClick: (mouse: Vector2) => void = () => {
+    export let onClick: (mouse: Vector2) => void = () => {
     };
 
     let container: HTMLDivElement;
     let canvas: HTMLCanvasElement;
     let animationFrame: number;
     let running = true;
+    let mouseDown: Vector2 | null = null;
 
-    function handleDoubleClick(event: MouseEvent) {
-        const mouse = new Vector2(
+    const mouseMoveThreshold = 0.01;
+
+    function getMouse(event: MouseEvent): Vector2 {
+        return new Vector2(
             lerp(-1, 1, event.offsetX / container.offsetWidth),
-            lerp(1, -1, event.offsetY / container.offsetHeight)
+            lerp(1, -1, event.offsetY / container.offsetHeight),
         );
-        onDoubleClick(mouse);
+    }
+
+    function onMouseDown(event: MouseEvent) {
+        mouseDown = getMouse(event);
+    }
+
+    function onMouseUp(event: MouseEvent) {
+        const mouseUp = getMouse(event);
+        if (mouseDown && mouseDown.distanceTo(mouseUp) < mouseMoveThreshold) {
+            onClick(mouseUp);
+        }
+        mouseDown = null;
     }
 
     onMount(() => {
         canvas = setup(container.clientWidth, container.clientHeight);
         container.appendChild(canvas);
 
-        canvas.addEventListener("dblclick", handleDoubleClick);
+        canvas.addEventListener("mousedown", onMouseDown);
+        canvas.addEventListener("mouseup", onMouseUp);
 
         function animate() {
             if (!running) {
@@ -50,7 +65,6 @@
         if (container && canvas && container.contains(canvas)) {
             container.removeChild(canvas);
         }
-        location.reload();
     });
 </script>
 
