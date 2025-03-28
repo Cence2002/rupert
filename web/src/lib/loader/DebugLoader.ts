@@ -55,10 +55,7 @@ export class DebugLoader implements AbstractLoader {
     }
 
     getBox(boxIndex: number): Box | null {
-        if (this.data === undefined) {
-            return null;
-        }
-        const box = this.data.boxes(boxIndex)!;
+        const box = this.data!.boxes(boxIndex)!;
         return new Box(
             parseId(box.theta()),
             parseId(box.phi()),
@@ -69,9 +66,6 @@ export class DebugLoader implements AbstractLoader {
 
     getBoxes(): Box[] {
         const boxes: Box[] = [];
-        if (this.data === undefined) {
-            return boxes;
-        }
         for (let boxIndex = 0; boxIndex < this.data!.boxesLength(); boxIndex++) {
             boxes.push(this.getBox(boxIndex)!);
         }
@@ -79,17 +73,11 @@ export class DebugLoader implements AbstractLoader {
     }
 
     getBoxCount(): number {
-        if (this.data === undefined) {
-            return 0;
-        }
-        return this.data.boxesLength();
+        return this.data!.boxesLength();
     }
 
     getRectangle(boxIndex: number, rectangleIndex: number): Rectangle | null {
-        if (this.data === undefined) {
-            return null;
-        }
-        const box = this.data.boxes(boxIndex)!;
+        const box = this.data!.boxes(boxIndex)!;
         const rectangle = box.rectangles(rectangleIndex)!;
         return new Rectangle(
             parseId(rectangle.theta()),
@@ -100,10 +88,7 @@ export class DebugLoader implements AbstractLoader {
 
     getRectangles(boxIndex: number): Rectangle[] {
         const rectangles: Rectangle[] = [];
-        if (this.data === undefined) {
-            return rectangles;
-        }
-        const box = this.data.boxes(boxIndex)!;
+        const box = this.data!.boxes(boxIndex)!;
         for (let rectangleIndex = 0; rectangleIndex < box.rectanglesLength(); rectangleIndex++) {
             rectangles.push(this.getRectangle(boxIndex, rectangleIndex)!);
         }
@@ -111,20 +96,14 @@ export class DebugLoader implements AbstractLoader {
     }
 
     getRectangleCount(boxIndex: number): number {
-        if (this.data === undefined) {
-            return 0;
-        }
-        const box = this.data.boxes(boxIndex)!;
+        const box = this.data!.boxes(boxIndex)!;
         return box.rectanglesLength();
     }
 
     getHole(): Vector3[] {
         const hole: Vector3[] = [];
-        if (this.data === undefined) {
-            return hole;
-        }
-        for (let vertexIndex = 0; vertexIndex < this.data.hole()!.verticesLength(); vertexIndex++) {
-            const holeVertex = this.data.hole()!.vertices(vertexIndex)!;
+        for (let vertexIndex = 0; vertexIndex < this.data!.hole()!.verticesLength(); vertexIndex++) {
+            const holeVertex = this.data!.hole()!.vertices(vertexIndex)!;
             hole.push(parseVertex(holeVertex));
         }
         return hole;
@@ -132,11 +111,8 @@ export class DebugLoader implements AbstractLoader {
 
     getPlug(): Vector3[] {
         const plug: Vector3[] = [];
-        if (this.data === undefined) {
-            return plug;
-        }
-        for (let vertexIndex = 0; vertexIndex < this.data.plug()!.verticesLength(); vertexIndex++) {
-            const plugVertex = this.data.plug()!.vertices(vertexIndex)!;
+        for (let vertexIndex = 0; vertexIndex < this.data!.plug()!.verticesLength(); vertexIndex++) {
+            const plugVertex = this.data!.plug()!.vertices(vertexIndex)!;
             plug.push(parseVertex(plugVertex));
         }
         return plug;
@@ -144,10 +120,7 @@ export class DebugLoader implements AbstractLoader {
 
     getHoleProjection(boxIndex: number): Edge[] {
         const holeProjectionHull: Edge[] = [];
-        if (this.data === undefined) {
-            return holeProjectionHull;
-        }
-        const box = this.data.boxes(boxIndex)!;
+        const box = this.data!.boxes(boxIndex)!;
         for (let edgeIndex = 0; edgeIndex < box.projection()!.edgesLength(); edgeIndex++) {
             const edge = box.projection()!.edges(edgeIndex)!;
             holeProjectionHull.push(new Edge(
@@ -159,20 +132,14 @@ export class DebugLoader implements AbstractLoader {
     }
 
     getInRectangleIndex(boxIndex: number): number | null {
-        if (this.data === undefined) {
-            return null;
-        }
-        const box = this.data.boxes(boxIndex)!;
+        const box = this.data!.boxes(boxIndex)!;
         const inIndex = box.inIndex()
         return inIndex === -1 ? null : inIndex;
     }
 
     getHoleVertexProjections(boxIndex: number): Vector2[][] {
         const holeVertexProjections: Vector2[][] = [];
-        if (this.data === undefined) {
-            return holeVertexProjections;
-        }
-        const box = this.data.boxes(boxIndex)!;
+        const box = this.data!.boxes(boxIndex)!;
         for (let projectionIndex = 0; projectionIndex < box.projectionsLength(); projectionIndex++) {
             const projection = box.projections(projectionIndex)!;
             const vertexProjections = [];
@@ -187,10 +154,7 @@ export class DebugLoader implements AbstractLoader {
 
     getPlugVertexProjections(boxIndex: number, rectangleIndex: number): Vector2[][] {
         const plugVertexProjections: Vector2[][] = [];
-        if (this.data === undefined) {
-            return plugVertexProjections;
-        }
-        const box = this.data.boxes(boxIndex)!;
+        const box = this.data!.boxes(boxIndex)!;
         const rectangle = box.rectangles(rectangleIndex)!;
         for (let projectionIndex = 0; projectionIndex < rectangle.projectionsLength(); projectionIndex++) {
             const projection = rectangle.projections(projectionIndex)!;
@@ -206,10 +170,7 @@ export class DebugLoader implements AbstractLoader {
 
     getOutVertexIndices(boxIndex: number, rectangleIndex: number): number[] {
         const outIndices: number[] = [];
-        if (this.data === undefined) {
-            return outIndices;
-        }
-        const box = this.data.boxes(boxIndex)!;
+        const box = this.data!.boxes(boxIndex)!;
         const rectangle = box.rectangles(rectangleIndex)!;
         for (let outIndex = 0; outIndex < rectangle.outIndicesLength(); outIndex++) {
             outIndices.push(rectangle.outIndices(outIndex)!);

@@ -63,6 +63,9 @@ function parsePolyhedron(reader: BinaryReader): Vector3[] {
 }
 
 function parseId(reader: BinaryReader, scale: number = 1): Id {
+    if (reader.remainingBytes < 2) {
+        throw new Error("Not enough bytes to read id.");
+    }
     const packed = reader.readUint16();
     let depth: number, bits: number;
     if (packed === 0) {
@@ -80,6 +83,9 @@ function parseId(reader: BinaryReader, scale: number = 1): Id {
 }
 
 function parseBox(reader: BinaryReader): Box {
+    if (reader.remainingBytes < 6) {
+        throw new Error("Not enough bytes to read box.");
+    }
     const theta = parseId(reader, TWO_PI);
     const phi = parseId(reader, PI);
     const alpha = parseId(reader, TWO_PI);
@@ -87,6 +93,9 @@ function parseBox(reader: BinaryReader): Box {
 }
 
 function parseRectangle(reader: BinaryReader): Rectangle {
+    if (reader.remainingBytes < 4) {
+        throw new Error("Not enough bytes to read rectangle.");
+    }
     const theta = parseId(reader, TWO_PI);
     const phi = parseId(reader, PI);
     return new Rectangle(theta, phi, true);
@@ -98,7 +107,8 @@ function parseTerminalBox(reader: BinaryReader): TerminalBox {
     const rectangles: Rectangle[] = [];
 
     for (let i = 0; i < rectCount; i++) {
-        rectangles.push(parseRectangle(reader));
+        // rectangles.push(parseRectangle(reader));
+        parseRectangle(reader);
     }
 
     return new TerminalBox(box, rectangles);
@@ -116,12 +126,12 @@ export function parseAllTerminalBoxes(buffer: ArrayBuffer): TerminalBox[] {
     const result: TerminalBox[] = [];
 
     while (!reader.isEOF) {
-        if (reader.remainingBytes < 14) {
+        if (reader.remainingBytes < 6 + 4 + 4) {
             break;
         }
         const terminalBox = parseTerminalBox(reader);
         result.push(terminalBox);
-        if (result.length % 100 === 0) {
+        if (result.length % 1000 === 0) {
             console.log("Parsed", result.length, "terminal boxes.");
         }
     }
