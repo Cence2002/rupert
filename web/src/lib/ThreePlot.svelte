@@ -65,6 +65,7 @@
         if (container && canvas && container.contains(canvas)) {
             container.removeChild(canvas);
         }
+        location.reload();
     });
 </script>
 
