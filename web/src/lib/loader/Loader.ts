@@ -75,9 +75,7 @@ function parseId(reader: BinaryReader, scale: number = 1): Id {
     }
     const min = bits / (1 << depth) * scale;
     const max = (bits + 1) / (1 << depth) * scale;
-    const mid = (min + max) / 2;
-    const len = max - min;
-    const interval = new Interval(min, max, mid, len);
+    const interval = new Interval(min, max);
     return new Id(depth, bits, interval);
 }
 

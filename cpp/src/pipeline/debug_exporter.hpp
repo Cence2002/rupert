@@ -37,9 +37,7 @@ template<IntervalType Interval>
 FlatBuffers::Interval to_flatbuffers_interval(const Interval& interval) {
     return FlatBuffers::Interval(
         interval.min().float_value(),
-        interval.max().float_value(),
-        interval.mid().float_value(),
-        interval.len().float_value()
+        interval.max().float_value()
     );
 }
 

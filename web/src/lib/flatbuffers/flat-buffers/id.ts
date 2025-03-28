@@ -27,14 +27,12 @@ interval(obj?:Interval):Interval|null {
 }
 
 static sizeOf():number {
-  return 40;
+  return 24;
 }
 
-static createId(builder:flatbuffers.Builder, depth: number, bits: number, interval_min: number, interval_max: number, interval_mid: number, interval_len: number):flatbuffers.Offset {
-  builder.prep(8, 40);
-  builder.prep(8, 32);
-  builder.writeFloat64(interval_len);
-  builder.writeFloat64(interval_mid);
+static createId(builder:flatbuffers.Builder, depth: number, bits: number, interval_min: number, interval_max: number):flatbuffers.Offset {
+  builder.prep(8, 24);
+  builder.prep(8, 16);
   builder.writeFloat64(interval_max);
   builder.writeFloat64(interval_min);
   builder.pad(4);

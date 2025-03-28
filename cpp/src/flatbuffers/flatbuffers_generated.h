@@ -122,21 +122,15 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Interval FLATBUFFERS_FINAL_CLASS {
  private:
   double min_;
   double max_;
-  double mid_;
-  double len_;
 
  public:
   Interval()
       : min_(0),
-        max_(0),
-        mid_(0),
-        len_(0) {
+        max_(0) {
   }
-  Interval(double _min, double _max, double _mid, double _len)
+  Interval(double _min, double _max)
       : min_(flatbuffers::EndianScalar(_min)),
-        max_(flatbuffers::EndianScalar(_max)),
-        mid_(flatbuffers::EndianScalar(_mid)),
-        len_(flatbuffers::EndianScalar(_len)) {
+        max_(flatbuffers::EndianScalar(_max)) {
   }
   double min() const {
     return flatbuffers::EndianScalar(min_);
@@ -144,14 +138,8 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Interval FLATBUFFERS_FINAL_CLASS {
   double max() const {
     return flatbuffers::EndianScalar(max_);
   }
-  double mid() const {
-    return flatbuffers::EndianScalar(mid_);
-  }
-  double len() const {
-    return flatbuffers::EndianScalar(len_);
-  }
 };
-FLATBUFFERS_STRUCT_END(Interval, 32);
+FLATBUFFERS_STRUCT_END(Interval, 16);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Id FLATBUFFERS_FINAL_CLASS {
  private:
@@ -190,7 +178,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Id FLATBUFFERS_FINAL_CLASS {
     return interval_;
   }
 };
-FLATBUFFERS_STRUCT_END(Id, 40);
+FLATBUFFERS_STRUCT_END(Id, 24);
 
 struct Polygon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef PolygonBuilder Builder;

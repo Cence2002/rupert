@@ -9,8 +9,6 @@ function parseInterval(interval): Interval {
     return new Interval(
         interval.min(),
         interval.max(),
-        interval.mid(),
-        interval.len()
     );
 }
 

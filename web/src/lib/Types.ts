@@ -6,12 +6,15 @@ import {PI, TWO_PI} from "$lib/Geometry";
 //TODO: Use override keyword for methods
 
 export class Interval {
+    public mid: number;
+    public len: number;
+
     constructor(
         public min: number,
-        public max: number,
-        public mid: number,
-        public len: number
+        public max: number
     ) {
+        this.mid = (min + max) / 2;
+        this.len = max - min;
     }
 }
 

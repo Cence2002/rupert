@@ -19,22 +19,12 @@ max():number {
   return this.bb!.readFloat64(this.bb_pos + 8);
 }
 
-mid():number {
-  return this.bb!.readFloat64(this.bb_pos + 16);
-}
-
-len():number {
-  return this.bb!.readFloat64(this.bb_pos + 24);
-}
-
 static sizeOf():number {
-  return 32;
+  return 16;
 }
 
-static createInterval(builder:flatbuffers.Builder, min: number, max: number, mid: number, len: number):flatbuffers.Offset {
-  builder.prep(8, 32);
-  builder.writeFloat64(len);
-  builder.writeFloat64(mid);
+static createInterval(builder:flatbuffers.Builder, min: number, max: number):flatbuffers.Offset {
+  builder.prep(8, 16);
   builder.writeFloat64(max);
   builder.writeFloat64(min);
   return builder.offset();

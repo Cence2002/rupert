@@ -27,8 +27,6 @@ table Polyhedron {
 struct Interval {
   min: double;
   max: double;
-  mid: double;
-  len: double;
 }
 
 struct Id {
