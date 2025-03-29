@@ -56,6 +56,8 @@
     controls.minDistance = 0.01;
     controls.maxDistance = 100;
 
+    // TODO: stats from https://github.com/mrdoob/three.js/blob/master/examples/misc_controls_fly.html
+
     let boxes: InstancedMesh;
 
     const boxesMaterial = new MeshBasicMaterial({
@@ -121,6 +123,21 @@
             }
         }
         scene.add(boxes);
+
+
+        function getVolume(matrix: Matrix4) {
+            const scale = new Vector3();
+            matrix.decompose(new Vector3(), new Quaternion(), scale);
+            return scale.x * scale.y * scale.z;
+        }
+
+        const totalVolume = loader.getBoxes().reduce((totalVolume, box) => {
+            const matrix = new Matrix4();
+            matrix.makeTranslation(box.position());
+            matrix.scale(box.scale());
+            return totalVolume + getVolume(matrix);
+        }, 0);
+        console.log("Total volume: " + (totalVolume.toFixed(5) * 100) + "%");
 
         const boxEdgesGeometry = new BufferGeometry();
         boxEdgesGeometry.setAttribute('position', new Float32BufferAttribute(edgeBuffer, 3));
