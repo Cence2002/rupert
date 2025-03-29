@@ -131,12 +131,23 @@ export function parseAllTerminalBoxes(buffer: ArrayBuffer): TerminalBox[] {
         }
         const terminalBox = parseTerminalBox(reader);
         result.push(terminalBox);
-        if (result.length % 1000 === 0) {
+        if (result.length % 100000 === 0) {
             console.log("Parsed", result.length, "terminal boxes.");
         }
     }
 
     return result;
+}
+
+function humanReadableBytes(bytes: number): string {
+    const units = ["B", "KiB", "MiB", "GiB"];
+    let unitIndex = 0;
+    const base = 1024;
+    while (bytes >= base && unitIndex < units.length - 1) {
+        bytes /= base;
+        unitIndex++;
+    }
+    return bytes.toFixed(2) + " " + units[unitIndex];
 }
 
 export class Loader implements AbstractLoader {
@@ -151,6 +162,7 @@ export class Loader implements AbstractLoader {
             return undefined;
         }
         const buffer = await response.arrayBuffer();
+        console.log("Loaded polyhedra file (" + humanReadableBytes(buffer.byteLength) + ")");
         const {hole, plug} = parsePolyhedraFile(buffer);
         this.hole = hole;
         this.plug = plug;
@@ -163,6 +175,7 @@ export class Loader implements AbstractLoader {
             return undefined;
         }
         const buffer = await response.arrayBuffer();
+        console.log("Loaded terminal boxes file (" + humanReadableBytes(buffer.byteLength) + ")");
         this.terminalBoxes = parseAllTerminalBoxes(buffer);
     }
 
