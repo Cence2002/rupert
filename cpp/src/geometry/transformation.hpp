@@ -77,10 +77,7 @@ std::vector<Vector<Interval>> projection_hull_triangle(const Vertex<Interval>& v
         return projection_hull_combined(vertex, theta, phi);
     }
 
-    const Vector<Interval> reflected_vertex = Vector<Interval>(vertex.x(), -vertex.y());
-    const Interval shifted_theta = theta + Interval::pi() / 2;
-
-    std::vector<Vector<Interval>> rotation_hull = rotation_hull_triangle(reflected_vertex, shifted_theta);
+    std::vector<Vector<Interval>> rotation_hull = rotation_hull_triangle(vertex, theta);
     if(rotation_hull.size() != 3) {
         throw std::runtime_error("rotation_hull_triangle must return 3 vertices");
     }
@@ -118,10 +115,8 @@ std::vector<Vector<Interval>> projection_hull_polygon(const Vertex<Interval>& ve
         return projection_hull_combined(vertex, theta, phi);
     }
 
-    const Vector<Interval> reflected_vertex = Vector<Interval>(vertex.x(), -vertex.y());
-    const Interval shifted_theta = theta + Interval::pi() / 2;
-
-    const std::vector<Vector<Interval>> rotation_hull = rotation_hull_polygon(reflected_vertex, shifted_theta, resolution);
+    const Vector<Interval> vector = Vector<Interval>(vertex.x(), vertex.y());
+    const std::vector<Vector<Interval>> rotation_hull = rotation_hull_polygon(vector, theta, resolution);
 
     std::vector<Vector<Interval>> projected_vertices;
     for(const Vector<Interval>& rotated_vertex: rotation_hull) {
@@ -194,7 +189,7 @@ std::vector<Vector<Interval>> vector_hull(const Vector<Interval>& vector) {
     };
 }
 
-// (x, y) rotated with angle alpha
+// (X, Y) = R(alpha) * (x, y)
 // X = x * cos(alpha) - y * sin(alpha)
 // Y = x * sin(alpha) + y * cos(alpha)
 
@@ -214,28 +209,22 @@ Vector<Interval> rotation_combined(const Vector<Interval>& projected_vertex, con
     );
 }
 
-// (x, y, z) projected angle theta and phi
-// X = -x * sin(theta) + y * cos(theta)
+// (X, Y, _) = Rx(phi) * Rz(theta) * (x, y, z)
+// X = x * cos(theta) - y * sin(theta)
 // Y = (x * cos(theta) + y * sin(theta)) * cos(phi) - z * sin(phi)
 
 template<IntervalType Interval>
 Vector<Interval> projection_trivial(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) {
-    const Vector<Interval> reflected_vertex = Vector<Interval>(vertex.x(), -vertex.y());
-    const Interval shifted_theta = theta + Interval::pi() / 2;
-    const Vector<Interval> rotated_reflected_vertex = rotation_trivial(reflected_vertex, shifted_theta);
     return Vector<Interval>(
-        rotated_reflected_vertex.x(),
-        harmonic_trivial(rotated_reflected_vertex.y(), -vertex.z(), phi)
+        harmonic_trivial(vertex.x(), -vertex.y(), theta),
+        harmonic_trivial(harmonic_trivial(vertex.y(), vertex.x(), theta), -vertex.z(), phi)
     );
 }
 
 template<IntervalType Interval>
 Vector<Interval> projection_combined(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) {
-    const Vector<Interval> reflected_vertex = Vector<Interval>(vertex.x(), -vertex.y());
-    const Interval shifted_theta = theta + Interval::pi() / 2;
-    const Vector<Interval> rotated_reflected_vertex = rotation_combined(reflected_vertex, shifted_theta);
     return Vector<Interval>(
-        rotated_reflected_vertex.x(),
-        harmonic_combined(rotated_reflected_vertex.y(), -vertex.z(), phi)
+        harmonic_combined(vertex.x(), -vertex.y(), theta),
+        harmonic_combined(harmonic_combined(vertex.y(), vertex.x(), theta), -vertex.z(), phi)
     );
 }
