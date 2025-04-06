@@ -72,3 +72,70 @@ export function transformPlugVertex(vertex: Vector3, rectangle: Rectangle, theta
     const projected_vertex = projectVertex(vertex, theta, phi);
     target.copy(projected_vertex);
 }
+
+
+function createOrthonormalBasis(p, q) {
+    const v1 = p.clone().normalize();
+    const proj = v1.clone().multiplyScalar(q.dot(v1));
+    const v2 = q.clone().sub(proj).normalize();
+    const v3 = new Vector3().crossVectors(v1, v2).normalize();
+    return new Matrix3().set(
+        v1.x, v2.x, v3.x,
+        v1.y, v2.y, v3.y,
+        v1.z, v2.z, v3.z
+    );
+}
+
+function closestPoint(points, point, tolerance) {
+    let minDistance = Infinity;
+    let closest = null;
+    for (let i = 0; i < points.length; i++) {
+        const dist = points[i].distanceTo(point);
+        if (tolerance < dist && dist < minDistance) {
+            minDistance = dist;
+            closest = points[i].clone();
+        }
+    }
+    return closest;
+}
+
+export function symmetries(points, tolerance) {
+    const symmetries = [];
+    if (points.length < 3) {
+        return symmetries;
+    }
+
+    const A = points[0].clone();
+    const B = closestPoint(points, A, tolerance);
+
+    const basis = createOrthonormalBasis(A, B);
+
+    for (const imageA of points) {
+        for (const imageB of points) {
+            if (imageB.equals(imageA)) {
+                continue;
+            }
+
+            if (Math.abs(imageA.distanceTo(imageB) - A.distanceTo(B)) > tolerance) {
+                continue;
+            }
+
+            const imageBasis = createOrthonormalBasis(imageA, imageB);
+            const rotationMatrix = new Matrix3().multiplyMatrices(imageBasis, basis.clone().transpose());
+
+            let valid = true;
+            for (const point of points) {
+                const imagePoint = point.clone().applyMatrix3(rotationMatrix);
+                if (!points.some(other => imagePoint.distanceTo(other) < tolerance)) {
+                    valid = false;
+                    break;
+                }
+            }
+
+            if (valid) {
+                symmetries.push(rotationMatrix);
+            }
+        }
+    }
+    return symmetries;
+}

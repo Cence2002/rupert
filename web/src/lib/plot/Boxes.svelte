@@ -23,8 +23,11 @@
         DoubleSide,
         Quaternion,
         EdgesGeometry,
+        Matrix3,
+        Mesh
     } from "three";
     import type {AbstractLoader} from "$lib/loader/AbstractLoader";
+    import {PI, symmetries, TWO_PI} from "$lib/Geometry";
 
     const {loader, state} = $props<{
         loader: AbstractLoader,
@@ -79,9 +82,105 @@
         depthTest: false,
     });
 
+
     function onLoad() {
         if (!state.loaded) {
             return;
+        }
+
+        {
+            const hole = loader.getHole();
+
+            function computeMatrix(theta, phi) {
+                const Rx = new Matrix3();
+                const Rz = new Matrix3();
+                const angleX = Math.PI - phi;
+                const angleZ = -theta - Math.PI / 2;
+                Rx.set(1, 0, 0, 0, Math.cos(angleX), -Math.sin(angleX), 0, Math.sin(angleX), Math.cos(angleX));
+                Rz.set(Math.cos(angleZ), -Math.sin(angleZ), 0, Math.sin(angleZ), Math.cos(angleZ), 0, 0, 0, 1);
+                const M = new Matrix3();
+                M.copy(Rx);
+                M.multiply(Rz);
+                return M;
+            }
+
+            function computeAngles(rotationMatrix) {
+                const e = rotationMatrix.elements;
+                const r13 = e[6], r23 = e[7], r33 = e[8], r31 = e[2], r32 = e[5];
+
+                let theta = -Math.atan2(r31, r32) - Math.PI / 2;
+                if (new Vector2(r31, r32).length() < 1e-6) {
+                    theta = 0;
+                }
+
+                let phi = Math.acos(-r33);
+
+                let alpha = Math.atan2(r13, -r23);
+                if (new Vector2(r13, -r23).length() < 1e-6) {
+                    alpha = 0;
+                }
+
+                if (theta < -1e-6) theta += 2 * Math.PI;
+                if (phi < -1e-6) phi += Math.PI;
+                if (alpha < -1e-6) alpha += 2 * Math.PI;
+
+                return new Vector3(theta, phi, alpha);
+            }
+
+            function parametric(R, theta, phi, target) {
+                const matrix = computeMatrix(theta, phi);
+                const totalMatrix = matrix.clone().multiply(R);
+                const angles = computeAngles(totalMatrix);
+                target.set(angles.x / TWO_PI, angles.y / PI, angles.z / TWO_PI);
+            }
+
+            for (let symmetry of symmetries(hole, 1e-6)) {
+                const resolution = 100;
+                const threshold = 8 / resolution;
+                const vertices = [];
+                const grid = [];
+                for (let i = 0; i <= resolution; i++) {
+                    grid[i] = [];
+                    const u = i / resolution * TWO_PI;
+                    for (let j = 0; j <= resolution; j++) {
+                        const v = j / resolution * PI;
+                        const point = new Vector3();
+                        parametric(symmetry, u, v, point);
+                        vertices.push(point.x, point.y, point.z);
+                        grid[i][j] = i * (resolution + 1) + j;
+                    }
+                }
+                const indices = [];
+                for (let i = 0; i < resolution; i++) {
+                    for (let j = 0; j < resolution; j++) {
+                        const a = grid[i][j];
+                        const b = grid[i + 1][j];
+                        const c = grid[i][j + 1];
+                        const d = grid[i + 1][j + 1];
+                        const va = new Vector3(vertices[3 * a], vertices[3 * a + 1], vertices[3 * a + 2]);
+                        const vb = new Vector3(vertices[3 * b], vertices[3 * b + 1], vertices[3 * b + 2]);
+                        const vc = new Vector3(vertices[3 * c], vertices[3 * c + 1], vertices[3 * c + 2]);
+                        const vd = new Vector3(vertices[3 * d], vertices[3 * d + 1], vertices[3 * d + 2]);
+                        if (va.distanceTo(vb) < threshold && va.distanceTo(vc) < threshold && vb.distanceTo(vd) < threshold && vc.distanceTo(vd) < threshold) {
+                            indices.push(a, b, c);
+                            indices.push(b, d, c);
+                        }
+                    }
+                }
+                const geometry = new BufferGeometry();
+                geometry.setAttribute('position', new Float32BufferAttribute(vertices, 3));
+                geometry.setIndex(indices);
+                geometry.computeVertexNormals();
+                const material = new MeshBasicMaterial({
+                    color: new Color(Math.random(), Math.random(), Math.random()),
+                    transparent: true,
+                    opacity: 0.1,
+                    side: DoubleSide,
+                    depthWrite: false,
+                });
+                const mesh = new Mesh(geometry, material);
+                scene.add(mesh);
+            }
         }
 
         const boxesGeometry = new BoxGeometry(1, 1, 1);
