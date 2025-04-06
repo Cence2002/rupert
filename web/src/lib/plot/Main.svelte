@@ -23,7 +23,7 @@
     import {AxesHelper} from "three";
     import {lerp} from "three/src/math/MathUtils.js";
     import type {AbstractLoader} from "$lib/loader/AbstractLoader";
-    import {PHI, transformHoleVertex, transformPlugVertex, TWO_PI} from "$lib/Geometry";
+    import {PHI, transformationMatrix, transformHoleVertex, transformPlugVertex, TWO_PI} from "$lib/Geometry";
 
     const {loader, state, getProjectionScene} = $props<{
         loader: AbstractLoader,
@@ -248,13 +248,11 @@
         };
     }
 
-    function projection_rotation_quaternion(theta: number, phi: number, alpha: number): Quaternion {
-        const q_theta = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), theta);
-        const q_phi = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), phi);
-        const q_alpha = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), alpha);
-        const q_total = new Quaternion();
-        q_total.copy(q_alpha).multiply(q_phi).multiply(q_theta);
-        return q_total;
+    function transformationQuaternion(theta: number, phi: number, alpha: number): Quaternion {
+        const matrix = transformationMatrix(theta, phi, alpha);
+        const quaternion = new Quaternion();
+        quaternion.setFromRotationMatrix(matrix);
+        return quaternion;
     }
 
     function updateAnimation() {
@@ -264,25 +262,25 @@
         if (holeGroup && state.selectedBox !== null) {
             const box = loader.getBox(state.selectedBox);
 
-            holeGroup.quaternion.copy(projection_rotation_quaternion(
+            holeGroup.quaternion.copy(transformationQuaternion(
                 lerp(box.theta.interval.min, box.theta.interval.max, holeAnimation.theta.normalizedValue(time)),
                 lerp(box.phi.interval.min, box.phi.interval.max, holeAnimation.phi.normalizedValue(time)),
                 lerp(box.alpha.interval.min, box.alpha.interval.max, holeAnimation.alpha.normalizedValue(time))
             ));
         } else if (holeGroup) {
-            holeGroup.quaternion.copy(projection_rotation_quaternion(0, 0, 0));
+            holeGroup.quaternion.copy(transformationQuaternion(0, 0, 0));
         }
 
         if (plugGroup && state.selectedBox !== null && state.selectedRectangle !== null) {
             const rectangle = loader.getRectangle(state.selectedBox, state.selectedRectangle);
 
-            plugGroup.quaternion.copy(projection_rotation_quaternion(
+            plugGroup.quaternion.copy(transformationQuaternion(
                 lerp(rectangle.theta.interval.min, rectangle.theta.interval.max, plugAnimation.theta.normalizedValue(time)),
                 lerp(rectangle.phi.interval.min, rectangle.phi.interval.max, plugAnimation.phi.normalizedValue(time)),
                 0
             ));
         } else if (plugGroup) {
-            plugGroup.quaternion.copy(projection_rotation_quaternion(0, 0, 0));
+            plugGroup.quaternion.copy(transformationQuaternion(0, 0, 0));
         }
     }
 
