@@ -1,4 +1,4 @@
-import {Matrix3, Vector2, Vector3} from "three";
+import {Matrix3, Matrix4, Vector2, Vector3} from "three";
 import type {Rectangle, Box} from "$lib/Types";
 
 export const PI = Math.PI;
@@ -29,26 +29,25 @@ export function convexHull(points: Vector2[]): Vector2[] {
     return hull;
 }
 
-function projectVertex(vertex: Vector3, theta: number, phi: number): Vector3 {
-    const cos_theta = Math.cos(theta);
-    const sin_theta = Math.sin(theta);
-    const cos_phi = Math.cos(phi);
-    const sin_phi = Math.sin(phi);
-    return new Vector3(
-        vertex.x * cos_theta - vertex.y * sin_theta,
-        (vertex.x * sin_theta + vertex.y * cos_theta) * cos_phi - vertex.z * sin_phi,
-        (vertex.x * sin_theta + vertex.y * cos_theta) * sin_phi + vertex.z * cos_phi
-    );
+export function projectionMatrix(theta: number, phi: number): Matrix4 {
+    const zAxis = new Vector3(0, 0, 1);
+    const xAxis = new Vector3(1, 0, 0);
+
+    const Rz = new Matrix4().makeRotationAxis(zAxis, theta);
+    const Rx = new Matrix4().makeRotationAxis(xAxis, phi);
+
+    return Rx.multiply(Rz);
 }
 
-function rotateVertex(vertex: Vector3, alpha: number): Vector3 {
-    const cos_alpha = Math.cos(alpha);
-    const sin_alpha = Math.sin(alpha);
-    return new Vector3(
-        vertex.x * cos_alpha - vertex.y * sin_alpha,
-        vertex.x * sin_alpha + vertex.y * cos_alpha,
-        vertex.z
-    );
+export function rotationMatrix(alpha: number): Matrix4 {
+    const zAxis = new Vector3(0, 0, 1);
+    return new Matrix4().makeRotationAxis(zAxis, alpha);
+}
+
+export function transformationMatrix(theta: number, phi: number, alpha: number): Matrix4 {
+    const projection = projectionMatrix(theta, phi);
+    const rotation = rotationMatrix(alpha);
+    return rotation.multiply(projection);
 }
 
 function lerp(min: number, max: number, t: number): number {
@@ -60,16 +59,17 @@ export function transformHoleVertex(vertex: Vector3, box: Box, theta_t: number, 
     const phi = lerp(box.phi.interval.min, box.phi.interval.max, phi_t);
     const alpha = lerp(box.alpha.interval.min, box.alpha.interval.max, alpha_t);
 
-    const projected_vertex = projectVertex(vertex, theta, phi);
-    const rotated_projected_vertex = rotateVertex(projected_vertex, alpha);
-    target.copy(rotated_projected_vertex);
+    const transformation = transformationMatrix(theta, phi, alpha);
+    const transformed_vertex = vertex.clone().applyMatrix4(transformation);
+    target.copy(transformed_vertex);
 }
 
 export function transformPlugVertex(vertex: Vector3, rectangle: Rectangle, theta_t: number, phi_t: number, target: Vector3) {
     const theta = lerp(rectangle.theta.interval.min, rectangle.theta.interval.max, theta_t);
     const phi = lerp(rectangle.phi.interval.min, rectangle.phi.interval.max, phi_t);
 
-    const projected_vertex = projectVertex(vertex, theta, phi);
+    const projection = projectionMatrix(theta, phi);
+    const projected_vertex = vertex.clone().applyMatrix4(projection);
     target.copy(projected_vertex);
 }
 
