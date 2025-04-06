@@ -132,12 +132,6 @@
             const vertices = loader.getHole();
             holeRadius = Math.max(...vertices.map((v: Vector3) => v.length()));
 
-            camera.position.setZ(2 * holeRadius);
-            camera.lookAt(0, 0, 2 * holeRadius);
-            camera.updateProjectionMatrix();
-            controls.target.set(0, 0, 2 * holeRadius);
-            controls.update();
-
             const holeGeometry = new ConvexGeometry(vertices);
             const holeMesh = new Mesh(holeGeometry, holeMaterial);
 
@@ -147,7 +141,7 @@
             holeGroup = new Group();
             holeGroup.add(holeMesh);
             holeGroup.add(holeEdgesMesh);
-            holeGroup.position.set(0, 0, holeRadius);
+            holeGroup.position.set(0, 0, -holeRadius);
             scene.add(holeGroup);
         }
 
@@ -164,7 +158,7 @@
             plugGroup = new Group();
             plugGroup.add(plugMesh);
             plugGroup.add(plugEdgesMesh);
-            plugGroup.position.set(0, 0, 2 * holeRadius + plugRadius);
+            plugGroup.position.set(0, 0, plugRadius);
             scene.add(plugGroup);
         }
     }
@@ -200,7 +194,7 @@
                             side: DoubleSide,
                         });
                         const mesh = new Mesh(geometry, material);
-                        mesh.position.set(0, 0, holeRadius);
+                        mesh.position.set(0, 0, -holeRadius);
                         transformedHoleVertices.push(mesh);
                     }
                 }
@@ -238,7 +232,7 @@
                     side: DoubleSide,
                 });
                 const transformedPlugVertex = new Mesh(transformedPlugVertexGeometry, transformedPlugVertexMaterial);
-                transformedPlugVertex.position.set(0, 0, 2 * holeRadius + plugRadius);
+                transformedPlugVertex.position.set(0, 0, plugRadius);
                 transformedPlugVertices.push(transformedPlugVertex);
             }
             for (const transformedPlugVertex of transformedPlugVertices) {
@@ -255,13 +249,11 @@
     }
 
     function projection_rotation_quaternion(theta: number, phi: number, alpha: number): Quaternion {
-        const q_init_0 = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI);
-        const q_init_1 = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI / 2);
         const q_theta = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), theta);
-        const q_phi = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -phi);
+        const q_phi = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), phi);
         const q_alpha = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), alpha);
         const q_total = new Quaternion();
-        q_total.copy(q_alpha).multiply(q_phi).multiply(q_theta).multiply(q_init_1).multiply(q_init_0);
+        q_total.copy(q_alpha).multiply(q_phi).multiply(q_theta);
         return q_total;
     }
 
@@ -302,10 +294,6 @@
             scene.add(axesHelper);
         }
 
-        {
-            projectionScene = getProjectionScene();
-        }
-
         return renderer.domElement;
     }
 
@@ -315,6 +303,8 @@
         renderer.clear();
         if (projectionScene !== null) {
             renderer.render(projectionScene, camera);
+        } else {
+            projectionScene = getProjectionScene();
         }
 
         renderer.render(scene, camera);

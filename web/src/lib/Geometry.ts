@@ -1,4 +1,4 @@
-import {Vector2, Vector3} from "three";
+import {Matrix3, Vector2, Vector3} from "three";
 import type {Rectangle, Box} from "$lib/Types";
 
 export const PI = Math.PI;
@@ -35,9 +35,9 @@ function projectVertex(vertex: Vector3, theta: number, phi: number): Vector3 {
     const cos_phi = Math.cos(phi);
     const sin_phi = Math.sin(phi);
     return new Vector3(
-        -vertex.x * sin_theta + vertex.y * cos_theta,
-        (vertex.x * cos_theta + vertex.y * sin_theta) * cos_phi - vertex.z * sin_phi,
-        -(vertex.x * cos_theta + vertex.y * sin_theta) * sin_phi - vertex.z * cos_phi
+        vertex.x * cos_theta - vertex.y * sin_theta,
+        (vertex.x * sin_theta + vertex.y * cos_theta) * cos_phi - vertex.z * sin_phi,
+        (vertex.x * sin_theta + vertex.y * cos_theta) * sin_phi + vertex.z * cos_phi
     );
 }
 
