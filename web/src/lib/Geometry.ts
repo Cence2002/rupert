@@ -74,11 +74,14 @@ export function transformPlugVertex(vertex: Vector3, rectangle: Rectangle, theta
 }
 
 
-function createOrthonormalBasis(p, q) {
+function createOrthonormalBasis(p, q, reflection = false) {
     const v1 = p.clone().normalize();
-    const proj = v1.clone().multiplyScalar(q.dot(v1));
-    const v2 = q.clone().sub(proj).normalize();
-    const v3 = new Vector3().crossVectors(v1, v2).normalize();
+    const proj = v1.clone().multiplyScalar(q.clone().normalize().dot(v1));
+    const v2 = q.clone().normalize().sub(proj).normalize();
+    let v3 = v1.clone().cross(v2).normalize();
+    if (reflection) {
+        v3 = v3.clone().multiplyScalar(-1);
+    }
     return new Matrix3().set(
         v1.x, v2.x, v3.x,
         v1.y, v2.y, v3.y,
@@ -100,7 +103,8 @@ function closestPoint(points, point, tolerance) {
 }
 
 export function symmetries(points, tolerance) {
-    const symmetries = [];
+    const rotations = [];
+    const reflections = [];
     if (points.length < 3) {
         return symmetries;
     }
@@ -120,22 +124,50 @@ export function symmetries(points, tolerance) {
                 continue;
             }
 
-            const imageBasis = createOrthonormalBasis(imageA, imageB);
-            const rotationMatrix = new Matrix3().multiplyMatrices(imageBasis, basis.clone().transpose());
+            const imageRotationBasis = createOrthonormalBasis(imageA, imageB);
+            const rotationMatrix = new Matrix3().multiplyMatrices(imageRotationBasis, basis.clone().transpose());
 
-            let valid = true;
+            const imageReflectionBasis = createOrthonormalBasis(imageA, imageB, true);
+            const reflectionMatrix = new Matrix3().multiplyMatrices(imageReflectionBasis, basis.clone().transpose());
+
+            let rotationValid = true;
             for (const point of points) {
                 const imagePoint = point.clone().applyMatrix3(rotationMatrix);
                 if (!points.some(other => imagePoint.distanceTo(other) < tolerance)) {
-                    valid = false;
+                    rotationValid = false;
                     break;
                 }
             }
 
-            if (valid) {
-                symmetries.push(rotationMatrix);
+            if (rotationValid) {
+                rotations.push(rotationMatrix);
+            }
+
+            let reflectionValid = true;
+            for (const point of points) {
+                const imagePoint = point.clone().applyMatrix3(reflectionMatrix);
+                if (!points.some(other => imagePoint.distanceTo(other) < tolerance)) {
+                    reflectionValid = false;
+                    break;
+                }
+            }
+            if (reflectionValid) {
+                reflections.push(reflectionMatrix);
             }
         }
     }
-    return symmetries;
+    return {rotations, reflections};
+}
+
+export function angleBetweenMatrices(m1: Matrix4, m2: Matrix4): number {
+    const relativeMatrix = m1.clone().multiply(m2.clone().invert());
+    const elements = relativeMatrix.elements;
+    const trace = elements[0] + elements[5] + elements[10];
+    const cosAngle = (trace - 1) / 2;
+    const clampedCosAngle = Math.max(-1, Math.min(1, cosAngle));
+    const angle = Math.acos(clampedCosAngle);
+    if (isNaN(angle)) {
+        console.error("NaN angle for trace:", trace, "m1:", m1, "m2:", m2);
+    }
+    return angle;
 }
