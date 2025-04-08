@@ -114,13 +114,13 @@
     const animationSpeed: number = 1;
 
     const holeAnimation: { theta: Animation, phi: Animation, alpha: Animation } = {
-        theta: new Animation(animationSpeed),
-        phi: new Animation(animationSpeed / PHI),
-        alpha: new Animation(animationSpeed / (PHI * PHI))
+        theta: new Animation(animationSpeed / (Math.random() + 1)),
+        phi: new Animation(animationSpeed / (Math.random() + 1)),
+        alpha: new Animation(animationSpeed / (Math.random() + 1))
     };
     const plugAnimation: { theta: Animation, phi: Animation } = {
-        theta: new Animation(animationSpeed),
-        phi: new Animation(animationSpeed / PHI)
+        theta: new Animation(animationSpeed / (Math.random() + 1)),
+        phi: new Animation(animationSpeed / (Math.random() + 1))
     };
 
     function onLoad() {
