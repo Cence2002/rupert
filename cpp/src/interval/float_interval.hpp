@@ -351,7 +351,7 @@ public:
         return FloatInterval(PI, PI);
     }
 
-    static void set_print_precision(const int print_precision) {
+    static void set_print_precision(const size_t print_precision) {
         Number::set_print_precision(print_precision);
     }
 

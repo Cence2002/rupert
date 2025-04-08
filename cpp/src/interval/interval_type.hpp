@@ -91,7 +91,7 @@ concept IntervalType =
         { Interval::pi() } -> std::same_as<Interval>;
     } &&
 
-    requires(const int print_precision) {
+    requires(const size_t print_precision) {
         { Interval::set_print_precision(print_precision) };
     } &&
 
