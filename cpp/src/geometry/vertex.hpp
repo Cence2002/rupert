@@ -10,7 +10,7 @@ private:
     Interval z_;
 
 public:
-    explicit Vertex() = default;
+    explicit Vertex() : x_(), y_(), z_() {}
 
     ~Vertex() = default;
 
@@ -78,6 +78,18 @@ public:
 
     Interval len_sqr() const {
         return x_.sqr() + y_.sqr() + z_.sqr();
+    }
+
+    Interval dot(const Vertex& vertex) const {
+        return x_ * vertex.x_ + y_ * vertex.y_ + z_ * vertex.z_;
+    }
+
+    Vertex cross(const Vertex& vertex) const {
+        return Vertex(
+            y_ * vertex.z_ - z_ * vertex.y_,
+            z_ * vertex.x_ - x_ * vertex.z_,
+            x_ * vertex.y_ - y_ * vertex.x_
+        );
     }
 
     friend std::ostream& operator<<(std::ostream& ostream, const Vertex& vertex) {
