@@ -11,7 +11,9 @@ concept IntegerType =
 template<typename Number>
 concept NumberType =
 
-    typename Number::Value &&
+    requires {
+        typename Number::Value;
+    } &&
 
     std::is_default_constructible_v<Number> &&
     std::is_constructible_v<Number, int> &&
