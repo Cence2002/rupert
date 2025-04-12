@@ -29,10 +29,10 @@ concept NumberType =
     requires(const Number number, const int integer) {
         { number.float_value() } -> std::same_as<double>;
 
+        { number.is_nan() } -> std::same_as<bool>;
         { number.is_positive() } -> std::same_as<bool>;
         { number.is_negative() } -> std::same_as<bool>;
         { number.is_nonzero() } -> std::same_as<bool>;
-        { number.is_nan() } -> std::same_as<bool>;
     } &&
 
     requires(std::ostream& ostream, const Number number, const size_t print_precision) {

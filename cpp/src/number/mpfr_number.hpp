@@ -75,6 +75,10 @@ public:
         return mpfr_get_d(value_, MPFR_RNDN);
     }
 
+    bool is_nan() const {
+        return mpfr_nan_p(value_);
+    }
+
     bool is_positive() const {
         return mpfr_sgn(value_) > 0;
     }
@@ -87,18 +91,14 @@ public:
         return mpfr_zero_p(value_) == 0;
     }
 
-    bool is_nan() const {
-        return mpfr_nan_p(value_);
-    }
-
-    static void set_print_precision(const size_t print_precision) {
-        print_precision_ = print_precision;
-    }
-
     friend std::ostream& operator<<(std::ostream& ostream, const MpfrNumber& number) {
         char *number_str = new char[print_precision_ + 8];
         mpfr_sprintf(number_str, "%.*Rg", print_precision_, number.value_);
         return ostream << number_str;
+    }
+
+    static void set_print_precision(const size_t print_precision) {
+        print_precision_ = print_precision;
     }
 
     static inline const std::string name = "MpfrNumber";

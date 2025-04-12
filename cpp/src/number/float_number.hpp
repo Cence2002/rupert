@@ -40,6 +40,10 @@ public:
         return value_;
     }
 
+    bool is_nan() const {
+        return std::isnan(value_);
+    }
+
     bool is_positive() const {
         return value_ > 0.0;
     }
@@ -52,19 +56,15 @@ public:
         return value_ != 0.0;
     }
 
-    bool is_nan() const {
-        return std::isnan(value_);
-    }
-
-    static void set_print_precision(const size_t print_precision) {
-        print_precision_ = print_precision;
-    }
-
     friend std::ostream& operator<<(std::ostream& ostream, const FloatNumber& number) {
         std::ostringstream number_str;
         number_str.precision(print_precision_);
         number_str << number.value_;
         return ostream << number_str.str();
+    }
+
+    static void set_print_precision(const size_t print_precision) {
+        print_precision_ = print_precision;
     }
 
     static inline const std::string name = "FloatNumber";
