@@ -89,35 +89,20 @@ public:
         return *this;
     }
 
-    Number min() const {
-        Number min;
-        mpfi_get_left(min.value(), interval_);
-        return min;
+    bool is_nan() const {
+        return mpfi_nan_p(interval_);
     }
 
-    Number max() const {
-        Number max;
-        mpfi_get_right(max.value(), interval_);
-        return max;
+    bool is_positive() const {
+        return mpfi_is_strictly_pos(interval_);
     }
 
-    Number mid() const {
-        Number mid;
-        mpfi_mid(mid.value(), interval_);
-        return mid;
+    bool is_negative() const {
+        return mpfi_is_strictly_neg(interval_);
     }
 
-    Number len() const {
-        Number len;
-        mpfi_diam_abs(len.value(), interval_);
-        return len;
-    }
-
-    Number rad() const {
-        Number rad;
-        mpfi_diam_abs(rad.value(), interval_);
-        mpfr_div_ui(rad.value(), rad.value(), 2, MPFR_RNDU);
-        return rad;
+    bool is_nonzero() const {
+        return !is_nan() && !mpfi_has_zero(interval_);
     }
 
     bool operator>(const MpfiInterval& interval) const {
@@ -194,20 +179,35 @@ public:
         return mpfi_cmp_si(interval.interval_, integer) > 0;
     }
 
-    bool is_positive() const {
-        return mpfi_is_strictly_pos(interval_);
+    Number min() const {
+        Number min;
+        mpfi_get_left(min.value(), interval_);
+        return min;
     }
 
-    bool is_negative() const {
-        return mpfi_is_strictly_neg(interval_);
+    Number max() const {
+        Number max;
+        mpfi_get_right(max.value(), interval_);
+        return max;
     }
 
-    bool is_nonzero() const {
-        return !is_nan() && !mpfi_has_zero(interval_);
+    Number mid() const {
+        Number mid;
+        mpfi_mid(mid.value(), interval_);
+        return mid;
     }
 
-    bool is_nan() const {
-        return mpfi_nan_p(interval_);
+    Number len() const {
+        Number len;
+        mpfi_diam_abs(len.value(), interval_);
+        return len;
+    }
+
+    Number rad() const {
+        Number rad;
+        mpfi_diam_abs(rad.value(), interval_);
+        mpfr_div_ui(rad.value(), rad.value(), 2, MPFR_RNDU);
+        return rad;
     }
 
     MpfiInterval operator+() const {
@@ -405,6 +405,27 @@ public:
         MpfiInterval sin;
         mpfi_sin(sin.interval_, interval_);
         return sin;
+    }
+
+    MpfiInterval tan() const {
+        if(is_nan()) {
+            return nan();
+        }
+        MpfiInterval tan;
+        mpfi_tan(tan.interval_, interval_);
+        return tan;
+    }
+
+    MpfiInterval acos() const {
+        MpfiInterval acos;
+        mpfi_acos(acos.interval_, interval_);
+        return acos;
+    }
+
+    MpfiInterval asin() const {
+        MpfiInterval asin;
+        mpfi_asin(asin.interval_, interval_);
+        return asin;
     }
 
     MpfiInterval atan() const {
