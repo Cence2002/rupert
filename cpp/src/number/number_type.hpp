@@ -24,11 +24,10 @@ concept NumberType =
         typename Number::Value;
         { number.value() } -> std::same_as<typename Number::Value&>;
         { const_number.value() } -> std::same_as<const typename Number::Value&>;
+        { number.float_value() } -> std::same_as<double>; // approximate
     } &&
 
-    requires(const Number number, const int integer) {
-        { number.float_value() } -> std::same_as<double>;
-
+    requires(const Number number) {
         { number.is_nan() } -> std::same_as<bool>;
         { number.is_positive() } -> std::same_as<bool>;
         { number.is_negative() } -> std::same_as<bool>;
@@ -36,7 +35,7 @@ concept NumberType =
     } &&
 
     requires(std::ostream& ostream, const Number number, const size_t print_precision) {
-        { ostream << number } -> std::same_as<std::ostream&>;
+        { ostream << number } -> std::same_as<std::ostream&>; // approximate
         { Number::set_print_precision(print_precision) } -> std::same_as<void>;
         { Number::name } -> std::convertible_to<std::string>; // TODO: remove this (only used for tests, should be handled there)
     };
