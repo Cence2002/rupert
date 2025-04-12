@@ -11,10 +11,6 @@ private:
     static inline size_t print_precision_ = 6;
 
 public:
-    static inline const std::string name = "FloatNumber";
-
-    using Value = double;
-
     explicit FloatNumber() : value_(std::numeric_limits<double>::quiet_NaN()) {}
 
     template<IntegerType Integer>
@@ -29,6 +25,8 @@ public:
     FloatNumber(FloatNumber&& number) = default;
 
     FloatNumber& operator=(FloatNumber&& number) = default;
+
+    using Value = double;
 
     double& value() {
         return value_;
@@ -58,10 +56,6 @@ public:
         return std::isnan(value_);
     }
 
-    static FloatNumber nan() {
-        return FloatNumber();
-    }
-
     static void set_print_precision(const size_t print_precision) {
         print_precision_ = print_precision;
     }
@@ -72,4 +66,6 @@ public:
         number_str << number.value_;
         return ostream << number_str.str();
     }
+
+    static inline const std::string name = "FloatNumber";
 };

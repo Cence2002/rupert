@@ -16,12 +16,9 @@ private:
     }
 
 public:
-    static inline const std::string name = "MpfrNumber";
-
-    using Value = mpfr_t;
-
     explicit MpfrNumber() {
         mpfr_init(value_);
+        mpfr_set_nan(value_);
     }
 
     template<IntegerType Integer>
@@ -64,6 +61,8 @@ public:
         return *this;
     }
 
+    using Value = mpfr_t;
+
     mpfr_t& value() {
         return value_;
     }
@@ -92,19 +91,15 @@ public:
         return mpfr_nan_p(value_);
     }
 
-    static MpfrNumber nan() {
-        MpfrNumber number;
-        mpfr_set_nan(number.value_);
-        return number;
-    }
-
     static void set_print_precision(const size_t print_precision) {
         print_precision_ = print_precision;
     }
 
     friend std::ostream& operator<<(std::ostream& ostream, const MpfrNumber& number) {
-        char* number_str = new char[print_precision_ + 10];
-        mpfr_sprintf(number_str, "%.*Rg", print_precision_, number.value());
+        char *number_str = new char[print_precision_ + 8];
+        mpfr_sprintf(number_str, "%.*Rg", print_precision_, number.value_);
         return ostream << number_str;
     }
+
+    static inline const std::string name = "MpfrNumber";
 };
