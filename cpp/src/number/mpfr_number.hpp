@@ -16,6 +16,8 @@ private:
     }
 
 public:
+    using Value = mpfr_t;
+
     explicit MpfrNumber() {
         mpfr_init(value_);
         mpfr_set_nan(value_);
@@ -60,8 +62,6 @@ public:
         }
         return *this;
     }
-
-    using Value = mpfr_t;
 
     mpfr_t& value() {
         return value_;

@@ -11,6 +11,8 @@ concept IntegerType =
 template<typename Number>
 concept NumberType =
 
+    typename Number::Value &&
+
     std::is_default_constructible_v<Number> &&
     std::is_constructible_v<Number, int> &&
 
@@ -21,7 +23,6 @@ concept NumberType =
     std::is_move_assignable_v<Number> &&
 
     requires(Number number, const Number const_number) {
-        typename Number::Value;
         { number.value() } -> std::same_as<typename Number::Value&>;
         { const_number.value() } -> std::same_as<const typename Number::Value&>;
         { number.float_value() } -> std::same_as<double>; // approximate

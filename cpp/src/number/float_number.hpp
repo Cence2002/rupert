@@ -11,6 +11,8 @@ private:
     static inline size_t print_precision_ = 6;
 
 public:
+    using Value = double;
+
     explicit FloatNumber() : value_(std::numeric_limits<double>::quiet_NaN()) {}
 
     template<IntegerType Integer>
@@ -25,8 +27,6 @@ public:
     FloatNumber(FloatNumber&& number) = default;
 
     FloatNumber& operator=(FloatNumber&& number) = default;
-
-    using Value = double;
 
     double& value() {
         return value_;
