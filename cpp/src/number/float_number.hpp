@@ -56,6 +56,10 @@ public:
         return value_ != 0.0;
     }
 
+    static FloatNumber nan() {
+        return FloatNumber();
+    }
+
     friend std::ostream& operator<<(std::ostream& ostream, const FloatNumber& number) {
         std::ostringstream number_str;
         number_str.precision(print_precision_);

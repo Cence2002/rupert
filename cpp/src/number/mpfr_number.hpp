@@ -91,6 +91,10 @@ public:
         return mpfr_zero_p(value_) == 0;
     }
 
+    static MpfrNumber nan() {
+        return MpfrNumber();
+    }
+
     friend std::ostream& operator<<(std::ostream& ostream, const MpfrNumber& number) {
         char *number_str = new char[print_precision_ + 8];
         mpfr_sprintf(number_str, "%.*Rg", print_precision_, number.value_);

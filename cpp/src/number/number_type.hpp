@@ -35,6 +35,8 @@ concept NumberType =
         { number.is_positive() } -> std::same_as<bool>;
         { number.is_negative() } -> std::same_as<bool>;
         { number.is_nonzero() } -> std::same_as<bool>;
+
+        { Number::nan() } -> std::same_as<Number>;
     } &&
 
     requires(std::ostream& ostream, const Number number, const size_t print_precision) {
