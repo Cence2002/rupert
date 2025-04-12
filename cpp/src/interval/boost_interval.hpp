@@ -45,40 +45,20 @@ public:
 
     BoostInterval& operator=(BoostInterval&& interval) = default;
 
-    Number min() const {
-        Number min;
-        min.value() = boost::numeric::lower(interval_);
-        return min;
+    bool is_nan() const {
+        return std::isnan(boost::numeric::lower(interval_)) || std::isnan(boost::numeric::upper(interval_));
     }
 
-    Number max() const {
-        Number max;
-        max.value() = boost::numeric::upper(interval_);
-        return max;
+    bool is_positive() const {
+        return boost::numeric::interval_lib::cergt(interval_, 0.0);
     }
 
-    Number mid() const {
-        Number mid;
-        mid.value() = boost::numeric::median(interval_);
-        return mid;
+    bool is_negative() const {
+        return boost::numeric::interval_lib::cerlt(interval_, 0.0);
     }
 
-    Number len() const {
-        if(is_nan()) {
-            return Number::nan();
-        }
-        Number len;
-        len.value() = boost::numeric::width(interval_);
-        return len;
-    }
-
-    Number rad() const {
-        if(is_nan()) {
-            return Number::nan();
-        }
-        Number rad;
-        rad.value() = boost::numeric::width(interval_) / 2;
-        return rad;
+    bool is_nonzero() const {
+        return !is_nan() && !boost::numeric::zero_in(interval_);
     }
 
     bool operator>(const BoostInterval& interval) const {
@@ -125,20 +105,40 @@ public:
         return boost::numeric::interval_lib::cerlt(static_cast<double>(n), interval.interval_);
     }
 
-    bool is_positive() const {
-        return boost::numeric::interval_lib::cergt(interval_, 0.0);
+    Number min() const {
+        Number min;
+        min.value() = boost::numeric::lower(interval_);
+        return min;
     }
 
-    bool is_negative() const {
-        return boost::numeric::interval_lib::cerlt(interval_, 0.0);
+    Number max() const {
+        Number max;
+        max.value() = boost::numeric::upper(interval_);
+        return max;
     }
 
-    bool is_nonzero() const {
-        return !is_nan() && !boost::numeric::zero_in(interval_);
+    Number mid() const {
+        Number mid;
+        mid.value() = boost::numeric::median(interval_);
+        return mid;
     }
 
-    bool is_nan() const {
-        return std::isnan(boost::numeric::lower(interval_)) || std::isnan(boost::numeric::upper(interval_));
+    Number len() const {
+        if(is_nan()) {
+            return Number();
+        }
+        Number len;
+        len.value() = boost::numeric::width(interval_);
+        return len;
+    }
+
+    Number rad() const {
+        if(is_nan()) {
+            return Number();
+        }
+        Number rad;
+        rad.value() = boost::numeric::width(interval_) / 2;
+        return rad;
     }
 
     BoostInterval operator+() const {
@@ -252,6 +252,80 @@ public:
         return BoostInterval(static_cast<double>(integer) / interval.interval_);
     }
 
+    //+=, -=, *=, /=
+    BoostInterval& operator+=(const BoostInterval& interval) {
+        interval_ += interval.interval_;
+        return *this;
+    }
+
+    BoostInterval& operator+=(const Number& number) {
+        interval_ += number.value();
+        return *this;
+    }
+
+    template<IntegerType Integer>
+    BoostInterval& operator+=(const Integer integer) {
+        interval_ += static_cast<double>(integer);
+        return *this;
+    }
+
+    BoostInterval& operator-=(const BoostInterval& interval) {
+        interval_ -= interval.interval_;
+        return *this;
+    }
+
+    BoostInterval& operator-=(const Number& number) {
+        interval_ -= number.value();
+        return *this;
+    }
+
+    template<IntegerType Integer>
+    BoostInterval& operator-=(const Integer integer) {
+        interval_ -= static_cast<double>(integer);
+        return *this;
+    }
+
+    BoostInterval& operator*=(const BoostInterval& interval) {
+        interval_ *= interval.interval_;
+        return *this;
+    }
+
+    BoostInterval& operator*=(const Number& number) {
+        interval_ *= number.value();
+        return *this;
+    }
+
+    template<IntegerType Integer>
+    BoostInterval& operator*=(const Integer integer) {
+        interval_ *= static_cast<double>(integer);
+        return *this;
+    }
+
+    BoostInterval& operator/=(const BoostInterval& interval) {
+        if(!interval.is_nonzero()) {
+            return *this = nan();
+        }
+        interval_ /= interval.interval_;
+        return *this;
+    }
+
+    BoostInterval& operator/=(const Number& number) {
+        if(!number.is_nonzero()) {
+            return *this = nan();
+        }
+        interval_ /= number.value();
+        return *this;
+    }
+
+    template<IntegerType Integer>
+    BoostInterval& operator/=(const Integer integer) {
+        if(integer == 0) {
+            return *this = nan();
+        }
+        interval_ /= static_cast<double>(integer);
+        return *this;
+    }
+
     BoostInterval inv() const {
         if(!is_nonzero()) {
             return nan();
@@ -278,6 +352,18 @@ public:
         return BoostInterval(boost::numeric::sin(interval_));
     }
 
+    BoostInterval tan() const {
+        return BoostInterval(boost::numeric::tan(interval_));
+    }
+
+    BoostInterval acos() const {
+        return BoostInterval(boost::numeric::acos(interval_));
+    }
+
+    BoostInterval asin() const {
+        return BoostInterval(boost::numeric::asin(interval_));
+    }
+
     BoostInterval atan() const {
         return BoostInterval(boost::numeric::atan(interval_));
     }
@@ -294,7 +380,7 @@ public:
         return BoostInterval(boost::numeric::interval_lib::pi<BoostIntervalType>());
     }
 
-    static void set_print_precision(const int print_precision) {
+    static void set_print_precision(const size_t print_precision) {
         Number::set_print_precision(print_precision);
     }
 

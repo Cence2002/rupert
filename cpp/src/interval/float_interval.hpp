@@ -13,8 +13,6 @@ private:
     explicit FloatInterval(const double min, const double max) : min_(min), max_(max) {}
 
 public:
-    static inline const std::string name = "FloatInterval";
-
     using Number = FloatNumber;
 
     explicit FloatInterval() : FloatInterval(nan()) {}
@@ -39,34 +37,20 @@ public:
 
     FloatInterval& operator=(FloatInterval&& interval) = default;
 
-    Number min() const {
-        Number min;
-        min.value() = min_;
-        return min;
+    bool is_nan() const {
+        return std::isnan(min_) || std::isnan(max_);
     }
 
-    Number max() const {
-        Number max;
-        max.value() = max_;
-        return max;
+    bool is_positive() const {
+        return min_ > 0;
     }
 
-    Number mid() const {
-        Number mid;
-        mid.value() = (min_ + max_) / 2;
-        return mid;
+    bool is_negative() const {
+        return max_ < 0;
     }
 
-    Number len() const {
-        Number len;
-        len.value() = max_ - min_;
-        return len;
-    }
-
-    Number rad() const {
-        Number rad;
-        rad.value() = (max_ - min_) / 2;
-        return rad;
+    bool is_nonzero() const {
+        return min_ > 0 || max_ < 0;
     }
 
     bool operator>(const FloatInterval& interval) const {
@@ -113,20 +97,34 @@ public:
         return static_cast<double>(integer) < interval.min_;
     }
 
-    bool is_positive() const {
-        return min_ > 0;
+    Number min() const {
+        Number min;
+        min.value() = min_;
+        return min;
     }
 
-    bool is_negative() const {
-        return max_ < 0;
+    Number max() const {
+        Number max;
+        max.value() = max_;
+        return max;
     }
 
-    bool is_nonzero() const {
-        return min_ > 0 || max_ < 0;
+    Number mid() const {
+        Number mid;
+        mid.value() = (min_ + max_) / 2;
+        return mid;
     }
 
-    bool is_nan() const {
-        return std::isnan(min_) || std::isnan(max_);
+    Number len() const {
+        Number len;
+        len.value() = max_ - min_;
+        return len;
+    }
+
+    Number rad() const {
+        Number rad;
+        rad.value() = (max_ - min_) / 2;
+        return rad;
     }
 
     FloatInterval operator+() const {
@@ -266,6 +264,107 @@ public:
         return FloatInterval(std::min(min, max), std::max(min, max));
     }
 
+    FloatInterval& operator+=(const FloatInterval& interval) {
+        min_ += interval.min_;
+        max_ += interval.max_;
+        return *this;
+    }
+
+    FloatInterval& operator+=(const Number& number) {
+        min_ += number.value();
+        max_ += number.value();
+        return *this;
+    }
+
+    template<IntegerType Integer>
+    FloatInterval& operator+=(const Integer integer) {
+        min_ += static_cast<double>(integer);
+        max_ += static_cast<double>(integer);
+        return *this;
+    }
+
+    FloatInterval& operator-=(const FloatInterval& interval) {
+        min_ -= interval.max_;
+        max_ -= interval.min_;
+        return *this;
+    }
+
+    FloatInterval& operator-=(const Number& number) {
+        min_ -= number.value();
+        max_ -= number.value();
+        return *this;
+    }
+
+    template<IntegerType Integer>
+    FloatInterval& operator-=(const Integer integer) {
+        min_ -= static_cast<double>(integer);
+        max_ -= static_cast<double>(integer);
+        return *this;
+    }
+
+    FloatInterval& operator*=(const FloatInterval& interval) {
+        const double min_min = min_ * interval.min_;
+        const double min_max = min_ * interval.max_;
+        const double max_min = max_ * interval.min_;
+        const double max_max = max_ * interval.max_;
+        min_ = std::min({min_min, min_max, max_min, max_max});
+        max_ = std::max({min_min, min_max, max_min, max_max});
+        return *this;
+    }
+
+    FloatInterval& operator*=(const Number& number) {
+        const double min_n = min_ * number.value();
+        const double max_n = max_ * number.value();
+        min_ = std::min(min_n, max_n);
+        max_ = std::max(min_n, max_n);
+        return *this;
+    }
+
+    template<IntegerType Integer>
+    FloatInterval& operator*=(const Integer integer) {
+        const double min_n = min_ * static_cast<double>(integer);
+        const double max_n = max_ * static_cast<double>(integer);
+        min_ = std::min(min_n, max_n);
+        max_ = std::max(min_n, max_n);
+        return *this;
+    }
+
+    FloatInterval& operator/=(const FloatInterval& interval) {
+        if(!interval.is_nonzero()) {
+            return *this = nan();
+        }
+        const double min_min = min_ / interval.min_;
+        const double min_max = min_ / interval.max_;
+        const double max_min = max_ / interval.min_;
+        const double max_max = max_ / interval.max_;
+        min_ = std::min({min_min, min_max, max_min, max_max});
+        max_ = std::max({min_min, min_max, max_min, max_max});
+        return *this;
+    }
+
+    FloatInterval& operator/=(const Number& number) {
+        if(!number.is_nonzero()) {
+            return *this = nan();
+        }
+        const double min_n = min_ / number.value();
+        const double max_n = max_ / number.value();
+        min_ = std::min(min_n, max_n);
+        max_ = std::max(min_n, max_n);
+        return *this;
+    }
+
+    template<IntegerType Integer>
+    FloatInterval& operator/=(const Integer integer) {
+        if(integer == 0) {
+            return *this = nan();
+        }
+        const double min_n = min_ / static_cast<double>(integer);
+        const double max_n = max_ / static_cast<double>(integer);
+        min_ = std::min(min_n, max_n);
+        max_ = std::max(min_n, max_n);
+        return *this;
+    }
+
     FloatInterval inv() const {
         if(!is_nonzero()) {
             return nan();
@@ -331,6 +430,37 @@ public:
         return FloatInterval(min, max);
     }
 
+    FloatInterval tan() const {
+        if(is_nan()) {
+            return nan();
+        }
+        constexpr double PI = std::numbers::pi_v<double>;
+        if(std::floor(min_ / PI) != std::floor(max_ / PI)) {
+            return nan();
+        }
+        return FloatInterval(std::tan(min_), std::tan(max_));
+    }
+
+    FloatInterval acos() const {
+        if(is_nan()) {
+            return nan();
+        }
+        if(min_ < -1 || 1 < max_) {
+            return nan();
+        }
+        return FloatInterval(std::acos(min_), std::acos(max_));
+    }
+
+    FloatInterval asin() const {
+        if(is_nan()) {
+            return nan();
+        }
+        if(min_ < -1 || 1 < max_) {
+            return nan();
+        }
+        return FloatInterval(std::asin(min_), std::asin(max_));
+    }
+
     FloatInterval atan() const {
         if(is_nan()) {
             return nan();
@@ -351,7 +481,7 @@ public:
         return FloatInterval(PI, PI);
     }
 
-    static void set_print_precision(const int print_precision) {
+    static void set_print_precision(const size_t print_precision) {
         Number::set_print_precision(print_precision);
     }
 
@@ -372,4 +502,6 @@ public:
             }
         }
     }
+
+    static inline const std::string name = "FloatInterval";
 };
