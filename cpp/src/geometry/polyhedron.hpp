@@ -8,15 +8,8 @@ struct Polyhedron {
 private:
     std::vector<Vertex<Interval>> vertices_;
 
-    static inline const Interval phi = (1 + Interval(5).sqrt()) / 2;
-    static inline const Interval sqrt2 = Interval(2).sqrt();
-
 public:
-    explicit Polyhedron(const std::vector<Vertex<Interval>>& vertices) : vertices_(vertices) {
-        if(!is_centrally_symmetric()) {
-            throw std::runtime_error("Only centrally symmetric polyhedra are supported");
-        }
-    }
+    explicit Polyhedron(const std::vector<Vertex<Interval>>& vertices) : vertices_(vertices) {}
 
     const std::vector<Vertex<Interval>>& vertices() const {
         return vertices_;
@@ -39,14 +32,6 @@ public:
             }
         }
         return scale(radius.inv());
-    }
-
-    bool is_centrally_symmetric() const {
-        return std::all_of(vertices_.begin(), vertices_.end(), [this](const Vertex<Interval>& vertex) {
-            return std::any_of(vertices_.begin(), vertices_.end(), [&vertex](const Vertex<Interval>& other_vertex) {
-                return !(vertex + other_vertex).len().is_positive();
-            });
-        });
     }
 };
 
