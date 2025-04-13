@@ -24,7 +24,7 @@ concept IntervalType =
     std::is_move_constructible_v<Interval> &&
     std::is_move_assignable_v<Interval> &&
 
-    requires(const Interval interval, const Interval other_interval, const typename Interval::Number number, const int integer) {
+    requires(Interval interval, const Interval other_interval, const typename Interval::Number number, const int integer) {
         { interval.is_nan() } -> std::same_as<bool>;
         { interval.is_positive() } -> std::same_as<bool>;
         { interval.is_negative() } -> std::same_as<bool>;
@@ -74,6 +74,22 @@ concept IntervalType =
         { number / interval } -> std::same_as<Interval>;
         { interval / integer } -> std::same_as<Interval>;
         { integer / interval } -> std::same_as<Interval>;
+
+        { interval += other_interval } -> std::same_as<Interval&>;
+        { interval += number } -> std::same_as<Interval&>;
+        { interval += integer } -> std::same_as<Interval&>;
+
+        { interval -= other_interval } -> std::same_as<Interval&>;
+        { interval -= number } -> std::same_as<Interval&>;
+        { interval -= integer } -> std::same_as<Interval&>;
+
+        { interval *= other_interval } -> std::same_as<Interval&>;
+        { interval *= number } -> std::same_as<Interval&>;
+        { interval *= integer } -> std::same_as<Interval&>;
+
+        { interval /= other_interval } -> std::same_as<Interval&>;
+        { interval /= number } -> std::same_as<Interval&>;
+        { interval /= integer } -> std::same_as<Interval&>;
 
         { interval.inv() } -> std::same_as<Interval>;
         { interval.sqr() } -> std::same_as<Interval>;

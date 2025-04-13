@@ -252,7 +252,6 @@ public:
         return BoostInterval(static_cast<double>(integer) / interval.interval_);
     }
 
-    //+=, -=, *=, /=
     BoostInterval& operator+=(const BoostInterval& interval) {
         interval_ += interval.interval_;
         return *this;

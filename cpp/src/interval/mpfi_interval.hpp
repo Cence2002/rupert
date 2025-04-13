@@ -371,6 +371,88 @@ public:
         return div;
     }
 
+    MpfiInterval& operator+=(const MpfiInterval& interval) {
+        mpfi_add(interval_, interval_, interval.interval_);
+        return *this;
+    }
+
+    MpfiInterval& operator+=(const Number& number) {
+        if(number.is_nan()) {
+            return *this = nan();
+        }
+        mpfi_add_fr(interval_, interval_, number.value());
+        return *this;
+    }
+
+    template<IntegerType Integer>
+    MpfiInterval& operator+=(const Integer integer) {
+        mpfi_add_si(interval_, interval_, integer);
+        return *this;
+    }
+
+    MpfiInterval& operator-=(const MpfiInterval& interval) {
+        mpfi_sub(interval_, interval_, interval.interval_);
+        return *this;
+    }
+
+    MpfiInterval& operator-=(const Number& number) {
+        if(number.is_nan()) {
+            return *this = nan();
+        }
+        mpfi_sub_fr(interval_, interval_, number.value());
+        return *this;
+    }
+
+    template<IntegerType Integer>
+    MpfiInterval& operator-=(const Integer integer) {
+        mpfi_sub_si(interval_, interval_, integer);
+        return *this;
+    }
+
+    MpfiInterval& operator*=(const MpfiInterval& interval) {
+        mpfi_mul(interval_, interval_, interval.interval_);
+        return *this;
+    }
+
+    MpfiInterval& operator*=(const Number& number) {
+        if(number.is_nan()) {
+            return *this = nan();
+        }
+        mpfi_mul_fr(interval_, interval_, number.value());
+        return *this;
+    }
+
+    template<IntegerType Integer>
+    MpfiInterval& operator*=(const Integer integer) {
+        mpfi_mul_si(interval_, interval_, integer);
+        return *this;
+    }
+
+    MpfiInterval& operator/=(const MpfiInterval& interval) {
+        if(!interval.is_nonzero()) {
+            return *this = nan();
+        }
+        mpfi_div(interval_, interval_, interval.interval_);
+        return *this;
+    }
+
+    MpfiInterval& operator/=(const Number& number) {
+        if(!number.is_nonzero()) {
+            return *this = nan();
+        }
+        mpfi_div_fr(interval_, interval_, number.value());
+        return *this;
+    }
+
+    template<IntegerType Integer>
+    MpfiInterval& operator/=(const Integer integer) {
+        if(integer == 0) {
+            return *this = nan();
+        }
+        mpfi_div_si(interval_, interval_, integer);
+        return *this;
+    }
+
     MpfiInterval inv() const {
         if(!is_nonzero()) {
             return nan();
