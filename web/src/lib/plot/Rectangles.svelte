@@ -26,7 +26,7 @@
         Mesh, CircleGeometry,
     } from "three";
     import type {AbstractLoader} from "$lib/loader/AbstractLoader";
-    import {angleBetweenMatrices, PI, projectionMatrix, symmetries, transformationMatrix} from "$lib/Geometry";
+    import {angleBetweenMatrices, PI, projectionMatrix, symmetries, transformationMatrix, TWO_PI} from "$lib/Geometry";
 
     const {loader, state} = $props<{
         loader: AbstractLoader,
@@ -220,10 +220,10 @@
         }
         const remainingAngle = epsilon - boxRadius - angleBetween;
         //print in degrees
-        console.log('remainingAngle', remainingAngle * 180 / Math.PI);
+        console.log('remainingAngle', remainingAngle * 180 / PI);
         // if (remainingAngle > 0) {
         //create a circle with radius = remainingAngle, center = rectangle.position
-        const circleGeometry = new CircleGeometry(remainingAngle, 32);
+        const circleGeometry = new CircleGeometry(remainingAngle / TWO_PI, 32);
         const circleMaterial = new MeshBasicMaterial({
             color: new Color(1, 0, 0),
             transparent: true,
@@ -234,7 +234,6 @@
         });
         const circle = new Mesh(circleGeometry, circleMaterial);
         circle.position.copy(rectangle.position());
-        circle.scale.multiplyScalar(Math.max(0, remainingAngle));
         scene.add(circle);
 
         return () => {
