@@ -55,7 +55,7 @@ public:
     }
 
     Orientation orientation(const Vector<Interval>& vector) const {
-        const Interval cross = Vector<Interval>::cross(direction(), vector - from_);
+        const Interval cross = direction().cross(vector - from_);
         if(cross.is_positive()) {
             return Orientation::counterclockwise;
         }
@@ -75,16 +75,16 @@ public:
            same_orientation(edge.orientation(from_), edge.orientation(to_))) {
             return true;
         }
-        const Interval from_dot = Vector<Interval>::dot(direction(), edge.from() - Vector<Interval>(from_));
-        const Interval to_dot = Vector<Interval>::dot(direction(), edge.to() - Vector<Interval>(from_));
+        const Interval from_dot = direction().dot(edge.from() - Vector<Interval>(from_));
+        const Interval to_dot = direction().dot(edge.to() - Vector<Interval>(from_));
         if(from_dot.is_negative() && to_dot.is_negative()) {
             return true;
         }
         if(from_dot > direction().len_sqr() && to_dot > direction().len_sqr()) {
             return true;
         }
-        const Interval edge_from_dot = Vector<Interval>::dot(edge.direction(), from_ - edge.from());
-        const Interval edge_to_dot = Vector<Interval>::dot(edge.direction(), to_ - edge.from());
+        const Interval edge_from_dot = edge.direction().dot(from_ - edge.from());
+        const Interval edge_to_dot = edge.direction().dot(to_ - edge.from());
         if(edge_from_dot.is_negative() && edge_to_dot.is_negative()) {
             return true;
         }
@@ -98,7 +98,7 @@ public:
         if(orientation(vector) != Orientation::collinear) {
             return true;
         }
-        const Interval dot = Vector<Interval>::dot(direction(), vector - from_);
+        const Interval dot = direction().dot(vector - from_);
         if(dot.is_negative() || dot > direction().len_sqr()) {
             return true;
         }

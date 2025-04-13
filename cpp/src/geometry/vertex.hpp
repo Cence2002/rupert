@@ -92,6 +92,11 @@ public:
         );
     }
 
+    Vertex normalised() const {
+        const Interval norm = len();
+        return Vertex(x_ / norm, y_ / norm, z_ / norm);
+    }
+
     friend std::ostream& operator<<(std::ostream& ostream, const Vertex& vertex) {
         return ostream << "(" << vertex.x_ << " | " << vertex.y_ << " | " << vertex.z_ << ")";
     }

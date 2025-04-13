@@ -71,12 +71,17 @@ public:
         return x_.sqr() + y_.sqr();
     }
 
-    static Interval dot(const Vector& vector, const Vector& other_vector) {
-        return vector.x() * other_vector.x() + vector.y() * other_vector.y();
+    Interval dot(const Vector& vector) {
+        return x_ * vector.x_ + y_ * vector.y_;
     }
 
-    static Interval cross(const Vector& vector, const Vector& other_vector) {
-        return vector.x() * other_vector.y() - vector.y() * other_vector.x();
+    Interval cross(const Vector& vector) {
+        return x_ * vector.y_ - y_ * vector.x_;
+    }
+
+    Vector normalised() const {
+        const Interval norm = len();
+        return Vector(x_ / norm, y_ / norm);
     }
 
     friend std::ostream& operator<<(std::ostream& ostream, const Vector& vector) {
