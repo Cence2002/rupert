@@ -4,7 +4,7 @@
 
 using I = FloatInterval;
 
-std::optional<Pipeline<FloatInterval>> pipeline;
+std::optional<Pipeline<I>> pipeline;
 
 void signal_handler(const int signal) {
     if(pipeline.has_value()) {
