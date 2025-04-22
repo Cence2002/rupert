@@ -36,9 +36,11 @@ private:
         BoxProcessor<Interval> processor(config_, debug_exporter_, box_queue_, terminal_box_queue_);
         while(!terminated_) {
             if(processor.process()) {
-                if(++processed_box_count_ > config_.box_iteration_limit()) {
+                if(++processed_box_count_ >= config_.box_iteration_limit()) {
                     stop();
                 }
+            } else {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
             }
         }
 
