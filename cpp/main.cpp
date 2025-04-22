@@ -36,15 +36,16 @@ int main() {
         "RID",
         hole,
         plug,
-        1,
-        64,
+        I::pi() / 180 * 10,
+        10,
+        1000,
         10000,
         2,
         2,
         true,
         "../../web/static",
         100000,
-        true
+        false
     );
 
     std::signal(SIGINT, signal_handler);
