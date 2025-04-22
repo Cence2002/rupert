@@ -107,8 +107,8 @@ function parseTerminalBox(reader: BinaryReader): TerminalBox {
     const rectangles: Rectangle[] = [];
 
     for (let i = 0; i < rectCount; i++) {
-        // rectangles.push(parseRectangle(reader));
-        parseRectangle(reader);
+        rectangles.push(parseRectangle(reader));
+        // parseRectangle(reader);
     }
 
     return new TerminalBox(box, rectangles);

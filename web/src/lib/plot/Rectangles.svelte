@@ -23,7 +23,7 @@
         Vector3,
         InstancedMesh,
         Quaternion,
-        Mesh, CircleGeometry,
+        Mesh, CircleGeometry, Matrix3,
     } from "three";
     import type {AbstractLoader} from "$lib/loader/AbstractLoader";
     import {angleBetweenMatrices, PI, projectionMatrix, symmetries, transformationMatrix, TWO_PI} from "$lib/Geometry";
@@ -108,6 +108,7 @@
             matrix.identity();
             matrix.makeTranslation(rectangle.position());
             matrix.scale(rectangle.scale());
+            // matrix.scale(rectangle.scale().clone().multiplyScalar(rectangle.terminal));
             rectangles.setMatrixAt(rectangleIndex, matrix);
 
             if (!rectangle.terminal) {
@@ -176,54 +177,20 @@
         const plugMatrix = projectionMatrix(rectangle.theta.interval.mid, rectangle.phi.interval.mid);
         let angleBetween = 1e6;
         const {rotations, reflections} = symmetries(loader.getHole(), 1e-6);
-        let angles = [];
         for (const rotation of rotations) {
-            const rotationMatrix = new Matrix4();
-            rotationMatrix.set(
-                rotation.elements[0], rotation.elements[1], rotation.elements[2], 0,
-                rotation.elements[3], rotation.elements[4], rotation.elements[5], 0,
-                rotation.elements[6], rotation.elements[7], rotation.elements[8], 0,
-                0, 0, 0, 1
-            );
-            angles.push(Math.round(angleBetweenMatrices(rotationMatrix, new Matrix4().identity()) * 180 / PI));
-
-            angleBetween = Math.min(angleBetween, angleBetweenMatrices(holeMatrix.clone().multiply(rotationMatrix), plugMatrix));
+            angleBetween = Math.min(angleBetween, angleBetweenMatrices(holeMatrix.clone().multiply(rotation), plugMatrix));
         }
-        //print sorted angles
-        angles.sort((a, b) => a - b);
-        //print the counts of each element as a map
-        const counts = new Map<number, number>();
-        for (const angle of angles) {
-            if (counts.has(angle)) {
-                counts.set(angle, counts.get(angle)! + 1);
-            } else {
-                counts.set(angle, 1);
-            }
-        }
-        console.log('counts', counts);
-        const ZreflectionMatrix = new Matrix4();
-        ZreflectionMatrix.set(
-            1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, -1, 0,
-            0, 0, 0, 1
+        const reflectionMatrixZ = new Matrix3();
+        reflectionMatrixZ.set(
+            1, 0, 0,
+            0, 1, 0,
+            0, 0, -1,
         );
         for (const reflection of reflections) {
-            const reflectionMatrix = new Matrix4();
-            reflectionMatrix.set(
-                reflection.elements[0], reflection.elements[1], reflection.elements[2], 0,
-                reflection.elements[3], reflection.elements[4], reflection.elements[5], 0,
-                reflection.elements[6], reflection.elements[7], reflection.elements[8], 0,
-                0, 0, 0, 1
-            );
-            angleBetween = Math.min(angleBetween, angleBetweenMatrices(holeMatrix.clone().multiply(reflectionMatrix), ZreflectionMatrix.clone().multiply(plugMatrix)));
+            angleBetween = Math.min(angleBetween, angleBetweenMatrices(holeMatrix.clone().multiply(reflection), reflectionMatrixZ.clone().multiply(plugMatrix)));
         }
         const remainingAngle = epsilon - boxRadius - angleBetween;
-        //print in degrees
-        console.log('remainingAngle', remainingAngle * 180 / PI);
-        // if (remainingAngle > 0) {
-        //create a circle with radius = remainingAngle, center = rectangle.position
-        const circleGeometry = new CircleGeometry(remainingAngle / TWO_PI, 32);
+        const circleGeometry = new CircleGeometry(Math.max(0, remainingAngle / TWO_PI), 32);
         const circleMaterial = new MeshBasicMaterial({
             color: new Color(1, 0, 0),
             transparent: true,

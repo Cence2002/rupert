@@ -15,7 +15,7 @@
         Color,
         DoubleSide,
         Quaternion,
-        OrthographicCamera, Vector2, Raycaster,
+        OrthographicCamera, Vector2, Raycaster, Matrix4,
     } from "three";
     import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
     import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
@@ -250,8 +250,15 @@
 
     function transformationQuaternion(theta: number, phi: number, alpha: number): Quaternion {
         const matrix = transformationMatrix(theta, phi, alpha);
+        const rotationMatrix = new Matrix4();
+        rotationMatrix.set(
+            matrix.elements[0], matrix.elements[3], matrix.elements[6], 0,
+            matrix.elements[1], matrix.elements[4], matrix.elements[7], 0,
+            matrix.elements[2], matrix.elements[5], matrix.elements[8], 0,
+            0, 0, 0, 1
+        );
         const quaternion = new Quaternion();
-        quaternion.setFromRotationMatrix(matrix);
+        quaternion.setFromRotationMatrix(rotationMatrix);
         return quaternion;
     }
 
