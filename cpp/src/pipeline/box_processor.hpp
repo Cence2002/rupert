@@ -33,6 +33,29 @@ private:
         return convex_hull(all_projected_hole_vertices, epsilon);
     }
 
+    bool is_rectangle_ignored(const Box& box, const Rectangle& rectangle) {
+        const Interval box_angle_radius = Vector<Interval>(Interval(box.theta<Interval>().len()) + Interval(box.alpha<Interval>().len()), Interval(box.phi<Interval>().len())).len() / 2;
+        const Interval rectangle_angle_radius = Vector<Interval>(Interval(rectangle.theta<Interval>().len()), Interval(rectangle.phi<Interval>().len())).len() / 2;
+        const Interval remaining_angle = config_.epsilon() - box_angle_radius - rectangle_angle_radius;
+        if(!remaining_angle.is_positive()) {
+            return false;
+        }
+        const Interval cos_remaining_angle = remaining_angle.cos();
+        const Matrix3<Interval> hole_matrix = projection_rotation_matrix(Interval(box.theta<Interval>().mid()), Interval(box.phi<Interval>().mid()), Interval(box.alpha<Interval>().mid()));
+        const Matrix3<Interval> plug_matrix = projection_matrix(Interval(rectangle.theta<Interval>().mid()), Interval(rectangle.phi<Interval>().mid()));
+        for(const Matrix3<Interval>& rotation: config_.plug().rotations()) {
+            if(cos_angle_between(compose(rotation, hole_matrix), plug_matrix) > cos_remaining_angle) {
+                return true;
+            }
+        }
+        for(const Matrix3<Interval>& reflection: config_.plug().reflections()) {
+            if(cos_angle_between(compose(reflection, hole_matrix), compose(plug_matrix, reflection_matrix_z<Interval>())) > cos_remaining_angle) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     bool is_rectangle_terminal(const Rectangle& rectangle, const Polygon<Interval>& projected_hole) {
         const Interval theta(rectangle.theta<Interval>());
         const Interval phi(rectangle.phi<Interval>());
@@ -86,7 +109,7 @@ private:
             if(config_.debug_enabled()) {
                 debug_exporter_.debug_builder.box_builder.rectangle_builder.set_rectangle(rectangle);
             }
-            if(is_rectangle_terminal(rectangle, projected_hole)) {
+            if(is_rectangle_ignored(box, rectangle) || is_rectangle_terminal(rectangle, projected_hole)) {
                 if(config_.debug_enabled()) {
                     debug_exporter_.debug_builder.box_builder.add_rectangle();
                 }

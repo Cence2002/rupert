@@ -13,6 +13,7 @@ private:
 
     Polyhedron<Interval> hole_;
     Polyhedron<Interval> plug_;
+    Interval epsilon_;
 
     uint8_t thread_count_;
     uint32_t box_iteration_limit_;
@@ -30,6 +31,7 @@ public:
         std::string run_name,
         const Polyhedron<Interval>& hole,
         const Polyhedron<Interval>& plug,
+        const Interval& epsilon,
         const uint8_t thread_count,
         const uint32_t box_iteration_limit,
         const uint32_t rectangle_iteration_limit,
@@ -42,6 +44,7 @@ public:
     ) : run_name_(std::move(run_name)),
         hole_(hole),
         plug_(plug),
+        epsilon_(epsilon),
         thread_count_(thread_count),
         box_iteration_limit_(box_iteration_limit),
         rectangle_iteration_limit_(rectangle_iteration_limit),
@@ -72,6 +75,10 @@ public:
 
     const Polyhedron<Interval>& plug() const {
         return plug_;
+    }
+
+    Interval epsilon() const {
+        return epsilon_;
     }
 
     uint8_t thread_count() const {

@@ -23,6 +23,15 @@ private:
     std::atomic<bool> terminated_;
     std::atomic<uint8_t> terminated_thread_count_;
 
+    void test_polyhedra() {
+        if(!is_centrally_symmetric(config_.hole().vertices())) {
+            throw std::runtime_error("Hole polyhedron is not centrally symmetric");
+        }
+        if(!is_centrally_symmetric(config_.plug().vertices())) {
+            throw std::runtime_error("Plug polyhedron is not centrally symmetric");
+        }
+    }
+
     void start_box_processor() {
         BoxProcessor<Interval> processor(config_, debug_exporter_, box_queue_, terminal_box_queue_);
         while(!terminated_) {
@@ -72,6 +81,7 @@ public:
                                                         processed_box_count_(0),
                                                         terminated_(false),
                                                         terminated_thread_count_(0) {
+        test_polyhedra();
         if(config_.debug_enabled()) {
             debug_exporter_.debug_builder.set_hole(config_.hole());
             debug_exporter_.debug_builder.set_plug(config_.plug());

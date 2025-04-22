@@ -1,6 +1,7 @@
 #pragma once
 
 #include "geometry/vertex.hpp"
+#include <symmetry.hpp>
 #include <vector>
 
 template<IntervalType Interval>
@@ -8,11 +9,25 @@ struct Polyhedron {
 private:
     std::vector<Vertex<Interval>> vertices_;
 
+    std::vector<Matrix3<Interval>> rotations_;
+    std::vector<Matrix3<Interval>> reflections_;
+
 public:
-    explicit Polyhedron(const std::vector<Vertex<Interval>>& vertices) : vertices_(vertices) {}
+    explicit Polyhedron(const std::vector<Vertex<Interval>>& vertices) : vertices_(vertices), rotations_(), reflections_() {
+        rotations_ = symmetries(vertices_, true, Interval(1) / 1000);
+        reflections_ = symmetries(vertices_, false, Interval(1) / 1000);
+    }
 
     const std::vector<Vertex<Interval>>& vertices() const {
         return vertices_;
+    }
+
+    const std::vector<Matrix3<Interval>>& rotations() const {
+        return rotations_;
+    }
+
+    const std::vector<Matrix3<Interval>>& reflections() const {
+        return reflections_;
     }
 
     Polyhedron scale(const Interval& scale) const {

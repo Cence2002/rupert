@@ -19,6 +19,21 @@ template<IntervalType Interval>
 using Matrix3 = LinearAlgebra::bounded_matrix<Interval, 3, 3, boost::numeric::ublas::row_major>;
 
 template<IntervalType Interval>
+Matrix3<Interval> transpose(const Matrix3<Interval>& matrix) {
+    return LinearAlgebra::trans(matrix);
+}
+
+template<IntervalType Interval>
+Matrix3<Interval> compose(const Matrix3<Interval>& matrix, const Matrix3<Interval>& other_matrix) {
+    return LinearAlgebra::prod(other_matrix, matrix);
+}
+
+template<IntervalType Interval>
+Matrix3<Interval> basis_change(const Matrix3<Interval>& basis, const Matrix3<Interval>& other_basis) {
+    return compose(transpose(basis), other_basis);
+}
+
+template<IntervalType Interval>
 Matrix3<Interval> zero_matrix() {
     Matrix3<Interval> matrix;
     matrix(0, 0) = Interval(0);
@@ -40,6 +55,27 @@ Matrix3<Interval> identity_matrix() {
     matrix(1, 1) = Interval(1);
     matrix(2, 2) = Interval(1);
     return matrix;
+}
+
+template<IntervalType Interval>
+Matrix3<Interval> reflection_matrix_x() {
+    Matrix3<Interval> reflection = identity_matrix<Interval>();
+    reflection(0, 0) = Interval(-1);
+    return reflection;
+}
+
+template<IntervalType Interval>
+Matrix3<Interval> reflection_matrix_y() {
+    Matrix3<Interval> reflection = identity_matrix<Interval>();
+    reflection(1, 1) = Interval(-1);
+    return reflection;
+}
+
+template<IntervalType Interval>
+Matrix3<Interval> reflection_matrix_z() {
+    Matrix3<Interval> reflection = identity_matrix<Interval>();
+    reflection(2, 2) = Interval(-1);
+    return reflection;
 }
 
 template<IntervalType Interval>
@@ -79,14 +115,14 @@ template<IntervalType Interval>
 Matrix3<Interval> projection_matrix(const Interval& theta, const Interval& phi) {
     const Matrix3<Interval> rotation_z = rotation_matrix_z(theta);
     const Matrix3<Interval> rotation_x = rotation_matrix_x(phi);
-    return prod(rotation_x, rotation_z);
+    return compose(rotation_z, rotation_x);
 }
 
 template<IntervalType Interval>
 Matrix3<Interval> projection_rotation_matrix(const Interval& theta, const Interval& phi, const Interval& alpha) {
     const Matrix3<Interval> projection = projection_matrix(theta, phi);
-    const Matrix3<Interval> rotation_z = rotation_matrix_y(alpha);
-    return prod(rotation_z, projection);
+    const Matrix3<Interval> rotation_z = rotation_matrix_z(alpha);
+    return compose(projection, rotation_z);
 }
 
 template<IntervalType Interval>
@@ -108,16 +144,11 @@ Matrix3<Interval> orthonormal_basis(const Vertex<Interval>& from, const Vertex<I
 }
 
 template<IntervalType Interval>
-Matrix3<Interval> basis_change(const Matrix3<Interval>& from, const Matrix3<Interval>& to) {
-    return LinearAlgebra::prod(to, LinearAlgebra::trans(from));
-}
-
-template<IntervalType Interval>
 Vertex<Interval> apply_matrix(const Matrix3<Interval>& matrix, const Vertex<Interval>& vertex) {
     return Vertex<Interval>(
-        matrix(0, 0) * vertex.x() + matrix(0, 1) * vertex.y() + matrix(0, 2) * vertex.z(),
-        matrix(1, 0) * vertex.x() + matrix(1, 1) * vertex.y() + matrix(1, 2) * vertex.z(),
-        matrix(2, 0) * vertex.x() + matrix(2, 1) * vertex.y() + matrix(2, 2) * vertex.z()
+        matrix(0, 0) * vertex.x() + matrix(1, 0) * vertex.y() + matrix(2, 0) * vertex.z(),
+        matrix(0, 1) * vertex.x() + matrix(1, 1) * vertex.y() + matrix(2, 1) * vertex.z(),
+        matrix(0, 2) * vertex.x() + matrix(1, 2) * vertex.y() + matrix(2, 2) * vertex.z()
     );
 }
 
@@ -155,5 +186,5 @@ Interval cos_angle_of_rotation(const Matrix3<Interval>& matrix) {
 
 template<IntervalType Interval>
 Interval cos_angle_between(const Matrix3<Interval>& matrix, const Matrix3<Interval>& other_matrix) {
-    return angle_of_rotation(basis_change(matrix, other_matrix));
+    return cos_angle_of_rotation(basis_change(matrix, other_matrix));
 }
