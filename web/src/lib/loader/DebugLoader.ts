@@ -76,6 +76,18 @@ export class DebugLoader implements AbstractLoader {
         return this.data!.boxesLength();
     }
 
+    getNonterminalBox(boxIndex: number): Box | null {
+        return null;
+    }
+
+    getNonterminalBoxes(): Box[] {
+        return [];
+    }
+
+    getNonterminalBoxCount(): number {
+        return 0;
+    }
+
     getRectangle(boxIndex: number, rectangleIndex: number): Rectangle | null {
         const box = this.data!.boxes(boxIndex)!;
         const rectangle = box.rectangles(rectangleIndex)!;

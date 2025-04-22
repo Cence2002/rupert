@@ -139,6 +139,16 @@ export function parseAllTerminalBoxes(buffer: ArrayBuffer): TerminalBox[] {
     return result;
 }
 
+export function parseNonTerminalBoxes(buffer: ArrayBuffer): Box[] {
+    const reader = new BinaryReader(buffer);
+    const boxCount = reader.readUint32();
+    const boxes: Box[] = [];
+    for (let i = 0; i < boxCount; i++) {
+        boxes.push(parseBox(reader));
+    }
+    return boxes;
+}
+
 function humanReadableBytes(bytes: number): string {
     const units = ["B", "KiB", "MiB", "GiB"];
     let unitIndex = 0;
@@ -154,6 +164,7 @@ export class Loader implements AbstractLoader {
     public hole: Vector3[] = [];
     public plug: Vector3[] = [];
     public terminalBoxes: TerminalBox[] = [];
+    public nonTerminalBoxes: Box[] = [];
 
     async loadPolyhedra(path: string): Promise<void> {
         const response = await fetch(path);
@@ -179,9 +190,21 @@ export class Loader implements AbstractLoader {
         this.terminalBoxes = parseAllTerminalBoxes(buffer);
     }
 
+    async loadNonTerminalBoxes(path: string): Promise<void> {
+        const response = await fetch(path);
+        if (!response.ok) {
+            console.error("Failed to load file:", response.statusText);
+            return undefined;
+        }
+        const buffer = await response.arrayBuffer();
+        console.log("Loaded non-terminal boxes file (" + humanReadableBytes(buffer.byteLength) + ")");
+        this.nonTerminalBoxes = parseNonTerminalBoxes(buffer);
+    }
+
     async load(directory: string): Promise<void> {
         await this.loadPolyhedra(directory + "/polyhedra.bin");
         await this.loadTerminalBoxes(directory + "/terminal_boxes.bin");
+        await this.loadNonTerminalBoxes(directory + "/boxes.bin");
     }
 
     getBox(boxIndex: number): Box {
@@ -194,6 +217,18 @@ export class Loader implements AbstractLoader {
 
     getBoxCount(): number {
         return this.terminalBoxes.length;
+    }
+
+    getNonterminalBox(boxIndex: number): Box | null {
+        return this.nonTerminalBoxes[boxIndex];
+    }
+
+    getNonterminalBoxes(): Box[] {
+        return this.nonTerminalBoxes;
+    }
+
+    getNonterminalBoxCount(): number {
+        return this.nonTerminalBoxes.length;
     }
 
     getRectangle(boxIndex: number, rectangleIndex: number): Rectangle {

@@ -209,6 +209,22 @@
         boxEdgesGeometry.setAttribute('position', new Float32BufferAttribute(edgeBuffer, 3));
         const boxEdges = new LineSegments(boxEdgesGeometry, boxEdgesMaterial);
         scene.add(boxEdges);
+
+        const nonTerminalBoxesMaterial = new MeshBasicMaterial({
+            color: new Color(0, 1, 0),
+            transparent: true,
+            opacity: 0.25,
+            side: DoubleSide,
+            depthWrite: false,
+        });
+        const nonTerminalBoxes = new InstancedMesh(boxesGeometry, nonTerminalBoxesMaterial, loader.getNonterminalBoxCount());
+        for (const [boxIndex, box] of loader.getNonterminalBoxes().entries()) {
+            matrix.identity();
+            matrix.makeTranslation(box.position());
+            matrix.scale(box.scale());
+            nonTerminalBoxes.setMatrixAt(boxIndex, matrix);
+        }
+        scene.add(nonTerminalBoxes);
     }
 
     function onSelectBox() {

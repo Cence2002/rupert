@@ -14,6 +14,12 @@ export interface AbstractLoader {
 
     getBoxCount(): number;
 
+    getNonterminalBox(boxIndex: number): Box | null;
+
+    getNonterminalBoxes(): Box[];
+
+    getNonterminalBoxCount(): number;
+
     // Rectangles plot
 
     getRectangle(boxIndex: number, rectangleIndex: number): Rectangle | null;
