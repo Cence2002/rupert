@@ -8,12 +8,10 @@ struct FloatNumber {
 private:
     double value_;
 
-    static inline size_t print_precision_ = 6;
+    explicit FloatNumber(const double value) : value_(value) {}
 
 public:
     using Value = double;
-
-    explicit FloatNumber() : value_(std::numeric_limits<double>::quiet_NaN()) {}
 
     template<IntegerType Integer>
     explicit FloatNumber(const Integer integer) : value_(static_cast<double>(integer)) {}
@@ -22,15 +20,7 @@ public:
 
     FloatNumber(const FloatNumber& number) = default;
 
-    FloatNumber& operator=(const FloatNumber& number) = default;
-
     FloatNumber(FloatNumber&& number) = default;
-
-    FloatNumber& operator=(FloatNumber&& number) = default;
-
-    double& value() {
-        return value_;
-    }
 
     const double& value() const {
         return value_;
@@ -40,36 +30,43 @@ public:
         return value_;
     }
 
+    static FloatNumber nan() {
+        return FloatNumber(std::numeric_limits<double>::quiet_NaN());
+    }
+
     bool is_nan() const {
         return std::isnan(value_);
     }
 
     bool is_positive() const {
-        return value_ > 0.0;
+        return value_ > 0;
     }
 
     bool is_negative() const {
-        return value_ < 0.0;
+        return value_ < 0;
     }
 
     bool is_nonzero() const {
-        return value_ != 0.0;
+        return value_ != 0;
     }
 
-    static FloatNumber nan() {
-        return FloatNumber();
+    bool operator>(const FloatNumber& number) const {
+        return value_ > number.value_;
+    }
+
+    bool operator<(const FloatNumber& number) const {
+        return value_ < number.value_;
     }
 
     friend std::ostream& operator<<(std::ostream& ostream, const FloatNumber& number) {
         std::ostringstream number_str;
-        number_str.precision(print_precision_);
+        number_str.precision(number_print_precision);
         number_str << number.value_;
         return ostream << number_str.str();
     }
 
-    static void set_print_precision(const size_t print_precision) {
-        print_precision_ = print_precision;
-    }
-
     static inline const std::string name = "FloatNumber";
+
+    friend struct FloatInterval;
+    friend struct BoostInterval;
 };

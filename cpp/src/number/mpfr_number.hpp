@@ -1,13 +1,16 @@
 #pragma once
 
 #include "number/number_type.hpp"
-#include <mpfr.h>
 
 struct MpfrNumber {
 private:
     mpfr_t value_;
 
-    static inline size_t print_precision_ = 6;
+    void assert_same_precision(const mpfr_t value) const {
+        if(mpfr_get_prec(value_) != mpfr_get_prec(value)) {
+            throw std::invalid_argument("Precisions of numbers are different");
+        }
+    }
 
     void assert_same_precision(const MpfrNumber& number) const {
         if(mpfr_get_prec(value_) != mpfr_get_prec(number.value_)) {
@@ -15,13 +18,14 @@ private:
         }
     }
 
+    explicit MpfrNumber(const mpfr_t value) {
+        mpfr_init(value_);
+        assert_same_precision(value);
+        mpfr_set(value_, value, MPFR_RNDN);
+    }
+
 public:
     using Value = mpfr_t;
-
-    explicit MpfrNumber() {
-        mpfr_init(value_);
-        mpfr_set_nan(value_);
-    }
 
     template<IntegerType Integer>
     explicit MpfrNumber(const Integer integer) {
@@ -39,36 +43,21 @@ public:
         mpfr_set(value_, number.value_, MPFR_RNDN);
     }
 
-    MpfrNumber& operator=(const MpfrNumber& number) {
-        if(this != &number) {
-            assert_same_precision(number);
-            mpfr_set(value_, number.value_, MPFR_RNDN);
-        }
-        return *this;
-    }
-
     MpfrNumber(MpfrNumber&& number) {
         mpfr_init(value_);
         assert_same_precision(number);
         mpfr_swap(value_, number.value_);
     }
 
-    MpfrNumber& operator=(MpfrNumber&& number) {
-        if(this != &number) {
-            mpfr_clear(value_);
-            mpfr_init(value_);
-            assert_same_precision(number);
-            mpfr_swap(value_, number.value_);
-        }
-        return *this;
-    }
-
-    mpfr_t& value() {
-        return value_;
-    }
-
     const mpfr_t& value() const {
         return value_;
+    }
+
+    static MpfrNumber nan() {
+        mpfr_t value;
+        mpfr_init(value);
+        mpfr_set_nan(value);
+        return MpfrNumber(value);
     }
 
     double float_value() const {
@@ -80,30 +69,47 @@ public:
     }
 
     bool is_positive() const {
+        if(is_nan()) {
+            return false;
+        }
         return mpfr_sgn(value_) > 0;
     }
 
     bool is_negative() const {
+        if(is_nan()) {
+            return false;
+        }
         return mpfr_sgn(value_) < 0;
     }
 
     bool is_nonzero() const {
+        if(is_nan()) {
+            return false;
+        }
         return mpfr_zero_p(value_) == 0;
     }
 
-    static MpfrNumber nan() {
-        return MpfrNumber();
+    bool operator>(const MpfrNumber& number) const {
+        if(is_nan() || number.is_nan()) {
+            return false;
+        }
+        return mpfr_cmp(value_, number.value_) > 0;
+    }
+
+    bool operator<(const MpfrNumber& number) const {
+        if(is_nan() || number.is_nan()) {
+            return false;
+        }
+        return mpfr_cmp(value_, number.value_) < 0;
     }
 
     friend std::ostream& operator<<(std::ostream& ostream, const MpfrNumber& number) {
-        char *number_str = new char[print_precision_ + 8];
-        mpfr_sprintf(number_str, "%.*Rg", print_precision_, number.value_);
+        char *number_str = new char[number_print_precision + 16];
+        mpfr_sprintf(number_str, "%.*Rg", number_print_precision, number.value_);
         return ostream << number_str;
     }
 
-    static void set_print_precision(const size_t print_precision) {
-        print_precision_ = print_precision;
-    }
-
     static inline const std::string name = "MpfrNumber";
+
+    friend struct MpfiInterval;
 };

@@ -33,7 +33,7 @@ int main() {
     const Polyhedron<I> plug = Archimedean::rhombicosidodecahedron<I>().normalise();
 
     const Config<I> config(
-        "RID",
+        "temp",
         hole,
         plug,
         I::pi() / 180 * 10,
