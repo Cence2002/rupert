@@ -14,21 +14,14 @@ private:
 public:
     explicit Polygon(const std::vector<Edge<Interval>>& edges) : edges_(edges) {}
 
-    std::vector<Edge<Interval>> edges() const {
+    const std::vector<Edge<Interval>>& edges() const {
         return edges_;
     }
 
     bool is_vector_inside_polygon(const Vector<Interval>& vector) const {
-        bool all_counter_clockwise = true;
-        for(const Edge<Interval>& edge: edges()) {
-            const Orientation orientation = edge.orientation(vector);
-            if(orientation == Orientation::collinear) {
-                return false;
-            }
-            const bool counter_clockwise = orientation == Orientation::counterclockwise;
-            all_counter_clockwise &= counter_clockwise;
-        }
-        return all_counter_clockwise;
+        return std::ranges::all_of(edges_, [&](const Edge<Interval>& edge) {
+            return edge.orientation(vector) == Orientation::positive;
+        });
     }
 
     bool is_projected_vertex_inside_polygon_trivial(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) const {
@@ -42,16 +35,9 @@ public:
     }
 
     bool is_vector_outside_polygon(const Vector<Interval>& vector) const {
-        bool any_clockwise = false;
-        for(const Edge<Interval>& edge: edges()) {
-            const Orientation orientation = edge.orientation(vector);
-            if(!edge.avoids(vector)) {
-                return false;
-            }
-            const bool clockwise = orientation == Orientation::clockwise;
-            any_clockwise |= clockwise;
-        }
-        return any_clockwise;
+        return std::ranges::any_of(edges_, [&](const Edge<Interval>& edge) {
+            return edge.orientation(vector) == Orientation::negative;
+        });
     }
 
     bool is_projected_vertex_outside_polygon_trivial(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) const {
@@ -89,8 +75,8 @@ public:
         const Edge<Interval> transformed_edge(transformed_edge_from, transformed_edge_to);
 
         const Interval radius_squared = vertex.x() * vertex.x() + vertex.y() * vertex.y();
-        const Interval double_quadratic_term = 2 * transformed_edge.direction().len_sqr();
-        const Interval linear_term = 2 * transformed_edge.direction().dot(transformed_edge.from());
+        const Interval double_quadratic_term = 2 * transformed_edge.dir().len_sqr();
+        const Interval linear_term = 2 * transformed_edge.dir().dot(transformed_edge.from());
         const Interval constant_term = transformed_edge.from().len_sqr() - radius_squared;
         const Interval discriminant = linear_term.sqr() - 2 * double_quadratic_term * constant_term;
         if(!discriminant.is_positive()) {
@@ -117,7 +103,7 @@ public:
             if(solution.is_negative() || solution > 1) {
                 continue;
             }
-            const Vector<Interval> intersection = transformed_edge.from() + transformed_edge.direction() * solution;
+            const Vector<Interval> intersection = transformed_edge.from() + transformed_edge.dir() * solution;
             if(!projected_vertex_edge.avoids(Edge<Interval>(Vector<Interval>(Interval(0), Interval(0)), intersection))) {
                 return false;
             }
@@ -193,7 +179,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vertices, con
                 most_clockwise_index = new_most_clockwise_index;
                 continue;
             }
-            if(Edge<Interval>(from_vertex, vertices[most_clockwise_index.value()]).orientation(vertices[new_most_clockwise_index]) == Orientation::clockwise) {
+            if(Edge<Interval>(from_vertex, vertices[most_clockwise_index.value()]).orientation(vertices[new_most_clockwise_index]) == Orientation::negative) {
                 most_clockwise_index = new_most_clockwise_index;
             }
         }
@@ -211,7 +197,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vertices, con
             if(!(to_vertex - from_vertex).len_sqr().is_positive()) {
                 throw std::runtime_error("Zero length edge found");
             }
-            if(most_clockwise_edge.orientation(to_vertex) == Orientation::counterclockwise) {
+            if(most_clockwise_edge.orientation(to_vertex) == Orientation::positive) {
                 continue;
             }
             bool is_most_clockwise = true;
@@ -220,7 +206,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vertices, con
                 if(index == from_index || index == to_index) {
                     continue;
                 }
-                if(edge.orientation(vertices[index]) == Orientation::clockwise) {
+                if(edge.orientation(vertices[index]) == Orientation::negative) {
                     is_most_clockwise = false;
                     break;
                 }
@@ -238,7 +224,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vertices, con
         for(const size_t to_index: to_indices) {
             const Vector<Interval> to_vertex = vertices[to_index] * epsilon_interval;
             const bool is_most_clockwise = std::ranges::none_of(new_edges, [&](const Edge<Interval>& new_edge) {
-                return new_edge.orientation(to_vertex) == Orientation::counterclockwise;
+                return new_edge.orientation(to_vertex) == Orientation::positive;
             });
             if(!is_most_clockwise) {
                 continue;

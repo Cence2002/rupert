@@ -69,7 +69,7 @@ public:
         mpfi_set(interval_, interval.interval_);
     }
 
-    MpfiInterval(MpfiInterval&& interval) noexcept {
+    MpfiInterval(MpfiInterval&& interval) {
         mpfi_init(interval_);
         assert_same_precision(interval);
         mpfi_swap(interval_, interval.interval_);

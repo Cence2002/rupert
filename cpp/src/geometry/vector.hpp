@@ -9,27 +9,13 @@ private:
     Interval y_;
 
 public:
-    explicit Vector() : x_(), y_() {}
+    explicit Vector(const Interval& x, const Interval& y) : x_(x), y_(y) {}
 
     ~Vector() = default;
 
     Vector(const Vector& vector) = default;
 
-    Vector& operator=(const Vector& vector) = default;
-
     Vector(Vector&& vector) = default;
-
-    Vector& operator=(Vector&& vector) = default;
-
-    explicit Vector(const Interval& x, const Interval& y) : x_(x), y_(y) {}
-
-    Interval& x() {
-        return x_;
-    }
-
-    Interval& y() {
-        return y_;
-    }
 
     const Interval& x() const {
         return x_;
@@ -67,8 +53,8 @@ public:
         return (x_.sqr() + y_.sqr()).sqrt();
     }
 
-    Interval len_sqr() const {
-        return x_.sqr() + y_.sqr();
+    Interval dist(const Vector& vector) const {
+        return (*this - vector).len();
     }
 
     Interval dot(const Vector& vector) {
@@ -79,7 +65,7 @@ public:
         return x_ * vector.y_ - y_ * vector.x_;
     }
 
-    Vector normalised() const {
+    Vector unit() const {
         const Interval norm = len();
         return Vector(x_ / norm, y_ / norm);
     }

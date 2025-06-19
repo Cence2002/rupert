@@ -141,7 +141,7 @@ public:
     }
 
     FloatInterval sqrt() const {
-        if(min().is_negative()) {
+        if(min_ < 0) {
             return nan();
         }
         return FloatInterval(std::sqrt(min_), std::sqrt(max_));

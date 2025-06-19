@@ -10,31 +10,13 @@ private:
     Interval z_;
 
 public:
-    explicit Vertex() : x_(), y_(), z_() {}
+    explicit Vertex(const Interval& x, const Interval& y, const Interval& z) : x_(x), y_(y), z_(z) {}
 
     ~Vertex() = default;
 
     Vertex(const Vertex& vertex) = default;
 
-    Vertex& operator=(const Vertex& vertex) = default;
-
     Vertex(Vertex&& vertex) = default;
-
-    Vertex& operator=(Vertex&& vertex) = default;
-
-    explicit Vertex(const Interval& x, const Interval& y, const Interval& z) noexcept : x_(x), y_(y), z_(z) {}
-
-    Interval& x() {
-        return x_;
-    }
-
-    Interval& y() {
-        return y_;
-    }
-
-    Interval& z() {
-        return z_;
-    }
 
     const Interval& x() const {
         return x_;
@@ -76,8 +58,8 @@ public:
         return (x_.sqr() + y_.sqr() + z_.sqr()).sqrt();
     }
 
-    Interval len_sqr() const {
-        return x_.sqr() + y_.sqr() + z_.sqr();
+    Interval dist(const Vertex& vertex) const {
+        return ((*this) - vertex).len();
     }
 
     Interval dot(const Vertex& vertex) const {
@@ -92,7 +74,7 @@ public:
         );
     }
 
-    Vertex normalised() const {
+    Vertex unit() const {
         const Interval norm = len();
         return Vertex(x_ / norm, y_ / norm, z_ / norm);
     }
