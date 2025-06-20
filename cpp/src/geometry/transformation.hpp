@@ -5,6 +5,78 @@
 #include <vector>
 
 template<IntervalType Interval>
+Interval harmonic_trivial(const Interval& cos_amplitude, const Interval& sin_amplitude, const Interval& angle) {
+    return cos_amplitude * angle.cos() + sin_amplitude * angle.sin();
+}
+
+template<IntervalType Interval>
+Interval harmonic_combined(const Interval& cos_amplitude, const Interval& sin_amplitude, const Interval& angle) {
+    if(cos_amplitude.is_nonzero()) {
+        const Interval amplitude = (cos_amplitude.sqr() + sin_amplitude.sqr()).sqrt();
+        const Interval phase = (sin_amplitude / cos_amplitude).atan();
+        const int sign = cos_amplitude.is_positive() ? 1 : -1;
+        return sign * amplitude * (angle - phase).cos();
+    }
+    if(sin_amplitude.is_nonzero()) {
+        const Interval amplitude = (cos_amplitude.sqr() + sin_amplitude.sqr()).sqrt();
+        const Interval phase = -(cos_amplitude / sin_amplitude).atan();
+        const int sign = sin_amplitude.is_positive() ? 1 : -1;
+        return sign * amplitude * (angle - phase).sin();
+    }
+    return harmonic_trivial(cos_amplitude, sin_amplitude, angle);
+}
+
+// (X, Y) = R(alpha) * (x, y)
+// X = x * cos(alpha) - y * sin(alpha)
+// Y = x * sin(alpha) + y * cos(alpha)
+
+template<IntervalType Interval>
+Vector<Interval> rotation_trivial(const Vector<Interval>& vector, const Interval& alpha) {
+    return Vector<Interval>(
+        harmonic_trivial(vector.x(), -vector.y(), alpha),
+        harmonic_trivial(vector.y(), vector.x(), alpha)
+    );
+}
+
+template<IntervalType Interval>
+Vector<Interval> rotation_combined(const Vector<Interval>& vector, const Interval& alpha) {
+    return Vector<Interval>(
+        harmonic_combined(vector.x(), -vector.y(), alpha),
+        harmonic_combined(vector.y(), vector.x(), alpha)
+    );
+}
+
+// (X, Y, _) = Rx(phi) * Rz(theta) * (x, y, z)
+// X = x * cos(theta) - y * sin(theta)
+// Y = (y * cos(theta) + x * sin(theta)) * cos(phi) - z * sin(phi)
+
+template<IntervalType Interval>
+Vector<Interval> projection_trivial(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) {
+    return Vector<Interval>(
+        harmonic_trivial(vertex.x(), -vertex.y(), theta),
+        harmonic_trivial(harmonic_trivial(vertex.y(), vertex.x(), theta), -vertex.z(), phi)
+    );
+}
+
+template<IntervalType Interval>
+Vector<Interval> projection_combined(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) {
+    return Vector<Interval>(
+        harmonic_combined(vertex.x(), -vertex.y(), theta),
+        harmonic_combined(harmonic_combined(vertex.y(), vertex.x(), theta), -vertex.z(), phi)
+    );
+}
+
+template<IntervalType Interval>
+std::vector<Vector<Interval>> vector_hull(const Vector<Interval>& vector) {
+    return std::vector<Vector<Interval>>{
+        Vector<Interval>(Interval(vector.x().min()), Interval(vector.y().min())),
+        Vector<Interval>(Interval(vector.x().min()), Interval(vector.y().max())),
+        Vector<Interval>(Interval(vector.x().max()), Interval(vector.y().max())),
+        Vector<Interval>(Interval(vector.x().max()), Interval(vector.y().min()))
+    };
+}
+
+template<IntervalType Interval>
 std::vector<Vector<Interval>> rotation_hull_trivial(const Vector<Interval>& projected_vertex, const Interval& alpha) {
     const Vector<Interval> rotated_vertex = rotation_trivial(projected_vertex, alpha);
     return vector_hull(rotated_vertex);
@@ -155,76 +227,4 @@ std::vector<Vector<Interval>> projection_hull_advanced_approximate(const Vertex<
         projected_vertices.push_back(projected_vertex);
     }
     return projected_vertices;
-}
-
-template<IntervalType Interval>
-Interval harmonic_trivial(const Interval& cos_amplitude, const Interval& sin_amplitude, const Interval& angle) {
-    return cos_amplitude * angle.cos() + sin_amplitude * angle.sin();
-}
-
-template<IntervalType Interval>
-Interval harmonic_combined(const Interval& cos_amplitude, const Interval& sin_amplitude, const Interval& angle) {
-    if(cos_amplitude.is_nonzero()) {
-        const Interval amplitude = (cos_amplitude.sqr() + sin_amplitude.sqr()).sqrt();
-        const Interval phase = (sin_amplitude / cos_amplitude).atan();
-        const int sign = cos_amplitude.is_positive() ? 1 : -1;
-        return sign * amplitude * (angle - phase).cos();
-    }
-    if(sin_amplitude.is_nonzero()) {
-        const Interval amplitude = (cos_amplitude.sqr() + sin_amplitude.sqr()).sqrt();
-        const Interval phase = -(cos_amplitude / sin_amplitude).atan();
-        const int sign = sin_amplitude.is_positive() ? 1 : -1;
-        return sign * amplitude * (angle - phase).sin();
-    }
-    return harmonic_trivial(cos_amplitude, sin_amplitude, angle);
-}
-
-template<IntervalType Interval>
-std::vector<Vector<Interval>> vector_hull(const Vector<Interval>& vector) {
-    return std::vector<Vector<Interval>>{
-        Vector<Interval>(Interval(vector.x().min()), Interval(vector.y().min())),
-        Vector<Interval>(Interval(vector.x().min()), Interval(vector.y().max())),
-        Vector<Interval>(Interval(vector.x().max()), Interval(vector.y().max())),
-        Vector<Interval>(Interval(vector.x().max()), Interval(vector.y().min()))
-    };
-}
-
-// (X, Y) = R(alpha) * (x, y)
-// X = x * cos(alpha) - y * sin(alpha)
-// Y = x * sin(alpha) + y * cos(alpha)
-
-template<IntervalType Interval>
-Vector<Interval> rotation_trivial(const Vector<Interval>& projected_vertex, const Interval& alpha) {
-    return Vector<Interval>(
-        harmonic_trivial(projected_vertex.x(), -projected_vertex.y(), alpha),
-        harmonic_trivial(projected_vertex.y(), projected_vertex.x(), alpha)
-    );
-}
-
-template<IntervalType Interval>
-Vector<Interval> rotation_combined(const Vector<Interval>& projected_vertex, const Interval& alpha) {
-    return Vector<Interval>(
-        harmonic_combined(projected_vertex.x(), -projected_vertex.y(), alpha),
-        harmonic_combined(projected_vertex.y(), projected_vertex.x(), alpha)
-    );
-}
-
-// (X, Y, _) = Rx(phi) * Rz(theta) * (x, y, z)
-// X = x * cos(theta) - y * sin(theta)
-// Y = (x * cos(theta) + y * sin(theta)) * cos(phi) - z * sin(phi)
-
-template<IntervalType Interval>
-Vector<Interval> projection_trivial(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) {
-    return Vector<Interval>(
-        harmonic_trivial(vertex.x(), -vertex.y(), theta),
-        harmonic_trivial(harmonic_trivial(vertex.y(), vertex.x(), theta), -vertex.z(), phi)
-    );
-}
-
-template<IntervalType Interval>
-Vector<Interval> projection_combined(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) {
-    return Vector<Interval>(
-        harmonic_combined(vertex.x(), -vertex.y(), theta),
-        harmonic_combined(harmonic_combined(vertex.y(), vertex.x(), theta), -vertex.z(), phi)
-    );
 }
