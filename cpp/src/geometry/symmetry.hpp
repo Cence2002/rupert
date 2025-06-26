@@ -8,7 +8,7 @@ template<IntervalType Interval>
 bool is_centrally_symmetric(const std::vector<Vertex<Interval>>& vertices) {
     return std::all_of(vertices.begin(), vertices.end(), [&vertices](const Vertex<Interval>& vertex) {
         return std::any_of(vertices.begin(), vertices.end(), [&vertex](const Vertex<Interval>& other_vertex) {
-            return !(vertex + other_vertex).len().is_positive();
+            return !vertex.diff(-other_vertex);
         });
     });
 }
@@ -153,14 +153,14 @@ Vertex<Interval> apply_matrix(const Matrix3<Interval>& matrix, const Vertex<Inte
 }
 
 template<IntervalType Interval>
-std::vector<Matrix3<Interval>> symmetries(const std::vector<Vertex<Interval>>& vertices, const bool right_handed, const Interval& epsilon) {
+std::vector<Matrix3<Interval>> symmetries(const std::vector<Vertex<Interval>>& vertices, const bool right_handed) {
     const Vertex<Interval> from_vertex = vertices[0];
-    const Vertex<Interval> to_vertex = (vertices[1] - from_vertex).len_sqr() < (vertices[2] - from_vertex).len_sqr() ? vertices[1] : vertices[2];
+    const Vertex<Interval> to_vertex = from_vertex.diff(-vertices[1]) ? vertices[1] : vertices[2];
     const Matrix3<Interval> basis = orthonormal_basis(from_vertex, to_vertex, true);
     std::vector<Matrix3<Interval>> symmetries;
     for(const Vertex<Interval>& from_vertex_image: vertices) {
         for(const Vertex<Interval>& to_vertex_image: vertices) {
-            if(((from_vertex_image - to_vertex_image).len() - (from_vertex - to_vertex).len()).sqr() > epsilon.sqr()) {
+            if(((from_vertex_image - to_vertex_image).len() - (from_vertex - to_vertex).len()).is_nonzero()) {
                 continue;
             }
             const Matrix3<Interval> image_basis = orthonormal_basis(from_vertex_image, to_vertex_image, right_handed);
@@ -168,7 +168,7 @@ std::vector<Matrix3<Interval>> symmetries(const std::vector<Vertex<Interval>>& v
             const bool is_symmetry = std::ranges::all_of(vertices, [&](const Vertex<Interval>& vertex) {
                 const Vertex<Interval> vertex_image = apply_matrix(symmetry, vertex);
                 return std::any_of(vertices.begin(), vertices.end(), [&](const Vertex<Interval>& other_vertex) {
-                    return (vertex_image - other_vertex).len() < epsilon;
+                    return !vertex_image.diff(other_vertex);
                 });
             });
             if(is_symmetry) {

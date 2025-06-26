@@ -57,6 +57,14 @@ public:
         return (*this - vector).len();
     }
 
+    bool diff(const Vector& vector) const {
+        return dist(vector).is_positive();
+    }
+
+    Vector hull(const Vector& vector) const {
+        return Vector(x_.hull(vector.x_), y_.hull(vector.y_));
+    }
+
     Interval dot(const Vector& vector) {
         return x_ * vector.x_ + y_ * vector.y_;
     }

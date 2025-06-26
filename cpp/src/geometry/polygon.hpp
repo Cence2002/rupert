@@ -142,21 +142,41 @@ public:
     }
 };
 
+template<typename Interval>
+std::vector<Vector<Interval>> merge_vectors(const std::vector<Vector<Interval>>& vectors) {
+    std::vector<Vector<Interval>> merged_vectors = vectors;
+    size_t i = 0;
+    while(i < merged_vectors.size()) {
+        bool merged = false;
+        for(size_t j = i + 1; j < merged_vectors.size(); j++) {
+            if(!merged_vectors[i].diff(merged_vectors[j])) {
+                merged_vectors[i] = merged_vectors[i].hull(merged_vectors[j]);
+                merged_vectors.erase(merged_vectors.begin() + j);
+                merged = true;
+                break;
+            }
+        }
+        if(!merged) {
+            i++;
+        }
+    }
+    return merged_vectors;
+}
+
 template<IntervalType Interval>
-Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vertices, const typename Interval::Number& epsilon) {
-    const Interval epsilon_interval = 1 + Interval(epsilon);
+Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vectors) {
     std::vector<Edge<Interval>> edges;
 
     std::queue<std::pair<size_t, Vector<Interval>>> queue;
-    std::vector<bool> visited_indices(vertices.size(), false);
+    std::vector<bool> visited_indices(vectors.size(), false);
 
     std::optional<size_t> start_index;
-    for(size_t new_start_index = 0; new_start_index < vertices.size(); new_start_index++) {
-        if(!start_index.has_value() || vertices[new_start_index].len_sqr() > vertices[start_index.value()].len_sqr()) {
+    for(size_t new_start_index = 0; new_start_index < vectors.size(); new_start_index++) {
+        if(!start_index.has_value() || vectors[new_start_index].len().max() > vectors[start_index.value()].len().max()) {
             start_index = new_start_index;
         }
     }
-    queue.emplace(start_index.value(), vertices[start_index.value()] * epsilon_interval);
+    queue.emplace(start_index.value(), vectors[start_index.value()]);
 
     while(!queue.empty()) {
         const auto [from_index, from_vertex] = queue.front();
@@ -167,33 +187,30 @@ Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vertices, con
         visited_indices[from_index] = true;
 
         std::optional<size_t> most_clockwise_index;
-        for(size_t new_most_clockwise_index = 0; new_most_clockwise_index < vertices.size(); new_most_clockwise_index++) {
+        for(size_t new_most_clockwise_index = 0; new_most_clockwise_index < vectors.size(); new_most_clockwise_index++) {
             if(new_most_clockwise_index == from_index) {
                 continue;
             }
-            if(!(vertices[new_most_clockwise_index] - from_vertex).len_sqr().is_positive()) {
+            if(!from_vertex.diff(vectors[new_most_clockwise_index])) {
                 throw std::runtime_error("Zero length edge found");
             }
-            if(!most_clockwise_index.has_value()) {
-                most_clockwise_index = new_most_clockwise_index;
-                continue;
-            }
-            if(Edge<Interval>(from_vertex, vertices[most_clockwise_index.value()]).orientation(vertices[new_most_clockwise_index]) == Orientation::negative) {
+            if(!most_clockwise_index.has_value() ||
+               Edge<Interval>(from_vertex, vectors[most_clockwise_index.value()]).orientation(vectors[new_most_clockwise_index]) == Orientation::negative) {
                 most_clockwise_index = new_most_clockwise_index;
             }
         }
         if(!most_clockwise_index.has_value()) {
-            throw std::runtime_error("Vertices are too close to each other");
+            throw std::runtime_error("No most clockwise vertex found");
         }
 
         std::vector<size_t> to_indices;
-        const Edge<Interval> most_clockwise_edge(from_vertex, vertices[most_clockwise_index.value()]);
-        for(size_t to_index = 0; to_index < vertices.size(); to_index++) {
+        const Edge<Interval> most_clockwise_edge(from_vertex, vectors[most_clockwise_index.value()]);
+        for(size_t to_index = 0; to_index < vectors.size(); to_index++) {
             if(to_index == from_index) {
                 continue;
             }
-            const Vector<Interval> to_vertex = vertices[to_index];
-            if(!(to_vertex - from_vertex).len_sqr().is_positive()) {
+            const Vector<Interval> to_vertex = vectors[to_index];
+            if(!from_vertex.diff(to_vertex)) {
                 throw std::runtime_error("Zero length edge found");
             }
             if(most_clockwise_edge.orientation(to_vertex) == Orientation::positive) {
@@ -201,11 +218,11 @@ Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vertices, con
             }
             bool is_most_clockwise = true;
             const Edge<Interval> edge(from_vertex, to_vertex);
-            for(size_t index = 0; index < vertices.size(); index++) {
+            for(size_t index = 0; index < vectors.size(); index++) {
                 if(index == from_index || index == to_index) {
                     continue;
                 }
-                if(edge.orientation(vertices[index]) == Orientation::negative) {
+                if(edge.orientation(vectors[index]) == Orientation::negative) {
                     is_most_clockwise = false;
                     break;
                 }
@@ -215,13 +232,13 @@ Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vertices, con
             }
         }
         std::ranges::stable_sort(to_indices, [&](const size_t index, const size_t other_index) {
-            const Interval len = (vertices[index] - from_vertex).len();
-            const Interval other_len = (vertices[other_index] - from_vertex).len();
-            return (other_len - len).is_positive();
+            const typename Interval::Number dist = from_vertex.dist(vectors[other_index]).max();
+            const typename Interval::Number other_dist = from_vertex.dist(vectors[index]).max();
+            return dist < other_dist;
         });
         std::vector<Edge<Interval>> new_edges;
         for(const size_t to_index: to_indices) {
-            const Vector<Interval> to_vertex = vertices[to_index] * epsilon_interval;
+            const Vector<Interval> to_vertex = vectors[to_index];
             const bool is_most_clockwise = std::ranges::none_of(new_edges, [&](const Edge<Interval>& new_edge) {
                 return new_edge.orientation(to_vertex) == Orientation::positive;
             });

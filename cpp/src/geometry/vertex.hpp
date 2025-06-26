@@ -62,6 +62,14 @@ public:
         return ((*this) - vertex).len();
     }
 
+    bool diff(const Vertex& vertex) const {
+        return dist(vertex).is_positive();
+    }
+
+    Vertex hull(const Vertex& vertex) const {
+        return Vertex(x_.hull(vertex.x_), y_.hull(vertex.y_), z_.hull(vertex.z_));
+    }
+
     Interval dot(const Vertex& vertex) const {
         return x_ * vertex.x_ + y_ * vertex.y_ + z_ * vertex.z_;
     }

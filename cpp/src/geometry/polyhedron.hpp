@@ -14,8 +14,8 @@ private:
 
 public:
     explicit Polyhedron(const std::vector<Vertex<Interval>>& vertices) : vertices_(vertices), rotations_(), reflections_() {
-        rotations_ = symmetries(vertices_, true, Interval(1) / 1000);
-        reflections_ = symmetries(vertices_, false, Interval(1) / 1000);
+        rotations_ = symmetries(vertices_, true);
+        reflections_ = symmetries(vertices_, false);
     }
 
     const std::vector<Vertex<Interval>>& vertices() const {
