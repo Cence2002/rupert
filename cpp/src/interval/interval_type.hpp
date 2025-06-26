@@ -42,6 +42,7 @@ concept IntervalType =
         { interval.mid() } -> std::same_as<typename Interval::Number>; // approximate
         { interval.len() } -> std::same_as<typename Interval::Number>; // upper bound
         { interval.rad() } -> std::same_as<typename Interval::Number>; // upper bound
+        { interval.hull(other_interval) } -> std::same_as<Interval>;
 
         { +interval } -> std::same_as<Interval>;
         { -interval } -> std::same_as<Interval>;

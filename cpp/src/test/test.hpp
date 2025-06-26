@@ -115,11 +115,11 @@ public:
     void validate(const int iterations, const int resolution) {
         for(int iteration = 0; iteration < iterations; iteration++) {
             auto [interval_0, interval_1] = random_intervals(resolution);
-            interval_0 = interval_0 / (resolution / 10);
-            interval_1 = interval_1 / (resolution / 10);
+            interval_0 = interval_0 / Interval_0(resolution / 10);
+            interval_1 = interval_1 / Interval_1(resolution / 10);
             auto [other_interval_0, other_interval_1] = random_intervals(resolution);
-            other_interval_0 = other_interval_0 / (resolution / 10);
-            other_interval_1 = other_interval_1 / (resolution / 10);
+            other_interval_0 = other_interval_0 / Interval_0(resolution / 10);
+            other_interval_1 = other_interval_1 / Interval_1(resolution / 10);
             auto [number_0, number_1] = random_numbers(10);
             auto [integer_0, integer_1] = random_integers(10);
 

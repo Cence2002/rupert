@@ -1,7 +1,7 @@
 #pragma once
 
 #include "geometry/vertex.hpp"
-#include <symmetry.hpp>
+#include "geometry/matrix.hpp"
 #include <vector>
 
 template<IntervalType Interval>
@@ -9,8 +9,8 @@ struct Polyhedron {
 private:
     std::vector<Vertex<Interval>> vertices_;
 
-    std::vector<Matrix3<Interval>> rotations_;
-    std::vector<Matrix3<Interval>> reflections_;
+    std::vector<Matrix<Interval>> rotations_;
+    std::vector<Matrix<Interval>> reflections_;
 
 public:
     explicit Polyhedron(const std::vector<Vertex<Interval>>& vertices) : vertices_(vertices), rotations_(), reflections_() {
@@ -22,11 +22,11 @@ public:
         return vertices_;
     }
 
-    const std::vector<Matrix3<Interval>>& rotations() const {
+    const std::vector<Matrix<Interval>>& rotations() const {
         return rotations_;
     }
 
-    const std::vector<Matrix3<Interval>>& reflections() const {
+    const std::vector<Matrix<Interval>>& reflections() const {
         return reflections_;
     }
 
@@ -36,17 +36,6 @@ public:
             scaled_vertices.push_back(vertex * scale);
         }
         return Polyhedron(scaled_vertices);
-    }
-
-    Polyhedron normalise() const {
-        Interval radius = Interval(0);
-        for(const Vertex<Interval>& vertex: vertices_) {
-            const Interval len = vertex.len();
-            if(len > radius) {
-                radius = len;
-            }
-        }
-        return scale(radius.inv());
     }
 };
 
@@ -102,7 +91,9 @@ namespace PolyhedronHelpers {
     std::vector<Vertex<Interval>> combine(const std::vector<std::vector<Vertex<Interval>>>& vertices) {
         std::vector<Vertex<Interval>> combined;
         for(const std::vector<Vertex<Interval>>& vertex: vertices) {
-            combined.insert(combined.end(), vertex.begin(), vertex.end());
+            for(const Vertex<Interval>& v: vertex) {
+                combined.push_back(v);
+            }
         }
         return combined;
     }
@@ -229,13 +220,13 @@ namespace Archimedean {
 
     template<IntervalType Interval>
     static Polyhedron<Interval> rhombicosidodecahedron() {
-        const Interval c0 = (Interval(1) + Interval(5).sqrt()) / 4;
-        const Interval c1 = (Interval(3) + Interval(5).sqrt()) / 4;
-        const Interval c2 = (Interval(1) + Interval(5).sqrt()) / 2;
-        const Interval c3 = (Interval(5) + Interval(5).sqrt()) / 4;
-        const Interval c4 = (Interval(2) + Interval(5).sqrt()) / 2;
+        const Interval c0 = (Interval(1) + Interval(5).sqrt()) / Interval(4);
+        const Interval c1 = (Interval(3) + Interval(5).sqrt()) / Interval(4);
+        const Interval c2 = (Interval(1) + Interval(5).sqrt()) / Interval(2);
+        const Interval c3 = (Interval(5) + Interval(5).sqrt()) / Interval(4);
+        const Interval c4 = (Interval(2) + Interval(5).sqrt()) / Interval(2);
         return Polyhedron<Interval>(combine<Interval>({
-            rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(1) / 2, Interval(1) / 2, c4))),
+            rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(1) / Interval(2), Interval(1) / Interval(2), c4))),
             rotations<Interval>(flips<Interval>(Vertex<Interval>(Interval(0), c1, c3))),
             rotations<Interval>(flips<Interval>(Vertex<Interval>(c1, c0, c2)))
         }));

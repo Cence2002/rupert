@@ -46,7 +46,7 @@ public:
 
     template<IntervalType Interval>
     Interval theta() const {
-        return theta_id_.interval<Interval>() * 2 * Interval::pi();
+        return theta_id_.interval<Interval>() * Interval(2) * Interval::pi();
     }
 
     template<IntervalType Interval>

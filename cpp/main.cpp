@@ -1,4 +1,4 @@
-#include "test/test.hpp"
+// #include "test/test.hpp"
 #include "pipeline/pipeline.hpp"
 #include <csignal>
 
@@ -26,11 +26,28 @@ void signal_handler(const int signal) {
     }
 }
 
-int main() {
-    tests();
+template<typename... Args>
+void print(Args&&... args) {
+    ((std::cout << args), ...);
+    std::cout << std::endl;
+}
 
-    const Polyhedron<I> hole = Archimedean::rhombicosidodecahedron<I>().normalise();
-    const Polyhedron<I> plug = Archimedean::rhombicosidodecahedron<I>().normalise();
+int main() {
+    // tests();
+
+    const Polyhedron<I> hole = Archimedean::rhombicosidodecahedron<I>();
+    const Polyhedron<I> plug = Archimedean::rhombicosidodecahedron<I>();
+
+    auto tmp = convex_hull(
+        std::vector<Vector<I>>{
+            Vector<I>(I(0), I(0)),
+            Vector<I>(I(1), I(0)),
+            Vector<I>(I(0), I(1)),
+            Vector<I>(I(0), I(0)),
+            Vector<I>(I(-1), I(0)),
+            Vector<I>(I(0), I(-1))
+        }
+    );
 
     const Config<I> config(
         "temp",

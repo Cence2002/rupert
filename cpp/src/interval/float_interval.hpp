@@ -79,6 +79,13 @@ public:
         return Number((max_ - min_) / 2);
     }
 
+    FloatInterval hull(const FloatInterval& other) const {
+        return FloatInterval(
+            std::min(min_, other.min_),
+            std::max(max_, other.max_)
+        );
+    }
+
     FloatInterval operator+() const {
         return FloatInterval(+min_, +max_);
     }

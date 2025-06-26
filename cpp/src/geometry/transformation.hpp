@@ -15,13 +15,13 @@ Interval harmonic_combined(const Interval& cos_amplitude, const Interval& sin_am
         const Interval amplitude = (cos_amplitude.sqr() + sin_amplitude.sqr()).sqrt();
         const Interval phase = (sin_amplitude / cos_amplitude).atan();
         const int sign = cos_amplitude.is_positive() ? 1 : -1;
-        return sign * amplitude * (angle - phase).cos();
+        return Interval(sign) * amplitude * (angle - phase).cos();
     }
     if(sin_amplitude.is_nonzero()) {
         const Interval amplitude = (cos_amplitude.sqr() + sin_amplitude.sqr()).sqrt();
         const Interval phase = -(cos_amplitude / sin_amplitude).atan();
         const int sign = sin_amplitude.is_positive() ? 1 : -1;
-        return sign * amplitude * (angle - phase).sin();
+        return Interval(sign) * amplitude * (angle - phase).sin();
     }
     return harmonic_trivial(cos_amplitude, sin_amplitude, angle);
 }
@@ -91,15 +91,15 @@ std::vector<Vector<Interval>> rotation_hull_polygon(const Vector<Interval>& vect
     if(resolution < 1) {
         throw std::invalid_argument("Resolution must be at least 1");
     }
-    if(alpha.len() > Interval::pi() / 2 * resolution) {
+    if(Interval(alpha.len()) > Interval::pi() / Interval(2) * Interval(resolution)) {
         return rotation_hull_combined(vector, alpha);
     }
     std::vector<Vector<Interval>> rotated_vectors;
     rotated_vectors.emplace_back(rotation_trivial(vector, Interval(alpha.min())));
-    const Interval scaling_factor = 1 / (Interval(alpha.rad()) / resolution).cos();
+    const Interval scaling_factor = (Interval(alpha.rad()) / Interval(resolution)).cos().inv();
     const int pieces = 2 * resolution;
     for(int i = 1; i < pieces; i += 2) {
-        const Interval alpha_i = Interval(alpha.min()) * (pieces - i) / pieces + Interval(alpha.max()) * i / pieces;
+        const Interval alpha_i = Interval(alpha.min()) * Interval(pieces - i) / Interval(pieces) + Interval(alpha.max()) * Interval(i) / Interval(pieces);
         const Vector<Interval> rotated_vertex = rotation_trivial(vector, alpha_i);
         const Vector<Interval> scaled_rotated_vertex = rotated_vertex * scaling_factor;
         rotated_vectors.emplace_back(scaled_rotated_vertex);
@@ -120,7 +120,7 @@ std::vector<Vector<Interval>> projection_hull_combined(const Vertex<Interval>& v
 
 template<IntervalType Interval>
 std::vector<Vector<Interval>> projection_hull_polygon(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi, const int resolution) {
-    if(theta.len() > Interval::pi() / 2 * resolution) {
+    if(Interval(theta.len()) > Interval::pi() / Interval(2) * Interval(resolution)) {
         return projection_hull_combined(vertex, theta, phi);
     }
     const Vector<Interval> vector = Vector<Interval>(vertex.x(), vertex.y());

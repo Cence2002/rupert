@@ -56,7 +56,7 @@ public:
 
     template<IntervalType Interval>
     Interval theta() const {
-        return theta_id_.interval<Interval>() * 2 * Interval::pi();
+        return theta_id_.interval<Interval>() * Interval(2) * Interval::pi();
     }
 
     template<IntervalType Interval>
@@ -66,7 +66,7 @@ public:
 
     template<IntervalType Interval>
     Interval alpha() const {
-        return alpha_id_.interval<Interval>() * 2 * Interval::pi();
+        return alpha_id_.interval<Interval>() * Interval(2) * Interval::pi();
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Box& box) {

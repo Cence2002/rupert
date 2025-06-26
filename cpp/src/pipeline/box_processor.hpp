@@ -27,29 +27,26 @@ private:
                 debug_exporter_.debug_builder.box_builder.add_projection();
             }
         }
-        const Interval alpha_step = Interval(box.alpha<Interval>().rad()) / config_.rotation_resolution();
-        const Interval alpha_epsilon = 1 / alpha_step.cos() - 1;
-        const typename Interval::Number epsilon = (alpha_epsilon / 16).max();
-        return convex_hull(all_projected_hole_vertices, epsilon);
+        return convex_hull(all_projected_hole_vertices);
     }
 
     bool is_rectangle_ignored(const Box& box, const Rectangle& rectangle) {
-        const Interval box_angle_radius = Vector<Interval>(Interval(box.theta<Interval>().len()) + Interval(box.alpha<Interval>().len()), Interval(box.phi<Interval>().len())).len() / 2;
-        const Interval rectangle_angle_radius = Vector<Interval>(Interval(rectangle.theta<Interval>().len()), Interval(rectangle.phi<Interval>().len())).len() / 2;
+        const Interval box_angle_radius = Vector<Interval>(Interval(box.theta<Interval>().len()) + Interval(box.alpha<Interval>().len()), Interval(box.phi<Interval>().len())).len() / Interval(2);
+        const Interval rectangle_angle_radius = Vector<Interval>(Interval(rectangle.theta<Interval>().len()), Interval(rectangle.phi<Interval>().len())).len() / Interval(2);
         const Interval remaining_angle = config_.epsilon() - box_angle_radius - rectangle_angle_radius;
         if(!remaining_angle.is_positive()) {
             return false;
         }
         const Interval cos_remaining_angle = remaining_angle.cos();
-        const Matrix3<Interval> hole_matrix = projection_rotation_matrix(Interval(box.theta<Interval>().mid()), Interval(box.phi<Interval>().mid()), Interval(box.alpha<Interval>().mid()));
-        const Matrix3<Interval> plug_matrix = projection_matrix(Interval(rectangle.theta<Interval>().mid()), Interval(rectangle.phi<Interval>().mid()));
-        for(const Matrix3<Interval>& rotation: config_.plug().rotations()) {
-            if(cos_angle_between(compose(rotation, hole_matrix), plug_matrix) > cos_remaining_angle) {
+        const Matrix<Interval> hole_matrix = Matrix<Interval>::projection_rotation_matrix(Interval(box.theta<Interval>().mid()), Interval(box.phi<Interval>().mid()), Interval(box.alpha<Interval>().mid()));
+        const Matrix<Interval> plug_matrix = Matrix<Interval>::projection_matrix(Interval(rectangle.theta<Interval>().mid()), Interval(rectangle.phi<Interval>().mid()));
+        for(const Matrix<Interval>& rotation: config_.plug().rotations()) {
+            if(Matrix<Interval>::cos_angle_between(rotation.compose(hole_matrix), plug_matrix) > cos_remaining_angle) {
                 return true;
             }
         }
-        for(const Matrix3<Interval>& reflection: config_.plug().reflections()) {
-            if(cos_angle_between(compose(reflection, hole_matrix), compose(plug_matrix, reflection_matrix_z<Interval>())) > cos_remaining_angle) {
+        for(const Matrix<Interval>& reflection: config_.plug().reflections()) {
+            if(Matrix<Interval>::cos_angle_between(reflection.compose(hole_matrix), plug_matrix.compose(Matrix<Interval>::reflect_z())) > cos_remaining_angle) {
                 return true;
             }
         }
@@ -63,7 +60,7 @@ private:
         for(size_t vertex_index = 0; vertex_index < config_.plug().vertices().size(); vertex_index++) {
             const Vertex<Interval>& plug_vertex = config_.plug().vertices()[vertex_index];
             if(config_.debug_enabled()) {
-                for(const Vector<Interval>& projected_plug_vertex: projection_hull_advanced_approximate(plug_vertex, theta, phi)) {
+                for(const Vector<Interval>& projected_plug_vertex: projection_hull_polygon(plug_vertex, theta, phi, config_.projection_resolution())) {
                     debug_exporter_.debug_builder.box_builder.rectangle_builder.projection_builder.add_vertex(projected_plug_vertex);
                 }
                 debug_exporter_.debug_builder.box_builder.rectangle_builder.add_projection();

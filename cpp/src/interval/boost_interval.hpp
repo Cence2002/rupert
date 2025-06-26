@@ -83,6 +83,10 @@ public:
         return Number(boost::numeric::width(interval_) / 2);
     }
 
+    BoostInterval hull(const BoostInterval& other) const {
+        return BoostInterval(boost::numeric::hull(interval_, other.interval_));
+    }
+
     BoostInterval operator+() const {
         return BoostInterval(+interval_);
     }

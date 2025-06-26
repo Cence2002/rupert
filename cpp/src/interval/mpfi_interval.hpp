@@ -147,6 +147,13 @@ public:
         return MpfrNumber(rad);
     }
 
+    MpfiInterval hull(const MpfiInterval& other) const {
+        mpfi_t uni;
+        mpfi_init(uni);
+        mpfi_union(uni, interval_, other.interval_);
+        return MpfiInterval(uni);
+    }
+
     MpfiInterval operator+() const {
         return MpfiInterval(interval_);
     }

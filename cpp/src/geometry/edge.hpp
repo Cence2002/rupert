@@ -88,7 +88,7 @@ public:
         if(orientation(vector) != Orientation::ambiguous) {
             return true;
         }
-        return vector.dist(mid()) > len() / 2;
+        return vector.dist(mid()) > len() / Interval(2);
     }
 
     bool avoids(const Edge& edge) const {
@@ -96,7 +96,7 @@ public:
            same_orientation(edge.orientation(from_), edge.orientation(to_))) {
             return true;
         }
-        return edge.mid().dist(mid()) > (len() + edge.len()) / 2;
+        return edge.mid().dist(mid()) > (len() + edge.len()) / Interval(2);
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Edge& edge) {

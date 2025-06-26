@@ -3,4 +3,4 @@
 #include "geometry/transformation.hpp"
 #include "geometry/polygon.hpp"
 #include "geometry/polyhedron.hpp"
-#include "geometry/symmetry.hpp"
+#include "geometry/matrix.hpp"
