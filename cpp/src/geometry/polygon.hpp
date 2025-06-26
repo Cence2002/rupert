@@ -25,13 +25,11 @@ public:
     }
 
     bool is_projected_vertex_inside_polygon_trivial(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) const {
-        const Vector<Interval> projected_vertex = projection_trivial(vertex, theta, phi);
-        return is_vector_inside_polygon(projected_vertex);
+        return is_vector_inside_polygon(projection_trivial(vertex, theta, phi));
     }
 
     bool is_projected_vertex_inside_polygon_combined(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) const {
-        const Vector<Interval> projected_vertex = projection_combined(vertex, theta, phi);
-        return is_vector_inside_polygon(projected_vertex);
+        return is_vector_inside_polygon(projection_combined(vertex, theta, phi));
     }
 
     bool is_vector_outside_polygon(const Vector<Interval>& vector) const {
@@ -41,13 +39,11 @@ public:
     }
 
     bool is_projected_vertex_outside_polygon_trivial(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) const {
-        const Vector<Interval> projected_vertex = projection_trivial(vertex, theta, phi);
-        return is_vector_outside_polygon(projected_vertex);
+        return is_vector_outside_polygon(projection_trivial(vertex, theta, phi));
     }
 
     bool is_projected_vertex_outside_polygon_combined(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) const {
-        const Vector<Interval> projected_vertex = projection_combined(vertex, theta, phi);
-        return is_vector_outside_polygon(projected_vertex);
+        return is_vector_outside_polygon(projection_combined(vertex, theta, phi));
     }
 
     bool is_projected_vertex_avoiding_polygon_advanced_fixed_theta(const Vertex<Interval>& vertex, const typename Interval::Number& theta, const Interval& phi) const {
@@ -123,12 +119,15 @@ public:
     }
 
     bool is_projected_vertex_outside_polygon_advanced(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) const {
-        if(!(theta.len() < Interval::pi() / 3)) {
+        if(!(theta.len() < Interval::pi() / 2)) {
             // projected vertex might surround the polygon, meaning it avoids, but is not outside
             // default to combined
             return is_projected_vertex_outside_polygon_combined(vertex, theta, phi);
         }
         return is_projected_vertex_outside_polygon_combined(vertex, Interval(theta.min()), Interval(phi.min())) &&
+               is_projected_vertex_outside_polygon_combined(vertex, Interval(theta.max()), Interval(phi.max())) &&
+               is_projected_vertex_outside_polygon_combined(vertex, Interval(theta.min()), Interval(phi.max())) &&
+               is_projected_vertex_outside_polygon_combined(vertex, Interval(theta.max()), Interval(phi.min())) &&
                is_projected_vertex_avoiding_polygon_advanced_fixed_theta(vertex, theta.min(), phi) &&
                is_projected_vertex_avoiding_polygon_advanced_fixed_theta(vertex, theta.max(), phi) &&
                is_projected_vertex_avoiding_polygon_advanced_fixed_phi(vertex, theta, phi.min()) &&

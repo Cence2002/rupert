@@ -36,7 +36,17 @@ private:
     Vector<Interval> to_;
 
 public:
-    explicit Edge(const Vector<Interval>& from, const Vector<Interval>& to) : from_(from), to_(to) {}
+    explicit Edge(const Vector<Interval>& from, const Vector<Interval>& to) : from_(from), to_(to) {
+        if(!from_.dist(to_).is_positive()) {
+            throw std::runtime_error("Zero length edge found");
+        }
+    }
+
+    ~Edge() = default;
+
+    Edge(const Edge& edge) = default;
+
+    Edge(Edge&& edge) = default;
 
     const Vector<Interval>& from() const {
         return from_;
@@ -51,7 +61,7 @@ public:
     }
 
     Interval len() const {
-        return dir().len();
+        return to_.dist(from_);
     }
 
     Vector<Interval> mid() const {
@@ -84,18 +94,6 @@ public:
     bool avoids(const Edge& edge) const {
         if(same_orientation(orientation(edge.from_), orientation(edge.to_)) ||
            same_orientation(edge.orientation(from_), edge.orientation(to_))) {
-            return true;
-        }
-        const Interval from_dot = dir().dot(edge.from() - from_);
-        const Interval to_dot = dir().dot(edge.to() - from_);
-        if((from_dot.is_negative() && to_dot.is_negative()) ||
-           (from_dot > len() && to_dot > len())) {
-            return true;
-        }
-        const Interval edge_from_dot = edge.dir().dot(from_ - edge.from());
-        const Interval edge_to_dot = edge.dir().dot(to_ - edge.from());
-        if((edge_from_dot.is_negative() && edge_to_dot.is_negative()) ||
-           (edge_from_dot > edge.len() && edge_to_dot > edge.len())) {
             return true;
         }
         return edge.mid().dist(mid()) > (len() + edge.len()) / 2;
