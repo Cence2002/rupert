@@ -160,7 +160,17 @@ public:
         return BoostInterval(boost::numeric::atan(interval_));
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const BoostInterval& interval);
+    friend std::ostream& operator<<(std::ostream& ostream, const BoostInterval& interval) {
+        switch(interval_print_mode) {
+            case IntervalPrintMode::min_and_max: {
+                return ostream << "[" << interval.min().value() << " : " << interval.max().value() << "]";
+            }
+            case IntervalPrintMode::mid_and_rad: {
+                return ostream << "[" << interval.mid().value() << " ~ " << interval.rad().value() << "]";
+            }
+            default: throw std::invalid_argument("Unknown IntervalPrintMode");
+        }
+    }
 
     static inline const std::string name = "BoostInterval";
 };

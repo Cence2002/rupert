@@ -234,7 +234,17 @@ public:
         return FloatInterval(std::atan(min_), std::atan(max_));
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const FloatInterval& interval);
+    friend std::ostream& operator<<(std::ostream& ostream, const FloatInterval& interval) {
+        switch(interval_print_mode) {
+            case IntervalPrintMode::min_and_max: {
+                return ostream << "[" << interval.min().value() << " : " << interval.max().value() << "]";
+            }
+            case IntervalPrintMode::mid_and_rad: {
+                return ostream << "[" << interval.mid().value() << " ~ " << interval.rad().value() << "]";
+            }
+            default: throw std::invalid_argument("Unknown IntervalPrintMode");
+        }
+    }
 
     static inline const std::string name = "FloatInterval";
 };
