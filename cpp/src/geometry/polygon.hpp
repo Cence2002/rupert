@@ -172,6 +172,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vectors) {
     std::vector<Edge<Interval>> edges;
 
     std::vector<bool> is_duplicate(vectors.size(), false);
+    bool any_non_duplicate = false;
     for(size_t i = 1; i < vectors.size(); i++) {
         for(size_t j = 0; j < i; j++) {
             if(!vectors[i].diff(vectors[j])) {
@@ -179,10 +180,11 @@ Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vectors) {
                 break;
             }
         }
+        if(!is_duplicate[i]) {
+            any_non_duplicate = true;
+        }
     }
-    if(std::ranges::all_of(is_duplicate, [](bool duplicate) noexcept {
-        return duplicate;
-    })) {
+    if(!any_non_duplicate) {
         throw std::runtime_error("All vectors are duplicates");
     }
 

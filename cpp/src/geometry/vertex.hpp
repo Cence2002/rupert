@@ -10,7 +10,7 @@ private:
     Interval z_;
 
 public:
-    explicit Vertex(const Interval& x, const Interval& y, const Interval& z) noexcept : x_(x), y_(y), z_(z) {}
+    explicit Vertex(const Interval& x, const Interval& y, const Interval& z) : x_(x), y_(y), z_(z) {}
 
     ~Vertex() = default;
 
