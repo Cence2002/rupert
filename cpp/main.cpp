@@ -2,7 +2,7 @@
 #include "pipeline/pipeline.hpp"
 #include <csignal>
 
-using I = FloatInterval;
+using I = BoostInterval;
 
 std::optional<Pipeline<I>> pipeline;
 
@@ -37,17 +37,6 @@ int main() {
 
     const Polyhedron<I> hole = Archimedean::rhombicosidodecahedron<I>();
     const Polyhedron<I> plug = Archimedean::rhombicosidodecahedron<I>();
-
-    auto tmp = convex_hull(
-        std::vector<Vector<I>>{
-            Vector<I>(I(0), I(0)),
-            Vector<I>(I(1), I(0)),
-            Vector<I>(I(0), I(1)),
-            Vector<I>(I(0), I(0)),
-            Vector<I>(I(-1), I(0)),
-            Vector<I>(I(0), I(-1))
-        }
-    );
 
     const Config<I> config(
         "temp",

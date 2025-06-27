@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <limits>
 #include <mpfr.h>
 
 inline size_t number_print_precision = 6;

@@ -150,36 +150,50 @@ public:
     }
 };
 
+template<typename Interval>
+typename Interval::Number max_uncertainty(const std::vector<Vector<Interval>>& vectors) {
+    size_t best_index = 0;
+    for(size_t i = 1; i < vectors.size(); i++) {
+        if(vectors[i].len().len() > vectors[best_index].len().len()) {
+            best_index = i;
+        }
+    }
+    return vectors[best_index].len().len();
+}
+
 // template<typename Interval>
 // std::vector<Vector<Interval>> merge_vectors(const std::vector<Vector<Interval>>& vectors) {
-//     std::vector<Vector<Interval>> merged_vectors = vectors;
-//     size_t i = 0;
-//     while(i < merged_vectors.size()) {
-//         bool merged = false;
-//         for(size_t j = i + 1; j < merged_vectors.size(); j++) {
-//             if(!merged_vectors[i].diff(merged_vectors[j])) {
-//                 merged_vectors[i] = merged_vectors[i].hull(merged_vectors[j]);
-//                 merged_vectors.erase(merged_vectors.begin() + j);
-//                 merged = true;
-//                 break;
-//             }
-//         }
-//         if(!merged) {
-//             i++;
-//         }
-//     }
-//     return merged_vectors;
+//     const Interval epsilon = Interval(max_uncertainty(vectors)) * Interval(static_cast<int>(vectors.size())) * Interval(2);
+//     ...
 // }
 
 template<IntervalType Interval>
 Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vectors) {
     std::vector<Edge<Interval>> edges;
 
+    std::vector<bool> is_duplicate(vectors.size(), false);
+    for(size_t i = 1; i < vectors.size(); i++) {
+        for(size_t j = 0; j < i; j++) {
+            if(!vectors[i].diff(vectors[j])) {
+                is_duplicate[i] = true;
+                break;
+            }
+        }
+    }
+    if(std::ranges::all_of(is_duplicate, [](bool duplicate) noexcept {
+        return duplicate;
+    })) {
+        throw std::runtime_error("All vectors are duplicates");
+    }
+
     std::queue<size_t> queue;
     std::vector<bool> visited_indices(vectors.size(), false);
 
     std::optional<size_t> start_index;
     for(size_t new_start_index = 0; new_start_index < vectors.size(); new_start_index++) {
+        if(is_duplicate[new_start_index]) {
+            continue;
+        }
         if(!start_index.has_value() || vectors[new_start_index].len().max() > vectors[start_index.value()].len().max()) {
             start_index = new_start_index;
         }
@@ -196,7 +210,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vectors) {
 
         std::optional<size_t> most_clockwise_index;
         for(size_t new_most_clockwise_index = 0; new_most_clockwise_index < vectors.size(); new_most_clockwise_index++) {
-            if(new_most_clockwise_index == from_index) {
+            if(is_duplicate[new_most_clockwise_index] || new_most_clockwise_index == from_index) {
                 continue;
             }
             if(!vectors[from_index].diff(vectors[new_most_clockwise_index])) {
@@ -214,7 +228,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vectors) {
         std::vector<size_t> to_indices;
         const Edge<Interval> most_clockwise_edge(vectors[from_index], vectors[most_clockwise_index.value()]);
         for(size_t to_index = 0; to_index < vectors.size(); to_index++) {
-            if(to_index == from_index) {
+            if(is_duplicate[to_index] || to_index == from_index) {
                 continue;
             }
             if(!vectors[from_index].diff(vectors[to_index])) {
