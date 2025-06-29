@@ -1,10 +1,10 @@
 // #include "test/test.hpp"
-#include "global_solver/pipeline.hpp"
+#include "global_solver/global_solver.hpp"
 #include <csignal>
 
 using I = BoostInterval;
 
-std::optional<Pipeline<I>> pipeline;
+std::optional<GlobalSolver<I>> pipeline;
 
 void signal_handler(const int signal) {
     if(pipeline.has_value()) {

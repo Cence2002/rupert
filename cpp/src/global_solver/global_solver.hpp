@@ -7,7 +7,7 @@
 #include <thread>
 
 template<IntervalType Interval>
-struct Pipeline {
+struct GlobalSolver {
 private:
     const Config<Interval>& config_;
 
@@ -73,7 +73,7 @@ private:
     }
 
 public:
-    explicit Pipeline(const Config<Interval>& config) : config_(config),
+    explicit GlobalSolver(const Config<Interval>& config) : config_(config),
                                                         box_queue_(),
                                                         terminal_box_queue_(),
                                                         importer_(config),
