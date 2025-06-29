@@ -12,72 +12,72 @@ private:
     Interval zx_, zy_, zz_;
 
 public:
-    explicit Matrix(const Interval& xx, const Interval& xy, const Interval& xz,
-                    const Interval& yx, const Interval& yy, const Interval& yz,
-                    const Interval& zx, const Interval& zy, const Interval& zz) : xx_(xx), xy_(xy), xz_(xz),
-                                                                                  yx_(yx), yy_(yy), yz_(yz),
-                                                                                  zx_(zx), zy_(zy), zz_(zz) {}
+    explicit Matrix(
+        const Interval& xx, const Interval& xy, const Interval& xz,
+        const Interval& yx, const Interval& yy, const Interval& yz,
+        const Interval& zx, const Interval& zy, const Interval& zz
+    ) : xx_(xx), xy_(xy), xz_(xz),
+        yx_(yx), yy_(yy), yz_(yz),
+        zx_(zx), zy_(zy), zz_(zz) {}
+
+    ~Matrix() = default;
+
+    Matrix(const Matrix& matrix) = default;
+
+    Matrix(Matrix&& matrix) = default;
 
     static Matrix zero() {
-        const Interval z(0);
-        return Matrix(z, z, z,
-                      z, z, z,
-                      z, z, z);
+        return Matrix(Interval(0), Interval(0), Interval(0),
+                      Interval(0), Interval(0), Interval(0),
+                      Interval(0), Interval(0), Interval(0));
     }
 
     static Matrix identity() {
-        const Interval z(0), o(1);
-        return Matrix(o, z, z,
-                      z, o, z,
-                      z, z, o);
+        return Matrix(Interval(1), Interval(0), Interval(0),
+                      Interval(0), Interval(1), Interval(0),
+                      Interval(0), Interval(0), Interval(1));
     }
 
     static Matrix reflect_x() {
-        const Interval z(0), o(1), m(-1);
-        return Matrix(m, z, z,
-                      z, o, z,
-                      z, z, o);
+        return Matrix(Interval(-1), Interval(0), Interval(0),
+                      Interval(0), Interval(1), Interval(0),
+                      Interval(0), Interval(0), Interval(1));
     }
 
     static Matrix reflect_y() {
-        const Interval z(0), o(1), m(-1);
-        return Matrix(o, z, z,
-                      z, m, z,
-                      z, z, o);
+        return Matrix(Interval(1), Interval(0), Interval(0),
+                      Interval(0), Interval(-1), Interval(0),
+                      Interval(0), Interval(0), Interval(1));
     }
 
     static Matrix reflect_z() {
-        const Interval z(0), o(1), m(-1);
-        return Matrix(o, z, z,
-                      z, o, z,
-                      z, z, m);
+        return Matrix(Interval(1), Interval(0), Interval(0),
+                      Interval(0), Interval(1), Interval(0),
+                      Interval(0), Interval(0), Interval(-1));
     }
 
-    static Matrix rot_x(const Interval& angle) {
-        const Interval z(0), o(1);
-        const Interval ca = angle.cos();
-        const Interval sa = angle.sin();
-        return Matrix(o, z, z,
-                      z, ca, -sa,
-                      z, sa, ca);
+    static Matrix rotate_x(const Interval& angle) {
+        return Matrix(
+            Interval(1), Interval(0), Interval(0),
+            Interval(0), angle.cos(), -angle.sin(),
+            Interval(0), angle.sin(), angle.cos()
+        );
     }
 
-    static Matrix rot_y(const Interval& angle) {
-        const Interval z(0), o(1);
-        const Interval ca = angle.cos();
-        const Interval sa = angle.sin();
-        return Matrix(ca, z, sa,
-                      z, o, z,
-                      -sa, z, ca);
+    static Matrix rotate_y(const Interval& angle) {
+        return Matrix(
+            angle.cos(), Interval(0), angle.sin(),
+            Interval(0), Interval(1), Interval(0),
+            -angle.sin(), Interval(0), angle.cos()
+        );
     }
 
-    static Matrix rot_z(const Interval& angle) {
-        const Interval z(0), o(1);
-        const Interval ca = angle.cos();
-        const Interval sa = angle.sin();
-        return Matrix(ca, -sa, z,
-                      sa, ca, z,
-                      z, z, o);
+    static Matrix rotate_z(const Interval& angle) {
+        return Matrix(
+            angle.cos(), -angle.sin(), Interval(0),
+            angle.sin(), angle.cos(), Interval(0),
+            Interval(0), Interval(0), Interval(1)
+        );
     }
 
     Matrix transpose() const {
@@ -110,12 +110,8 @@ public:
         );
     }
 
-    Matrix compose(const Matrix& matrix) const {
-        return matrix * (*this);
-    }
-
     Matrix basis_change(const Matrix& other_basis) const {
-        return transpose().compose(other_basis);
+        return other_basis * transpose();
     }
 
     Interval cos_angle() const {
@@ -127,15 +123,11 @@ public:
     }
 
     static Matrix projection_matrix(const Interval& theta, const Interval& phi) {
-        const Matrix rotation_z = rot_z(theta);
-        const Matrix rotation_x = rot_x(phi);
-        return rotation_z.compose(rotation_x);
+        return rotate_x(phi) * rotate_z(theta);
     }
 
     static Matrix projection_rotation_matrix(const Interval& theta, const Interval& phi, const Interval& alpha) {
-        const Matrix projection = projection_matrix(theta, phi);
-        const Matrix rotation_z = rot_z(alpha);
-        return projection.compose(rotation_z);
+        return rotate_z(alpha) * projection_matrix(theta, phi);
     }
 };
 
@@ -143,7 +135,7 @@ template<IntervalType Interval>
 Matrix<Interval> orthonormal_basis(const Vertex<Interval>& from, const Vertex<Interval>& to, bool right_handed) {
     Vertex<Interval> x_axis = from.unit();
     Vertex<Interval> y_axis = (to - from * to.dot(x_axis)).unit();
-    Vertex<Interval> z_axis = x_axis.cross(y_axis).unit() * (right_handed ? Interval(1) : Interval(-1));
+    Vertex<Interval> z_axis = right_handed ? x_axis.cross(y_axis).unit() : y_axis.cross(x_axis).unit();
     return Matrix<Interval>(
         x_axis.x(), y_axis.x(), z_axis.x(),
         x_axis.y(), y_axis.y(), z_axis.y(),

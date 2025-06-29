@@ -41,12 +41,12 @@ private:
         const Matrix<Interval> hole_matrix = Matrix<Interval>::projection_rotation_matrix(Interval(box.theta<Interval>().mid()), Interval(box.phi<Interval>().mid()), Interval(box.alpha<Interval>().mid()));
         const Matrix<Interval> plug_matrix = Matrix<Interval>::projection_matrix(Interval(rectangle.theta<Interval>().mid()), Interval(rectangle.phi<Interval>().mid()));
         for(const Matrix<Interval>& rotation: config_.plug().rotations()) {
-            if(Matrix<Interval>::cos_angle_between(rotation.compose(hole_matrix), plug_matrix) > cos_remaining_angle) {
+            if(Matrix<Interval>::cos_angle_between(hole_matrix * rotation, plug_matrix) > cos_remaining_angle) {
                 return true;
             }
         }
         for(const Matrix<Interval>& reflection: config_.plug().reflections()) {
-            if(Matrix<Interval>::cos_angle_between(reflection.compose(hole_matrix), plug_matrix.compose(Matrix<Interval>::reflect_z())) > cos_remaining_angle) {
+            if(Matrix<Interval>::cos_angle_between(hole_matrix * reflection, Matrix<Interval>::reflect_z() * plug_matrix) > cos_remaining_angle) {
                 return true;
             }
         }
