@@ -41,6 +41,36 @@ public:
                       Interval(0), Interval(0), Interval(1));
     }
 
+    Matrix transpose() const {
+        return Matrix(xx_, yx_, zx_,
+                      xy_, yy_, zy_,
+                      xz_, yz_, zz_);
+    }
+
+    Vector3<Interval> operator*(const Vector3<Interval>& vector3) const {
+        return Vector3<Interval>(
+            xx_ * vector3.x() + xy_ * vector3.y() + xz_ * vector3.z(),
+            yx_ * vector3.x() + yy_ * vector3.y() + yz_ * vector3.z(),
+            zx_ * vector3.x() + zy_ * vector3.y() + zz_ * vector3.z()
+        );
+    }
+
+    Matrix operator*(const Matrix& matrix) const {
+        return Matrix(
+            xx_ * matrix.xx_ + xy_ * matrix.yx_ + xz_ * matrix.zx_,
+            xx_ * matrix.xy_ + xy_ * matrix.yy_ + xz_ * matrix.zy_,
+            xx_ * matrix.xz_ + xy_ * matrix.yz_ + xz_ * matrix.zz_,
+
+            yx_ * matrix.xx_ + yy_ * matrix.yx_ + yz_ * matrix.zx_,
+            yx_ * matrix.xy_ + yy_ * matrix.yy_ + yz_ * matrix.zy_,
+            yx_ * matrix.xz_ + yy_ * matrix.yz_ + yz_ * matrix.zz_,
+
+            zx_ * matrix.xx_ + zy_ * matrix.yx_ + zz_ * matrix.zx_,
+            zx_ * matrix.xy_ + zy_ * matrix.yy_ + zz_ * matrix.zy_,
+            zx_ * matrix.xz_ + zy_ * matrix.yz_ + zz_ * matrix.zz_
+        );
+    }
+
     static Matrix reflect_x() {
         return Matrix(Interval(-1), Interval(0), Interval(0),
                       Interval(0), Interval(1), Interval(0),
@@ -83,34 +113,12 @@ public:
         );
     }
 
-    Matrix transpose() const {
-        return Matrix(xx_, yx_, zx_,
-                      xy_, yy_, zy_,
-                      xz_, yz_, zz_);
+    static Matrix projection_matrix(const Interval& theta, const Interval& phi) {
+        return rotate_x(phi) * rotate_z(theta);
     }
 
-    Vector3<Interval> operator*(const Vector3<Interval>& vector3) const {
-        return Vector3<Interval>(
-            xx_ * vector3.x() + xy_ * vector3.y() + xz_ * vector3.z(),
-            yx_ * vector3.x() + yy_ * vector3.y() + yz_ * vector3.z(),
-            zx_ * vector3.x() + zy_ * vector3.y() + zz_ * vector3.z()
-        );
-    }
-
-    Matrix operator*(const Matrix& matrix) const {
-        return Matrix(
-            xx_ * matrix.xx_ + xy_ * matrix.yx_ + xz_ * matrix.zx_,
-            xx_ * matrix.xy_ + xy_ * matrix.yy_ + xz_ * matrix.zy_,
-            xx_ * matrix.xz_ + xy_ * matrix.yz_ + xz_ * matrix.zz_,
-
-            yx_ * matrix.xx_ + yy_ * matrix.yx_ + yz_ * matrix.zx_,
-            yx_ * matrix.xy_ + yy_ * matrix.yy_ + yz_ * matrix.zy_,
-            yx_ * matrix.xz_ + yy_ * matrix.yz_ + yz_ * matrix.zz_,
-
-            zx_ * matrix.xx_ + zy_ * matrix.yx_ + zz_ * matrix.zx_,
-            zx_ * matrix.xy_ + zy_ * matrix.yy_ + zz_ * matrix.zy_,
-            zx_ * matrix.xz_ + zy_ * matrix.yz_ + zz_ * matrix.zz_
-        );
+    static Matrix projection_rotation_matrix(const Interval& theta, const Interval& phi, const Interval& alpha) {
+        return rotate_z(alpha) * projection_matrix(theta, phi);
     }
 
     static Matrix relative_rotation(const Matrix& from, const Matrix& to) {

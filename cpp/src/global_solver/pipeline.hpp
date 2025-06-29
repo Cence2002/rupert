@@ -3,6 +3,7 @@
 #include "global_solver/box_processor.hpp"
 #include "global_solver/importer.hpp"
 #include "global_solver/exporter.hpp"
+#include "global_solver/geometry_helpers.hpp"
 #include <thread>
 
 template<IntervalType Interval>
