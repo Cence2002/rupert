@@ -105,7 +105,7 @@ public:
     }
 
     bool compare_number(const typename Interval_0::Number& number0, const typename Interval_1::Number& number1) {
-        return compare_float(number0.float_value(), number1.float_value(), tolerance_);
+        return compare_float(number0.to_float(), number1.to_float(), tolerance_);
     }
 
     bool compare_interval(const Interval_0& interval_0, const Interval_1& interval_1) {

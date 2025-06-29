@@ -17,17 +17,11 @@ private:
     explicit BoostInterval(const BoostIntervalType& interval) : interval_(interval) {}
 
 public:
-    using Number = FloatNumber;
-
     template<IntegerType Integer>
     explicit BoostInterval(const Integer integer) : interval_(integer) {}
 
     template<IntegerType Integer>
     explicit BoostInterval(const Integer min, const Integer max) : interval_(min, max) {}
-
-    explicit BoostInterval(const Number& number) : interval_(number.value()) {}
-
-    explicit BoostInterval(const Number& min, const Number& max) : interval_(min.value(), max.value()) {}
 
     ~BoostInterval() = default;
 
@@ -63,24 +57,24 @@ public:
         return boost::numeric::interval_lib::cerlt(interval_, interval.interval_);
     }
 
-    Number min() const {
-        return Number(boost::numeric::lower(interval_));
+    BoostInterval min() const {
+        return BoostInterval(boost::numeric::lower(interval_));
     }
 
-    Number max() const {
-        return Number(boost::numeric::upper(interval_));
+    BoostInterval max() const {
+        return BoostInterval(boost::numeric::upper(interval_));
     }
 
-    Number mid() const {
-        return Number(boost::numeric::median(interval_));
+    BoostInterval mid() const {
+        return BoostInterval(boost::numeric::median(interval_));
     }
 
-    Number len() const {
-        return Number(boost::numeric::width(interval_));
+    BoostInterval len() const {
+        return BoostInterval(boost::numeric::width(interval_));
     }
 
-    Number rad() const {
-        return Number(boost::numeric::width(interval_) / 2);
+    BoostInterval rad() const {
+        return BoostInterval(boost::numeric::width(interval_) / 2);
     }
 
     BoostInterval hull(const BoostInterval& other) const {
@@ -160,16 +154,8 @@ public:
         return BoostInterval(boost::numeric::atan(interval_));
     }
 
-    friend std::ostream& operator<<(std::ostream& ostream, const BoostInterval& interval) {
-        switch(interval_print_mode) {
-            case IntervalPrintMode::min_and_max: {
-                return ostream << "[" << interval.min().value() << " : " << interval.max().value() << "]";
-            }
-            case IntervalPrintMode::mid_and_rad: {
-                return ostream << "[" << interval.mid().value() << " ~ " << interval.rad().value() << "]";
-            }
-            default: throw std::invalid_argument("Unknown IntervalPrintMode");
-        }
+    double to_float() const {
+        return boost::numeric::median(interval_);
     }
 
     static inline const std::string name = "BoostInterval";

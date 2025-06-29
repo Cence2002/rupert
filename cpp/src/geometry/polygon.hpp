@@ -70,7 +70,7 @@ public:
         return is_vector_outside_polygon(projection_combined(vertex, theta, phi));
     }
 
-    bool is_projected_vertex_avoiding_polygon_advanced_fixed_theta(const Vertex<Interval>& vertex, const typename Interval::Number& theta, const Interval& phi) const {
+    bool is_projected_vertex_avoiding_polygon_advanced_fixed_theta(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) const {
         const Vector<Interval> projected_vertex = projection_combined(vertex, Interval(theta), phi);
         const Edge projected_edge(
             Vector<Interval>(projected_vertex.x(), Interval(projected_vertex.y().min())),
@@ -81,7 +81,7 @@ public:
         });
     }
 
-    bool is_projected_vertex_avoiding_edge_advanced_fixed_phi(const Vertex<Interval>& vertex, const Interval& theta, const typename Interval::Number& phi, const Edge<Interval>& edge) const {
+    bool is_projected_vertex_avoiding_edge_advanced_fixed_phi(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi, const Edge<Interval>& edge) const {
         const Interval translation_factor = vertex.z() * Interval(phi).sin();
         const Interval scaling_factor = Interval(phi).cos();
         const Vector<Interval> transformed_edge_from(
@@ -131,7 +131,7 @@ public:
         return true;
     }
 
-    bool is_projected_vertex_avoiding_polygon_advanced_fixed_phi(const Vertex<Interval>& vertex, const Interval& theta, const typename Interval::Number& phi) const {
+    bool is_projected_vertex_avoiding_polygon_advanced_fixed_phi(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) const {
         if(!Interval(phi).cos().is_nonzero()) {
             return is_projected_vertex_outside_polygon_combined(vertex, theta, Interval(phi));
         }
@@ -163,7 +163,7 @@ public:
 };
 
 template<typename Interval>
-typename Interval::Number max_uncertainty(const std::vector<Vector<Interval>>& vectors) {
+Interval max_uncertainty(const std::vector<Vector<Interval>>& vectors) {
     size_t best_index = 0;
     for(size_t i = 1; i < vectors.size(); i++) {
         if(vectors[i].len().len() > vectors[best_index].len().len()) {
@@ -267,8 +267,8 @@ Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vectors) {
             }
         }
         std::ranges::stable_sort(to_indices, [&](const size_t index, const size_t other_index) {
-            const typename Interval::Number dist = vectors[from_index].dist(vectors[other_index]).max();
-            const typename Interval::Number other_dist = vectors[from_index].dist(vectors[index]).max();
+            const Interval dist = vectors[from_index].dist(vectors[other_index]).max();
+            const Interval other_dist = vectors[from_index].dist(vectors[index]).max();
             return dist < other_dist;
         });
         std::vector<std::pair<size_t, size_t>> new_edge_indices;

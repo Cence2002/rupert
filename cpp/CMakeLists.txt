@@ -64,7 +64,6 @@ add_compile_options(
 
 include_directories(
     src
-    src/number
     src/interval
     src/geometry
     src/flatbuffers

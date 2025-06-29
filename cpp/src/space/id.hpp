@@ -68,7 +68,7 @@ public:
         if(is_invalid()) {
             throw std::runtime_error("Invalid Id");
         }
-        return Interval(bits_, bits_ + 1) / Interval(1 << depth_);
+        return Interval(static_cast<uint16_t>(bits_), static_cast<uint16_t>(bits_ + 1)) / Interval(1 << depth_);
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Id& id) {

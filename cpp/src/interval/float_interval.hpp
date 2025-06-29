@@ -1,6 +1,7 @@
 #pragma once
 
 #include "interval/interval_type.hpp"
+#include <cmath>
 #include <algorithm>
 
 struct FloatInterval {
@@ -13,17 +14,11 @@ private:
     explicit FloatInterval(const double min, const double max) : min_(min), max_(max) {}
 
 public:
-    using Number = FloatNumber;
-
     template<IntegerType Integer>
     explicit FloatInterval(const Integer integer) : FloatInterval(static_cast<double>(integer)) {}
 
     template<IntegerType Integer>
     explicit FloatInterval(const Integer min, const Integer max) : FloatInterval(static_cast<double>(min), static_cast<double>(max)) {}
-
-    explicit FloatInterval(const Number& number) : FloatInterval(number.value()) {}
-
-    explicit FloatInterval(const Number& min, const Number& max) : FloatInterval(min.value(), max.value()) {}
 
     ~FloatInterval() = default;
 
@@ -59,24 +54,24 @@ public:
         return max_ < interval.min_;
     }
 
-    Number min() const {
-        return Number(min_);
+    FloatInterval min() const {
+        return FloatInterval(min_);
     }
 
-    Number max() const {
-        return Number(max_);
+    FloatInterval max() const {
+        return FloatInterval(max_);
     }
 
-    Number mid() const {
-        return Number((min_ + max_) / 2);
+    FloatInterval mid() const {
+        return FloatInterval((min_ + max_) / 2);
     }
 
-    Number len() const {
-        return Number(max_ - min_);
+    FloatInterval len() const {
+        return FloatInterval(max_ - min_);
     }
 
-    Number rad() const {
-        return Number((max_ - min_) / 2);
+    FloatInterval rad() const {
+        return FloatInterval((max_ - min_) / 2);
     }
 
     FloatInterval hull(const FloatInterval& other) const {
@@ -234,16 +229,8 @@ public:
         return FloatInterval(std::atan(min_), std::atan(max_));
     }
 
-    friend std::ostream& operator<<(std::ostream& ostream, const FloatInterval& interval) {
-        switch(interval_print_mode) {
-            case IntervalPrintMode::min_and_max: {
-                return ostream << "[" << interval.min().value() << " : " << interval.max().value() << "]";
-            }
-            case IntervalPrintMode::mid_and_rad: {
-                return ostream << "[" << interval.mid().value() << " ~ " << interval.rad().value() << "]";
-            }
-            default: throw std::invalid_argument("Unknown IntervalPrintMode");
-        }
+    double to_float() const {
+        return (min_ + max_) / 2;
     }
 
     static inline const std::string name = "FloatInterval";

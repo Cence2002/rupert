@@ -11,17 +11,17 @@
 template<IntervalType Interval>
 FlatBuffers::Vector to_flatbuffers_vector(const Vector<Interval>& vector) {
     return FlatBuffers::Vector(
-        vector.x().mid().float_value(),
-        vector.y().mid().float_value()
+        vector.x().mid().to_float(),
+        vector.y().mid().to_float()
     );
 }
 
 template<IntervalType Interval>
 FlatBuffers::Vertex to_flatbuffers_vertex(const Vertex<Interval>& vertex) {
     return FlatBuffers::Vertex(
-        vertex.x().mid().float_value(),
-        vertex.y().mid().float_value(),
-        vertex.z().mid().float_value()
+        vertex.x().mid().to_float(),
+        vertex.y().mid().to_float(),
+        vertex.z().mid().to_float()
     );
 }
 
@@ -36,8 +36,8 @@ FlatBuffers::Edge to_flatbuffers_edge(const Edge<Interval>& edge) {
 template<IntervalType Interval>
 FlatBuffers::Interval to_flatbuffers_interval(const Interval& interval) {
     return FlatBuffers::Interval(
-        interval.min().float_value(),
-        interval.max().float_value()
+        interval.min().to_float(),
+        interval.max().to_float()
     );
 }
 
@@ -170,8 +170,8 @@ public:
         std::vector<FlatBuffers::Edge> edges;
         for(const auto& edge: polygon.edges()) {
             const auto flatbuffers_edge = FlatBuffers::Edge(
-                FlatBuffers::Vector(edge.from().x().mid().float_value(), edge.from().y().mid().float_value()),
-                FlatBuffers::Vector(edge.to().x().mid().float_value(), edge.to().y().mid().float_value())
+                FlatBuffers::Vector(edge.from().x().mid().to_float(), edge.from().y().mid().to_float()),
+                FlatBuffers::Vector(edge.to().x().mid().to_float(), edge.to().y().mid().to_float())
             );
             edges.push_back(flatbuffers_edge);
         }

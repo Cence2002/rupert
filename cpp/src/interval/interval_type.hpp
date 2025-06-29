@@ -1,23 +1,20 @@
 #pragma once
 
-#include "number/number.hpp"
+#include <iostream>
+#include <limits>
+#include <sstream>
+#include <mpfr.h>
 
-enum class IntervalPrintMode {
-    min_and_max,
-    mid_and_rad,
-};
-
-constexpr IntervalPrintMode interval_print_mode = IntervalPrintMode::mid_and_rad;
+template<typename Integer>
+concept IntegerType =
+    std::integral<Integer> &&
+    std::numeric_limits<Integer>::min() >= std::numeric_limits<int32_t>::min() &&
+    std::numeric_limits<Integer>::max() <= std::numeric_limits<int32_t>::max();
 
 template<typename Interval>
 concept IntervalType =
-
-    NumberType<typename Interval::Number> &&
-
     std::is_constructible_v<Interval, int> &&
     std::is_constructible_v<Interval, int, int> &&
-    std::is_constructible_v<Interval, typename Interval::Number> &&
-    std::is_constructible_v<Interval, typename Interval::Number, typename Interval::Number> &&
     std::is_destructible_v<Interval> &&
     std::is_copy_constructible_v<Interval> &&
     std::is_move_constructible_v<Interval> &&
@@ -37,11 +34,11 @@ concept IntervalType =
         { interval > other_interval } -> std::same_as<bool>;
         { interval < other_interval } -> std::same_as<bool>;
 
-        { interval.min() } -> std::same_as<typename Interval::Number>; // lower bound
-        { interval.max() } -> std::same_as<typename Interval::Number>; // upper bound
-        { interval.mid() } -> std::same_as<typename Interval::Number>; // approximate
-        { interval.len() } -> std::same_as<typename Interval::Number>; // upper bound
-        { interval.rad() } -> std::same_as<typename Interval::Number>; // upper bound
+        { interval.min() } -> std::same_as<Interval>; // lower bound
+        { interval.max() } -> std::same_as<Interval>; // upper bound
+        { interval.mid() } -> std::same_as<Interval>; // approximate
+        { interval.len() } -> std::same_as<Interval>; // upper bound
+        { interval.rad() } -> std::same_as<Interval>; // upper bound
         { interval.hull(other_interval) } -> std::same_as<Interval>;
 
         { +interval } -> std::same_as<Interval>;
@@ -63,9 +60,6 @@ concept IntervalType =
         { interval.acos() } -> std::same_as<Interval>;
         { interval.asin() } -> std::same_as<Interval>;
         { interval.atan() } -> std::same_as<Interval>;
-    } &&
 
-    requires(std::ostream& ostream, const Interval interval) {
-        { ostream << interval } -> std::same_as<std::ostream&>; // approximate
-        { Interval::name } -> std::convertible_to<std::string>; // TODO: remove this (only used for tests, should be handled there)
+        { interval.to_float() } -> std::same_as<double>;
     };

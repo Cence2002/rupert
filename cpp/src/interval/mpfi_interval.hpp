@@ -19,10 +19,16 @@ private:
         }
     }
 
-    void assert_same_precision(const MpfrNumber& number) const {
-        if(mpfi_get_prec(interval_) != mpfr_get_prec(number.value())) {
+    void assert_same_precision(const mpfr_t number) const {
+        if(mpfi_get_prec(interval_) != mpfr_get_prec(number)) {
             throw std::invalid_argument("Precisions of interval and number are different");
         }
+    }
+
+    explicit MpfiInterval(const mpfr_t number) {
+        mpfi_init(interval_);
+        assert_same_precision(number);
+        mpfi_set_fr(interval_, number);
     }
 
     explicit MpfiInterval(const mpfi_t interval) {
@@ -32,8 +38,6 @@ private:
     }
 
 public:
-    using Number = MpfrNumber;
-
     template<IntegerType Integer>
     explicit MpfiInterval(const Integer integer) {
         mpfi_init(interval_);
@@ -44,19 +48,6 @@ public:
     explicit MpfiInterval(const Integer min, const Integer max) {
         mpfi_init(interval_);
         mpfi_interv_si(interval_, min, max);
-    }
-
-    explicit MpfiInterval(const Number& number) {
-        mpfi_init(interval_);
-        assert_same_precision(number);
-        mpfi_set_fr(interval_, number.value());
-    }
-
-    explicit MpfiInterval(const Number& min, const Number& max) {
-        mpfi_init(interval_);
-        assert_same_precision(min);
-        assert_same_precision(max);
-        mpfi_interv_fr(interval_, min.value(), max.value());
     }
 
     ~MpfiInterval() {
@@ -111,40 +102,40 @@ public:
         return mpfi_cmp(interval_, interval.interval_) < 0;
     }
 
-    Number min() const {
+    MpfiInterval min() const {
         mpfr_t min;
         mpfr_init(min);
         mpfi_get_left(min, interval_);
-        return MpfrNumber(min);
+        return MpfiInterval(min);
     }
 
-    Number max() const {
+    MpfiInterval max() const {
         mpfr_t max;
         mpfr_init(max);
         mpfi_get_right(max, interval_);
-        return MpfrNumber(max);
+        return MpfiInterval(max);
     }
 
-    Number mid() const {
+    MpfiInterval mid() const {
         mpfr_t mid;
         mpfr_init(mid);
         mpfi_mid(mid, interval_);
-        return MpfrNumber(mid);
+        return MpfiInterval(mid);
     }
 
-    Number len() const {
+    MpfiInterval len() const {
         mpfr_t len;
         mpfr_init(len);
         mpfi_diam_abs(len, interval_);
-        return MpfrNumber(len);
+        return MpfiInterval(len);
     }
 
-    Number rad() const {
+    MpfiInterval rad() const {
         mpfr_t rad;
         mpfr_init(rad);
         mpfi_diam_abs(rad, interval_);
         mpfr_div_ui(rad, rad, 2, MPFR_RNDU);
-        return MpfrNumber(rad);
+        return MpfiInterval(rad);
     }
 
     MpfiInterval hull(const MpfiInterval& other) const {
@@ -272,16 +263,13 @@ public:
         return MpfiInterval(atan);
     }
 
-    friend std::ostream& operator<<(std::ostream& ostream, const MpfiInterval& interval) {
-        switch(interval_print_mode) {
-            case IntervalPrintMode::min_and_max: {
-                return ostream << "[" << interval.min().value() << " : " << interval.max().value() << "]";
-            }
-            case IntervalPrintMode::mid_and_rad: {
-                return ostream << "[" << interval.mid().value() << " ~ " << interval.rad().value() << "]";
-            }
-            default: throw std::invalid_argument("Unknown IntervalPrintMode");
-        }
+    double to_float() const {
+        mpfr_t mid;
+        mpfr_init2(mid, mpfi_get_prec(interval_));
+        mpfi_mid(mid, interval_);
+        const double mid_float = mpfr_get_d(mid, MPFR_RNDU);
+        mpfr_clear(mid);
+        return mid_float;
     }
 
     static inline const std::string name = "MpfiInterval";

@@ -17,9 +17,9 @@ private:
     }
 
     static void vertex_to_stream(std::ostream& os, const Vertex<Interval>& vertex) {
-        float_to_stream(os, vertex.x().mid().float_value());
-        float_to_stream(os, vertex.y().mid().float_value());
-        float_to_stream(os, vertex.z().mid().float_value());
+        float_to_stream(os, vertex.x().mid().to_float());
+        float_to_stream(os, vertex.y().mid().to_float());
+        float_to_stream(os, vertex.z().mid().to_float());
     }
 
     static void polyhedron_to_stream(std::ostream& os, const Polyhedron<Interval>& polyhedron) {
