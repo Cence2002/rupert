@@ -74,16 +74,16 @@ private:
 
 public:
     explicit GlobalSolver(const Config<Interval>& config) : config_(config),
-                                                        box_queue_(),
-                                                        terminal_box_queue_(),
-                                                        importer_(config),
-                                                        exporter_(config),
-                                                        debug_exporter_(config),
-                                                        processor_threads_(),
-                                                        exporter_thread_(),
-                                                        processed_box_count_(0),
-                                                        terminated_(false),
-                                                        terminated_thread_count_(0) {
+                                                            box_queue_(),
+                                                            terminal_box_queue_(),
+                                                            importer_(config),
+                                                            exporter_(config),
+                                                            debug_exporter_(config),
+                                                            processor_threads_(),
+                                                            exporter_thread_(),
+                                                            processed_box_count_(0),
+                                                            terminated_(false),
+                                                            terminated_thread_count_(0) {
         test_polyhedra();
         if(config_.debug_enabled()) {
             debug_exporter_.debug_builder.set_hole(config_.hole());
