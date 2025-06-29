@@ -278,3 +278,5 @@ public:
 
     static inline const std::string name = "MpfiInterval";
 };
+
+static_assert(IntervalType<MpfiInterval>);

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "interval/interval.hpp"
-#include "geometry/vector2.hpp"
+#include "geometry/vector3.hpp"
 
 template<IntervalType Interval>
 struct Matrix {

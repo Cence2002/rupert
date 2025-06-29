@@ -239,3 +239,5 @@ public:
 
     static inline const std::string name = "FloatInterval";
 };
+
+static_assert(IntervalType<FloatInterval>);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pipeline/config.hpp"
+#include "pipeline/terminal_box.hpp"
 #include <fstream>
 
 template<IntervalType Interval>

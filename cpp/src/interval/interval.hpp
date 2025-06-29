@@ -36,7 +36,3 @@ std::ostream& operator<<(std::ostream& ostream, const Interval& interval) {
         default: throw std::invalid_argument("Unknown IntervalPrintMode");
     }
 }
-
-static_assert(IntervalType<FloatInterval>);
-static_assert(IntervalType<BoostInterval>);
-static_assert(IntervalType<MpfiInterval>);

@@ -164,3 +164,5 @@ public:
 
     static inline const std::string name = "BoostInterval";
 };
+
+static_assert(IntervalType<BoostInterval>);
