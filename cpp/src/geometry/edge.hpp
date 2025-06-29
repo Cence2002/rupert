@@ -2,31 +2,31 @@
 
 #include "geometry/vector.hpp"
 
-enum class Orientation {
-    positive,
-    negative,
+enum class Side {
+    left,
+    right,
     ambiguous
 };
 
-inline std::ostream& operator<<(std::ostream& os, const Orientation& orientation) {
-    switch(orientation) {
-        case Orientation::positive: return os << "positive";
-        case Orientation::negative: return os << "negative";
-        case Orientation::ambiguous: return os << "ambiguous";
-        default: throw std::runtime_error("Unknown orientation");
+inline std::ostream& operator<<(std::ostream& os, const Side& side) {
+    switch(side) {
+        case Side::left: return os << "left";
+        case Side::right: return os << "right";
+        case Side::ambiguous: return os << "ambiguous";
+        default: throw std::runtime_error("Unknown side");
     }
 }
 
-constexpr bool same_orientation(const Orientation orientation_0, const Orientation orientation_1) {
-    return orientation_0 != Orientation::ambiguous &&
-           orientation_1 != Orientation::ambiguous &&
-           orientation_0 == orientation_1;
+constexpr bool same_side(const Side side_0, const Side side_1) {
+    return side_0 != Side::ambiguous &&
+           side_1 != Side::ambiguous &&
+           side_0 == side_1;
 }
 
-constexpr bool opposite_orientation(const Orientation orientation_0, const Orientation orientation_1) {
-    return orientation_0 != Orientation::ambiguous &&
-           orientation_1 != Orientation::ambiguous &&
-           orientation_0 != orientation_1;
+constexpr bool diff_side(const Side side_0, const Side side_1) {
+    return side_0 != Side::ambiguous &&
+           side_1 != Side::ambiguous &&
+           side_0 != side_1;
 }
 
 template<IntervalType Interval>
@@ -68,35 +68,29 @@ public:
         return (from_ + to_) / Interval(2);
     }
 
-    Orientation orientation(const Vector<Interval>& vector) const {
+    Side side(const Vector<Interval>& vector) const {
         const Interval cross = dir().cross(vector - from_);
         if(cross.is_positive()) {
-            return Orientation::positive;
+            return Side::left;
         }
         if(cross.is_negative()) {
-            return Orientation::negative;
+            return Side::right;
         }
-        return Orientation::ambiguous;
+        return Side::ambiguous;
     }
 
     bool intersects(const Edge& edge) const {
-        return opposite_orientation(orientation(edge.from_), orientation(edge.to_)) &&
-               opposite_orientation(edge.orientation(from_), edge.orientation(to_));
+        return diff_side(side(edge.from_), side(edge.to_)) && diff_side(edge.side(from_), edge.side(to_));
     }
 
     bool avoids(const Vector<Interval>& vector) const {
-        if(orientation(vector) != Orientation::ambiguous) {
-            return true;
-        }
-        return vector.dist(mid()) > len() / Interval(2);
+        return side(vector) != Side::ambiguous || vector.dist(mid()) > len() / Interval(2);
     }
 
     bool avoids(const Edge& edge) const {
-        if(same_orientation(orientation(edge.from_), orientation(edge.to_)) ||
-           same_orientation(edge.orientation(from_), edge.orientation(to_))) {
-            return true;
-        }
-        return edge.mid().dist(mid()) > (len() + edge.len()) / Interval(2);
+        return edge.mid().dist(mid()) > (len() + edge.len()) / Interval(2) ||
+               same_side(side(edge.from_), side(edge.to_)) ||
+               same_side(edge.side(from_), edge.side(to_));
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Edge& edge) {

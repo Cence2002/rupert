@@ -33,7 +33,7 @@ public:
             return false;
         }
         if(std::ranges::any_of(edges_, [&](const Edge<Interval>& edge) {
-            return edge.orientation(vector) == Orientation::negative;
+            return edge.side(vector) == Side::right;
         })) {
             return false;
         }
@@ -55,7 +55,7 @@ public:
             return false;
         }
         if(std::ranges::any_of(edges_, [&](const Edge<Interval>& edge) {
-            return edge.orientation(vector) == Orientation::negative;
+            return edge.side(vector) == Side::right;
         })) {
             return true;
         }
@@ -231,7 +231,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vectors) {
                 throw std::runtime_error("Zero length edge found");
             }
             if(!most_clockwise_index.has_value() ||
-               Edge<Interval>(vectors[from_index], vectors[most_clockwise_index.value()]).orientation(vectors[new_most_clockwise_index]) == Orientation::negative) {
+               Edge<Interval>(vectors[from_index], vectors[most_clockwise_index.value()]).side(vectors[new_most_clockwise_index]) == Side::right) {
                 most_clockwise_index = new_most_clockwise_index;
             }
         }
@@ -248,7 +248,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vectors) {
             if(!vectors[from_index].diff(vectors[to_index])) {
                 throw std::runtime_error("Zero length edge found");
             }
-            if(most_clockwise_edge.orientation(vectors[to_index]) == Orientation::positive) {
+            if(most_clockwise_edge.side(vectors[to_index]) == Side::left) {
                 continue;
             }
             bool is_most_clockwise = true;
@@ -257,7 +257,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vectors) {
                 if(index == from_index || index == to_index) {
                     continue;
                 }
-                if(edge.orientation(vectors[index]) == Orientation::negative) {
+                if(edge.side(vectors[index]) == Side::right) {
                     is_most_clockwise = false;
                     break;
                 }
@@ -277,7 +277,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector<Interval>>& vectors) {
                 const size_t from_edge_index = new_edge_index.first;
                 const size_t to_edge_index = new_edge_index.second;
                 const Edge<Interval> new_edge(vectors[from_edge_index], vectors[to_edge_index]);
-                return new_edge.orientation(vectors[to_index]) == Orientation::positive;
+                return new_edge.side(vectors[to_index]) == Side::left;
             });
             if(!is_most_clockwise) {
                 continue;
