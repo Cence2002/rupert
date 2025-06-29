@@ -2,7 +2,7 @@
 
 #include "geometry/geometry.hpp"
 #include "geometry/polyhedron.hpp"
-#include "pipeline/queue.hpp"
+#include "queue/queue.hpp"
 #include "range/range2.hpp"
 #include "range/range3.hpp"
 #include <cstdint>

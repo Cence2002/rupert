@@ -2,6 +2,7 @@
 
 #include "pipeline/debug_exporter.hpp"
 #include "pipeline/terminal_box.hpp"
+#include "queue/concurrent_queue.hpp"
 
 template<IntervalType Interval>
 struct BoxProcessor {
