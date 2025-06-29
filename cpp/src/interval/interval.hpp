@@ -15,10 +15,10 @@ inline PrintMode print_mode = PrintMode::mid_and_rad;
 inline std::streamsize print_precision = 6;
 
 inline std::string to_string(const double number) {
-    std::ostringstream number_str;
-    number_str.precision(print_precision);
-    number_str << number;
-    return number_str.str();
+    std::ostringstream stream;
+    stream.precision(print_precision);
+    stream << number;
+    return stream.str();
 }
 
 template<IntervalType Interval>

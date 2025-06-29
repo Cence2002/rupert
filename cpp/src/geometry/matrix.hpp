@@ -1,7 +1,7 @@
 #pragma once
 
 #include "interval/interval.hpp"
-#include "geometry/vertex.hpp"
+#include "geometry/vector2.hpp"
 
 template<IntervalType Interval>
 struct Matrix {
@@ -89,11 +89,11 @@ public:
                       xz_, yz_, zz_);
     }
 
-    Vertex<Interval> operator*(const Vertex<Interval>& vertex) const {
-        return Vertex<Interval>(
-            xx_ * vertex.x() + xy_ * vertex.y() + xz_ * vertex.z(),
-            yx_ * vertex.x() + yy_ * vertex.y() + yz_ * vertex.z(),
-            zx_ * vertex.x() + zy_ * vertex.y() + zz_ * vertex.z()
+    Vector3<Interval> operator*(const Vector3<Interval>& vector3) const {
+        return Vector3<Interval>(
+            xx_ * vector3.x() + xy_ * vector3.y() + xz_ * vector3.z(),
+            yx_ * vector3.x() + yy_ * vector3.y() + yz_ * vector3.z(),
+            zx_ * vector3.x() + zy_ * vector3.y() + zz_ * vector3.z()
         );
     }
 

@@ -69,7 +69,7 @@ public:
         return alpha_id_.interval<Interval>() * Interval(2) * Interval::pi();
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const Box& box) {
-        return os << "T" << box.theta_id_ << " P" << box.phi_id_ << " A" << box.alpha_id_;
+    friend std::ostream& operator<<(std::ostream& ostream, const Box& box) {
+        return ostream << "T" << box.theta_id_ << " P" << box.phi_id_ << " A" << box.alpha_id_;
     }
 };

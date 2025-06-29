@@ -71,8 +71,8 @@ public:
         return Interval(static_cast<uint16_t>(bits_), static_cast<uint16_t>(bits_ + 1)) / Interval(1 << depth_);
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const Id& id) {
-        return os << "<" << std::bitset<16>(id.bits_).to_string().substr(16 - id.depth_) << ">";
+    friend std::ostream& operator<<(std::ostream& ostream, const Id& id) {
+        return ostream << "<" << std::bitset<16>(id.bits_).to_string().substr(16 - id.depth_) << ">";
     }
 
     uint16_t pack() const {

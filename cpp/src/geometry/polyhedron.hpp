@@ -1,13 +1,13 @@
 #pragma once
 
-#include "geometry/vertex.hpp"
+#include "geometry/vector3.hpp"
 #include "geometry/matrix.hpp"
 #include <vector>
 
 template<IntervalType Interval>
 struct Polyhedron {
 private:
-    std::vector<Vertex<Interval>> vertices_;
+    std::vector<Vector3<Interval>> vertices_;
     // std::vector<std::pair<size_t, size_t>> edge_indices_;
     // std::vector<std::vector<size_t>> face_indices_;
     // std::vector<Vertex<Interval>> face_normals_;
@@ -19,7 +19,7 @@ private:
 
 public:
     explicit Polyhedron(
-        const std::vector<Vertex<Interval>>& vertices,
+        const std::vector<Vector3<Interval>>& vertices,
         const std::vector<Matrix<Interval>>& rotations,
         const std::vector<Matrix<Interval>>& reflections
     ) : vertices_(vertices),
@@ -34,7 +34,7 @@ public:
     // rotations_ = symmetries(vertices_, true);
     // reflections_ = symmetries(vertices_, false);
 
-    const std::vector<Vertex<Interval>>& vertices() const {
+    const std::vector<Vector3<Interval>>& vertices() const {
         return vertices_;
     }
 
@@ -54,8 +54,8 @@ public:
             }
         }
         const Interval max_length = vertices_[max_index].len().max();
-        std::vector<Vertex<Interval>> normalized_vertices;
-        for(const Vertex<Interval>& vertex: vertices_) {
+        std::vector<Vector3<Interval>> normalized_vertices;
+        for(const Vector3<Interval>& vertex: vertices_) {
             normalized_vertices.emplace_back(vertex / max_length);
         }
         return Polyhedron(normalized_vertices, rotations_, reflections_);

@@ -9,7 +9,7 @@
 #include <fstream>
 
 template<IntervalType Interval>
-FlatBuffers::Vector to_flatbuffers_vector(const Vector<Interval>& vector) {
+FlatBuffers::Vector to_flatbuffers_vector(const Vector2<Interval>& vector) {
     return FlatBuffers::Vector(
         vector.x().mid().to_float(),
         vector.y().mid().to_float()
@@ -17,7 +17,7 @@ FlatBuffers::Vector to_flatbuffers_vector(const Vector<Interval>& vector) {
 }
 
 template<IntervalType Interval>
-FlatBuffers::Vertex to_flatbuffers_vertex(const Vertex<Interval>& vertex) {
+FlatBuffers::Vertex to_flatbuffers_vertex(const Vector3<Interval>& vertex) {
     return FlatBuffers::Vertex(
         vertex.x().mid().to_float(),
         vertex.y().mid().to_float(),
@@ -61,7 +61,7 @@ public:
                                                                           vectors_() {}
 
     template<IntervalType Interval>
-    void add_vertex(const Vector<Interval>& vector) {
+    void add_vertex(const Vector2<Interval>& vector) {
         vectors_.push_back(to_flatbuffers_vector(vector));
     }
 

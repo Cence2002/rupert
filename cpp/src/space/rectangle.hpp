@@ -54,7 +54,7 @@ public:
         return phi_id_.interval<Interval>() * Interval::pi();
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const Rectangle& rectangle) {
-        return os << "T" << rectangle.theta_id_ << " P" << rectangle.phi_id_;
+    friend std::ostream& operator<<(std::ostream& ostream, const Rectangle& rectangle) {
+        return ostream << "T" << rectangle.theta_id_ << " P" << rectangle.phi_id_;
     }
 };

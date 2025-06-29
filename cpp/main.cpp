@@ -35,8 +35,8 @@ void print(Args&&... args) {
 int main() {
     // tests();
 
-    const std::vector<Vertex<I>> hole_vertices = Archimedean::rhombicosidodecahedron<I>();
-    const std::vector<Vertex<I>> plug_vertices = Archimedean::rhombicosidodecahedron<I>();
+    const std::vector<Vector3<I>> hole_vertices = Archimedean::rhombicosidodecahedron<I>();
+    const std::vector<Vector3<I>> plug_vertices = Archimedean::rhombicosidodecahedron<I>();
     const std::vector<Matrix<I>> hole_rotations = symmetries<I>(hole_vertices, true);
     const std::vector<Matrix<I>> hole_reflections = symmetries<I>(hole_vertices, false);
     const std::vector<Matrix<I>> plug_rotations = symmetries<I>(plug_vertices, true);

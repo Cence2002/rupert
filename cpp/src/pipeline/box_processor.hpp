@@ -11,12 +11,12 @@ private:
     TerminalBoxQueue& terminal_box_queue_;
 
     Polygon<Interval> get_projected_hole(const Box& box) {
-        std::vector<Vector<Interval>> all_projected_hole_vertices;
-        for(const Vertex<Interval>& hole_vertex: config_.hole().vertices()) {
-            const std::vector<Vector<Interval>> projected_hole_vertices = projection_hull_polygon(hole_vertex, box.theta<Interval>(), box.phi<Interval>(), config_.projection_resolution());
-            for(const Vector<Interval>& projected_hole_vertex: projected_hole_vertices) {
-                const std::vector<Vector<Interval>> rotated_projected_hole_vertices = rotation_hull_polygon(projected_hole_vertex, box.alpha<Interval>(), config_.rotation_resolution());
-                for(const Vector<Interval>& rotated_projected_hole_vertex: rotated_projected_hole_vertices) {
+        std::vector<Vector2<Interval>> all_projected_hole_vertices;
+        for(const Vector3<Interval>& hole_vertex: config_.hole().vertices()) {
+            const std::vector<Vector2<Interval>> projected_hole_vertices = projection_hull_polygon(hole_vertex, box.theta<Interval>(), box.phi<Interval>(), config_.projection_resolution());
+            for(const Vector2<Interval>& projected_hole_vertex: projected_hole_vertices) {
+                const std::vector<Vector2<Interval>> rotated_projected_hole_vertices = rotation_hull_polygon(projected_hole_vertex, box.alpha<Interval>(), config_.rotation_resolution());
+                for(const Vector2<Interval>& rotated_projected_hole_vertex: rotated_projected_hole_vertices) {
                     all_projected_hole_vertices.push_back(rotated_projected_hole_vertex);
                     if(config_.debug_enabled()) {
                         debug_exporter_.debug_builder.box_builder.projection_builder.add_vertex(rotated_projected_hole_vertex);
@@ -31,8 +31,8 @@ private:
     }
 
     bool is_rectangle_ignored(const Box& box, const Rectangle& rectangle) {
-        const Interval box_angle_radius = Vector<Interval>(Interval(box.theta<Interval>().len()) + Interval(box.alpha<Interval>().len()), Interval(box.phi<Interval>().len())).len() / Interval(2);
-        const Interval rectangle_angle_radius = Vector<Interval>(Interval(rectangle.theta<Interval>().len()), Interval(rectangle.phi<Interval>().len())).len() / Interval(2);
+        const Interval box_angle_radius = Vector2<Interval>(Interval(box.theta<Interval>().len()) + Interval(box.alpha<Interval>().len()), Interval(box.phi<Interval>().len())).len() / Interval(2);
+        const Interval rectangle_angle_radius = Vector2<Interval>(Interval(rectangle.theta<Interval>().len()), Interval(rectangle.phi<Interval>().len())).len() / Interval(2);
         const Interval remaining_angle = config_.epsilon() - box_angle_radius - rectangle_angle_radius;
         if(!remaining_angle.is_positive()) {
             return false;
@@ -58,9 +58,9 @@ private:
         const Interval phi(rectangle.phi<Interval>());
         bool is_terminal = false;
         for(size_t vertex_index = 0; vertex_index < config_.plug().vertices().size(); vertex_index++) {
-            const Vertex<Interval>& plug_vertex = config_.plug().vertices()[vertex_index];
+            const Vector3<Interval>& plug_vertex = config_.plug().vertices()[vertex_index];
             if(config_.debug_enabled()) {
-                for(const Vector<Interval>& projected_plug_vertex: projection_hull_polygon(plug_vertex, theta, phi, config_.projection_resolution())) {
+                for(const Vector2<Interval>& projected_plug_vertex: projection_hull_polygon(plug_vertex, theta, phi, config_.projection_resolution())) {
                     debug_exporter_.debug_builder.box_builder.rectangle_builder.projection_builder.add_vertex(projected_plug_vertex);
                 }
                 debug_exporter_.debug_builder.box_builder.rectangle_builder.add_projection();
@@ -81,7 +81,7 @@ private:
     bool is_box_nonterminal(const Rectangle& rectangle, const Polygon<Interval>& projected_hole) {
         const Interval theta_mid(rectangle.theta<Interval>().mid());
         const Interval phi_mid(rectangle.phi<Interval>().mid());
-        return std::ranges::all_of(config_.plug().vertices(), [&](const Vertex<Interval>& plug_vertex) {
+        return std::ranges::all_of(config_.plug().vertices(), [&](const Vector3<Interval>& plug_vertex) {
             return is_projected_vertex_inside_polygon_trivial(projected_hole, plug_vertex, theta_mid, phi_mid);
         });
     }

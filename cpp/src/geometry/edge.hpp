@@ -1,6 +1,6 @@
 #pragma once
 
-#include "geometry/vector.hpp"
+#include "geometry/vector2.hpp"
 
 enum class Side {
     left,
@@ -8,11 +8,11 @@ enum class Side {
     ambiguous
 };
 
-inline std::ostream& operator<<(std::ostream& os, const Side& side) {
+inline std::ostream& operator<<(std::ostream& ostream, const Side& side) {
     switch(side) {
-        case Side::left: return os << "left";
-        case Side::right: return os << "right";
-        case Side::ambiguous: return os << "ambiguous";
+        case Side::left: return ostream << "left";
+        case Side::right: return ostream << "right";
+        case Side::ambiguous: return ostream << "ambiguous";
         default: throw std::runtime_error("Unknown side");
     }
 }
@@ -32,11 +32,11 @@ constexpr bool diff_side(const Side side_0, const Side side_1) {
 template<IntervalType Interval>
 struct Edge {
 private:
-    Vector<Interval> from_;
-    Vector<Interval> to_;
+    Vector2<Interval> from_;
+    Vector2<Interval> to_;
 
 public:
-    explicit Edge(const Vector<Interval>& from, const Vector<Interval>& to) : from_(from), to_(to) {
+    explicit Edge(const Vector2<Interval>& from, const Vector2<Interval>& to) : from_(from), to_(to) {
         if(!from_.dist(to_).is_positive()) {
             throw std::runtime_error("Zero length edge found");
         }
@@ -52,15 +52,15 @@ public:
 
     Edge& operator=(Edge&&) = delete;
 
-    const Vector<Interval>& from() const {
+    const Vector2<Interval>& from() const {
         return from_;
     }
 
-    const Vector<Interval>& to() const {
+    const Vector2<Interval>& to() const {
         return to_;
     }
 
-    Vector<Interval> dir() const {
+    Vector2<Interval> dir() const {
         return (to_ - from_).unit();
     }
 
@@ -68,12 +68,12 @@ public:
         return to_.dist(from_);
     }
 
-    Vector<Interval> mid() const {
+    Vector2<Interval> mid() const {
         return (from_ + to_) / Interval(2);
     }
 
-    Side side(const Vector<Interval>& vector) const {
-        const Interval cross = dir().cross(vector - from_);
+    Side side(const Vector2<Interval>& vector2) const {
+        const Interval cross = dir().cross(vector2 - from_);
         if(cross.is_positive()) {
             return Side::left;
         }
@@ -87,8 +87,8 @@ public:
         return diff_side(side(edge.from_), side(edge.to_)) && diff_side(edge.side(from_), edge.side(to_));
     }
 
-    bool avoids(const Vector<Interval>& vector) const {
-        return side(vector) != Side::ambiguous || vector.dist(mid()) > len() / Interval(2);
+    bool avoids(const Vector2<Interval>& vector2) const {
+        return side(vector2) != Side::ambiguous || vector2.dist(mid()) > len() / Interval(2);
     }
 
     bool avoids(const Edge& edge) const {
@@ -97,7 +97,7 @@ public:
                same_side(edge.side(from_), edge.side(to_));
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const Edge& edge) {
-        return os << edge.from_ << " -> " << edge.to_;
+    friend std::ostream& operator<<(std::ostream& ostream, const Edge& edge) {
+        return ostream << edge.from_ << " -> " << edge.to_;
     }
 };

@@ -16,7 +16,7 @@ private:
         os.write(reinterpret_cast<const char*>(&value), sizeof(value));
     }
 
-    static void vertex_to_stream(std::ostream& os, const Vertex<Interval>& vertex) {
+    static void vertex_to_stream(std::ostream& os, const Vector3<Interval>& vertex) {
         float_to_stream(os, vertex.x().mid().to_float());
         float_to_stream(os, vertex.y().mid().to_float());
         float_to_stream(os, vertex.z().mid().to_float());
@@ -24,7 +24,7 @@ private:
 
     static void polyhedron_to_stream(std::ostream& os, const Polyhedron<Interval>& polyhedron) {
         size_to_stream(os, static_cast<uint32_t>(polyhedron.vertices().size()));
-        for(const Vertex<Interval>& vertex: polyhedron.vertices()) {
+        for(const Vector3<Interval>& vertex: polyhedron.vertices()) {
             vertex_to_stream(os, vertex);
         }
     }
