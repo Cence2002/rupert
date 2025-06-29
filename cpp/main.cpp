@@ -52,7 +52,7 @@ int main() {
         plug_normalized,
         I::pi() / I(180),
         10,
-        1,
+        10,
         10000,
         2,
         2,

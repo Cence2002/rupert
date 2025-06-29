@@ -102,7 +102,7 @@ public:
             // box_queue_.push(Box()); // TODO: Use this instead of the magic numbers
             box_queue_.push(Range3(
                 Range(4, 0b0110),
-                Range(4, 0b1100),
+                Range(5, 0b01100),
                 Range(4, 0b1010)
             ));
         } else {
