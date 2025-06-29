@@ -66,8 +66,10 @@ include_directories(
     src
     src/interval
     src/geometry
+    src/range
+    src/queue
     src/flatbuffers
-    src/pipeline
+    src/global_solver
 )
 
 add_executable(rupert main.cpp)

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pipeline/config.hpp"
+#include "global_solver/config.hpp"
 #include <fstream>
 
 template<IntervalType Interval>

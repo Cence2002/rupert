@@ -1,5 +1,5 @@
 // #include "test/test.hpp"
-#include "pipeline/pipeline.hpp"
+#include "global_solver/pipeline.hpp"
 #include <csignal>
 
 using I = BoostInterval;

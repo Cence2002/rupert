@@ -1,8 +1,8 @@
 #pragma once
 
-#include "pipeline/box_processor.hpp"
-#include "pipeline/importer.hpp"
-#include "pipeline/exporter.hpp"
+#include "global_solver/box_processor.hpp"
+#include "global_solver/importer.hpp"
+#include "global_solver/exporter.hpp"
 #include <thread>
 
 template<IntervalType Interval>

@@ -5,7 +5,7 @@
 #include "flatbuffers/flatbuffers_generated.h"
 #pragma GCC diagnostic pop
 
-#include "pipeline/config.hpp"
+#include "global_solver/config.hpp"
 #include <fstream>
 
 template<IntervalType Interval>

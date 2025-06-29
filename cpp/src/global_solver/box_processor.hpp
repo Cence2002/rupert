@@ -1,7 +1,7 @@
 #pragma once
 
-#include "pipeline/debug_exporter.hpp"
-#include "pipeline/terminal_box.hpp"
+#include "global_solver/debug_exporter.hpp"
+#include "global_solver/terminal_box.hpp"
 #include "queue/concurrent_queue.hpp"
 
 template<IntervalType Interval>
