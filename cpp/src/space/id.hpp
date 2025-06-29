@@ -14,13 +14,13 @@ public:
 
     explicit Id(const uint8_t depth, const uint16_t bits) : depth_(depth), bits_(bits) {}
 
-    Id(const Id& other) = default;
+    // Id(const Id& other) = default;
 
-    Id& operator=(const Id& other) = default;
+    // Id& operator=(const Id& other) = default;
 
-    Id(Id&& other) = default;
+    // Id(Id&& other) = default;
 
-    Id& operator=(Id&& other) = default;
+    // Id& operator=(Id&& other) = default;
 
     uint8_t depth() const {
         return depth_;
@@ -44,21 +44,21 @@ public:
 
     Id min_half() const {
         if(is_invalid()) {
-            throw std::runtime_error("Invalid Id");
+            throw std::runtime_error("Attempt to get min_half of an invalid Id");
         }
         return Id(static_cast<uint8_t>(depth_ + 1), static_cast<uint16_t>(bits_ << 1));
     }
 
     Id max_half() const {
         if(is_invalid()) {
-            throw std::runtime_error("Invalid Id");
+            throw std::runtime_error("Attempt to get max_half of an invalid Id");
         }
         return Id(static_cast<uint8_t>(depth_ + 1), static_cast<uint16_t>((bits_ << 1) | 1));
     }
 
     std::pair<Id, Id> parts() const {
         if(is_invalid()) {
-            throw std::runtime_error("Invalid Id");
+            throw std::runtime_error("Attempt to get parts of an invalid Id");
         }
         return std::make_pair(min_half(), max_half());
     }
@@ -68,7 +68,7 @@ public:
         if(is_invalid()) {
             throw std::runtime_error("Invalid Id");
         }
-        return Interval(static_cast<uint16_t>(bits_), static_cast<uint16_t>(bits_ + 1)) / Interval(1 << depth_);
+        return Interval(bits_, bits_ + 1) / Interval(1 << depth_);
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Id& id) {

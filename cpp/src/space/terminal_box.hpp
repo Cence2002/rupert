@@ -29,6 +29,6 @@ public:
     }
 
     size_t size() const {
-        return box_.size() + rectangles_.size() * rectangles_[0].size();
+        return Box::size() + rectangles_.size() * Rectangle::size();
     }
 };

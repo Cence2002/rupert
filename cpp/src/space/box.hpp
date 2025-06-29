@@ -34,8 +34,8 @@ public:
         return theta_id_.is_invalid() || phi_id_.is_invalid() || alpha_id_.is_invalid();
     }
 
-    size_t size() const {
-        return theta_id_.size() + phi_id_.size() + alpha_id_.size();
+    static size_t size() {
+        return Id::size() * 3;
     }
 
     std::array<Box, 8> parts() const {

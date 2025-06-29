@@ -29,8 +29,8 @@ public:
         return theta_id_.is_invalid() || phi_id_.is_invalid();
     }
 
-    size_t size() const {
-        return theta_id_.size() + phi_id_.size();
+    static size_t size() {
+        return Id::size() * 2;
     }
 
     std::array<Rectangle, 4> parts() const {
