@@ -27,9 +27,17 @@ public:
     }
 
     bool is_vector_inside_polygon(const Vector<Interval>& vector) const {
-        return std::ranges::all_of(edges_, [&](const Edge<Interval>& edge) {
-            return edge.orientation(vector) == Orientation::positive;
-        });
+        if(std::ranges::any_of(edges_, [&](const Edge<Interval>& edge) {
+            return !edge.avoids(vector);
+        })) {
+            return false;
+        }
+        if(std::ranges::any_of(edges_, [&](const Edge<Interval>& edge) {
+            return edge.orientation(vector) == Orientation::negative;
+        })) {
+            return false;
+        }
+        return true;
     }
 
     bool is_projected_vertex_inside_polygon_trivial(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) const {
@@ -41,9 +49,17 @@ public:
     }
 
     bool is_vector_outside_polygon(const Vector<Interval>& vector) const {
-        return std::ranges::any_of(edges_, [&](const Edge<Interval>& edge) {
+        if(std::ranges::any_of(edges_, [&](const Edge<Interval>& edge) {
+            return !edge.avoids(vector);
+        })) {
+            return false;
+        }
+        if(std::ranges::any_of(edges_, [&](const Edge<Interval>& edge) {
             return edge.orientation(vector) == Orientation::negative;
-        });
+        })) {
+            return true;
+        }
+        return false;
     }
 
     bool is_projected_vertex_outside_polygon_trivial(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) const {
@@ -78,18 +94,18 @@ public:
         );
         const Edge<Interval> transformed_edge(transformed_edge_from, transformed_edge_to);
 
-        const Interval radius_squared = vertex.x() * vertex.x() + vertex.y() * vertex.y();
-        const Interval double_quadratic_term = Interval(2) * transformed_edge.len().sqr();
-        const Interval linear_term = Interval(2) * transformed_edge.dir().dot(transformed_edge.from());
+        const Interval radius_squared = vertex.x().sqr() + vertex.y().sqr();
+        const Interval quadratic_term = transformed_edge.len().sqr();
+        const Interval linear_term = Interval(2) * transformed_edge.dir().dot(transformed_edge.from()); // TODO maybe: *transformed_edge.len()
         const Interval constant_term = transformed_edge.from().len().sqr() - radius_squared;
-        const Interval discriminant = linear_term.sqr() - Interval(2) * double_quadratic_term * constant_term;
+        const Interval discriminant = linear_term.sqr() - Interval(4) * quadratic_term * constant_term;
         if(!discriminant.is_positive()) {
             return true;
         }
         const Interval sqrt_discriminant = discriminant.sqrt();
         const std::array<Interval, 2> solutions = {
-            (-linear_term + sqrt_discriminant) / double_quadratic_term,
-            (-linear_term - sqrt_discriminant) / double_quadratic_term
+            (-linear_term + sqrt_discriminant) / (Interval(2) * quadratic_term),
+            (-linear_term - sqrt_discriminant) / (Interval(2) * quadratic_term)
         };
 
         const Vector<Interval> min_projected_vertex = projection_trivial(vertex, Interval(theta.min()), Interval(phi));
@@ -102,13 +118,13 @@ public:
             max_projected_vertex.x(),
             (max_projected_vertex.y() + translation_factor) / scaling_factor
         );
-        const Edge<Interval> projected_vertex_edge(transformed_min_projected_vertex, transformed_max_projected_vertex);
+        const Edge<Interval> transformed_projected_vertex_edge(transformed_min_projected_vertex, transformed_max_projected_vertex);
         for(const Interval& solution: solutions) {
-            if(solution.is_negative() || solution > Interval(1)) {
+            if(solution.is_negative() || solution > transformed_edge.len()) {
                 continue;
             }
-            const Vector<Interval> intersection = transformed_edge.from() + transformed_edge.dir() * solution;
-            if(!projected_vertex_edge.avoids(Edge<Interval>(Vector<Interval>(Interval(0), Interval(0)), intersection))) {
+            const Vector<Interval> intersection = transformed_edge.from() + transformed_edge.dir() * transformed_edge.len() * solution;
+            if(!transformed_projected_vertex_edge.avoids(Edge<Interval>(Vector<Interval>(Interval(0), Interval(0)), intersection))) {
                 return false;
             }
         }
@@ -117,8 +133,6 @@ public:
 
     bool is_projected_vertex_avoiding_polygon_advanced_fixed_phi(const Vertex<Interval>& vertex, const Interval& theta, const typename Interval::Number& phi) const {
         if(!Interval(phi).cos().is_nonzero()) {
-            // degenerate case, division by zero would occur in the inverse transformation
-            // default to combined
             return is_projected_vertex_outside_polygon_combined(vertex, theta, Interval(phi));
         }
         return std::ranges::all_of(edges(), [&](const Edge<Interval>& edge) {
@@ -128,8 +142,6 @@ public:
 
     bool is_projected_vertex_outside_polygon_advanced(const Vertex<Interval>& vertex, const Interval& theta, const Interval& phi) const {
         if(!(Interval(theta.len()) < Interval::pi() / Interval(2))) {
-            // projected vertex might surround the polygon, meaning it avoids, but is not outside
-            // default to combined
             return is_projected_vertex_outside_polygon_combined(vertex, theta, phi);
         }
         return is_projected_vertex_outside_polygon_combined(vertex, Interval(theta.min()), Interval(phi.min())) &&
