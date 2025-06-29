@@ -96,7 +96,7 @@ public:
 
         const Interval radius_squared = vertex.x().sqr() + vertex.y().sqr();
         const Interval quadratic_term = transformed_edge.len().sqr();
-        const Interval linear_term = Interval(2) * transformed_edge.dir().dot(transformed_edge.from()); // TODO maybe: *transformed_edge.len()
+        const Interval linear_term = Interval(2) * transformed_edge.dir().dot(transformed_edge.from());
         const Interval constant_term = transformed_edge.from().len().sqr() - radius_squared;
         const Interval discriminant = linear_term.sqr() - Interval(4) * quadratic_term * constant_term;
         if(!discriminant.is_positive()) {
