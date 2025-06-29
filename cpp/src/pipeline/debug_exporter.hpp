@@ -42,7 +42,7 @@ FlatBuffers::Interval to_flatbuffers_interval(const Interval& interval) {
 }
 
 template<IntervalType Interval>
-FlatBuffers::Id to_flatbuffers_id(const Id& id, const Interval& interval) {
+FlatBuffers::Id to_flatbuffers_id(const Range& id, const Interval& interval) {
     return FlatBuffers::Id(
         id.depth(),
         id.bits(),
@@ -95,9 +95,9 @@ public:
                                                                          out_indices_(),
                                                                          projection_builder(builder) {}
 
-    void set_rectangle(const Rectangle& rectangle) {
-        theta_ = to_flatbuffers_id(rectangle.theta_id(), rectangle.theta<FloatInterval>());
-        phi_ = to_flatbuffers_id(rectangle.phi_id(), rectangle.phi<FloatInterval>());
+    void set_rectangle(const Range2& rectangle) {
+        theta_ = to_flatbuffers_id(rectangle.theta_range(), rectangle.theta_interval<FloatInterval>());
+        phi_ = to_flatbuffers_id(rectangle.phi_range(), rectangle.phi_interval<FloatInterval>());
     }
 
     void add_projection() {
@@ -155,10 +155,10 @@ public:
                                                                    projection_builder(builder),
                                                                    rectangle_builder(builder) {}
 
-    void set_box(const Box& box) {
-        theta_ = to_flatbuffers_id(box.theta_id(), box.theta<FloatInterval>());
-        phi_ = to_flatbuffers_id(box.phi_id(), box.phi<FloatInterval>());
-        alpha_ = to_flatbuffers_id(box.alpha_id(), box.alpha<FloatInterval>());
+    void set_box(const Range3& box) {
+        theta_ = to_flatbuffers_id(box.theta_range(), box.theta_interval<FloatInterval>());
+        phi_ = to_flatbuffers_id(box.phi_range(), box.phi_interval<FloatInterval>());
+        alpha_ = to_flatbuffers_id(box.alpha_range(), box.alpha_interval<FloatInterval>());
     }
 
     void add_projection() {

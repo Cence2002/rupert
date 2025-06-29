@@ -1,7 +1,10 @@
 #pragma once
 
 #include "geometry/geometry.hpp"
-#include "space/space.hpp"
+#include "geometry/polyhedron.hpp"
+#include "pipeline/queue.hpp"
+#include "range/range2.hpp"
+#include "range/range3.hpp"
 #include <cstdint>
 #include <regex>
 #include <filesystem>
@@ -17,7 +20,7 @@ private:
 
     uint8_t thread_count_;
     uint32_t box_iteration_limit_;
-    uint32_t rectangle_iteration_limit_;
+    uint32_t range2_iteration_limit_;
     uint8_t projection_resolution_;
     uint8_t rotation_resolution_;
     bool restart_;
@@ -34,7 +37,7 @@ public:
         const Interval& epsilon,
         const uint8_t thread_count,
         const uint32_t box_iteration_limit,
-        const uint32_t rectangle_iteration_limit,
+        const uint32_t range2_iteration_limit,
         const uint8_t projection_resolution,
         const uint8_t rotation_resolution,
         const bool restart,
@@ -47,7 +50,7 @@ public:
         epsilon_(epsilon),
         thread_count_(thread_count),
         box_iteration_limit_(box_iteration_limit),
-        rectangle_iteration_limit_(rectangle_iteration_limit),
+        range2_iteration_limit_(range2_iteration_limit),
         projection_resolution_(projection_resolution),
         rotation_resolution_(rotation_resolution),
         restart_(restart),
@@ -89,8 +92,8 @@ public:
         return box_iteration_limit_;
     }
 
-    uint32_t rectangle_iteration_limit() const {
-        return rectangle_iteration_limit_;
+    uint32_t range2_iteration_limit() const {
+        return range2_iteration_limit_;
     }
 
     uint8_t projection_resolution() const {

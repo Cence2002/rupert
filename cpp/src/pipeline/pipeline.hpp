@@ -10,8 +10,8 @@ struct Pipeline {
 private:
     const Config<Interval>& config_;
 
-    BoxQueue box_queue_;
-    TerminalBoxQueue terminal_box_queue_;
+    ConcurrentQueue<Range3> box_queue_;
+    ConcurrentQueue<TerminalBox> terminal_box_queue_;
 
     Importer<Interval> importer_;
     Exporter<Interval> exporter_;
@@ -96,13 +96,13 @@ public:
         }
         exporter_.create_directory();
         exporter_.export_polyhedra(config_.hole(), config_.plug());
-        const std::vector<Box> boxes = importer_.import_boxes();
+        const std::vector<Range3> boxes = importer_.import_boxes();
         if(boxes.empty()) {
             // box_queue_.push(Box()); // TODO: Use this instead of the magic numbers
-            box_queue_.push(Box(
-                Id(4, 0b0110),
-                Id(4, 0b1100),
-                Id(4, 0b1010)
+            box_queue_.push(Range3(
+                Range(4, 0b0110),
+                Range(4, 0b1100),
+                Range(4, 0b1010)
             ));
         } else {
             box_queue_.push_all(boxes);

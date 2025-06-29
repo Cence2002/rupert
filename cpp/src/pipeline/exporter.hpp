@@ -29,26 +29,26 @@ private:
         }
     }
 
-    static void id_to_stream(std::ostream& os, const Id& id) {
+    static void id_to_stream(std::ostream& os, const Range& id) {
         const uint16_t packed = id.pack();
         os.write(reinterpret_cast<const char*>(&packed), sizeof(packed));
     }
 
-    static void box_to_stream(std::ostream& os, const Box& box) {
-        id_to_stream(os, box.theta_id());
-        id_to_stream(os, box.phi_id());
-        id_to_stream(os, box.alpha_id());
+    static void box_to_stream(std::ostream& os, const Range3& range3) {
+        id_to_stream(os, range3.theta_range());
+        id_to_stream(os, range3.phi_range());
+        id_to_stream(os, range3.alpha_range());
     }
 
-    static void rectangle_to_stream(std::ostream& os, const Rectangle& rectangle) {
-        id_to_stream(os, rectangle.theta_id());
-        id_to_stream(os, rectangle.phi_id());
+    static void rectangle_to_stream(std::ostream& os, const Range2& range2) {
+        id_to_stream(os, range2.theta_range());
+        id_to_stream(os, range2.phi_range());
     }
 
     static void terminal_box_to_stream(std::ostream& os, const TerminalBox& terminal_box) {
-        box_to_stream(os, terminal_box.box());
-        size_to_stream(os, static_cast<uint32_t>(terminal_box.rectangles().size()));
-        for(const Rectangle& rectangle: terminal_box.rectangles()) {
+        box_to_stream(os, terminal_box.range3());
+        size_to_stream(os, static_cast<uint32_t>(terminal_box.range2s().size()));
+        for(const Range2& rectangle: terminal_box.range2s()) {
             rectangle_to_stream(os, rectangle);
         }
     }
@@ -96,7 +96,7 @@ public:
         std::cout << "Exported " << terminal_boxes.size() << " terminal boxes to " << path << std::endl;
     }
 
-    void export_boxes(const std::vector<Box>& boxes) {
+    void export_boxes(const std::vector<Range3>& boxes) {
         const std::filesystem::path path = config_.boxes_path();
         std::ofstream file(path, std::ios::binary | std::ios::trunc);
         if(!file.is_open()) {
@@ -104,7 +104,7 @@ public:
         }
 
         size_to_stream(file, static_cast<uint32_t>(boxes.size()));
-        for(const Box& box: boxes) {
+        for(const Range3& box: boxes) {
             box_to_stream(file, box);
         }
 

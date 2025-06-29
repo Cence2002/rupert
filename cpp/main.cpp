@@ -58,7 +58,7 @@ int main() {
         2,
         true,
         "../../web/static",
-        1000000,
+        100,
         false
     );
 
