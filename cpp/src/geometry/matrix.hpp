@@ -2,7 +2,6 @@
 
 #include "interval/interval.hpp"
 #include "geometry/vertex.hpp"
-#include <vector>
 
 template<IntervalType Interval>
 struct Matrix {
@@ -25,6 +24,10 @@ public:
     Matrix(const Matrix& matrix) = default;
 
     Matrix(Matrix&& matrix) = default;
+
+    Matrix& operator=(const Matrix&) = delete;
+
+    Matrix& operator=(Matrix&&) = delete;
 
     static Matrix zero() {
         return Matrix(Interval(0), Interval(0), Interval(0),
@@ -110,66 +113,15 @@ public:
         );
     }
 
-    Matrix basis_change(const Matrix& other_basis) const {
-        return other_basis * transpose();
+    static Matrix relative_rotation(const Matrix& from, const Matrix& to) {
+        return to * from.transpose();
     }
 
     Interval cos_angle() const {
         return (xx_ + yy_ + zz_ - Interval(1)) / Interval(2);
     }
 
-    static Interval cos_angle_between(const Matrix& matrix, const Matrix& other_matrix) {
-        return matrix.basis_change(other_matrix).cos_angle();
-    }
-
-    static Matrix projection_matrix(const Interval& theta, const Interval& phi) {
-        return rotate_x(phi) * rotate_z(theta);
-    }
-
-    static Matrix projection_rotation_matrix(const Interval& theta, const Interval& phi, const Interval& alpha) {
-        return rotate_z(alpha) * projection_matrix(theta, phi);
+    static Interval cos_angle_between(const Matrix& matrix_0, const Matrix& matrix_1) {
+        return relative_rotation(matrix_0, matrix_1).cos_angle();
     }
 };
-
-template<IntervalType Interval>
-Matrix<Interval> orthonormal_basis(const Vertex<Interval>& from, const Vertex<Interval>& to, bool right_handed) {
-    Vertex<Interval> x_axis = from.unit();
-    Vertex<Interval> y_axis = (to - from * to.dot(x_axis)).unit();
-    Vertex<Interval> z_axis = right_handed ? x_axis.cross(y_axis).unit() : y_axis.cross(x_axis).unit();
-    return Matrix<Interval>(
-        x_axis.x(), y_axis.x(), z_axis.x(),
-        x_axis.y(), y_axis.y(), z_axis.y(),
-        x_axis.z(), y_axis.z(), z_axis.z()
-    );
-}
-
-template<IntervalType Interval>
-std::vector<Matrix<Interval>> symmetries(
-    const std::vector<Vertex<Interval>>& vertices,
-    bool right_handed) {
-    const Vertex<Interval> from_vertex = vertices[0];
-    const Vertex<Interval> to_vertex = from_vertex.diff(-vertices[1]) ? vertices[1] : vertices[2];
-    Matrix<Interval> basis = orthonormal_basis<Interval>(from_vertex, to_vertex, true);
-    std::vector<Matrix<Interval>> symmetries;
-    symmetries.reserve(vertices.size() * vertices.size());
-    for(const auto& from_vertex_image: vertices) {
-        for(const auto& to_vertex_image: vertices) {
-            if(((from_vertex_image - to_vertex_image).len() - (from_vertex - to_vertex).len()).is_nonzero()) {
-                continue;
-            }
-            Matrix<Interval> image_basis = orthonormal_basis<Interval>(from_vertex_image, to_vertex_image, right_handed);
-            Matrix<Interval> symmetry = basis.basis_change(image_basis);
-            const bool is_symmetry = std::ranges::all_of(vertices, [&](const Vertex<Interval>& vertex) {
-                const Vertex<Interval> vertex_image = symmetry * vertex;
-                return std::any_of(vertices.begin(), vertices.end(), [&](const Vertex<Interval>& other_vertex) {
-                                       return !vertex_image.diff(other_vertex);
-                                   }
-                );
-            });
-            if(is_symmetry) {
-                symmetries.emplace_back(symmetry);
-            }
-        }
-    }
-    return symmetries;
-}

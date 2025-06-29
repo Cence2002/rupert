@@ -26,6 +26,10 @@ public:
 
     FloatInterval(FloatInterval&& interval) = default;
 
+    FloatInterval& operator=(const FloatInterval&) = delete;
+
+    FloatInterval& operator=(FloatInterval&&) = delete;
+
     static FloatInterval nan() {
         return FloatInterval(std::numeric_limits<double>::quiet_NaN());
     }

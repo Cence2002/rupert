@@ -66,6 +66,10 @@ public:
         mpfi_swap(interval_, interval.interval_);
     }
 
+    MpfiInterval& operator=(const MpfiInterval&) = delete;
+
+    MpfiInterval& operator=(MpfiInterval&&) = delete;
+
     static MpfiInterval nan() {
         mpfi_t interval;
         mpfi_init(interval);

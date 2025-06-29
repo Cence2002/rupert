@@ -18,6 +18,10 @@ public:
 
     Vertex(Vertex&& vertex) = default;
 
+    Vertex& operator=(const Vertex&) = delete;
+
+    Vertex& operator=(Vertex&&) = delete;
+
     const Interval& x() const {
         return x_;
     }

@@ -38,8 +38,8 @@ private:
             return false;
         }
         const Interval cos_remaining_angle = remaining_angle.cos();
-        const Matrix<Interval> hole_matrix = Matrix<Interval>::projection_rotation_matrix(Interval(box.theta<Interval>().mid()), Interval(box.phi<Interval>().mid()), Interval(box.alpha<Interval>().mid()));
-        const Matrix<Interval> plug_matrix = Matrix<Interval>::projection_matrix(Interval(rectangle.theta<Interval>().mid()), Interval(rectangle.phi<Interval>().mid()));
+        const Matrix<Interval> hole_matrix = projection_rotation_matrix(Interval(box.theta<Interval>().mid()), Interval(box.phi<Interval>().mid()), Interval(box.alpha<Interval>().mid()));
+        const Matrix<Interval> plug_matrix = projection_matrix(Interval(rectangle.theta<Interval>().mid()), Interval(rectangle.phi<Interval>().mid()));
         for(const Matrix<Interval>& rotation: config_.plug().rotations()) {
             if(Matrix<Interval>::cos_angle_between(hole_matrix * rotation, plug_matrix) > cos_remaining_angle) {
                 return true;
@@ -65,7 +65,7 @@ private:
                 }
                 debug_exporter_.debug_builder.box_builder.rectangle_builder.add_projection();
             }
-            if(projected_hole.is_projected_vertex_outside_polygon_advanced(plug_vertex, theta, phi)) {
+            if(is_projected_vertex_outside_polygon_advanced(projected_hole, plug_vertex, theta, phi)) {
                 if(config_.debug_enabled()) {
                     debug_exporter_.debug_builder.box_builder.rectangle_builder.add_last_as_out_index();
                 }
@@ -82,7 +82,7 @@ private:
         const Interval theta_mid(rectangle.theta<Interval>().mid());
         const Interval phi_mid(rectangle.phi<Interval>().mid());
         return std::ranges::all_of(config_.plug().vertices(), [&](const Vertex<Interval>& plug_vertex) {
-            return projected_hole.is_projected_vertex_inside_polygon_trivial(plug_vertex, theta_mid, phi_mid);
+            return is_projected_vertex_inside_polygon_trivial(projected_hole, plug_vertex, theta_mid, phi_mid);
         });
     }
 

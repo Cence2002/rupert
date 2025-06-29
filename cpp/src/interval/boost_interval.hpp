@@ -29,6 +29,10 @@ public:
 
     BoostInterval(BoostInterval&& interval) = default;
 
+    BoostInterval& operator=(const BoostInterval&) = delete;
+
+    BoostInterval& operator=(BoostInterval&&) = delete;
+
     static BoostInterval nan() {
         return BoostInterval(BoostIntervalType::empty());
     }

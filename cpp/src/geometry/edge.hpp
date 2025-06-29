@@ -48,6 +48,10 @@ public:
 
     Edge(Edge&& edge) = default;
 
+    Edge& operator=(const Edge&) = delete;
+
+    Edge& operator=(Edge&&) = delete;
+
     const Vector<Interval>& from() const {
         return from_;
     }

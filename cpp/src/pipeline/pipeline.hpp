@@ -24,10 +24,10 @@ private:
     std::atomic<uint8_t> terminated_thread_count_;
 
     void test_polyhedra() {
-        if(!Polygon<Interval>::is_centrally_symmetric(config_.hole().vertices())) {
+        if(!is_centrally_symmetric(config_.hole().vertices())) {
             throw std::runtime_error("Hole polyhedron is not centrally symmetric");
         }
-        if(!Polygon<Interval>::is_centrally_symmetric(config_.plug().vertices())) {
+        if(!is_centrally_symmetric(config_.plug().vertices())) {
             throw std::runtime_error("Plug polyhedron is not centrally symmetric");
         }
     }

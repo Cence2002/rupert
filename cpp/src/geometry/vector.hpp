@@ -17,6 +17,10 @@ public:
 
     Vector(Vector&& vector) = default;
 
+    Vector& operator=(const Vector&) = delete;
+
+    Vector& operator=(Vector&&) = delete;
+
     const Interval& x() const {
         return x_;
     }

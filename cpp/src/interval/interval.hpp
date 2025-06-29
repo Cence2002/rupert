@@ -1,5 +1,6 @@
 #pragma once
 
+#include "interval/interval_type.hpp"
 #include "interval/float_interval.hpp"
 #include "interval/boost_interval.hpp"
 #include "interval/mpfi_interval.hpp"
