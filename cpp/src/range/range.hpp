@@ -1,7 +1,7 @@
 #pragma once
 
 #include "range_type.hpp"
-#include "interval/interval.hpp"
+#include "interval/intervals.hpp"
 #include <cstdint>
 #include <bitset>
 

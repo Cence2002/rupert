@@ -1,11 +1,6 @@
 #pragma once
 
-#include "geometry/geometry.hpp"
 #include "geometry/polyhedron.hpp"
-#include "queue/queue.hpp"
-#include "range/range2.hpp"
-#include "range/range3.hpp"
-#include <cstdint>
 #include <regex>
 #include <filesystem>
 

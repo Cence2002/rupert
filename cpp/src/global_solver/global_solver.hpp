@@ -1,10 +1,9 @@
 #pragma once
 
-#include "global_solver/importer.hpp"
-#include "global_solver/exporter.hpp"
-#include "global_solver/debug_exporter.hpp"
-#include "global_solver/geometry_helpers.hpp"
-#include "queue/concurrent_queue.hpp"
+#include "global_solver/config.hpp"
+#include "global_solver/io.hpp"
+#include "global_solver/helpers.hpp"
+#include "queue/queues.hpp"
 #include <thread>
 
 const std::string polyhedra_file_name = "polyhedra.bin";

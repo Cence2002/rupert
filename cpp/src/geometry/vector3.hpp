@@ -1,6 +1,6 @@
 #pragma once
 
-#include "interval/interval.hpp"
+#include "interval/intervals.hpp"
 
 template<IntervalType Interval>
 struct Vector3 {
