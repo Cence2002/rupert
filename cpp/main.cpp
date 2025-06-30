@@ -32,32 +32,27 @@ void print(Args&&... args) {
 }
 
 int main() {
-    const std::vector<Vector3<I>> hole_vertices = Archimedean::rhombicosidodecahedron<I>();
-    const std::vector<Vector3<I>> plug_vertices = Archimedean::rhombicosidodecahedron<I>();
-    const std::vector<Matrix<I>> hole_rotations = symmetries<I>(hole_vertices, true);
-    const std::vector<Matrix<I>> hole_reflections = symmetries<I>(hole_vertices, false);
-    const std::vector<Matrix<I>> plug_rotations = symmetries<I>(plug_vertices, true);
-    const std::vector<Matrix<I>> plug_reflections = symmetries<I>(plug_vertices, false);
-    const Polyhedron<I> hole(hole_vertices, hole_rotations, hole_reflections);
-    const Polyhedron<I> plug(plug_vertices, plug_rotations, plug_reflections);
-    const Polyhedron<I> hole_normalized = hole.normalized();
-    const Polyhedron<I> plug_normalized = plug.normalized();
+    const std::vector<Vector3<I>> polyhedron_vertices = Archimedean::rhombicosidodecahedron<I>();
+    const std::vector<Matrix<I>> polyhedron_rotations = symmetries<I>(polyhedron_vertices, true);
+    const std::vector<Matrix<I>> polyhedron_reflections = symmetries<I>(polyhedron_vertices, false);
+    const Polyhedron<I> hole(polyhedron_vertices, polyhedron_rotations, polyhedron_reflections);
+    const Polyhedron<I> polyhedron_normalized = hole.normalized();
 
-    const Config<I> config(
-        "temp",
-        hole_normalized,
-        plug_normalized,
+    const Config<I> config{
+        polyhedron_normalized,
         I::pi() / I(180),
-        1,
         1,
         10000,
         2,
         2,
-        true,
+        1,
         "../../web/static",
+        "temp",
         100,
+        true,
         true
-    );
+    };
+    config.validate();
 
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);

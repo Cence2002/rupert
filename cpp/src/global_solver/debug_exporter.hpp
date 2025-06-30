@@ -255,18 +255,16 @@ public:
 template<IntervalType Interval>
 struct DebugExporter {
 private:
-    const Config<Interval>& config_;
     flatbuffers::FlatBufferBuilder builder_;
 
 public:
     DebugBuilder debug_builder;
 
-    explicit DebugExporter(const Config<Interval>& config) : config_(config), builder_(), debug_builder(builder_) {}
+    explicit DebugExporter() : builder_(), debug_builder(builder_) {}
 
-    void export_debug() {
+    void export_debug(const std::filesystem::path& path) const {
         debug_builder.build();
 
-        const std::filesystem::path path = config_.debug_path();
         std::ofstream file(path, std::ios::binary | std::ios::trunc);
         if(!file.is_open()) {
             throw std::runtime_error("Failed to open " + path.string());
