@@ -1,4 +1,3 @@
-// #include "test/test.hpp"
 #include "global_solver/global_solver.hpp"
 #include <csignal>
 
@@ -33,8 +32,6 @@ void print(Args&&... args) {
 }
 
 int main() {
-    // tests();
-
     const std::vector<Vector3<I>> hole_vertices = Archimedean::rhombicosidodecahedron<I>();
     const std::vector<Vector3<I>> plug_vertices = Archimedean::rhombicosidodecahedron<I>();
     const std::vector<Matrix<I>> hole_rotations = symmetries<I>(hole_vertices, true);
@@ -51,15 +48,15 @@ int main() {
         hole_normalized,
         plug_normalized,
         I::pi() / I(180),
-        10,
-        10,
+        1,
+        1,
         10000,
         2,
         2,
         true,
         "../../web/static",
         100,
-        false
+        true
     );
 
     std::signal(SIGINT, signal_handler);

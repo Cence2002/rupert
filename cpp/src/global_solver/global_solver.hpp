@@ -101,9 +101,9 @@ public:
         if(boxes.empty()) {
             // box_queue_.push(Box()); // TODO: Use this instead of the magic numbers
             box_queue_.push(Range3(
-                Range(4, 0b0110),
-                Range(5, 0b01100),
-                Range(4, 0b1010)
+                Range(9, 0b011011010),
+                Range(10, 0b1011001001),
+                Range(9, 0b101101110)
             ));
         } else {
             box_queue_.push_all(boxes);
