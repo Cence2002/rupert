@@ -132,4 +132,11 @@ public:
     static Interval cos_angle_between(const Matrix& matrix_0, const Matrix& matrix_1) {
         return relative_rotation(matrix_0, matrix_1).cos_angle();
     }
+
+    friend std::ostream& operator<<(std::ostream& os, const Matrix& matrix) {
+        os << "[[" << matrix.xx_ << "," << matrix.xy_ << "," << matrix.xz_ << "],"
+            << "[" << matrix.yx_ << "," << matrix.yy_ << "," << matrix.yz_ << "],"
+            << "[" << matrix.zx_ << "," << matrix.zy_ << "," << matrix.zz_ << "]]";
+        return os;
+    }
 };

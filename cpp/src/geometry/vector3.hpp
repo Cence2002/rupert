@@ -10,7 +10,7 @@ private:
     Interval z_;
 
 public:
-    explicit Vector3(const Interval& x, const Interval& y, const Interval& z) : x_(x), y_(y), z_(z) {}
+    explicit Vector3(const Interval& x, const Interval& y, const Interval& z) noexcept : x_(x), y_(y), z_(z) {}
 
     ~Vector3() = default;
 
@@ -92,6 +92,6 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& ostream, const Vector3& vertex) {
-        return ostream << "(" << vertex.x_ << " | " << vertex.y_ << " | " << vertex.z_ << ")";
+        return ostream << "(" << vertex.x_ << "," << vertex.y_ << "," << vertex.z_ << ")";
     }
 };

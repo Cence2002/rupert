@@ -68,7 +68,7 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& ostream, const Range3& box) {
-        return ostream << "T" << box.theta_range_ << " P" << box.phi_range_ << " A" << box.alpha_range_;
+        return ostream << "T" << box.theta_range_ << "P" << box.phi_range_ << "A" << box.alpha_range_;
     }
 };
 

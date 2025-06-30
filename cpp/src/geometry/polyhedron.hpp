@@ -26,14 +26,6 @@ public:
         rotations_(rotations),
         reflections_(reflections) {}
 
-    void add_symmetries(const std::vector<Matrix<Interval>>& rotations, const std::vector<Matrix<Interval>>& reflections) {
-        rotations_.insert(rotations_.end(), rotations.begin(), rotations.end());
-        reflections_.insert(reflections_.end(), reflections.begin(), reflections.end());
-    }
-
-    // rotations_ = symmetries(vertices_, true);
-    // reflections_ = symmetries(vertices_, false);
-
     const std::vector<Vector3<Interval>>& vertices() const {
         return vertices_;
     }

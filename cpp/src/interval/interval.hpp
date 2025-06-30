@@ -25,10 +25,10 @@ template<IntervalType Interval>
 std::ostream& operator<<(std::ostream& ostream, const Interval& interval) {
     switch(print_mode) {
         case PrintMode::min_and_max: {
-            return ostream << "[" << to_string(interval.min().to_float()) << " : " << to_string(interval.max().to_float()) << "]";
+            return ostream << to_string(interval.min().to_float()) << "|" << to_string(interval.max().to_float());
         }
         case PrintMode::mid_and_rad: {
-            return ostream << "[" << to_string(interval.mid().to_float()) << " ~ " << to_string(interval.rad().to_float()) << "]";
+            return ostream << to_string(interval.mid().to_float()) << "~" << to_string(interval.rad().to_float());
         }
         case PrintMode::mid_only: {
             return ostream << to_string(interval.mid().to_float());

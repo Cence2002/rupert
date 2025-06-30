@@ -9,7 +9,7 @@ private:
     Interval y_;
 
 public:
-    explicit Vector2(const Interval& x, const Interval& y) : x_(x), y_(y) {}
+    explicit Vector2(const Interval& x, const Interval& y) noexcept : x_(x), y_(y) {}
 
     ~Vector2() = default;
 
@@ -83,6 +83,6 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& ostream, const Vector2& vector2) {
-        return ostream << "(" << vector2.x_ << " | " << vector2.y_ << ")";
+        return ostream << "(" << vector2.x_ << "," << vector2.y_ << ")";
     }
 };

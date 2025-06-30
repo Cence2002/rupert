@@ -56,7 +56,7 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& ostream, const Range2& range2) {
-        return ostream << "T" << range2.theta_range_ << " P" << range2.phi_range_;
+        return ostream << "T" << range2.theta_range_ << "P" << range2.phi_range_;
     }
 };
 

@@ -6,12 +6,13 @@
 
 struct FloatInterval {
 private:
+    constexpr static double eps_ = 1e-9;
     double min_;
     double max_;
 
-    explicit FloatInterval(const double value) : min_(value), max_(value) {}
+    explicit FloatInterval(const double value) : min_(value - eps_), max_(value + eps_) {}
 
-    explicit FloatInterval(const double min, const double max) : min_(min), max_(max) {}
+    explicit FloatInterval(const double min, const double max) : min_(min - eps_), max_(max + eps_) {}
 
 public:
     template<IntegerType Integer>

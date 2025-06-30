@@ -42,6 +42,12 @@ public:
         }
     }
 
+    explicit Edge(const Vector2<Interval>& to) : from_(Vector2<Interval>(Interval(0), Interval(0))), to_(to) {
+        if(!to_.len().is_positive()) {
+            throw std::runtime_error("Zero length edge found");
+        }
+    }
+
     ~Edge() = default;
 
     Edge(const Edge& edge) = default;
@@ -98,6 +104,6 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& ostream, const Edge& edge) {
-        return ostream << edge.from_ << " -> " << edge.to_;
+        return ostream << edge.from_ << "->" << edge.to_;
     }
 };

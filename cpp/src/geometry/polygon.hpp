@@ -27,8 +27,14 @@ public:
 
     friend std::ostream& operator<<(std::ostream& ostream, const Polygon& polygon) {
         ostream << "{";
+        bool is_first = true;
         for(const Edge<Interval>& edge: polygon.edges_) {
-            ostream << edge << ", ";
+            if(!is_first) {
+                ostream << ", ";
+            } else {
+                is_first = false;
+            }
+            ostream << edge;
         }
         ostream << "}";
         return ostream;
