@@ -64,3 +64,66 @@ table Debug {
 }
 
 root_type Debug;
+
+
+//namespace FlatBuffers;
+//
+//struct BinVector2 {
+//  x: double;
+//  y: double;
+//}
+//
+//struct BinVector3 {
+//  x: double;
+//  y: double;
+//  z: double;
+//}
+//
+//struct BinEdge {
+//  from: BinVector2;
+//  to: BinVector2;
+//}
+//
+//table BinPolygon {
+//  edges: [BinEdge];
+//}
+//
+//table BinPolyhedron {
+//  vertices: [BinVector3];
+//}
+//
+//table BinProjection {
+//  vectors: [BinVector2];
+//}
+//
+//struct BinRange {
+//  depth: uint8;
+//  bits: uint16;
+//  min: double;
+//  max: double;
+//}
+//
+//table BinRange2 {
+//  theta: BinRange;
+//  phi: BinRange;
+//  projections: [BinProjection];
+//  out_indices: [uint32];
+//}
+//
+//table BinRange3 {
+//  theta: BinRange;
+//  phi: BinRange;
+//  alpha: BinRange;
+//  projections: [BinProjection];
+//  projection: BinPolygon;
+//  rectangles: [BinRange2];
+//  terminal: bool;
+//  in_index: int32;
+//}
+//
+//table BinData {
+//  polyhedron: BinPolyhedron;
+//  boxes: [BinRange3];
+//}
+//
+//root_type BinData;
