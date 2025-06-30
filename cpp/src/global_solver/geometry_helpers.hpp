@@ -147,9 +147,9 @@ bool is_centrally_symmetric(const std::vector<Vector3<Interval>>& vertices) {
 
 template<IntervalType Interval>
 Matrix<Interval> orthonormal_basis(const Vector3<Interval>& from, const Vector3<Interval>& to, bool right_handed) {
-    Vector3<Interval> x_axis = from.unit();
-    Vector3<Interval> y_axis = (to - from * to.dot(x_axis)).unit();
-    Vector3<Interval> z_axis = right_handed ? x_axis.cross(y_axis).unit() : y_axis.cross(x_axis).unit();
+    const Vector3<Interval> x_axis = from.unit();
+    const Vector3<Interval> y_axis = (to - x_axis * to.dot(x_axis)).unit();
+    const Vector3<Interval> z_axis = right_handed ? x_axis.cross(y_axis).unit() : y_axis.cross(x_axis).unit();
     return Matrix<Interval>(
         x_axis.x(), y_axis.x(), z_axis.x(),
         x_axis.y(), y_axis.y(), z_axis.y(),
@@ -158,26 +158,30 @@ Matrix<Interval> orthonormal_basis(const Vector3<Interval>& from, const Vector3<
 }
 
 template<IntervalType Interval>
-std::vector<Matrix<Interval>> symmetries(
-    const std::vector<Vector3<Interval>>& vertices,
-    bool right_handed) {
-    const Vector3<Interval> from_vector3 = vertices[0];
-    const Vector3<Interval> to_vector3 = from_vector3.diff(-vertices[1]) ? vertices[1] : vertices[2];
+std::vector<Matrix<Interval>> symmetries(const std::vector<Vector3<Interval>>& vector3s, bool right_handed) {
+    const Vector3<Interval> from_vector3 = vector3s[0];
+    size_t to_index = 1;
+    for(size_t i = 2; i < vector3s.size(); i++) {
+        if(vector3s[i].diff(from_vector3) && vector3s[i].dist(from_vector3) < vector3s[to_index].dist(from_vector3)) {
+            to_index = i;
+        }
+    }
+    const Vector3<Interval> to_vector3 = vector3s[to_index];
+    const Interval distance = to_vector3.dist(from_vector3);
     Matrix<Interval> basis = orthonormal_basis<Interval>(from_vector3, to_vector3, true);
     std::vector<Matrix<Interval>> symmetries;
-    symmetries.reserve(vertices.size() * vertices.size());
-    for(const auto& from_vertex_image: vertices) {
-        for(const auto& to_vertex_image: vertices) {
-            if(((from_vertex_image - to_vertex_image).len() - (from_vector3 - to_vector3).len()).is_nonzero()) {
+    for(const auto& from_vector3_image: vector3s) {
+        for(const auto& to_vector3_image: vector3s) {
+            if((to_vector3_image.dist(from_vector3_image) - distance).is_nonzero()) {
                 continue;
             }
-            Matrix<Interval> image_basis = orthonormal_basis<Interval>(from_vertex_image, to_vertex_image, right_handed);
+            Matrix<Interval> image_basis = orthonormal_basis<Interval>(from_vector3_image, to_vector3_image, right_handed);
             Matrix<Interval> symmetry = Matrix<Interval>::relative_rotation(basis, image_basis);
-            const bool is_symmetry = std::ranges::all_of(vertices, [&](const Vector3<Interval>& vertex) {
-                const Vector3<Interval> vertex_image = symmetry * vertex;
-                return std::any_of(vertices.begin(), vertices.end(), [&](const Vector3<Interval>& other_vertex) {
-                                       return !vertex_image.diff(other_vertex);
-                                   }
+            const bool is_symmetry = std::ranges::all_of(vector3s, [&](const Vector3<Interval>& vertex) {
+                const Vector3<Interval> vector3_image = symmetry * vertex;
+                return std::ranges::any_of(vector3s, [&](const Vector3<Interval>& other_vertex) {
+                                               return !vector3_image.diff(other_vertex);
+                                           }
                 );
             });
             if(is_symmetry) {
@@ -209,7 +213,7 @@ template<IntervalType Interval>
 Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vector2s) {
     std::vector<Edge<Interval>> edges;
 
-    std::vector<bool> is_duplicate(vector2s.size(), false);
+    std::vector<bool> is_duplicate(vector2s.size(), false); // TODO: replace ignoring duplicates with merging them
     bool any_non_duplicate = false;
     for(size_t i = 1; i < vector2s.size(); i++) {
         for(size_t j = 0; j < i; j++) {
@@ -229,16 +233,16 @@ Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vector2s) {
     std::queue<size_t> queue;
     std::vector<bool> visited_indices(vector2s.size(), false);
 
-    std::optional<size_t> start_index;
-    for(size_t new_start_index = 0; new_start_index < vector2s.size(); new_start_index++) {
+    size_t start_index = 0;
+    for(size_t new_start_index = 1; new_start_index < vector2s.size(); new_start_index++) {
         if(is_duplicate[new_start_index]) {
             continue;
         }
-        if(!start_index.has_value() || vector2s[new_start_index].len().max() > vector2s[start_index.value()].len().max()) {
+        if(vector2s[new_start_index].len().max() > vector2s[start_index].len().max()) {
             start_index = new_start_index;
         }
     }
-    queue.emplace(start_index.value());
+    queue.emplace(start_index);
 
     while(!queue.empty()) {
         const size_t from_index = queue.front();
@@ -250,14 +254,13 @@ Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vector2s) {
 
         std::optional<size_t> most_clockwise_index;
         for(size_t new_most_clockwise_index = 0; new_most_clockwise_index < vector2s.size(); new_most_clockwise_index++) {
-            if(is_duplicate[new_most_clockwise_index] || new_most_clockwise_index == from_index) {
+            if(is_duplicate[new_most_clockwise_index] || new_most_clockwise_index == from_index || Edge<Interval>(vector2s[from_index]).side(vector2s[new_most_clockwise_index]) == Side::right) {
                 continue;
             }
             if(!vector2s[from_index].diff(vector2s[new_most_clockwise_index])) {
                 throw std::runtime_error("Zero length edge found");
             }
-            if(!most_clockwise_index.has_value() ||
-               Edge<Interval>(vector2s[from_index], vector2s[most_clockwise_index.value()]).side(vector2s[new_most_clockwise_index]) == Side::right) {
+            if(!most_clockwise_index.has_value() || Edge<Interval>(vector2s[from_index], vector2s[most_clockwise_index.value()]).side(vector2s[new_most_clockwise_index]) == Side::right) {
                 most_clockwise_index = new_most_clockwise_index;
             }
         }
@@ -268,7 +271,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vector2s) {
         std::vector<size_t> to_indices;
         const Edge<Interval> most_clockwise_edge(vector2s[from_index], vector2s[most_clockwise_index.value()]);
         for(size_t to_index = 0; to_index < vector2s.size(); to_index++) {
-            if(is_duplicate[to_index] || to_index == from_index) {
+            if(is_duplicate[to_index] || to_index == from_index || Edge<Interval>(vector2s[from_index]).side(vector2s[to_index]) == Side::right) {
                 continue;
             }
             if(!vector2s[from_index].diff(vector2s[to_index])) {
