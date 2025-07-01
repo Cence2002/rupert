@@ -3,7 +3,6 @@
 #include <iostream>
 #include <limits>
 #include <sstream>
-#include <mpfr.h>
 
 template<typename Integer>
 concept IntegerType =
@@ -24,6 +23,8 @@ concept IntervalType =
     !std::is_move_assignable_v<Interval> &&
 
     requires(Interval interval, const Interval other_interval) {
+        { interval.to_float() } -> std::same_as<double>;
+
         { Interval::nan() } -> std::same_as<Interval>;
         { interval.is_nan() } -> std::same_as<bool>;
 
@@ -60,6 +61,4 @@ concept IntervalType =
         { interval.acos() } -> std::same_as<Interval>;
         { interval.asin() } -> std::same_as<Interval>;
         { interval.atan() } -> std::same_as<Interval>;
-
-        { interval.to_float() } -> std::same_as<double>;
     };

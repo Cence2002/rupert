@@ -19,7 +19,11 @@ public:
     explicit FloatInterval(const Integer integer) : FloatInterval(static_cast<double>(integer)) {}
 
     template<IntegerType Integer>
-    explicit FloatInterval(const Integer min, const Integer max) : FloatInterval(static_cast<double>(min), static_cast<double>(max)) {}
+    explicit FloatInterval(const Integer min, const Integer max) : FloatInterval(static_cast<double>(min), static_cast<double>(max)) {
+        if(min > max) {
+            throw std::invalid_argument("min > max");
+        }
+    }
 
     ~FloatInterval() = default;
 
@@ -30,6 +34,10 @@ public:
     FloatInterval& operator=(const FloatInterval&) = delete;
 
     FloatInterval& operator=(FloatInterval&&) = delete;
+
+    double to_float() const {
+        return (min_ + max_) / 2;
+    }
 
     static FloatInterval nan() {
         return FloatInterval(std::numeric_limits<double>::quiet_NaN());
@@ -232,10 +240,6 @@ public:
             return nan();
         }
         return FloatInterval(std::atan(min_), std::atan(max_));
-    }
-
-    double to_float() const {
-        return (min_ + max_) / 2;
     }
 
     static inline const std::string name = "FloatInterval";

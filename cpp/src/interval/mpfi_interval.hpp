@@ -46,6 +46,9 @@ public:
 
     template<IntegerType Integer>
     explicit MpfiInterval(const Integer min, const Integer max) {
+        if(min > max) {
+            throw std::invalid_argument("min > max");
+        }
         mpfi_init(interval_);
         mpfi_interv_si(interval_, min, max);
     }
@@ -70,6 +73,15 @@ public:
 
     MpfiInterval& operator=(MpfiInterval&&) = delete;
 
+    double to_float() const {
+        mpfr_t mid;
+        mpfr_init2(mid, mpfi_get_prec(interval_));
+        mpfi_mid(mid, interval_);
+        const double mid_float = mpfr_get_d(mid, MPFR_RNDU);
+        mpfr_clear(mid);
+        return mid_float;
+    }
+
     static MpfiInterval nan() {
         mpfi_t interval;
         mpfi_init(interval);
@@ -89,7 +101,7 @@ public:
     }
 
     bool is_nonzero() const {
-        return !mpfi_has_zero(interval_);
+        return !is_nan() && !mpfi_has_zero(interval_);
     }
 
     bool operator>(const MpfiInterval& interval) const {
@@ -265,15 +277,6 @@ public:
         mpfi_init(atan);
         mpfi_atan(atan, interval_);
         return MpfiInterval(atan);
-    }
-
-    double to_float() const {
-        mpfr_t mid;
-        mpfr_init2(mid, mpfi_get_prec(interval_));
-        mpfi_mid(mid, interval_);
-        const double mid_float = mpfr_get_d(mid, MPFR_RNDU);
-        mpfr_clear(mid);
-        return mid_float;
     }
 
     static inline const std::string name = "MpfiInterval";

@@ -21,7 +21,11 @@ public:
     explicit BoostInterval(const Integer integer) : interval_(integer) {}
 
     template<IntegerType Integer>
-    explicit BoostInterval(const Integer min, const Integer max) : interval_(min, max) {}
+    explicit BoostInterval(const Integer min, const Integer max) : interval_(min, max) {
+        if(min > max) {
+            throw std::invalid_argument("min > max");
+        }
+    }
 
     ~BoostInterval() = default;
 
@@ -32,6 +36,10 @@ public:
     BoostInterval& operator=(const BoostInterval&) = delete;
 
     BoostInterval& operator=(BoostInterval&&) = delete;
+
+    double to_float() const {
+        return boost::numeric::median(interval_);
+    }
 
     static BoostInterval nan() {
         return BoostInterval(BoostIntervalType::empty());
@@ -62,22 +70,37 @@ public:
     }
 
     BoostInterval min() const {
+        if(is_nan()) {
+            return nan();
+        }
         return BoostInterval(boost::numeric::lower(interval_));
     }
 
     BoostInterval max() const {
+        if(is_nan()) {
+            return nan();
+        }
         return BoostInterval(boost::numeric::upper(interval_));
     }
 
     BoostInterval mid() const {
+        if(is_nan()) {
+            return nan();
+        }
         return BoostInterval(boost::numeric::median(interval_));
     }
 
     BoostInterval len() const {
+        if(is_nan()) {
+            return nan();
+        }
         return BoostInterval(boost::numeric::width(interval_));
     }
 
     BoostInterval rad() const {
+        if(is_nan()) {
+            return nan();
+        }
         return BoostInterval(boost::numeric::width(interval_) / 2);
     }
 
@@ -156,10 +179,6 @@ public:
 
     BoostInterval atan() const {
         return BoostInterval(boost::numeric::atan(interval_));
-    }
-
-    double to_float() const {
-        return boost::numeric::median(interval_);
     }
 
     static inline const std::string name = "BoostInterval";
