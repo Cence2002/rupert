@@ -99,55 +99,55 @@
                 target.set(angles.theta / TWO_PI, angles.phi / PI, angles.alpha / TWO_PI);
             }
 
-            for (let symmetry of symmetries(hole, 1e-6).rotations) {
-                const resolution = 100;
-                const threshold = 4 / resolution;
-                const vertices = [];
-                const grid = [];
-                for (let i = 0; i <= resolution; i++) {
-                    grid[i] = [];
-                    const theta = lerp(1e-3, TWO_PI - 1e-3, i / resolution);
-                    for (let j = 0; j <= resolution; j++) {
-                        const phi = lerp(1e-3, PI - 1e-3, j / resolution);
-                        const point = new Vector3();
-                        parametric(symmetry, theta, phi, point);
-                        vertices.push(point.x, point.y, point.z);
-                        grid[i][j] = i * (resolution + 1) + j;
-                    }
-                }
-                const indices = [];
-                for (let i = 0; i < resolution; i++) {
-                    for (let j = 0; j < resolution; j++) {
-                        const a = grid[i][j];
-                        const b = grid[i + 1][j];
-                        const c = grid[i][j + 1];
-                        const d = grid[i + 1][j + 1];
-                        const va = new Vector3(vertices[3 * a], vertices[3 * a + 1], vertices[3 * a + 2]);
-                        const vb = new Vector3(vertices[3 * b], vertices[3 * b + 1], vertices[3 * b + 2]);
-                        const vc = new Vector3(vertices[3 * c], vertices[3 * c + 1], vertices[3 * c + 2]);
-                        const vd = new Vector3(vertices[3 * d], vertices[3 * d + 1], vertices[3 * d + 2]);
-                        if (va.distanceTo(vb) < threshold && va.distanceTo(vc) < threshold && vb.distanceTo(vd) < threshold && vc.distanceTo(vd) < threshold) {
-                            indices.push(a, b, c);
-                            indices.push(b, d, c);
-                        }
-                    }
-                }
-                const geometry = new BufferGeometry();
-                geometry.setAttribute('position', new Float32BufferAttribute(vertices, 3));
-                geometry.setIndex(indices);
-                geometry.computeVertexNormals();
-                const material = new MeshBasicMaterial({
-                    color: new Color(Math.random(), Math.random(), Math.random()),
-                    transparent: true,
-                    opacity: 0.2,
-                    side: DoubleSide,
-                    depthWrite: false,
-                    alphaTest: 0.01,
-                });
-                const mesh = new Mesh(geometry, material);
-                mesh.renderOrder = 1;
-                scene.add(mesh);
-            }
+            // for (let symmetry of symmetries(hole, 1e-6).rotations) {
+            //     const resolution = 100;
+            //     const threshold = 4 / resolution;
+            //     const vertices = [];
+            //     const grid = [];
+            //     for (let i = 0; i <= resolution; i++) {
+            //         grid[i] = [];
+            //         const theta = lerp(1e-3, TWO_PI - 1e-3, i / resolution);
+            //         for (let j = 0; j <= resolution; j++) {
+            //             const phi = lerp(1e-3, PI - 1e-3, j / resolution);
+            //             const point = new Vector3();
+            //             parametric(symmetry, theta, phi, point);
+            //             vertices.push(point.x, point.y, point.z);
+            //             grid[i][j] = i * (resolution + 1) + j;
+            //         }
+            //     }
+            //     const indices = [];
+            //     for (let i = 0; i < resolution; i++) {
+            //         for (let j = 0; j < resolution; j++) {
+            //             const a = grid[i][j];
+            //             const b = grid[i + 1][j];
+            //             const c = grid[i][j + 1];
+            //             const d = grid[i + 1][j + 1];
+            //             const va = new Vector3(vertices[3 * a], vertices[3 * a + 1], vertices[3 * a + 2]);
+            //             const vb = new Vector3(vertices[3 * b], vertices[3 * b + 1], vertices[3 * b + 2]);
+            //             const vc = new Vector3(vertices[3 * c], vertices[3 * c + 1], vertices[3 * c + 2]);
+            //             const vd = new Vector3(vertices[3 * d], vertices[3 * d + 1], vertices[3 * d + 2]);
+            //             if (va.distanceTo(vb) < threshold && va.distanceTo(vc) < threshold && vb.distanceTo(vd) < threshold && vc.distanceTo(vd) < threshold) {
+            //                 indices.push(a, b, c);
+            //                 indices.push(b, d, c);
+            //             }
+            //         }
+            //     }
+            //     const geometry = new BufferGeometry();
+            //     geometry.setAttribute('position', new Float32BufferAttribute(vertices, 3));
+            //     geometry.setIndex(indices);
+            //     geometry.computeVertexNormals();
+            //     const material = new MeshBasicMaterial({
+            //         color: new Color(Math.random(), Math.random(), Math.random()),
+            //         transparent: true,
+            //         opacity: 0.2,
+            //         side: DoubleSide,
+            //         depthWrite: false,
+            //         alphaTest: 0.01,
+            //     });
+            //     const mesh = new Mesh(geometry, material);
+            //     mesh.renderOrder = 1;
+            //     scene.add(mesh);
+            // }
         }
 
         const boxesGeometry = new BoxGeometry(1, 1, 1);
