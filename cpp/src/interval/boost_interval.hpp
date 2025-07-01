@@ -41,6 +41,10 @@ public:
         return boost::numeric::median(interval_);
     }
 
+    std::pair<double, double> to_floats() const {
+        return std::make_pair(boost::numeric::lower(interval_), boost::numeric::upper(interval_));
+    }
+
     static BoostInterval nan() {
         return BoostInterval(BoostIntervalType::empty());
     }

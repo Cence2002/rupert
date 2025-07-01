@@ -82,6 +82,19 @@ public:
         return mid_float;
     }
 
+    std::pair<double, double> to_floats() const {
+        mpfr_t left, right;
+        mpfr_init2(left, mpfi_get_prec(interval_));
+        mpfr_init2(right, mpfi_get_prec(interval_));
+        mpfi_get_left(left, interval_);
+        mpfi_get_right(right, interval_);
+        const double left_float = mpfr_get_d(left, MPFR_RNDU);
+        const double right_float = mpfr_get_d(right, MPFR_RNDU);
+        mpfr_clear(left);
+        mpfr_clear(right);
+        return std::make_pair(left_float, right_float);
+    }
+
     static MpfiInterval nan() {
         mpfi_t interval;
         mpfi_init(interval);

@@ -24,6 +24,7 @@ concept IntervalType =
 
     requires(Interval interval, const Interval other_interval) {
         { interval.to_float() } -> std::same_as<double>;
+        { interval.to_floats() } -> std::same_as<std::pair<double, double>>;
 
         { Interval::nan() } -> std::same_as<Interval>;
         { interval.is_nan() } -> std::same_as<bool>;
@@ -44,7 +45,6 @@ concept IntervalType =
 
         { +interval } -> std::same_as<Interval>;
         { -interval } -> std::same_as<Interval>;
-
         { interval + other_interval } -> std::same_as<Interval>;
         { interval - other_interval } -> std::same_as<Interval>;
         { interval * other_interval } -> std::same_as<Interval>;

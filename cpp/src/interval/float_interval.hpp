@@ -6,13 +6,20 @@
 
 struct FloatInterval {
 private:
-    constexpr static double eps_ = 1e-9;
+    constexpr static double eps_ = 1e-12;
     double min_;
     double max_;
 
-    explicit FloatInterval(const double value) : min_(value - eps_), max_(value + eps_) {}
+    explicit FloatInterval(const double min, const double max) : min_(min), max_(max) {
+        if(min != 0.0) {
+            min_ -= eps_;
+        }
+        if(max != 0.0) {
+            max_ += eps_;
+        }
+    }
 
-    explicit FloatInterval(const double min, const double max) : min_(min - eps_), max_(max + eps_) {}
+    explicit FloatInterval(const double value) : FloatInterval(value, value) {}
 
 public:
     template<IntegerType Integer>
@@ -37,6 +44,10 @@ public:
 
     double to_float() const {
         return (min_ + max_) / 2;
+    }
+
+    std::pair<double, double> to_floats() const {
+        return std::make_pair(min_, max_);
     }
 
     static FloatInterval nan() {
