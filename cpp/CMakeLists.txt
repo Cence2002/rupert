@@ -87,5 +87,5 @@ target_link_libraries(rupert PRIVATE ${GMP_LIB} ${GMPXX_LIB} ${MPFR_LIB} ${MPFI_
 find_package(Catch2 CONFIG REQUIRED)
 file(GLOB TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/test/*.cpp")
 add_executable(tests ${TEST_SOURCES})
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain ${GMP_LIB} ${GMPXX_LIB} ${MPFR_LIB} ${MPFI_LIB})
 add_test(NAME tests COMMAND tests)
