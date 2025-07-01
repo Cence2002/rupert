@@ -7,6 +7,7 @@ sudo apt update
 sudo apt install -y \
     build-essential \
     cmake \
+    catch2 \
     libboost-all-dev \
     libgmp-dev \
     libmpfr-dev \
