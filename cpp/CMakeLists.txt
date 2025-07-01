@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.10)
 project(rupert)
+enable_testing()
 
+
+#### Compiler settings ####
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_EXTENSIONS NO)
-
 add_compile_options(
     -O3
     -g3
@@ -62,6 +64,7 @@ add_compile_options(
     -Wextra-semi
 )
 
+#### Source files ####
 include_directories(
     src
     src/interval
@@ -71,11 +74,18 @@ include_directories(
     src/flatbuffers
     src/global_solver
 )
-
 add_executable(rupert main.cpp)
 
+#### Libraries ####
 find_library(GMP_LIB gmp REQUIRED)
 find_library(GMPXX_LIB gmpxx REQUIRED)
 find_library(MPFR_LIB mpfr REQUIRED)
 find_library(MPFI_LIB mpfi REQUIRED)
 target_link_libraries(rupert PRIVATE ${GMP_LIB} ${GMPXX_LIB} ${MPFR_LIB} ${MPFI_LIB} /usr/lib/x86_64-linux-gnu/libflatbuffers.a)
+
+#### Tests ####
+find_package(Catch2 CONFIG REQUIRED)
+file(GLOB TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/test/*.cpp")
+add_executable(rupert_tests ${TEST_SOURCES})
+target_link_libraries(rupert_tests PRIVATE Catch2::Catch2WithMain)
+add_test(NAME rupert_tests COMMAND rupert_tests)
