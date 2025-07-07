@@ -27,12 +27,12 @@ private:
     std::atomic<bool> terminated_;
     std::atomic<uint8_t> terminated_thread_count_;
 
-    Polygon<Interval> get_projected_hole(const Range3& box) {
+    Polygon<Interval> get_projected_hole(const Range3& range3) {
         std::vector<Vector2<Interval>> all_projected_hole_vertices;
         for(const Vector3<Interval>& hole_vertex: config_.polyhedron.vertices()) {
-            const std::vector<Vector2<Interval>> projected_hole_vertices = projection_hull_polygon(hole_vertex, box.theta_interval<Interval>(), box.phi_interval<Interval>(), config_.projection_resolution);
+            const std::vector<Vector2<Interval>> projected_hole_vertices = projection_hull_polygon(hole_vertex, range3.theta_interval<Interval>(), range3.phi_interval<Interval>(), config_.projection_resolution);
             for(const Vector2<Interval>& projected_hole_vertex: projected_hole_vertices) {
-                const std::vector<Vector2<Interval>> rotated_projected_hole_vertices = rotation_hull_polygon(projected_hole_vertex, box.alpha_interval<Interval>(), config_.rotation_resolution);
+                const std::vector<Vector2<Interval>> rotated_projected_hole_vertices = rotation_hull_polygon(projected_hole_vertex, range3.alpha_interval<Interval>(), config_.rotation_resolution);
                 for(const Vector2<Interval>& rotated_projected_hole_vertex: rotated_projected_hole_vertices) {
                     all_projected_hole_vertices.push_back(rotated_projected_hole_vertex);
                     if(config_.debug) {
@@ -47,15 +47,15 @@ private:
         return convex_hull(all_projected_hole_vertices);
     }
 
-    bool is_range2_ignored(const Range3& box, const Range2& range2) {
-        const Interval box_angle_radius = Vector2<Interval>(Interval(box.theta_interval<Interval>().len()) + Interval(box.alpha_interval<Interval>().len()), Interval(box.phi_interval<Interval>().len())).len() / Interval(2);
+    bool is_range2_ignored(const Range3& range3, const Range2& range2) {
+        const Interval box_angle_radius = Vector2<Interval>(Interval(range3.theta_interval<Interval>().len()) + Interval(range3.alpha_interval<Interval>().len()), Interval(range3.phi_interval<Interval>().len())).len() / Interval(2);
         const Interval range2_angle_radius = Vector2<Interval>(Interval(range2.theta_interval<Interval>().len()), Interval(range2.phi_interval<Interval>().len())).len() / Interval(2);
         const Interval remaining_angle = config_.epsilon - box_angle_radius - range2_angle_radius;
         if(!remaining_angle.is_positive()) {
             return false;
         }
         const Interval cos_remaining_angle = remaining_angle.cos();
-        const Matrix<Interval> hole_matrix = Matrix<Interval>::projection_rotation_matrix(Interval(box.theta_interval<Interval>().mid()), Interval(box.phi_interval<Interval>().mid()), Interval(box.alpha_interval<Interval>().mid()));
+        const Matrix<Interval> hole_matrix = Matrix<Interval>::projection_rotation_matrix(Interval(range3.theta_interval<Interval>().mid()), Interval(range3.phi_interval<Interval>().mid()), Interval(range3.alpha_interval<Interval>().mid()));
         const Matrix<Interval> plug_matrix = Matrix<Interval>::projection_matrix(Interval(range2.theta_interval<Interval>().mid()), Interval(range2.phi_interval<Interval>().mid()));
         for(const Matrix<Interval>& rotation: config_.polyhedron.rotations()) {
             if(Matrix<Interval>::cos_angle_between(hole_matrix * rotation, plug_matrix) > cos_remaining_angle) {
@@ -103,8 +103,8 @@ private:
         });
     }
 
-    std::optional<TerminalBox> get_optional_terminal_box(const Range3& box) {
-        Polygon<Interval> projected_hole = get_projected_hole(box);
+    std::optional<TerminalBox> get_optional_terminal_box(const Range3& range3) {
+        Polygon<Interval> projected_hole = get_projected_hole(range3);
         if(config_.debug) {
             debug_exporter_.debug_builder.box_builder.set_projection(projected_hole);
         }
@@ -114,7 +114,7 @@ private:
         for(uint32_t iteration = 0; config_.range2_iteration_limit == 0 || iteration < config_.range2_iteration_limit; iteration++) {
             const std::optional<Range2> optional_range2 = range2_queue.pop();
             if(!optional_range2.has_value()) {
-                return std::make_optional(TerminalBox(box, range2s));
+                return std::make_optional(TerminalBox(range3, range2s));
             }
 
             const Range2& range2 = optional_range2.value();
@@ -124,7 +124,7 @@ private:
             if(config_.debug) {
                 debug_exporter_.debug_builder.box_builder.rectangle_builder.set_rectangle(range2);
             }
-            if(is_range2_ignored(box, range2) || is_range2_terminal(range2, projected_hole)) {
+            if(is_range2_ignored(range3, range2) || is_range2_terminal(range2, projected_hole)) {
                 if(config_.debug) {
                     debug_exporter_.debug_builder.box_builder.add_rectangle();
                 }
@@ -153,13 +153,13 @@ private:
         if(!optional_box.has_value()) {
             return false;
         }
-        const Range3& box = optional_box.value();
-        if(!box.is_valid()) {
+        const Range3& range3 = optional_box.value();
+        if(!range3.is_valid()) {
             return false;
         }
-        const std::optional<TerminalBox> optional_terminal_box = get_optional_terminal_box(box);
+        const std::optional<TerminalBox> optional_terminal_box = get_optional_terminal_box(range3);
         if(config_.debug) {
-            debug_exporter_.debug_builder.box_builder.set_box(box);
+            debug_exporter_.debug_builder.box_builder.set_box(range3);
             debug_exporter_.debug_builder.box_builder.set_terminal(optional_terminal_box.has_value());
             debug_exporter_.debug_builder.add_box();
         }
@@ -168,7 +168,7 @@ private:
             terminal_box_queue_.push(optional_terminal_box.value());
         } else {
             // std::cout << "Non Terminal Box: " << box << std::endl; // TODO: enable
-            for(const Range3& box_part: box.parts()) {
+            for(const Range3& box_part: range3.parts()) {
                 box_queue_.push(box_part);
             }
         }
@@ -178,7 +178,7 @@ private:
     void start_box_processor() {
         while(!terminated_) {
             if(process()) {
-                if(++processed_box_count_ >= config_.box_iteration_limit) {
+                if(++processed_box_count_ >= config_.range3_iteration_limit) {
                     stop();
                 }
             } else {

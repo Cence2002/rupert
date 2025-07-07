@@ -11,7 +11,7 @@ struct Config {
     Interval epsilon;
 
     // mathematical hyperparameters
-    uint32_t box_iteration_limit;
+    uint32_t range3_iteration_limit;
     uint32_t range2_iteration_limit;
     uint8_t projection_resolution;
     uint8_t rotation_resolution;
