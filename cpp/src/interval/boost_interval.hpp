@@ -193,8 +193,6 @@ public:
     BoostInterval atan() const {
         return BoostInterval(boost::numeric::atan(interval_));
     }
-
-    static inline const std::string name = "BoostInterval";
 };
 
 static_assert(IntervalType<BoostInterval>);

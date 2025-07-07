@@ -253,8 +253,6 @@ public:
         }
         return FloatInterval(std::atan(min_), std::atan(max_));
     }
-
-    static inline const std::string name = "FloatInterval";
 };
 
 static_assert(IntervalType<FloatInterval>);

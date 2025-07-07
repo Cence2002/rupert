@@ -300,8 +300,6 @@ public:
         mpfi_atan(atan, interval_);
         return MpfiInterval(atan);
     }
-
-    static inline const std::string name = "MpfiInterval";
 };
 
 static_assert(IntervalType<MpfiInterval>);
