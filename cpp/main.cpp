@@ -32,14 +32,10 @@ void print(Args&&... args) {
 }
 
 int main() {
-    const std::vector<Vector3<I>> polyhedron_vertices = Archimedean::rhombicosidodecahedron<I>();
-    const std::vector<Matrix<I>> polyhedron_rotations = symmetries<I>(polyhedron_vertices, true);
-    const std::vector<Matrix<I>> polyhedron_reflections = symmetries<I>(polyhedron_vertices, false);
-    const Polyhedron<I> hole(polyhedron_vertices, polyhedron_rotations, polyhedron_reflections);
-    const Polyhedron<I> polyhedron_normalized = hole.normalized();
+    const Polyhedron<I> polyhedron(Archimedean::rhombicosidodecahedron<I>());
 
     const Config<I> config{
-        polyhedron_normalized,
+        polyhedron,
         I::pi() / I(180),
         1,
         10000,
@@ -56,6 +52,8 @@ int main() {
 
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);
+
+    return 0;
 
     pipeline.emplace(config);
     pipeline->init();

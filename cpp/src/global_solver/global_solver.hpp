@@ -222,9 +222,6 @@ public:
                                                             processed_box_count_(0),
                                                             terminated_(false),
                                                             terminated_thread_count_(0) {
-        if(!is_centrally_symmetric(config_.polyhedron.vertices())) {
-            throw std::runtime_error("Polyhedron is not centrally symmetric");
-        }
         if(config_.debug) {
             debug_exporter_.debug_builder.set_hole(config_.polyhedron);
             debug_exporter_.debug_builder.set_plug(config_.polyhedron);

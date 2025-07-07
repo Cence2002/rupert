@@ -60,6 +60,22 @@ namespace PolyhedronHelpers {
         }
         return combined;
     }
+
+    template<IntervalType Interval>
+    std::vector<Vector3<Interval>> normalize(const std::vector<Vector3<Interval>>& vertices) {
+        size_t max_index = 0;
+        for(size_t i = 1; i < vertices.size(); i++) {
+            if(vertices[i].len() > vertices[max_index].len()) {
+                max_index = i;
+            }
+        }
+        const Interval max_length = vertices[max_index].len().max();
+        std::vector<Vector3<Interval>> normalized_vertices;
+        for(const Vector3<Interval>& vertex: vertices) {
+            normalized_vertices.emplace_back(vertex / max_length);
+        }
+        return normalized_vertices;
+    }
 }
 
 namespace Platonic {
@@ -68,30 +84,28 @@ namespace Platonic {
     template<IntervalType Interval>
     static std::vector<Vector3<Interval>> octahedron() {
         const Interval c0 = Interval(2).sqrt() / 2;
-        return permutations<Interval>(flips<Interval>(Vector3<Interval>(c0, Interval(0), Interval(0))));
+        return normalize(permutations<Interval>(flips<Interval>(Vector3<Interval>(c0, Interval(0), Interval(0)))));
     }
 
     template<IntervalType Interval>
     static std::vector<Vector3<Interval>> cube() {
-        return flips<Interval>(
-            Vector3<Interval>(Interval(1) / 2, Interval(1) / 2, Interval(1) / 2)
-        );
+        return normalize(flips<Interval>(Vector3<Interval>(Interval(1) / 2, Interval(1) / 2, Interval(1) / 2)));
     }
 
     template<IntervalType Interval>
     static std::vector<Vector3<Interval>> icosahedron() {
         const Interval c0 = (Interval(1) + Interval(5).sqrt()) / 4;
-        return rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(1) / 2, Interval(0), c0)));
+        return normalize(rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(1) / 2, Interval(0), c0))));
     }
 
     template<IntervalType Interval>
     static std::vector<Vector3<Interval>> dodecahedron() {
         const Interval c0 = (Interval(1) + Interval(5).sqrt()) / 4;
         const Interval c1 = (Interval(3) + Interval(5).sqrt()) / 4;
-        return combine<Interval>({
+        return normalize(combine<Interval>({
             rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(0), Interval(1) / 2, c1))),
             flips<Interval>(Vector3<Interval>(c0, c0, c0))
-        });
+        }));
     }
 }
 
@@ -101,28 +115,26 @@ namespace Archimedean {
     template<IntervalType Interval>
     static std::vector<Vector3<Interval>> cuboctahedron() {
         const Interval c0 = Interval(2).sqrt() / 2;
-        return rotations<Interval>(
-            flips<Interval>(Vector3<Interval>(c0, Interval(0), c0))
-        );
+        return normalize(rotations<Interval>(flips<Interval>(Vector3<Interval>(c0, Interval(0), c0))));
     }
 
     template<IntervalType Interval>
     static std::vector<Vector3<Interval>> truncated_octahedron() {
         const Interval c0 = Interval(2).sqrt() / 2;
         const Interval c1 = Interval(2).sqrt();
-        return permutations<Interval>(flips<Interval>(Vector3<Interval>(c0, Interval(0), c1)));
+        return normalize(permutations<Interval>(flips<Interval>(Vector3<Interval>(c0, Interval(0), c1))));
     }
 
     template<IntervalType Interval>
     static std::vector<Vector3<Interval>> truncated_cube() {
         const Interval c0 = (Interval(1) + Interval(2).sqrt()) / 2;
-        return rotations<Interval>(flips<Interval>(Vector3<Interval>(c0, Interval(1) / 2, c0)));
+        return normalize(rotations<Interval>(flips<Interval>(Vector3<Interval>(c0, Interval(1) / 2, c0))));
     }
 
     template<IntervalType Interval>
     static std::vector<Vector3<Interval>> rhombicuboctahedron() {
         const Interval c0 = (Interval(1) + Interval(2).sqrt()) / 2;
-        return rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(1) / 2, Interval(1) / 2, c0)));
+        return normalize(rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(1) / 2, Interval(1) / 2, c0))));
     }
 
     template<IntervalType Interval>
@@ -130,22 +142,17 @@ namespace Archimedean {
         const Interval c0 = (Interval(1) + Interval(5).sqrt()) / 4;
         const Interval c1 = (Interval(3) + Interval(5).sqrt()) / 4;
         const Interval c2 = (Interval(1) + Interval(5).sqrt()) / 2;
-        return combine<Interval>({
-            permutations<Interval>(
-                flips<Interval>(Vector3<Interval>(c2, Interval(0), Interval(0)))
-            ),
-            rotations<Interval>(
-                flips<Interval>(Vector3<Interval>(Interval(1) / 2, c0, c1))
-            )
-        });
+        return normalize(combine<Interval>({
+            permutations<Interval>(flips<Interval>(Vector3<Interval>(c2, Interval(0), Interval(0)))),
+            rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(1) / 2, c0, c1)))
+        }));
     }
 
     template<IntervalType Interval>
     static std::vector<Vector3<Interval>> truncated_cuboctahedron() {
         const Interval c0 = (Interval(1) + Interval(2).sqrt()) / 2;
         const Interval c1 = (Interval(1) + Interval(2) * Interval(2).sqrt()) / 2;
-        return permutations<Interval>(
-            flips<Interval>(Vector3<Interval>(c0, Interval(1) / 2, c1)));
+        return normalize(permutations<Interval>(flips<Interval>(Vector3<Interval>(c0, Interval(1) / 2, c1))));
     }
 
     template<IntervalType Interval>
@@ -155,11 +162,11 @@ namespace Archimedean {
         const Interval c2 = (Interval(5) + Interval(5).sqrt()) / Interval(4);
         const Interval c3 = (Interval(2) + Interval(5).sqrt()) / Interval(2);
         const Interval c4 = Interval(3) * (Interval(1) + Interval(5).sqrt()) / Interval(4);
-        return combine<Interval>({
+        return normalize(combine<Interval>({
             rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(1) / 2, Interval(0), c4))),
             rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(1), c0, c3))),
             rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(1) / 2, c1, c2)))
-        });
+        }));
     }
 
     template<IntervalType Interval>
@@ -169,11 +176,11 @@ namespace Archimedean {
         const Interval c2 = (Interval(2) + Interval(5).sqrt()) / 2;
         const Interval c3 = (Interval(3) + Interval(5).sqrt()) / 2;
         const Interval c4 = (Interval(5) + Interval(3) * Interval(5).sqrt()) / 4;
-        return combine<Interval>({
+        return normalize(combine<Interval>({
             rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(0), Interval(1) / 2, c4))),
             rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(1) / 2, c0, c3))),
             rotations<Interval>(flips<Interval>(Vector3<Interval>(c0, c1, c2)))
-        });
+        }));
     }
 
     template<IntervalType Interval>
@@ -183,11 +190,11 @@ namespace Archimedean {
         const Interval c2 = (Interval(1) + Interval(5).sqrt()) / Interval(2);
         const Interval c3 = (Interval(5) + Interval(5).sqrt()) / Interval(4);
         const Interval c4 = (Interval(2) + Interval(5).sqrt()) / Interval(2);
-        return combine<Interval>({
+        return normalize(combine<Interval>({
             rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(1) / Interval(2), Interval(1) / Interval(2), c4))),
             rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(0), c1, c3))),
             rotations<Interval>(flips<Interval>(Vector3<Interval>(c1, c0, c2)))
-        });
+        }));
     }
 
     template<IntervalType Interval>
@@ -202,13 +209,13 @@ namespace Archimedean {
         const Interval c7 = (Interval(4) + Interval(5).sqrt()) / 2;
         const Interval c8 = (Interval(7) + Interval(3) * Interval(5).sqrt()) / 4;
         const Interval c9 = (Interval(3) + Interval(2) * Interval(5).sqrt()) / 2;
-        return combine<Interval>({
+        return normalize(combine<Interval>({
             rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(1) / 2, Interval(1) / 2, c9))),
             rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(1), c0, c8))),
             rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(1) / 2, c3, c7))),
             rotations<Interval>(flips<Interval>(Vector3<Interval>(c2, c1, c6))),
             rotations<Interval>(flips<Interval>(Vector3<Interval>(c0, c4, c5)))
-        });
+        }));
     }
 }
 
@@ -219,40 +226,40 @@ namespace Catalan {
     static std::vector<Vector3<Interval>> rhombic_dodecahedron() {
         const Interval c0 = (Interval(3) * Interval(2).sqrt()) / Interval(8);
         const Interval c1 = (Interval(3) * Interval(2).sqrt()) / Interval(4);
-        return combine<Interval>({
+        return normalize(combine<Interval>({
             rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(0), Interval(0), c1))),
             flips<Interval>(Vector3<Interval>(c0, c0, c0))
-        });
+        }));
     }
 
     template<IntervalType Interval>
     static std::vector<Vector3<Interval>> tetrakis_hexahedron() {
         const Interval c0 = (Interval(3) * Interval(2).sqrt()) / 4;
         const Interval c1 = (Interval(9) * Interval(2).sqrt()) / 8;
-        return combine<Interval>({
+        return normalize(combine<Interval>({
             rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(0), Interval(0), c1))),
             flips<Interval>(Vector3<Interval>(c0, c0, c0))
-        });
+        }));
     }
 
     template<IntervalType Interval>
     static std::vector<Vector3<Interval>> triakis_octahedron() {
         const Interval c0 = Interval(1) + Interval(2).sqrt();
-        return combine<Interval>({
+        return normalize(combine<Interval>({
             permutations<Interval>(flips<Interval>(Vector3<Interval>(c0, Interval(0), Interval(0)))),
             flips<Interval>(Vector3<Interval>(Interval(1), Interval(1), Interval(1)))
-        });
+        }));
     }
 
     template<IntervalType Interval>
     static std::vector<Vector3<Interval>> deltoidal_icositetrahedron() {
         const Interval c0 = (Interval(4) + Interval(2).sqrt()) / 7;
         const Interval c1 = Interval(2).sqrt();
-        return combine<Interval>({
+        return normalize(combine<Interval>({
             permutations<Interval>(flips<Interval>(Vector3<Interval>(c1, Interval(0), Interval(0)))),
             permutations<Interval>(flips<Interval>(Vector3<Interval>(Interval(1), Interval(1), Interval(0)))),
             flips<Interval>(Vector3<Interval>(c0, c0, c0))
-        });
+        }));
     }
 
     template<IntervalType Interval>
@@ -260,11 +267,11 @@ namespace Catalan {
         const Interval c0 = Interval(5).sqrt() / Interval(4);
         const Interval c1 = (Interval(5) + Interval(5).sqrt()) / Interval(8);
         const Interval c2 = (Interval(5) + Interval(3) * Interval(5).sqrt()) / Interval(8);
-        return combine<Interval>({
+        return normalize(combine<Interval>({
             rotations<Interval>(flips<Interval>(Vector3<Interval>(c1, Interval(0), c2))),
             rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(0), c0, c2))),
             flips<Interval>(Vector3<Interval>(c1, c1, c1))
-        });
+        }));
     }
 
     template<IntervalType Interval>
@@ -272,11 +279,11 @@ namespace Catalan {
         const Interval c0 = Interval(2).sqrt();
         const Interval c1 = (Interval(3) * (Interval(1) + Interval(2) * Interval(2).sqrt())) / 7;
         const Interval c2 = (Interval(3) * (Interval(2) + Interval(3) * Interval(2).sqrt())) / 7;
-        return combine<Interval>({
+        return normalize(combine<Interval>({
             rotations<Interval>(flips<Interval>(Vector3<Interval>(c2, Interval(0), Interval(0)))),
             permutations<Interval>(flips<Interval>(Vector3<Interval>(c1, c1, Interval(0)))),
             flips<Interval>(Vector3<Interval>(c0, c0, c0))
-        });
+        }));
     }
 
     template<IntervalType Interval>
@@ -285,11 +292,11 @@ namespace Catalan {
         const Interval c1 = (Interval(9) * (Interval(9) + Interval(5).sqrt())) / Interval(76);
         const Interval c2 = (Interval(9) * (Interval(7) + Interval(5) * Interval(5).sqrt())) / Interval(76);
         const Interval c3 = (Interval(3) * (Interval(1) + Interval(5).sqrt())) / Interval(4);
-        return combine<Interval>({
+        return normalize(combine<Interval>({
             rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(0), c0, c3))),
             rotations<Interval>(flips<Interval>(Vector3<Interval>(c1, Interval(0), c2))),
             flips<Interval>(Vector3<Interval>(Interval(3) / 2, Interval(3) / 2, Interval(3) / 2))
-        });
+        }));
     }
 
     template<IntervalType Interval>
@@ -299,11 +306,11 @@ namespace Catalan {
         const Interval c2 = (Interval(5) + Interval(5).sqrt()) / Interval(4);
         const Interval c3 = (Interval(5) * (Interval(13) + Interval(5) * Interval(5).sqrt())) / Interval(44);
         const Interval c4 = (Interval(5) + Interval(3) * Interval(5).sqrt()) / Interval(4);
-        return combine<Interval>({
+        return normalize(combine<Interval>({
             rotations<Interval>(flips<Interval>(Vector3<Interval>(c2, Interval(0), c4))),
             rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(0), c0, c3))),
             flips<Interval>(Vector3<Interval>(c1, c1, c1))
-        });
+        }));
     }
 
     template<IntervalType Interval>
@@ -317,13 +324,13 @@ namespace Catalan {
         const Interval c6 = (Interval(5) + Interval(3) * Interval(5).sqrt()) / 6;
         const Interval c7 = (Interval(25) + Interval(9) * Interval(5).sqrt()) / 22;
         const Interval c8 = Interval(5).sqrt();
-        return combine<Interval>({
+        return normalize(combine<Interval>({
             rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(0), Interval(0), c8))),
             rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(0), c1, c7))),
             rotations<Interval>(flips<Interval>(Vector3<Interval>(c3, Interval(0), c6))),
             rotations<Interval>(flips<Interval>(Vector3<Interval>(c0, c2, c5))),
             flips<Interval>(Vector3<Interval>(c4, c4, c4))
-        });
+        }));
     }
 
     template<IntervalType Interval>
@@ -337,12 +344,12 @@ namespace Catalan {
         const Interval c6 = Interval(3) * (Interval(5) + Interval(3) * Interval(5).sqrt()) / Interval(10);
         const Interval c7 = (Interval(5) + Interval(5).sqrt()) / Interval(2);
         const Interval c8 = Interval(3) * (Interval(5) + Interval(4) * Interval(5).sqrt()) / Interval(11);
-        return combine<Interval>({
+        return normalize(combine<Interval>({
             rotations<Interval>(flips<Interval>(Vector3<Interval>(c8, Interval(0), Interval(0)))),
             rotations<Interval>(flips<Interval>(Vector3<Interval>(c1, c7, Interval(0)))),
             rotations<Interval>(flips<Interval>(Vector3<Interval>(c6, c3, Interval(0)))),
             rotations<Interval>(flips<Interval>(Vector3<Interval>(c5, c0, c2))),
             flips<Interval>(Vector3<Interval>(c4, c4, c4))
-        });
+        }));
     }
 }
