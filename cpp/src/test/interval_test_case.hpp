@@ -19,27 +19,35 @@
 
 #define DEFAULT_MARGIN 1e-9
 
-inline bool float_approx(
-    const double value,
-    const double target_value =
-        std::numeric_limits<double>::quiet_NaN()
-) {
+inline bool check_float(const double value, const double target_value) {
     if(std::isnan(value) || std::isnan(target_value)) {
         return std::isnan(value) && std::isnan(target_value);
     }
     return Catch::Approx(value).margin(DEFAULT_MARGIN) == target_value;
 }
 
-inline bool interval_approx(
-    const std::pair<double, double>& interval,
-    const std::pair<double, double>& target_interval =
-        {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()}
-) {
-    if(std::isnan(interval.first) || std::isnan(interval.second) ||
-       std::isnan(target_interval.first) || std::isnan(target_interval.second)) {
-        return std::isnan(interval.first) && std::isnan(target_interval.first) &&
-               std::isnan(interval.second) && std::isnan(target_interval.second);
+inline bool check_float_is_nan(const double value) {
+    return check_float(value, std::numeric_limits<double>::quiet_NaN());
+}
+
+template<typename Interval>
+bool check_interval(const Interval interval, const double target_min, const double target_max) {
+    const auto [interval_min, interval_max] = interval.to_floats();
+    if(std::isnan(interval_min) || std::isnan(interval_max) ||
+       std::isnan(target_min) || std::isnan(target_max)) {
+        return std::isnan(interval_min) && std::isnan(target_min) &&
+               std::isnan(interval_max) && std::isnan(target_max);
     }
-    return Catch::Approx(interval.first).margin(DEFAULT_MARGIN) == target_interval.first &&
-           Catch::Approx(interval.second).margin(DEFAULT_MARGIN) == target_interval.second;
+    return check_float(interval_min, target_min) &&
+           check_float(interval_max, target_max);
+}
+
+template<typename Interval>
+bool check_interval(const Interval interval, const double target_value) {
+    return check_interval(interval, target_value, target_value);
+}
+
+template<typename Interval>
+bool check_interval_is_nan(const Interval interval) {
+    return check_interval(interval, std::numeric_limits<double>::quiet_NaN());
 }

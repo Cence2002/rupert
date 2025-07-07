@@ -169,20 +169,20 @@ INTERVAL_TEST_CASE("comparison") {
 INTERVAL_TEST_CASE("to_float") {
     SECTION("[nan]") {
         const Interval interval = Interval::nan();
-        REQUIRE(float_approx(interval.to_float()));
-        REQUIRE(interval_approx(interval.to_floats()));
+        REQUIRE(check_float_is_nan(interval.to_float()));
+        REQUIRE(check_interval_is_nan(interval));
     }
 
     SECTION("[420]") {
         const Interval interval(420);
-        REQUIRE(float_approx(interval.to_float(), 420.0));
-        REQUIRE(interval_approx(interval.to_floats(), {420.0, 420.0}));
+        REQUIRE(check_float(interval.to_float(), 420.0));
+        REQUIRE(check_interval(interval, 420.0, 420.0));
     }
 
     SECTION("[1,2]") {
         const Interval interval(1, 2);
-        REQUIRE(float_approx(interval.to_float(), 1.5));
-        REQUIRE(interval_approx(interval.to_floats(), {1.0, 2.0}));
+        REQUIRE(check_float(interval.to_float(), 1.5));
+        REQUIRE(check_interval(interval, 1.0, 2.0));
     }
 }
 
@@ -198,23 +198,23 @@ INTERVAL_TEST_CASE("min_max_mid_len_rad") {
 
     SECTION("[6,9]") {
         const Interval interval(6, 9);
-        REQUIRE(float_approx(interval.min().to_float(), 6.0));
-        REQUIRE(float_approx(interval.max().to_float(), 9.0));
-        REQUIRE(float_approx(interval.mid().to_float(), 7.5));
-        REQUIRE(float_approx(interval.len().to_float(), 3.0));
-        REQUIRE(float_approx(interval.rad().to_float(), 1.5));
+        REQUIRE(check_float(interval.min().to_float(), 6.0));
+        REQUIRE(check_float(interval.max().to_float(), 9.0));
+        REQUIRE(check_float(interval.mid().to_float(), 7.5));
+        REQUIRE(check_float(interval.len().to_float(), 3.0));
+        REQUIRE(check_float(interval.rad().to_float(), 1.5));
     }
 }
 
 INTERVAL_TEST_CASE("basic_operations") {
     SECTION("nan") {
         const Interval interval = Interval::nan();
-        REQUIRE(interval_approx((+interval).to_floats()));
-        REQUIRE(interval_approx((-interval).to_floats()));
-        REQUIRE(interval_approx((interval + interval).to_floats()));
-        REQUIRE(interval_approx((interval - interval).to_floats()));
-        REQUIRE(interval_approx((interval * interval).to_floats()));
-        REQUIRE(interval_approx((interval / interval).to_floats()));
+        REQUIRE((+interval).is_nan());
+        REQUIRE((-interval).is_nan());
+        REQUIRE((interval + interval).is_nan());
+        REQUIRE((interval - interval).is_nan());
+        REQUIRE((interval * interval).is_nan());
+        REQUIRE((interval / interval).is_nan());
     }
 
     const Interval m2_m1(-2, -1);
@@ -225,222 +225,222 @@ INTERVAL_TEST_CASE("basic_operations") {
     const Interval m1_p1(-1, 1);
 
     SECTION("+x") {
-        REQUIRE(interval_approx( (+m2_m1).to_floats(), {-2, -1}));
-        REQUIRE(interval_approx( (+m1_z ).to_floats(), {-1, 0}));
-        REQUIRE(interval_approx( (+z_z ).to_floats(), { 0, 0}));
-        REQUIRE(interval_approx( (+z_p1 ).to_floats(), { 0, 1}));
-        REQUIRE(interval_approx( (+p1_p2).to_floats(), { 1, 2}));
-        REQUIRE(interval_approx( (+m1_p1).to_floats(), {-1, 1}));
+        REQUIRE(check_interval(+m2_m1, -2, -1));
+        REQUIRE(check_interval(+m1_z, -1, 0));
+        REQUIRE(check_interval(+z_z, 0, 0));
+        REQUIRE(check_interval(+z_p1, 0, 1));
+        REQUIRE(check_interval(+p1_p2, 1, 2));
+        REQUIRE(check_interval(+m1_p1, -1, 1));
     }
 
     SECTION("-x") {
-        REQUIRE(interval_approx( (-m2_m1).to_floats(), { 1, 2}));
-        REQUIRE(interval_approx( (-m1_z ).to_floats(), { 0, 1}));
-        REQUIRE(interval_approx( (-z_z ).to_floats(), { 0, 0}));
-        REQUIRE(interval_approx( (-z_p1 ).to_floats(), {-1, 0}));
-        REQUIRE(interval_approx( (-p1_p2).to_floats(), {-2, -1}));
-        REQUIRE(interval_approx( (-m1_p1).to_floats(), {-1, 1}));
+        REQUIRE(check_interval(-m2_m1, 1, 2));
+        REQUIRE(check_interval(-m1_z, 0, 1));
+        REQUIRE(check_interval(-z_z, 0, 0));
+        REQUIRE(check_interval(-z_p1, -1, 0));
+        REQUIRE(check_interval(-p1_p2, -2, -1));
+        REQUIRE(check_interval(-m1_p1, -1, 1));
     }
 
     SECTION("x+y") {
-        REQUIRE(interval_approx( (m2_m1 + m2_m1).to_floats(), {-4, -2}));
-        REQUIRE(interval_approx( (m2_m1 + m1_z ).to_floats(), {-3, -1}));
-        REQUIRE(interval_approx( (m2_m1 + z_z ).to_floats(), {-2, -1}));
-        REQUIRE(interval_approx( (m2_m1 + z_p1 ).to_floats(), {-2, 0}));
-        REQUIRE(interval_approx( (m2_m1 + p1_p2).to_floats(), {-1, 1}));
-        REQUIRE(interval_approx( (m2_m1 + m1_p1).to_floats(), {-3, 0}));
+        REQUIRE(check_interval(m2_m1 + m2_m1, -4, -2));
+        REQUIRE(check_interval(m2_m1 + m1_z, -3, -1));
+        REQUIRE(check_interval(m2_m1 + z_z, -2, -1));
+        REQUIRE(check_interval(m2_m1 + z_p1, -2, 0));
+        REQUIRE(check_interval(m2_m1 + p1_p2, -1, 1));
+        REQUIRE(check_interval(m2_m1 + m1_p1, -3, 0));
 
-        REQUIRE(interval_approx( (m1_z + m2_m1).to_floats(), {-3, -1}));
-        REQUIRE(interval_approx( (m1_z + m1_z ).to_floats(), {-2, 0}));
-        REQUIRE(interval_approx( (m1_z + z_z ).to_floats(), {-1, 0}));
-        REQUIRE(interval_approx( (m1_z + z_p1 ).to_floats(), {-1, 1}));
-        REQUIRE(interval_approx( (m1_z + p1_p2).to_floats(), { 0, 2}));
-        REQUIRE(interval_approx( (m1_z + m1_p1).to_floats(), {-2, 1}));
+        REQUIRE(check_interval(m1_z + m2_m1, -3, -1));
+        REQUIRE(check_interval(m1_z + m1_z, -2, 0));
+        REQUIRE(check_interval(m1_z + z_z, -1, 0));
+        REQUIRE(check_interval(m1_z + z_p1, -1, 1));
+        REQUIRE(check_interval(m1_z + p1_p2, 0, 2));
+        REQUIRE(check_interval(m1_z + m1_p1, -2, 1));
 
-        REQUIRE(interval_approx( (z_z + m2_m1).to_floats(), {-2, -1}));
-        REQUIRE(interval_approx( (z_z + m1_z ).to_floats(), {-1, 0}));
-        REQUIRE(interval_approx( (z_z + z_z ).to_floats(), { 0, 0}));
-        REQUIRE(interval_approx( (z_z + z_p1 ).to_floats(), { 0, 1}));
-        REQUIRE(interval_approx( (z_z + p1_p2).to_floats(), { 1, 2}));
-        REQUIRE(interval_approx( (z_z + m1_p1).to_floats(), {-1, 1}));
+        REQUIRE(check_interval(z_z + m2_m1, -2, -1));
+        REQUIRE(check_interval(z_z + m1_z, -1, 0));
+        REQUIRE(check_interval(z_z + z_z, 0, 0));
+        REQUIRE(check_interval(z_z + z_p1, 0, 1));
+        REQUIRE(check_interval(z_z + p1_p2, 1, 2));
+        REQUIRE(check_interval(z_z + m1_p1, -1, 1));
 
-        REQUIRE(interval_approx( (z_p1 + m2_m1).to_floats(), {-2, 0}));
-        REQUIRE(interval_approx( (z_p1 + m1_z ).to_floats(), {-1, 1}));
-        REQUIRE(interval_approx( (z_p1 + z_z ).to_floats(), { 0, 1}));
-        REQUIRE(interval_approx( (z_p1 + z_p1 ).to_floats(), { 0, 2}));
-        REQUIRE(interval_approx( (z_p1 + p1_p2).to_floats(), { 1, 3}));
-        REQUIRE(interval_approx( (z_p1 + m1_p1).to_floats(), {-1, 2}));
+        REQUIRE(check_interval(z_p1 + m2_m1, -2, 0));
+        REQUIRE(check_interval(z_p1 + m1_z, -1, 1));
+        REQUIRE(check_interval(z_p1 + z_z, 0, 1));
+        REQUIRE(check_interval(z_p1 + z_p1, 0, 2));
+        REQUIRE(check_interval(z_p1 + p1_p2, 1, 3));
+        REQUIRE(check_interval(z_p1 + m1_p1, -1, 2));
 
-        REQUIRE(interval_approx( (p1_p2 + m2_m1).to_floats(), {-1, 1}));
-        REQUIRE(interval_approx( (p1_p2 + m1_z ).to_floats(), { 0, 2}));
-        REQUIRE(interval_approx( (p1_p2 + z_z ).to_floats(), { 1, 2}));
-        REQUIRE(interval_approx( (p1_p2 + z_p1 ).to_floats(), { 1, 3}));
-        REQUIRE(interval_approx( (p1_p2 + p1_p2).to_floats(), { 2, 4}));
-        REQUIRE(interval_approx( (p1_p2 + m1_p1).to_floats(), { 0, 3}));
+        REQUIRE(check_interval(p1_p2 + m2_m1, -1, 1));
+        REQUIRE(check_interval(p1_p2 + m1_z, 0, 2));
+        REQUIRE(check_interval(p1_p2 + z_z, 1, 2));
+        REQUIRE(check_interval(p1_p2 + z_p1, 1, 3));
+        REQUIRE(check_interval(p1_p2 + p1_p2, 2, 4));
+        REQUIRE(check_interval(p1_p2 + m1_p1, 0, 3));
 
-        REQUIRE(interval_approx( (m1_p1 + m2_m1).to_floats(), {-3, 0}));
-        REQUIRE(interval_approx( (m1_p1 + m1_z ).to_floats(), {-2, 1}));
-        REQUIRE(interval_approx( (m1_p1 + z_z ).to_floats(), {-1, 1}));
-        REQUIRE(interval_approx( (m1_p1 + z_p1 ).to_floats(), {-1, 2}));
-        REQUIRE(interval_approx( (m1_p1 + p1_p2).to_floats(), { 0, 3}));
-        REQUIRE(interval_approx( (m1_p1 + m1_p1).to_floats(), {-2, 2}));
+        REQUIRE(check_interval(m1_p1 + m2_m1, -3, 0));
+        REQUIRE(check_interval(m1_p1 + m1_z, -2, 1));
+        REQUIRE(check_interval(m1_p1 + z_z, -1, 1));
+        REQUIRE(check_interval(m1_p1 + z_p1, -1, 2));
+        REQUIRE(check_interval(m1_p1 + p1_p2, 0, 3));
+        REQUIRE(check_interval(m1_p1 + m1_p1, -2, 2));
     }
     SECTION("x-y") {
-        REQUIRE(interval_approx( (m2_m1 - m2_m1).to_floats(), {-1, 1}));
-        REQUIRE(interval_approx( (m2_m1 - m1_z ).to_floats(), {-2, 0}));
-        REQUIRE(interval_approx( (m2_m1 - z_z ).to_floats(), {-2, -1}));
-        REQUIRE(interval_approx( (m2_m1 - z_p1 ).to_floats(), {-3, -1}));
-        REQUIRE(interval_approx( (m2_m1 - p1_p2).to_floats(), {-4, -2}));
-        REQUIRE(interval_approx( (m2_m1 - m1_p1).to_floats(), {-3, 0}));
+        REQUIRE(check_interval(m2_m1 - m2_m1, -1, 1));
+        REQUIRE(check_interval(m2_m1 - m1_z, -2, 0));
+        REQUIRE(check_interval(m2_m1 - z_z, -2, -1));
+        REQUIRE(check_interval(m2_m1 - z_p1, -3, -1));
+        REQUIRE(check_interval(m2_m1 - p1_p2, -4, -2));
+        REQUIRE(check_interval(m2_m1 - m1_p1, -3, 0));
 
-        REQUIRE(interval_approx( (m1_z - m2_m1).to_floats(), { 0, 2}));
-        REQUIRE(interval_approx( (m1_z - m1_z ).to_floats(), {-1, 1}));
-        REQUIRE(interval_approx( (m1_z - z_z ).to_floats(), {-1, 0}));
-        REQUIRE(interval_approx( (m1_z - z_p1 ).to_floats(), {-2, 0}));
-        REQUIRE(interval_approx( (m1_z - p1_p2).to_floats(), {-3, -1}));
-        REQUIRE(interval_approx( (m1_z - m1_p1).to_floats(), {-2, 1}));
+        REQUIRE(check_interval(m1_z - m2_m1, 0, 2));
+        REQUIRE(check_interval(m1_z - m1_z, -1, 1));
+        REQUIRE(check_interval(m1_z - z_z, -1, 0));
+        REQUIRE(check_interval(m1_z - z_p1, -2, 0));
+        REQUIRE(check_interval(m1_z - p1_p2, -3, -1));
+        REQUIRE(check_interval(m1_z - m1_p1, -2, 1));
 
-        REQUIRE(interval_approx( (z_z - m2_m1).to_floats(), { 1, 2}));
-        REQUIRE(interval_approx( (z_z - m1_z ).to_floats(), { 0, 1}));
-        REQUIRE(interval_approx( (z_z - z_z ).to_floats(), { 0, 0}));
-        REQUIRE(interval_approx( (z_z - z_p1 ).to_floats(), {-1, 0}));
-        REQUIRE(interval_approx( (z_z - p1_p2).to_floats(), {-2, -1}));
-        REQUIRE(interval_approx( (z_z - m1_p1).to_floats(), {-1, 1}));
+        REQUIRE(check_interval(z_z - m2_m1, 1, 2));
+        REQUIRE(check_interval(z_z - m1_z, 0, 1));
+        REQUIRE(check_interval(z_z - z_z, 0, 0));
+        REQUIRE(check_interval(z_z - z_p1, -1, 0));
+        REQUIRE(check_interval(z_z - p1_p2, -2, -1));
+        REQUIRE(check_interval(z_z - m1_p1, -1, 1));
 
-        REQUIRE(interval_approx( (z_p1 - m2_m1).to_floats(), { 1, 3}));
-        REQUIRE(interval_approx( (z_p1 - m1_z ).to_floats(), { 0, 2}));
-        REQUIRE(interval_approx( (z_p1 - z_z ).to_floats(), { 0, 1}));
-        REQUIRE(interval_approx( (z_p1 - z_p1 ).to_floats(), {-1, 1}));
-        REQUIRE(interval_approx( (z_p1 - p1_p2).to_floats(), {-2, 0}));
-        REQUIRE(interval_approx( (z_p1 - m1_p1).to_floats(), {-1, 2}));
+        REQUIRE(check_interval(z_p1 - m2_m1, 1, 3));
+        REQUIRE(check_interval(z_p1 - m1_z, 0, 2));
+        REQUIRE(check_interval(z_p1 - z_z, 0, 1));
+        REQUIRE(check_interval(z_p1 - z_p1, -1, 1));
+        REQUIRE(check_interval(z_p1 - p1_p2, -2, 0));
+        REQUIRE(check_interval(z_p1 - m1_p1, -1, 2));
 
-        REQUIRE(interval_approx( (p1_p2 - m2_m1).to_floats(), { 2, 4}));
-        REQUIRE(interval_approx( (p1_p2 - m1_z ).to_floats(), { 1, 3}));
-        REQUIRE(interval_approx( (p1_p2 - z_z ).to_floats(), { 1, 2}));
-        REQUIRE(interval_approx( (p1_p2 - z_p1 ).to_floats(), { 0, 2}));
-        REQUIRE(interval_approx( (p1_p2 - p1_p2).to_floats(), {-1, 1}));
-        REQUIRE(interval_approx( (p1_p2 - m1_p1).to_floats(), { 0, 3}));
+        REQUIRE(check_interval(p1_p2 - m2_m1, 2, 4));
+        REQUIRE(check_interval(p1_p2 - m1_z, 1, 3));
+        REQUIRE(check_interval(p1_p2 - z_z, 1, 2));
+        REQUIRE(check_interval(p1_p2 - z_p1, 0, 2));
+        REQUIRE(check_interval(p1_p2 - p1_p2, -1, 1));
+        REQUIRE(check_interval(p1_p2 - m1_p1, 0, 3));
 
-        REQUIRE(interval_approx( (m1_p1 - m2_m1).to_floats(), { 0, 3}));
-        REQUIRE(interval_approx( (m1_p1 - m1_z ).to_floats(), {-1, 2}));
-        REQUIRE(interval_approx( (m1_p1 - z_z ).to_floats(), {-1, 1}));
-        REQUIRE(interval_approx( (m1_p1 - z_p1 ).to_floats(), {-2, 1}));
-        REQUIRE(interval_approx( (m1_p1 - p1_p2).to_floats(), {-3, 0}));
-        REQUIRE(interval_approx( (m1_p1 - m1_p1).to_floats(), {-2, 2}));
+        REQUIRE(check_interval(m1_p1 - m2_m1, 0, 3));
+        REQUIRE(check_interval(m1_p1 - m1_z, -1, 2));
+        REQUIRE(check_interval(m1_p1 - z_z, -1, 1));
+        REQUIRE(check_interval(m1_p1 - z_p1, -2, 1));
+        REQUIRE(check_interval(m1_p1 - p1_p2, -3, 0));
+        REQUIRE(check_interval(m1_p1 - m1_p1, -2, 2));
     }
 
     SECTION("x*y") {
-        REQUIRE(interval_approx( (m2_m1 * m2_m1).to_floats(), { 1, 4}));
-        REQUIRE(interval_approx( (m2_m1 * m1_z ).to_floats(), { 0, 2}));
-        REQUIRE(interval_approx( (m2_m1 * z_z ).to_floats(), { 0, 0}));
-        REQUIRE(interval_approx( (m2_m1 * z_p1 ).to_floats(), {-2, 0}));
-        REQUIRE(interval_approx( (m2_m1 * p1_p2).to_floats(), {-4, -1}));
-        REQUIRE(interval_approx( (m2_m1 * m1_p1).to_floats(), {-2, 2}));
+        REQUIRE(check_interval(m2_m1 * m2_m1, 1, 4));
+        REQUIRE(check_interval(m2_m1 * m1_z, 0, 2));
+        REQUIRE(check_interval(m2_m1 * z_z, 0, 0));
+        REQUIRE(check_interval(m2_m1 * z_p1, -2, 0));
+        REQUIRE(check_interval(m2_m1 * p1_p2, -4, -1));
+        REQUIRE(check_interval(m2_m1 * m1_p1, -2, 2));
 
-        REQUIRE(interval_approx( (m1_z * m2_m1).to_floats(), { 0, 2}));
-        REQUIRE(interval_approx( (m1_z * m1_z ).to_floats(), { 0, 1}));
-        REQUIRE(interval_approx( (m1_z * z_z ).to_floats(), { 0, 0}));
-        REQUIRE(interval_approx( (m1_z * z_p1 ).to_floats(), {-1, 0}));
-        REQUIRE(interval_approx( (m1_z * p1_p2).to_floats(), {-2, 0}));
-        REQUIRE(interval_approx( (m1_z * m1_p1).to_floats(), {-1, 1}));
+        REQUIRE(check_interval(m1_z * m2_m1, 0, 2));
+        REQUIRE(check_interval(m1_z * m1_z, 0, 1));
+        REQUIRE(check_interval(m1_z * z_z, 0, 0));
+        REQUIRE(check_interval(m1_z * z_p1, -1, 0));
+        REQUIRE(check_interval(m1_z * p1_p2, -2, 0));
+        REQUIRE(check_interval(m1_z * m1_p1, -1, 1));
 
-        REQUIRE(interval_approx( (z_z * m2_m1).to_floats(), { 0, 0}));
-        REQUIRE(interval_approx( (z_z * m1_z ).to_floats(), { 0, 0}));
-        REQUIRE(interval_approx( (z_z * z_z ).to_floats(), { 0, 0}));
-        REQUIRE(interval_approx( (z_z * z_p1 ).to_floats(), { 0, 0}));
-        REQUIRE(interval_approx( (z_z * p1_p2).to_floats(), { 0, 0}));
-        REQUIRE(interval_approx( (z_z * m1_p1).to_floats(), { 0, 0}));
+        REQUIRE(check_interval(z_z * m2_m1, 0, 0));
+        REQUIRE(check_interval(z_z * m1_z, 0, 0));
+        REQUIRE(check_interval(z_z * z_z, 0, 0));
+        REQUIRE(check_interval(z_z * z_p1, 0, 0));
+        REQUIRE(check_interval(z_z * p1_p2, 0, 0));
+        REQUIRE(check_interval(z_z * m1_p1, 0, 0));
 
-        REQUIRE(interval_approx( (z_p1 * m2_m1).to_floats(), {-2, 0}));
-        REQUIRE(interval_approx( (z_p1 * m1_z ).to_floats(), {-1, 0}));
-        REQUIRE(interval_approx( (z_p1 * z_z ).to_floats(), { 0, 0}));
-        REQUIRE(interval_approx( (z_p1 * z_p1 ).to_floats(), { 0, 1}));
-        REQUIRE(interval_approx( (z_p1 * p1_p2).to_floats(), { 0, 2}));
-        REQUIRE(interval_approx( (z_p1 * m1_p1).to_floats(), {-1, 1}));
+        REQUIRE(check_interval(z_p1 * m2_m1, -2, 0));
+        REQUIRE(check_interval(z_p1 * m1_z, -1, 0));
+        REQUIRE(check_interval(z_p1 * z_z, 0, 0));
+        REQUIRE(check_interval(z_p1 * z_p1, 0, 1));
+        REQUIRE(check_interval(z_p1 * p1_p2, 0, 2));
+        REQUIRE(check_interval(z_p1 * m1_p1, -1, 1));
 
-        REQUIRE(interval_approx( (p1_p2 * m2_m1).to_floats(), {-4, -1}));
-        REQUIRE(interval_approx( (p1_p2 * m1_z ).to_floats(), {-2, 0}));
-        REQUIRE(interval_approx( (p1_p2 * z_z ).to_floats(), { 0, 0}));
-        REQUIRE(interval_approx( (p1_p2 * z_p1 ).to_floats(), { 0, 2}));
-        REQUIRE(interval_approx( (p1_p2 * p1_p2).to_floats(), { 1, 4}));
-        REQUIRE(interval_approx( (p1_p2 * m1_p1).to_floats(), {-2, 2}));
+        REQUIRE(check_interval(p1_p2 * m2_m1, -4, -1));
+        REQUIRE(check_interval(p1_p2 * m1_z, -2, 0));
+        REQUIRE(check_interval(p1_p2 * z_z, 0, 0));
+        REQUIRE(check_interval(p1_p2 * z_p1, 0, 2));
+        REQUIRE(check_interval(p1_p2 * p1_p2, 1, 4));
+        REQUIRE(check_interval(p1_p2 * m1_p1, -2, 2));
 
-        REQUIRE(interval_approx( (m1_p1 * m2_m1).to_floats(), {-2, 2}));
-        REQUIRE(interval_approx( (m1_p1 * m1_z ).to_floats(), {-1, 1}));
-        REQUIRE(interval_approx( (m1_p1 * z_z ).to_floats(), { 0, 0}));
-        REQUIRE(interval_approx( (m1_p1 * z_p1 ).to_floats(), {-1, 1}));
-        REQUIRE(interval_approx( (m1_p1 * p1_p2).to_floats(), {-2, 2}));
-        REQUIRE(interval_approx( (m1_p1 * m1_p1).to_floats(), {-1, 1}));
+        REQUIRE(check_interval(m1_p1 * m2_m1, -2, 2));
+        REQUIRE(check_interval(m1_p1 * m1_z, -1, 1));
+        REQUIRE(check_interval(m1_p1 * z_z, 0, 0));
+        REQUIRE(check_interval(m1_p1 * z_p1, -1, 1));
+        REQUIRE(check_interval(m1_p1 * p1_p2, -2, 2));
+        REQUIRE(check_interval(m1_p1 * m1_p1, -1, 1));
     }
 
     SECTION("x/y") {
-        REQUIRE(interval_approx( (m2_m1 / m2_m1).to_floats(), { 0.5, 2.0}));
+        REQUIRE(check_interval(m2_m1 / m2_m1, 0.5, 2.0));
         REQUIRE((m2_m1 / m1_z ).is_nan());
         REQUIRE((m2_m1 / z_z ).is_nan());
         REQUIRE((m2_m1 / z_p1 ).is_nan());
-        REQUIRE(interval_approx( (m2_m1 / p1_p2).to_floats(), {-2.0, -0.5}));
+        REQUIRE(check_interval(m2_m1 / p1_p2, -2.0, -0.5));
         REQUIRE((m2_m1 / m1_p1).is_nan());
 
-        REQUIRE(interval_approx( (m1_z / m2_m1).to_floats(), {0.0, 1.0}));
+        REQUIRE(check_interval(m1_z / m2_m1, 0.0, 1.0));
         REQUIRE((m1_z / m1_z ).is_nan());
         REQUIRE((m1_z / z_z ).is_nan());
         REQUIRE((m1_z / z_p1 ).is_nan());
-        REQUIRE(interval_approx( (m1_z / p1_p2).to_floats(), {-1.0, 0.0}));
+        REQUIRE(check_interval(m1_z / p1_p2, -1.0, 0.0));
         REQUIRE((m1_z / m1_p1).is_nan());
 
-        REQUIRE(interval_approx( (z_z / m2_m1).to_floats(), {0.0, 0.0}));
+        REQUIRE(check_interval(z_z / m2_m1, 0.0, 0.0));
         REQUIRE((z_z / m1_z ).is_nan());
         REQUIRE((z_z / z_z ).is_nan());
         REQUIRE((z_z / z_p1 ).is_nan());
-        REQUIRE(interval_approx( (z_z / p1_p2).to_floats(), { 0.0, 0.0}));
+        REQUIRE(check_interval(z_z / p1_p2, 0.0, 0.0));
         REQUIRE((z_z / m1_p1).is_nan());
 
-        REQUIRE(interval_approx( (z_p1 / m2_m1).to_floats(), {-1.0, 0.0}));
+        REQUIRE(check_interval(z_p1 / m2_m1, -1.0, 0.0));
         REQUIRE((z_p1 / m1_z ).is_nan());
         REQUIRE((z_p1 / z_z ).is_nan());
         REQUIRE((z_p1 / z_p1 ).is_nan());
-        REQUIRE(interval_approx( (z_p1 / p1_p2).to_floats(), { 0.0, 1.0}));
+        REQUIRE(check_interval(z_p1 / p1_p2, 0.0, 1.0));
         REQUIRE((z_p1 / m1_p1).is_nan());
 
-        REQUIRE(interval_approx( (p1_p2 / m2_m1).to_floats(), {-2.0, -0.5}));
+        REQUIRE(check_interval(p1_p2 / m2_m1, -2.0, -0.5));
         REQUIRE((p1_p2 / m1_z ).is_nan());
         REQUIRE((p1_p2 / z_z ).is_nan());
         REQUIRE((p1_p2 / z_p1 ).is_nan());
-        REQUIRE(interval_approx( (p1_p2 / p1_p2).to_floats(), { 0.5, 2.0}));
+        REQUIRE(check_interval(p1_p2 / p1_p2, 0.5, 2.0));
         REQUIRE((p1_p2 / m1_p1).is_nan());
 
-        REQUIRE(interval_approx( (m1_p1 / m2_m1).to_floats(), {-1.0, 1.0}));
+        REQUIRE(check_interval(m1_p1 / m2_m1, -1.0, 1.0));
         REQUIRE((m1_p1 / m1_z ).is_nan());
         REQUIRE((m1_p1 / z_z ).is_nan());
         REQUIRE((m1_p1 / z_p1 ).is_nan());
-        REQUIRE(interval_approx( (m1_p1 / p1_p2).to_floats(), {-1.0, 1.0}));
+        REQUIRE(check_interval(m1_p1 / p1_p2, -1.0, 1.0));
         REQUIRE((m1_p1 / m1_p1).is_nan());
     }
 
     SECTION("1/x") {
-        REQUIRE(interval_approx( m2_m1.inv().to_floats(), {-1.0, -0.5}));
+        REQUIRE(check_interval(m2_m1.inv(), -1.0, -0.5));
         REQUIRE(m1_z.inv().is_nan());
         REQUIRE(z_z.inv().is_nan());
         REQUIRE(z_p1.inv().is_nan());
-        REQUIRE(interval_approx( p1_p2.inv().to_floats(), { 0.5, 1.0}));
+        REQUIRE(check_interval(p1_p2.inv(), 0.5, 1.0));
         REQUIRE(m1_p1.inv().is_nan());
     }
 
     SECTION("x^2") {
-        REQUIRE(interval_approx( m2_m1.sqr().to_floats(), {1, 4}));
-        REQUIRE(interval_approx( m1_z.sqr().to_floats(), {0, 1}));
-        REQUIRE(interval_approx( z_z.sqr().to_floats(), {0, 0}));
-        REQUIRE(interval_approx( z_p1.sqr().to_floats(), {0, 1}));
-        REQUIRE(interval_approx( p1_p2.sqr().to_floats(), {1, 4}));
-        REQUIRE(interval_approx( m1_p1.sqr().to_floats(), {0, 1}));
+        REQUIRE(check_interval(m2_m1.sqr(), 1, 4));
+        REQUIRE(check_interval(m1_z.sqr(), 0, 1));
+        REQUIRE(check_interval(z_z.sqr(), 0, 0));
+        REQUIRE(check_interval(z_p1.sqr(), 0, 1));
+        REQUIRE(check_interval(p1_p2.sqr(), 1, 4));
+        REQUIRE(check_interval(m1_p1.sqr(), 0, 1));
     }
 
     SECTION("sqrt(x)") {
         REQUIRE(m2_m1.sqrt().is_nan());
         REQUIRE(m1_z.sqrt().is_nan());
-        REQUIRE(interval_approx(z_z.sqrt().to_floats(), {0, 0}));
-        REQUIRE(interval_approx( z_p1.sqrt().to_floats(), {0.0, 1.0}));
-        REQUIRE(interval_approx( p1_p2.sqrt().to_floats(), {1.0, 1.4142135623730951}));
+        REQUIRE(check_interval(z_z.sqrt(), 0, 0));
+        REQUIRE(check_interval( z_p1.sqrt(), 0.0, 1.0));
+        REQUIRE(check_interval( p1_p2.sqrt(), 1.0, 1.4142135623730951));
         REQUIRE(m1_p1.sqrt().is_nan());
     }
 }
@@ -457,7 +457,7 @@ INTERVAL_TEST_CASE("trigonometric_functions") {
     }
 
     SECTION("pi") {
-        REQUIRE(interval_approx(Interval::pi().to_floats(), {std::numbers::pi_v<double>, std::numbers::pi_v<double>}));
+        REQUIRE(check_interval(Interval::pi(), std::numbers::pi_v<double>, std::numbers::pi_v<double>));
     }
 
     SECTION("cos_sin_tan") {
@@ -493,7 +493,7 @@ INTERVAL_TEST_CASE("trigonometric_functions") {
         if(tan_is_nan) {
             REQUIRE(interval.tan().is_nan());
         } else {
-            REQUIRE(interval_approx(interval.tan().to_floats(), {tan_min, tan_max}));
+            REQUIRE(check_interval(interval.tan(), tan_min, tan_max));
         }
     }
 
@@ -531,9 +531,9 @@ INTERVAL_TEST_CASE("trigonometric_functions") {
             REQUIRE(interval.acos().is_nan());
             REQUIRE(interval.asin().is_nan());
         } else {
-            REQUIRE(interval_approx(interval.acos().to_floats(), {acos_min, acos_max}));
-            REQUIRE(interval_approx(interval.asin().to_floats(), {asin_min, asin_max}));
+            REQUIRE(check_interval(interval.acos(), acos_min, acos_max));
+            REQUIRE(check_interval(interval.asin(), asin_min, asin_max));
         }
-        REQUIRE(interval_approx(interval.atan().to_floats(), {atan_min, atan_max}));
+        REQUIRE(check_interval(interval.atan(), atan_min, atan_max));
     }
 }
