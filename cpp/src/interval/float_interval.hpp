@@ -219,8 +219,9 @@ public:
         if(is_nan()) {
             return nan();
         }
+        constexpr double HALF_PI = std::numbers::pi_v<double> / 2;
         constexpr double PI = std::numbers::pi_v<double>;
-        if(std::floor(min_ / PI) != std::floor(max_ / PI)) {
+        if(std::floor((min_ - HALF_PI) / PI) != std::floor((max_ - HALF_PI) / PI)) {
             return nan();
         }
         return FloatInterval(std::tan(min_), std::tan(max_));
@@ -230,10 +231,10 @@ public:
         if(is_nan()) {
             return nan();
         }
-        if(min_ < -1 || 1 < max_) {
+        if(!(-1 < min_ && max_ < 1)) {
             return nan();
         }
-        return FloatInterval(std::acos(min_), std::acos(max_));
+        return FloatInterval(std::acos(max_), std::acos(min_));
     }
 
     FloatInterval asin() const {

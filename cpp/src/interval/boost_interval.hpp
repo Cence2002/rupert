@@ -170,14 +170,23 @@ public:
     }
 
     BoostInterval tan() const {
+        if(!cos().is_nonzero()) {
+            return nan();
+        }
         return BoostInterval(boost::numeric::tan(interval_));
     }
 
     BoostInterval acos() const {
+        if(!(BoostInterval(-1) < min() && max() < BoostInterval(1))) {
+            return nan();
+        }
         return BoostInterval(boost::numeric::acos(interval_));
     }
 
     BoostInterval asin() const {
+        if(!(BoostInterval(-1) < min() && max() < BoostInterval(1))) {
+            return nan();
+        }
         return BoostInterval(boost::numeric::asin(interval_));
     }
 

@@ -1,5 +1,5 @@
 #include "test/interval_test_case.hpp"
-#include <catch2/catch_approx.hpp>
+#include <catch2/catch_all.hpp>
 
 INTERVAL_TEST_CASE("constructor") {
     SECTION("[1]") {
@@ -207,6 +207,16 @@ INTERVAL_TEST_CASE("min_max_mid_len_rad") {
 }
 
 INTERVAL_TEST_CASE("basic_operations") {
+    SECTION("nan") {
+        const Interval interval = Interval::nan();
+        REQUIRE(interval_approx((+interval).to_floats()));
+        REQUIRE(interval_approx((-interval).to_floats()));
+        REQUIRE(interval_approx((interval + interval).to_floats()));
+        REQUIRE(interval_approx((interval - interval).to_floats()));
+        REQUIRE(interval_approx((interval * interval).to_floats()));
+        REQUIRE(interval_approx((interval / interval).to_floats()));
+    }
+
     const Interval m2_m1(-2, -1);
     const Interval m1_z(-1, 0);
     const Interval z_z(0, 0);
@@ -236,9 +246,6 @@ INTERVAL_TEST_CASE("basic_operations") {
         REQUIRE(interval_approx( (m2_m1 + m2_m1).to_floats(), {-4, -2}));
         REQUIRE(interval_approx( (m2_m1 + m1_z ).to_floats(), {-3, -1}));
         REQUIRE(interval_approx( (m2_m1 + z_z ).to_floats(), {-2, -1}));
-        auto result = m2_m1 + z_p1;
-        CAPTURE(result.to_floats().first);
-        CAPTURE(result.to_floats().second);
         REQUIRE(interval_approx( (m2_m1 + z_p1 ).to_floats(), {-2, 0}));
         REQUIRE(interval_approx( (m2_m1 + p1_p2).to_floats(), {-1, 1}));
         REQUIRE(interval_approx( (m2_m1 + m1_p1).to_floats(), {-3, 0}));
@@ -435,5 +442,98 @@ INTERVAL_TEST_CASE("basic_operations") {
         REQUIRE(interval_approx( z_p1.sqrt().to_floats(), {0.0, 1.0}));
         REQUIRE(interval_approx( p1_p2.sqrt().to_floats(), {1.0, 1.4142135623730951}));
         REQUIRE(m1_p1.sqrt().is_nan());
+    }
+}
+
+INTERVAL_TEST_CASE("trigonometric_functions") {
+    SECTION("[nan]") {
+        const Interval interval = Interval::nan();
+        REQUIRE(interval.cos().is_nan());
+        REQUIRE(interval.sin().is_nan());
+        REQUIRE(interval.tan().is_nan());
+        REQUIRE(interval.acos().is_nan());
+        REQUIRE(interval.asin().is_nan());
+        REQUIRE(interval.atan().is_nan());
+    }
+
+    SECTION("pi") {
+        REQUIRE(interval_approx(Interval::pi().to_floats(), {std::numbers::pi_v<double>, std::numbers::pi_v<double>}));
+    }
+
+    SECTION("cos_sin_tan") {
+        int from = GENERATE(range(-48, 49));
+        int to = GENERATE_COPY(range(from, 49));
+
+        const Interval interval = Interval(from, to) * Interval::pi() / Interval(12);
+
+        double cos_min = std::numeric_limits<double>::infinity();
+        double cos_max = -std::numeric_limits<double>::infinity();
+        double sin_min = std::numeric_limits<double>::infinity();
+        double sin_max = -std::numeric_limits<double>::infinity();
+        bool tan_is_nan = false;
+        double tan_min = std::numeric_limits<double>::infinity();
+        double tan_max = -std::numeric_limits<double>::infinity();
+
+        for(int value = from; value <= to; ++value) {
+            tan_is_nan |= (value % 12 + 12) % 12 == 6;
+            const double scaled_value = static_cast<double>(value) * std::numbers::pi_v<double> / 12;
+            const double cos = std::cos(scaled_value);
+            const double sin = std::sin(scaled_value);
+            cos_min = std::min(cos_min, cos);
+            cos_max = std::max(cos_max, cos);
+            sin_min = std::min(sin_min, sin);
+            sin_max = std::max(sin_max, sin);
+            if(!tan_is_nan) {
+                const double tan = std::tan(scaled_value);
+                tan_min = std::min(tan_min, tan);
+                tan_max = std::max(tan_max, tan);
+            }
+        }
+
+        if(tan_is_nan) {
+            REQUIRE(interval.tan().is_nan());
+        } else {
+            REQUIRE(interval_approx(interval.tan().to_floats(), {tan_min, tan_max}));
+        }
+    }
+
+    SECTION("acos_asin_atan") {
+        int from = GENERATE(range(-20, 21));
+        int to = GENERATE_COPY(range(from, 21));
+
+        const Interval interval = Interval(from, to) / Interval(10);
+
+        bool acos_asin_are_nan = false;
+        double acos_min = std::numeric_limits<double>::infinity();
+        double acos_max = -std::numeric_limits<double>::infinity();
+        double asin_min = std::numeric_limits<double>::infinity();
+        double asin_max = -std::numeric_limits<double>::infinity();
+        double atan_min = std::numeric_limits<double>::infinity();
+        double atan_max = -std::numeric_limits<double>::infinity();
+
+        for(int value = from; value <= to; ++value) {
+            acos_asin_are_nan |= value <= -10 || 10 <= value;
+            const double scaled_value = static_cast<double>(value) / 10;
+            if(!acos_asin_are_nan) {
+                const double acos_val = std::acos(scaled_value);
+                const double asin_val = std::asin(scaled_value);
+                acos_min = std::min(acos_min, acos_val);
+                acos_max = std::max(acos_max, acos_val);
+                asin_min = std::min(asin_min, asin_val);
+                asin_max = std::max(asin_max, asin_val);
+            }
+            const double atan_val = std::atan(scaled_value);
+            atan_min = std::min(atan_min, atan_val);
+            atan_max = std::max(atan_max, atan_val);
+        }
+
+        if(acos_asin_are_nan) {
+            REQUIRE(interval.acos().is_nan());
+            REQUIRE(interval.asin().is_nan());
+        } else {
+            REQUIRE(interval_approx(interval.acos().to_floats(), {acos_min, acos_max}));
+            REQUIRE(interval_approx(interval.asin().to_floats(), {asin_min, asin_max}));
+        }
+        REQUIRE(interval_approx(interval.atan().to_floats(), {atan_min, atan_max}));
     }
 }

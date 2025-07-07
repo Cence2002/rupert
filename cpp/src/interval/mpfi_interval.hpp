@@ -265,6 +265,9 @@ public:
     }
 
     MpfiInterval tan() const {
+        if(!cos().is_nonzero()) {
+            return nan();
+        }
         mpfi_t tan;
         mpfi_init(tan);
         mpfi_tan(tan, interval_);
@@ -272,6 +275,9 @@ public:
     }
 
     MpfiInterval acos() const {
+        if(!(MpfiInterval(-1) < min() && max() < MpfiInterval(1))) {
+            return nan();
+        }
         mpfi_t acos;
         mpfi_init(acos);
         mpfi_acos(acos, interval_);
@@ -279,6 +285,9 @@ public:
     }
 
     MpfiInterval asin() const {
+        if(!(MpfiInterval(-1) < min() && max() < MpfiInterval(1))) {
+            return nan();
+        }
         mpfi_t asin;
         mpfi_init(asin);
         mpfi_asin(asin, interval_);
