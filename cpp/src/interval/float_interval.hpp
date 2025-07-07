@@ -6,16 +6,15 @@
 
 struct FloatInterval {
 private:
-    constexpr static double eps_ = 1e-12;
     double min_;
     double max_;
 
     explicit FloatInterval(const double min, const double max) : min_(min), max_(max) {
         if(min != 0.0) {
-            min_ -= eps_;
+            min_ -= std::numeric_limits<double>::epsilon() * 42;
         }
         if(max != 0.0) {
-            max_ += eps_;
+            max_ += std::numeric_limits<double>::epsilon() * 42;
         }
     }
 
