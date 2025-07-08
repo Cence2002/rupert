@@ -109,7 +109,7 @@ private:
             debug_exporter_.debug_builder.box_builder.set_projection(projected_hole);
         }
         SerialQueue<Range2> range2_queue;
-        range2_queue.push(Range2(Range(), Range(1, 0)));
+        range2_queue.push(Range2(Range(0, 0), Range(1, 0)));
         std::vector<Range2> range2s;
         for(uint32_t iteration = 0; config_.range2_iteration_limit == 0 || iteration < config_.range2_iteration_limit; iteration++) {
             const std::optional<Range2> optional_range2 = range2_queue.pop();
@@ -118,7 +118,7 @@ private:
             }
 
             const Range2& range2 = optional_range2.value();
-            if(!range2.is_valid()) {
+            if(range2.theta_range().depth() >= 15 || range2.phi_range().depth() >= 15) {
                 return std::nullopt;
             }
             if(config_.debug) {
@@ -154,7 +154,7 @@ private:
             return false;
         }
         const Range3& range3 = optional_box.value();
-        if(!range3.is_valid()) {
+        if(range3.theta_range().depth() >= 15 || range3.phi_range().depth() >= 15 || range3.alpha_range().depth() >= 15) {
             return false;
         }
         const std::optional<TerminalBox> optional_terminal_box = get_optional_terminal_box(range3);

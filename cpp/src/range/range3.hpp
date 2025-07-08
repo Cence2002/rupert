@@ -12,8 +12,6 @@ private:
 public:
     explicit Range3(const Range& theta_range, const Range& phi_range, const Range& alpha_range) noexcept : theta_range_(theta_range), phi_range_(phi_range), alpha_range_(alpha_range) {}
 
-    explicit Range3() : theta_range_(), phi_range_(), alpha_range_() {}
-
     ~Range3() = default;
 
     Range3(const Range3& range3) = default;
@@ -23,6 +21,22 @@ public:
     Range3& operator=(const Range3&) = delete;
 
     Range3& operator=(Range3&&) = delete;
+
+    bool operator<(const Range3& other) const {
+        if(theta_range_ < other.theta_range_) {
+            return true;
+        }
+        if(other.theta_range_ < theta_range_) {
+            return false;
+        }
+        if(phi_range_ < other.phi_range_) {
+            return true;
+        }
+        if(other.phi_range_ < phi_range_) {
+            return false;
+        }
+        return alpha_range_ < other.alpha_range_;
+    }
 
     Range theta_range() const {
         return theta_range_;
@@ -34,10 +48,6 @@ public:
 
     Range alpha_range() const {
         return alpha_range_;
-    }
-
-    bool is_valid() const {
-        return theta_range_.is_valid() && phi_range_.is_valid() && alpha_range_.is_valid();
     }
 
     std::vector<Range3> parts() const {

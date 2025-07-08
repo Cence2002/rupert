@@ -22,10 +22,6 @@ public:
     const std::vector<Range2>& range2s() const {
         return range2s_;
     }
-
-    bool is_valid() const {
-        return range3_.is_valid();
-    }
 };
 
 template<IntervalType Interval>

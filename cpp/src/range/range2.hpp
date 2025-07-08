@@ -11,8 +11,6 @@ private:
 public:
     explicit Range2(const Range& theta_range, const Range& phi_range) noexcept : theta_range_(theta_range), phi_range_(phi_range) {}
 
-    explicit Range2() : theta_range_(), phi_range_() {}
-
     ~Range2() = default;
 
     Range2(const Range2& range2) = default;
@@ -23,16 +21,22 @@ public:
 
     Range2& operator=(Range2&&) = delete;
 
+    bool operator<(const Range2& other) const {
+        if(theta_range_ < other.theta_range_) {
+            return true;
+        }
+        if(other.theta_range_ < theta_range_) {
+            return false;
+        }
+        return phi_range_ < other.phi_range_;
+    }
+
     Range theta_range() const {
         return theta_range_;
     }
 
     Range phi_range() const {
         return phi_range_;
-    }
-
-    bool is_valid() const {
-        return theta_range_.is_valid() && phi_range_.is_valid();
     }
 
     std::vector<Range2> parts() const {

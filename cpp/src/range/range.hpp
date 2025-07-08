@@ -12,12 +12,13 @@ private:
 
 public:
     explicit Range(const uint8_t depth, const uint16_t bits) : depth_(depth), bits_(bits) {
-        if(!is_valid()) {
-            throw std::runtime_error("Invalid Range");
+        if(depth_ >= 16) {
+            throw std::runtime_error("depth >= 16");
+        }
+        if(bits_ >= 1 << depth_) {
+            throw std::runtime_error("bits >= 2^depth");
         }
     }
-
-    explicit Range() : Range(0, 0) {}
 
     ~Range() = default;
 
@@ -29,6 +30,16 @@ public:
 
     Range& operator=(Range&&) = delete;
 
+    bool operator<(const Range& other) const {
+        if(depth_ < other.depth_) {
+            return true;
+        }
+        if(depth_ > other.depth_) {
+            return false;
+        }
+        return bits_ < other.bits_;
+    }
+
     uint8_t depth() const {
         return depth_;
     }
@@ -37,33 +48,20 @@ public:
         return bits_;
     }
 
-    bool is_valid() const {
-        return depth_ < 16;
-    }
-
     std::vector<Range> parts() const {
-        if(!is_valid()) {
-            throw std::runtime_error("parts() called on invalid Range");
-        }
         return {
             Range(static_cast<uint8_t>(depth_ + 1), static_cast<uint16_t>(bits_ << 1)),
-            Range(static_cast<uint8_t>(depth_ + 1), static_cast<uint16_t>((bits_ << 1) | 1))
+            Range(static_cast<uint8_t>(depth_ + 1), static_cast<uint16_t>(bits_ << 1 | 1))
         };
     }
 
     template<IntervalType Interval>
     Interval interval() const {
-        if(!is_valid()) {
-            throw std::runtime_error("interval() called on invalid Range");
-        }
-        return Interval(static_cast<uint16_t>(bits_), static_cast<uint16_t>(bits_ + 1)) / Interval(1 << depth_);
+        return Interval(bits_, static_cast<uint16_t>(bits_ + 1)) / Interval(static_cast<uint16_t>(1 << depth_));
     }
 
     template<IntervalType Interval>
     Interval angle_interval() const {
-        if(!is_valid()) {
-            throw std::runtime_error("angle_interval() called on invalid Range");
-        }
         return Interval(2) * Interval::pi() * interval<Interval>();
     }
 
@@ -72,9 +70,6 @@ public:
     }
 
     uint16_t pack() const {
-        if(!is_valid()) {
-            return 0;
-        }
         return static_cast<uint16_t>(1 << depth_) | bits_;
     }
 
