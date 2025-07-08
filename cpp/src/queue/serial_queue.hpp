@@ -4,15 +4,15 @@
 #include <queue>
 #include <optional>
 
-template<TaskType Task>
-struct Queue {
+template<bool Priority, typename Task> requires (Priority ? PriorityTaskType<Task> : TaskType<Task>)
+struct BaseSerialQueue {
 private:
-    std::queue<Task> queue_;
+    std::conditional_t<Priority, std::priority_queue<Task>, std::queue<Task>> queue_;
 
 public:
-    explicit Queue() : queue_() {}
+    explicit BaseSerialQueue() : queue_() {}
 
-    size_t size() {
+    size_t size() const {
         return queue_.size();
     }
 
@@ -24,8 +24,20 @@ public:
         if(queue_.empty()) {
             return std::nullopt;
         }
-        const Task task = queue_.front();
-        queue_.pop();
-        return std::make_optional(task);
+        if constexpr(Priority) {
+            const Task task = queue_.top();
+            queue_.pop();
+            return std::make_optional(task);
+        } else {
+            const Task task = queue_.front();
+            queue_.pop();
+            return std::make_optional(task);
+        }
     }
 };
+
+template<TaskType Task>
+using SerialQueue = BaseSerialQueue<false, Task>;
+
+template<PriorityTaskType Task>
+using SerialPriorityQueue = BaseSerialQueue<true, Task>;

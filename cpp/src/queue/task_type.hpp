@@ -14,3 +14,14 @@ concept TaskType =
         { queue.front() } -> std::convertible_to<Task>;
         { queue.pop() } -> std::same_as<void>;
     };
+
+template<typename Task>
+concept PriorityTaskType =
+    TaskType<Task> &&
+
+    requires(std::priority_queue<Task>& queue, const Task& task, const Task& other_task) {
+        { queue.push(task) } -> std::same_as<void>;
+        { queue.top() } -> std::convertible_to<Task>;
+        { queue.pop() } -> std::same_as<void>;
+        { std::less<Task>{}(task, other_task) } -> std::convertible_to<bool>;
+    };

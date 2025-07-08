@@ -4,17 +4,18 @@
 #include <queue>
 #include <optional>
 #include <mutex>
+#include <vector>
 
-template<TaskType Task>
-struct ConcurrentQueue {
+template<bool Priority, typename Task> requires (Priority ? PriorityTaskType<Task> : TaskType<Task>)
+struct BaseConcurrentQueue {
 private:
-    std::queue<Task> queue_;
-    std::mutex mutex_;
+    std::conditional_t<Priority, std::priority_queue<Task>, std::queue<Task>> queue_;
+    mutable std::mutex mutex_;
 
 public:
-    explicit ConcurrentQueue() : queue_(), mutex_() {}
+    explicit BaseConcurrentQueue() : queue_(), mutex_() {}
 
-    size_t size() {
+    size_t size() const {
         std::lock_guard<std::mutex> lock(mutex_);
         return queue_.size();
     }
@@ -29,9 +30,15 @@ public:
         if(queue_.empty()) {
             return std::nullopt;
         }
-        const Task task = queue_.front();
-        queue_.pop();
-        return std::make_optional(task);
+        if constexpr(Priority) {
+            const Task task = queue_.top();
+            queue_.pop();
+            return std::make_optional(task);
+        } else {
+            const Task task = queue_.front();
+            queue_.pop();
+            return std::make_optional(task);
+        }
     }
 
     void push_all(const std::vector<Task>& tasks) {
@@ -46,9 +53,20 @@ public:
         std::vector<Task> tasks;
         tasks.reserve(queue_.size());
         while(!queue_.empty()) {
-            tasks.push_back(queue_.front());
-            queue_.pop();
+            if constexpr(Priority) {
+                tasks.push_back(queue_.top());
+                queue_.pop();
+            } else {
+                tasks.push_back(queue_.front());
+                queue_.pop();
+            }
         }
         return tasks;
     }
 };
+
+template<TaskType Task>
+using ConcurrentQueue = BaseConcurrentQueue<false, Task>;
+
+template<PriorityTaskType Task>
+using ConcurrentPriorityQueue = BaseConcurrentQueue<true, Task>;
