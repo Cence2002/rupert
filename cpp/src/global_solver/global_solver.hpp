@@ -55,15 +55,15 @@ private:
             return false;
         }
         const Interval cos_remaining_angle = remaining_angle.cos();
-        const Matrix<Interval> hole_matrix = Matrix<Interval>::projection_rotation_matrix(Interval(range3.theta_interval<Interval>().mid()), Interval(range3.phi_interval<Interval>().mid()), Interval(range3.alpha_interval<Interval>().mid()));
-        const Matrix<Interval> plug_matrix = Matrix<Interval>::projection_matrix(Interval(range2.theta_interval<Interval>().mid()), Interval(range2.phi_interval<Interval>().mid()));
+        const Matrix<Interval> hole_matrix = Matrix<Interval>::rotation_theta_phi_alpha(Interval(range3.theta_interval<Interval>().mid()), Interval(range3.phi_interval<Interval>().mid()), Interval(range3.alpha_interval<Interval>().mid()));
+        const Matrix<Interval> plug_matrix = Matrix<Interval>::rotation_theta_phi(Interval(range2.theta_interval<Interval>().mid()), Interval(range2.phi_interval<Interval>().mid()));
         for(const Matrix<Interval>& rotation: config_.polyhedron.rotations()) {
-            if(Matrix<Interval>::cos_angle_between(hole_matrix * rotation, plug_matrix) > cos_remaining_angle) {
+            if(Matrix<Interval>::relative_rotation(hole_matrix * rotation, plug_matrix).cos_angle() > cos_remaining_angle) {
                 return true;
             }
         }
         for(const Matrix<Interval>& reflection: config_.polyhedron.reflections()) {
-            if(Matrix<Interval>::cos_angle_between(hole_matrix * reflection, Matrix<Interval>::reflect_z() * plug_matrix) > cos_remaining_angle) {
+            if(Matrix<Interval>::relative_rotation(hole_matrix * reflection, Matrix<Interval>::reflection_z() * plug_matrix).cos_angle() > cos_remaining_angle) {
                 return true;
             }
         }

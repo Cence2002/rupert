@@ -41,9 +41,9 @@ public:
 
 template<IntervalType Interval>
 bool is_centrally_symmetric(const std::vector<Vector3<Interval>>& vertices) {
-    return std::all_of(vertices.begin(), vertices.end(), [&vertices](const Vector3<Interval>& vector2) {
-        return std::any_of(vertices.begin(), vertices.end(), [&vector2](const Vector3<Interval>& other_vector2) {
-            return !vector2.diff(-other_vector2);
+    return std::all_of(vertices.begin(), vertices.end(), [&vertices](const Vector3<Interval>& vertex) {
+        return std::any_of(vertices.begin(), vertices.end(), [&vertex](const Vector3<Interval>& other_vertex) {
+            return !vertex.diff(-other_vertex);
         });
     });
 }
@@ -61,28 +61,28 @@ Matrix<Interval> orthonormal_basis(const Vector3<Interval>& from, const Vector3<
 }
 
 template<IntervalType Interval>
-std::vector<Matrix<Interval>> symmetries(const std::vector<Vector3<Interval>>& vector3s, const bool right_handed) {
-    const Vector3<Interval> from_vector3 = vector3s[0];
+std::vector<Matrix<Interval>> symmetries(const std::vector<Vector3<Interval>>& vectors, const bool right_handed) {
+    const Vector3<Interval> from_vector = vectors[0];
     size_t to_index = 1;
-    for(size_t i = 2; i < vector3s.size(); i++) {
-        if(vector3s[i].diff(from_vector3) && vector3s[i].dist(from_vector3) < vector3s[to_index].dist(from_vector3)) {
+    for(size_t i = 2; i < vectors.size(); i++) {
+        if(vectors[i].diff(from_vector) && vectors[i].dist(from_vector) < vectors[to_index].dist(from_vector)) {
             to_index = i;
         }
     }
-    const Vector3<Interval> to_vector3 = vector3s[to_index];
-    const Interval distance = to_vector3.dist(from_vector3);
-    Matrix<Interval> basis = orthonormal_basis<Interval>(from_vector3, to_vector3, true);
+    const Vector3<Interval> to_vector = vectors[to_index];
+    const Interval distance = to_vector.dist(from_vector);
+    Matrix<Interval> basis = orthonormal_basis<Interval>(from_vector, to_vector, true);
     std::vector<Matrix<Interval>> symmetries;
-    for(const auto& from_vector3_image: vector3s) {
-        for(const auto& to_vector3_image: vector3s) {
-            if((to_vector3_image.dist(from_vector3_image) - distance).is_nonzero()) {
+    for(const auto& from_vector_image: vectors) {
+        for(const auto& to_vector_image: vectors) {
+            if((to_vector_image.dist(from_vector_image) - distance).is_nonzero()) {
                 continue;
             }
-            Matrix<Interval> image_basis = orthonormal_basis<Interval>(from_vector3_image, to_vector3_image, right_handed);
+            Matrix<Interval> image_basis = orthonormal_basis<Interval>(from_vector_image, to_vector_image, right_handed);
             Matrix<Interval> symmetry = Matrix<Interval>::relative_rotation(basis, image_basis);
-            const bool is_symmetry = std::ranges::all_of(vector3s, [&](const Vector3<Interval>& vertex) {
+            const bool is_symmetry = std::ranges::all_of(vectors, [&](const Vector3<Interval>& vertex) {
                 const Vector3<Interval> vector3_image = symmetry * vertex;
-                return std::ranges::any_of(vector3s, [&](const Vector3<Interval>& other_vertex) {
+                return std::ranges::any_of(vectors, [&](const Vector3<Interval>& other_vertex) {
                                                return !vector3_image.diff(other_vertex);
                                            }
                 );

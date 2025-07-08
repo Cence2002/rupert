@@ -10,13 +10,13 @@ private:
     Interval z_;
 
 public:
-    explicit Vector3(const Interval& x, const Interval& y, const Interval& z) noexcept : x_(x), y_(y), z_(z) {}
+    explicit Vector3(const Interval& x, const Interval& y, const Interval& z) : x_(x), y_(y), z_(z) {}
 
     ~Vector3() = default;
 
-    Vector3(const Vector3& vector3) = default;
+    Vector3(const Vector3& vector) = default;
 
-    Vector3(Vector3&& vector3) = default;
+    Vector3(Vector3&& vector) = default;
 
     Vector3& operator=(const Vector3&) = delete;
 
@@ -42,12 +42,12 @@ public:
         return Vector3(-x_, -y_, -z_);
     }
 
-    Vector3 operator+(const Vector3& vector3) const {
-        return Vector3(x_ + vector3.x_, y_ + vector3.y_, z_ + vector3.z_);
+    Vector3 operator+(const Vector3& vector) const {
+        return Vector3(x_ + vector.x_, y_ + vector.y_, z_ + vector.z_);
     }
 
-    Vector3 operator-(const Vector3& vector3) const {
-        return Vector3(x_ - vector3.x_, y_ - vector3.y_, z_ - vector3.z_);
+    Vector3 operator-(const Vector3& vector) const {
+        return Vector3(x_ - vector.x_, y_ - vector.y_, z_ - vector.z_);
     }
 
     Vector3 operator*(const Interval& interval) const {
@@ -62,16 +62,16 @@ public:
         return (x_.sqr() + y_.sqr() + z_.sqr()).sqrt();
     }
 
-    Interval dist(const Vector3& vector3) const {
-        return (operator-(vector3)).len();
+    Interval dist(const Vector3& vector) const {
+        return operator-(vector).len();
     }
 
-    bool diff(const Vector3& vector3) const {
-        return dist(vector3).is_positive();
+    bool diff(const Vector3& vector) const {
+        return dist(vector).is_positive();
     }
 
-    Vector3 hull(const Vector3& vector3) const {
-        return Vector3(x_.hull(vector3.x_), y_.hull(vector3.y_), z_.hull(vector3.z_));
+    Vector3 hull(const Vector3& vector) const {
+        return Vector3(x_.hull(vector.x_), y_.hull(vector.y_), z_.hull(vector.z_));
     }
 
     Interval dot(const Vector3& vertex) const {

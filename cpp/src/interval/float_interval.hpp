@@ -15,7 +15,7 @@ private:
 
 public:
     template<IntegerType Integer>
-    explicit FloatInterval(const Integer value) : FloatInterval(static_cast<double>(value)) {}
+    explicit FloatInterval(const Integer value) : FloatInterval(value, value) {}
 
     template<IntegerType Integer>
     explicit FloatInterval(const Integer min, const Integer max) : FloatInterval(static_cast<double>(min), static_cast<double>(max)) {

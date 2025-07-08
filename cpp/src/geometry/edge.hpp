@@ -17,16 +17,16 @@ inline std::ostream& operator<<(std::ostream& ostream, const Side& side) {
     }
 }
 
-constexpr bool same_side(const Side side_0, const Side side_1) {
-    return side_0 != Side::ambiguous &&
-           side_1 != Side::ambiguous &&
-           side_0 == side_1;
+constexpr bool same_side(const Side side, const Side other_side) {
+    return side != Side::ambiguous &&
+           other_side != Side::ambiguous &&
+           side == other_side;
 }
 
-constexpr bool diff_side(const Side side_0, const Side side_1) {
-    return side_0 != Side::ambiguous &&
-           side_1 != Side::ambiguous &&
-           side_0 != side_1;
+constexpr bool diff_side(const Side side, const Side other_side) {
+    return side != Side::ambiguous &&
+           other_side != Side::ambiguous &&
+           side != other_side;
 }
 
 template<IntervalType Interval>
@@ -36,15 +36,11 @@ private:
     Vector2<Interval> to_;
 
 public:
+    explicit Edge(const Vector2<Interval>& to) : from_(Vector2<Interval>(Interval(0), Interval(0))), to_(to) {}
+
     explicit Edge(const Vector2<Interval>& from, const Vector2<Interval>& to) : from_(from), to_(to) {
         if(!from_.dist(to_).is_positive()) {
-            throw std::runtime_error("Zero length edge found");
-        }
-    }
-
-    explicit Edge(const Vector2<Interval>& to) : from_(Vector2<Interval>(Interval(0), Interval(0))), to_(to) {
-        if(!to_.len().is_positive()) {
-            throw std::runtime_error("Zero length edge found");
+            throw std::runtime_error("Zero length edge");
         }
     }
 
@@ -78,8 +74,8 @@ public:
         return (from_ + to_) / Interval(2);
     }
 
-    Side side(const Vector2<Interval>& vector2) const {
-        const Interval cross = dir().cross(vector2 - from_);
+    Side side(const Vector2<Interval>& vector) const {
+        const Interval cross = dir().cross(vector - from_);
         if(cross.is_positive()) {
             return Side::left;
         }
@@ -93,14 +89,15 @@ public:
         return diff_side(side(edge.from_), side(edge.to_)) && diff_side(edge.side(from_), edge.side(to_));
     }
 
-    bool avoids(const Vector2<Interval>& vector2) const {
-        return side(vector2) != Side::ambiguous || vector2.dist(mid()) > len() / Interval(2);
+    bool avoids(const Vector2<Interval>& vector) const {
+        return side(vector) != Side::ambiguous ||
+               mid().dist(vector) > len() / Interval(2);
     }
 
     bool avoids(const Edge& edge) const {
-        return edge.mid().dist(mid()) > (len() + edge.len()) / Interval(2) ||
-               same_side(side(edge.from_), side(edge.to_)) ||
-               same_side(edge.side(from_), edge.side(to_));
+        return same_side(side(edge.from_), side(edge.to_)) ||
+               same_side(edge.side(from_), edge.side(to_)) ||
+               mid().dist(edge.mid()) > (len() + edge.len()) / Interval(2);
     }
 
     friend std::ostream& operator<<(std::ostream& ostream, const Edge& edge) {

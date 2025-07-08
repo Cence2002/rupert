@@ -51,11 +51,11 @@ namespace PolyhedronHelpers {
     }
 
     template<IntervalType Interval>
-    std::vector<Vector3<Interval>> combine(const std::vector<std::vector<Vector3<Interval>>>& vertices) {
+    std::vector<Vector3<Interval>> combine(const std::vector<std::vector<Vector3<Interval>>>& verticeses) {
         std::vector<Vector3<Interval>> combined;
-        for(const std::vector<Vector3<Interval>>& vertex: vertices) {
-            for(const Vector3<Interval>& v: vertex) {
-                combined.push_back(v);
+        for(const std::vector<Vector3<Interval>>& vertices: verticeses) {
+            for(const Vector3<Interval>& vertex: vertices) {
+                combined.push_back(vertex);
             }
         }
         return combined;

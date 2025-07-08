@@ -26,17 +26,17 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& ostream, const Polygon& polygon) {
-        ostream << "{";
-        bool is_first = true;
+        ostream << "[";
+        bool first = true;
         for(const Edge<Interval>& edge: polygon.edges_) {
-            if(!is_first) {
-                ostream << ", ";
+            if(!first) {
+                ostream << ",";
             } else {
-                is_first = false;
+                first = false;
             }
             ostream << edge;
         }
-        ostream << "}";
+        ostream << "]";
         return ostream;
     }
 };

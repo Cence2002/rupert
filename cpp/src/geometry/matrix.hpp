@@ -71,25 +71,25 @@ public:
         );
     }
 
-    static Matrix reflect_x() {
+    static Matrix reflection_x() {
         return Matrix(Interval(-1), Interval(0), Interval(0),
                       Interval(0), Interval(1), Interval(0),
                       Interval(0), Interval(0), Interval(1));
     }
 
-    static Matrix reflect_y() {
+    static Matrix reflection_y() {
         return Matrix(Interval(1), Interval(0), Interval(0),
                       Interval(0), Interval(-1), Interval(0),
                       Interval(0), Interval(0), Interval(1));
     }
 
-    static Matrix reflect_z() {
+    static Matrix reflection_z() {
         return Matrix(Interval(1), Interval(0), Interval(0),
                       Interval(0), Interval(1), Interval(0),
                       Interval(0), Interval(0), Interval(-1));
     }
 
-    static Matrix rotate_x(const Interval& angle) {
+    static Matrix rotation_x(const Interval& angle) {
         return Matrix(
             Interval(1), Interval(0), Interval(0),
             Interval(0), angle.cos(), -angle.sin(),
@@ -97,7 +97,7 @@ public:
         );
     }
 
-    static Matrix rotate_y(const Interval& angle) {
+    static Matrix rotation_y(const Interval& angle) {
         return Matrix(
             angle.cos(), Interval(0), angle.sin(),
             Interval(0), Interval(1), Interval(0),
@@ -105,7 +105,7 @@ public:
         );
     }
 
-    static Matrix rotate_z(const Interval& angle) {
+    static Matrix rotation_z(const Interval& angle) {
         return Matrix(
             angle.cos(), -angle.sin(), Interval(0),
             angle.sin(), angle.cos(), Interval(0),
@@ -113,12 +113,12 @@ public:
         );
     }
 
-    static Matrix projection_matrix(const Interval& theta, const Interval& phi) {
-        return rotate_x(phi) * rotate_z(theta);
+    static Matrix rotation_theta_phi(const Interval& theta, const Interval& phi) {
+        return rotation_x(phi) * rotation_z(theta);
     }
 
-    static Matrix projection_rotation_matrix(const Interval& theta, const Interval& phi, const Interval& alpha) {
-        return rotate_z(alpha) * projection_matrix(theta, phi);
+    static Matrix rotation_theta_phi_alpha(const Interval& theta, const Interval& phi, const Interval& alpha) {
+        return rotation_z(alpha) * rotation_theta_phi(theta, phi);
     }
 
     static Matrix relative_rotation(const Matrix& from, const Matrix& to) {
@@ -134,9 +134,10 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Matrix& matrix) {
-        os << "[[" << matrix.xx_ << "," << matrix.xy_ << "," << matrix.xz_ << "],"
-            << "[" << matrix.yx_ << "," << matrix.yy_ << "," << matrix.yz_ << "],"
-            << "[" << matrix.zx_ << "," << matrix.zy_ << "," << matrix.zz_ << "]]";
-        return os;
+        return os << "[" <<
+               "[" << matrix.xx_ << "," << matrix.xy_ << "," << matrix.xz_ << "]," <<
+               "[" << matrix.yx_ << "," << matrix.yy_ << "," << matrix.yz_ << "]," <<
+               "[" << matrix.zx_ << "," << matrix.zy_ << "," << matrix.zz_ << "]" <<
+               "]";
     }
 };
