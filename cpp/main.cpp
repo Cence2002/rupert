@@ -25,12 +25,6 @@ void signal_handler(const int signal) {
     }
 }
 
-template<typename... Args>
-void print(Args&&... args) {
-    ((std::cout << args), ...);
-    std::cout << std::endl;
-}
-
 int main() {
     std::signal(SIGINT, signal_handler);
 
@@ -51,7 +45,7 @@ int main() {
     global_solver.emplace(config);
     global_solver->init();
     global_solver->start();
-    print("Global Solver terminated gracefully");
+    std::cout << "Global Solver terminated gracefully" << std::endl;
 
     return 0;
 }
