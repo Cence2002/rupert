@@ -11,8 +11,8 @@ struct Config {
     Interval epsilon;
 
     // mathematical hyperparameters
-    uint32_t range3_iteration_limit;
-    uint32_t range2_iteration_limit;
+    uint32_t hole_orientations_limit;
+    uint32_t plug_orientations_limit;
     uint8_t projection_resolution;
     uint8_t rotation_resolution;
 
@@ -25,6 +25,15 @@ struct Config {
     bool debug;
 
     void validate() const {
+        if(epsilon.min().neg()) {
+            throw std::runtime_error("Epsilon must be non-negative");
+        }
+        if(projection_resolution < 1) {
+            throw std::runtime_error("Projection resolution must be at least 1");
+        }
+        if(rotation_resolution < 1) {
+            throw std::runtime_error("Rotation resolution must be at least 1");
+        }
         if(!std::regex_match(name, std::regex("^[a-zA-Z0-9_]+$"))) {
             throw std::runtime_error(name + " is not a valid name (only letters, digits, and underscores are allowed)");
         }

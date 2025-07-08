@@ -71,8 +71,8 @@ private:
     }
 
     bool is_range2_terminal(const Range2& range2, const Polygon<Interval>& projected_hole) {
-        const Interval theta(range2.theta_interval<Interval>());
-        const Interval phi(range2.phi_interval<Interval>());
+        const Interval theta = range2.theta_interval<Interval>();
+        const Interval phi = range2.phi_interval<Interval>();
         bool is_terminal = false;
         for(size_t vertex_index = 0; vertex_index < config_.polyhedron.vertices().size(); vertex_index++) {
             const Vector3<Interval>& plug_vertex = config_.polyhedron.vertices()[vertex_index];
@@ -82,7 +82,7 @@ private:
                 }
                 debug_exporter_.debug_builder.box_builder.rectangle_builder.add_projection();
             }
-            if(is_projected_vertex_outside_polygon_advanced(projected_hole, plug_vertex, theta, phi)) {
+            if(is_projected_vector_outside_polygon_advanced(projected_hole, plug_vertex, theta, phi)) {
                 if(config_.debug) {
                     debug_exporter_.debug_builder.box_builder.rectangle_builder.add_last_as_out_index();
                 }
@@ -96,10 +96,10 @@ private:
     }
 
     bool is_box_nonterminal(const Range2& range2, const Polygon<Interval>& projected_hole) {
-        const Interval theta_mid(range2.theta_interval<Interval>().mid());
-        const Interval phi_mid(range2.phi_interval<Interval>().mid());
+        const Interval theta_mid = range2.theta_interval<Interval>().mid();
+        const Interval phi_mid = range2.phi_interval<Interval>().mid();
         return std::ranges::all_of(config_.polyhedron.vertices(), [&](const Vector3<Interval>& plug_vertex) {
-            return is_projected_vertex_inside_polygon_trivial(projected_hole, plug_vertex, theta_mid, phi_mid);
+            return is_vector_inside_polygon(projected_hole, projection_trivial(plug_vertex, theta_mid, phi_mid));
         });
     }
 
@@ -111,7 +111,7 @@ private:
         SerialQueue<Range2> range2_queue;
         range2_queue.push(Range2(Range(0, 0), Range(1, 0)));
         std::vector<Range2> range2s;
-        for(uint32_t iteration = 0; config_.range2_iteration_limit == 0 || iteration < config_.range2_iteration_limit; iteration++) {
+        for(uint32_t iteration = 0; config_.plug_orientations_limit == 0 || iteration < config_.plug_orientations_limit; iteration++) {
             const std::optional<Range2> optional_range2 = range2_queue.pop();
             if(!optional_range2.has_value()) {
                 return std::make_optional(TerminalBox(range3, range2s));
@@ -178,7 +178,7 @@ private:
     void start_box_processor() {
         while(!terminated_) {
             if(process()) {
-                if(++processed_box_count_ >= config_.range3_iteration_limit) {
+                if(++processed_box_count_ >= config_.hole_orientations_limit) {
                     stop();
                 }
             } else {

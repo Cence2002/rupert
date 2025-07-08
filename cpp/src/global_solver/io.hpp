@@ -98,9 +98,9 @@ namespace Exporter {
     }
 
     inline void terminal_box_to_stream(std::ostream& os, const TerminalBox& terminal_box) {
-        box_to_stream(os, terminal_box.range3());
-        size_to_stream(os, static_cast<uint32_t>(terminal_box.range2s().size()));
-        for(const Range2& rectangle: terminal_box.range2s()) {
+        box_to_stream(os, terminal_box.range3);
+        size_to_stream(os, static_cast<uint32_t>(terminal_box.range2s.size()));
+        for(const Range2& rectangle: terminal_box.range2s) {
             rectangle_to_stream(os, rectangle);
         }
     }
