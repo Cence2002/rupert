@@ -29,8 +29,8 @@ private:
     Polygon<Interval> get_hole_projection(const Range3& hole_orientation) {
         std::vector<Vector2<Interval>> vectors;
         for(const Vector3<Interval>& vertex: config_.polyhedron.vertices()) {
-            for(const Vector2<Interval>& projected_hole_vertex: projection_hull_polygon(vertex, hole_orientation.theta_interval<Interval>(), hole_orientation.phi_interval<Interval>(), config_.projection_resolution)) {
-                for(const Vector2<Interval>& rotated_projected_hole_vertex: rotation_hull_polygon(projected_hole_vertex, hole_orientation.alpha_interval<Interval>(), config_.rotation_resolution)) {
+            for(const Vector2<Interval>& projected_hole_vertex: projection_hull_polygon(vertex, hole_orientation.theta<Interval>(), hole_orientation.phi<Interval>(), config_.projection_resolution)) {
+                for(const Vector2<Interval>& rotated_projected_hole_vertex: rotation_hull_polygon(projected_hole_vertex, hole_orientation.alpha<Interval>(), config_.rotation_resolution)) {
                     vectors.push_back(rotated_projected_hole_vertex);
                     if(config_.debug) {
                         debug_exporter_.debug_builder.box_builder.projection_builder.add_vertex(rotated_projected_hole_vertex);
@@ -45,15 +45,15 @@ private:
     }
 
     bool is_plug_orientation_ignored(const Range3& hole_orientation, const Range2& plug_orientation) {
-        const Interval box_angle_radius = Vector2<Interval>(Interval(hole_orientation.theta_interval<Interval>().len()) + Interval(hole_orientation.alpha_interval<Interval>().len()), Interval(hole_orientation.phi_interval<Interval>().len())).len() / Interval(2);
-        const Interval range2_angle_radius = Vector2<Interval>(Interval(plug_orientation.theta_interval<Interval>().len()), Interval(plug_orientation.phi_interval<Interval>().len())).len() / Interval(2);
+        const Interval box_angle_radius = Vector2<Interval>(Interval(hole_orientation.theta<Interval>().len()) + Interval(hole_orientation.alpha<Interval>().len()), Interval(hole_orientation.phi<Interval>().len())).len() / Interval(2);
+        const Interval range2_angle_radius = Vector2<Interval>(Interval(plug_orientation.theta<Interval>().len()), Interval(plug_orientation.phi<Interval>().len())).len() / Interval(2);
         const Interval remaining_angle = config_.epsilon - box_angle_radius - range2_angle_radius;
         if(!remaining_angle.pos()) {
             return false;
         }
         const Interval cos_remaining_angle = remaining_angle.cos();
-        const Matrix<Interval> hole_matrix = Matrix<Interval>::rotation_theta_phi_alpha(Interval(hole_orientation.theta_interval<Interval>().mid()), Interval(hole_orientation.phi_interval<Interval>().mid()), Interval(hole_orientation.alpha_interval<Interval>().mid()));
-        const Matrix<Interval> plug_matrix = Matrix<Interval>::rotation_theta_phi(Interval(plug_orientation.theta_interval<Interval>().mid()), Interval(plug_orientation.phi_interval<Interval>().mid()));
+        const Matrix<Interval> hole_matrix = Matrix<Interval>::rotation_z(hole_orientation.alpha<Interval>().mid()) * Matrix<Interval>::orientation(hole_orientation.theta<Interval>().mid(), hole_orientation.phi<Interval>().mid());
+        const Matrix<Interval> plug_matrix = Matrix<Interval>::orientation(plug_orientation.theta<Interval>().mid(), plug_orientation.phi<Interval>().mid());
         for(const Matrix<Interval>& rotation: config_.polyhedron.rotations()) {
             if(Matrix<Interval>::relative_rotation(hole_matrix * rotation, plug_matrix).cos_angle() > cos_remaining_angle) {
                 return true;
@@ -68,8 +68,8 @@ private:
     }
 
     bool is_range2_terminal(const Range2& plug_orientation, const Polygon<Interval>& projected_hole) {
-        const Interval theta = plug_orientation.theta_interval<Interval>();
-        const Interval phi = plug_orientation.phi_interval<Interval>();
+        const Interval theta = plug_orientation.theta<Interval>();
+        const Interval phi = plug_orientation.phi<Interval>();
         bool is_terminal = false;
         for(size_t vertex_index = 0; vertex_index < config_.polyhedron.vertices().size(); vertex_index++) {
             const Vector3<Interval>& plug_vertex = config_.polyhedron.vertices()[vertex_index];
@@ -93,8 +93,8 @@ private:
     }
 
     bool is_box_nonterminal(const Range2& plug_orientation, const Polygon<Interval>& projected_hole) {
-        const Interval theta_mid = plug_orientation.theta_interval<Interval>().mid();
-        const Interval phi_mid = plug_orientation.phi_interval<Interval>().mid();
+        const Interval theta_mid = plug_orientation.theta<Interval>().mid();
+        const Interval phi_mid = plug_orientation.phi<Interval>().mid();
         return std::ranges::all_of(config_.polyhedron.vertices(), [&](const Vector3<Interval>& plug_vertex) {
             return is_vector_inside_polygon(projected_hole, projection_trivial(plug_vertex, theta_mid, phi_mid));
         });

@@ -63,18 +63,18 @@ public:
     }
 
     template<IntervalType Interval>
-    Interval theta_interval() const {
-        return theta_range_.angle_interval<Interval>();
+    Interval theta() const {
+        return theta_range_.angle<Interval>();
     }
 
     template<IntervalType Interval>
-    Interval phi_interval() const {
-        return phi_range_.angle_interval<Interval>();
+    Interval phi() const {
+        return phi_range_.angle<Interval>();
     }
 
     template<IntervalType Interval>
-    Interval alpha_interval() const {
-        return alpha_range_.angle_interval<Interval>();
+    Interval alpha() const {
+        return alpha_range_.angle<Interval>();
     }
 
     friend std::ostream& operator<<(std::ostream& ostream, const Range3& box) {

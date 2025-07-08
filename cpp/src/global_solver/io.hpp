@@ -256,8 +256,8 @@ namespace DebugHelpers {
                                                                              projection_builder(builder) {}
 
         void set_rectangle(const Range2& rectangle) {
-            theta_ = to_flatbuffers_id(rectangle.theta_range(), rectangle.theta_interval<FloatInterval>());
-            phi_ = to_flatbuffers_id(rectangle.phi_range(), rectangle.phi_interval<FloatInterval>());
+            theta_ = to_flatbuffers_id(rectangle.theta_range(), rectangle.theta<FloatInterval>());
+            phi_ = to_flatbuffers_id(rectangle.phi_range(), rectangle.phi<FloatInterval>());
         }
 
         void add_projection() {
@@ -316,9 +316,9 @@ namespace DebugHelpers {
                                                                        rectangle_builder(builder) {}
 
         void set_box(const Range3& box) {
-            theta_ = to_flatbuffers_id(box.theta_range(), box.theta_interval<FloatInterval>());
-            phi_ = to_flatbuffers_id(box.phi_range(), box.phi_interval<FloatInterval>());
-            alpha_ = to_flatbuffers_id(box.alpha_range(), box.alpha_interval<FloatInterval>());
+            theta_ = to_flatbuffers_id(box.theta_range(), box.theta<FloatInterval>());
+            phi_ = to_flatbuffers_id(box.phi_range(), box.phi<FloatInterval>());
+            alpha_ = to_flatbuffers_id(box.alpha_range(), box.alpha<FloatInterval>());
         }
 
         void add_projection() {

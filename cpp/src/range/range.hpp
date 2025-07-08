@@ -61,7 +61,7 @@ public:
     }
 
     template<IntervalType Interval>
-    Interval angle_interval() const {
+    Interval angle() const {
         return Interval(2) * Interval::pi() * interval<Interval>();
     }
 

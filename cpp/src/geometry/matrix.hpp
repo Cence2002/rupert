@@ -113,12 +113,8 @@ public:
         );
     }
 
-    static Matrix rotation_theta_phi(const Interval& theta, const Interval& phi) {
+    static Matrix orientation(const Interval& theta, const Interval& phi) {
         return rotation_x(phi) * rotation_z(theta);
-    }
-
-    static Matrix rotation_theta_phi_alpha(const Interval& theta, const Interval& phi, const Interval& alpha) {
-        return rotation_z(alpha) * rotation_theta_phi(theta, phi);
     }
 
     static Matrix relative_rotation(const Matrix& from, const Matrix& to) {
