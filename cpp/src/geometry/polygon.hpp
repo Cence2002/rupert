@@ -25,6 +25,24 @@ public:
         return edges_;
     }
 
+    bool avoids_edges(const Vector2<Interval>& vector) const {
+        return std::ranges::all_of(edges_, [&](const Edge<Interval>& edge) {
+            return edge.avoids(vector);
+        });
+    }
+
+    bool inside(const Vector2<Interval>& vector) const {
+        return avoids_edges(vector) && std::ranges::all_of(edges_, [&](const Edge<Interval>& edge) {
+            return edge.side(vector) != Side::right;
+        });
+    }
+
+    bool outside(const Vector2<Interval>& vector) const {
+        return avoids_edges(vector) && std::ranges::any_of(edges_, [&](const Edge<Interval>& edge) {
+            return edge.side(vector) == Side::right;
+        });
+    }
+
     friend std::ostream& operator<<(std::ostream& ostream, const Polygon& polygon) {
         ostream << "[";
         bool first = true;

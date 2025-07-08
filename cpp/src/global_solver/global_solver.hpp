@@ -29,8 +29,8 @@ private:
     Polygon<Interval> get_hole_projection(const Range3& hole_orientation) {
         std::vector<Vector2<Interval>> vectors;
         for(const Vector3<Interval>& vertex: config_.polyhedron.vertices()) {
-            for(const Vector2<Interval>& projected_hole_vertex: projection_hull_polygon(vertex, hole_orientation.theta<Interval>(), hole_orientation.phi<Interval>(), config_.projection_resolution)) {
-                for(const Vector2<Interval>& rotated_projected_hole_vertex: rotation_hull_polygon(projected_hole_vertex, hole_orientation.alpha<Interval>(), config_.rotation_resolution)) {
+            for(const Vector2<Interval>& projected_hole_vertex: projected_orientation_hull(vertex, hole_orientation.theta<Interval>(), hole_orientation.phi<Interval>(), config_.projection_resolution)) {
+                for(const Vector2<Interval>& rotated_projected_hole_vertex: rotation_hull(projected_hole_vertex, hole_orientation.alpha<Interval>(), config_.rotation_resolution)) {
                     vectors.push_back(rotated_projected_hole_vertex);
                     if(config_.debug) {
                         debug_exporter_.debug_builder.box_builder.projection_builder.add_vertex(rotated_projected_hole_vertex);
@@ -74,12 +74,12 @@ private:
         for(size_t vertex_index = 0; vertex_index < config_.polyhedron.vertices().size(); vertex_index++) {
             const Vector3<Interval>& plug_vertex = config_.polyhedron.vertices()[vertex_index];
             if(config_.debug) {
-                for(const Vector2<Interval>& projected_plug_vertex: projection_hull_polygon(plug_vertex, theta, phi, config_.projection_resolution)) {
+                for(const Vector2<Interval>& projected_plug_vertex: projected_orientation_hull(plug_vertex, theta, phi, config_.projection_resolution)) {
                     debug_exporter_.debug_builder.box_builder.rectangle_builder.projection_builder.add_vertex(projected_plug_vertex);
                 }
                 debug_exporter_.debug_builder.box_builder.rectangle_builder.add_projection();
             }
-            if(is_projected_vector_outside_polygon_advanced(projected_hole, plug_vertex, theta, phi)) {
+            if(projected_oriented_vector_avoids_polygon(projected_hole, plug_vertex, theta, phi)) {
                 if(config_.debug) {
                     debug_exporter_.debug_builder.box_builder.rectangle_builder.add_last_as_out_index();
                 }
@@ -96,7 +96,7 @@ private:
         const Interval theta_mid = plug_orientation.theta<Interval>().mid();
         const Interval phi_mid = plug_orientation.phi<Interval>().mid();
         return std::ranges::all_of(config_.polyhedron.vertices(), [&](const Vector3<Interval>& plug_vertex) {
-            return is_vector_inside_polygon(projected_hole, projection_trivial(plug_vertex, theta_mid, phi_mid));
+            return projected_hole.inside(trivial_projected_orientation(plug_vertex, theta_mid, phi_mid));
         });
     }
 
