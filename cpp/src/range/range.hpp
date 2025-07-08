@@ -26,9 +26,9 @@ public:
 
     Range(Range&& range) = default;
 
-    Range& operator=(const Range&) = delete;
+    Range& operator=(const Range&) = default;
 
-    Range& operator=(Range&&) = delete;
+    Range& operator=(Range&&) = default;
 
     bool operator<(const Range& other) const {
         if(depth_ < other.depth_) {

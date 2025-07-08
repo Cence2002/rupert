@@ -3,25 +3,25 @@
 
 using I = BoostInterval;
 
-std::optional<GlobalSolver<I>> pipeline;
+std::optional<GlobalSolver<I>> global_solver;
 
 void signal_handler(const int signal) {
-    if(pipeline.has_value()) {
+    if(global_solver.has_value()) {
         switch(signal) {
-            case SIGTERM: {
-                std::cout << "Received SIGTERM" << std::endl;
-                break;
-            }
             case SIGINT: {
                 std::cout << "Received SIGINT" << std::endl;
+                break;
+            }
+            case SIGTERM: {
+                std::cout << "Received SIGTERM" << std::endl;
                 break;
             }
             default: {
                 std::cout << "Received signal " << signal << std::endl;
             }
         }
-        std::cout << "Stopping pipeline" << std::endl;
-        pipeline->stop();
+        std::cout << "Interrupting Global Solver..." << std::endl;
+        global_solver->stop();
     }
 }
 
@@ -32,13 +32,11 @@ void print(Args&&... args) {
 }
 
 int main() {
-    const Polyhedron<I> polyhedron(Archimedean::rhombicosidodecahedron<I>());
+    std::signal(SIGINT, signal_handler);
 
-    const Config<I> config{
-        polyhedron,
+    const Config config(
+        Polyhedron(Archimedean::rhombicosidodecahedron<I>()),
         I::pi() / I(180),
-        1,
-        10000,
         2,
         2,
         1,
@@ -47,16 +45,13 @@ int main() {
         100,
         true,
         true
-    };
+    );
     config.validate();
 
-    std::signal(SIGINT, signal_handler);
-    std::signal(SIGTERM, signal_handler);
-
-    pipeline.emplace(config);
-    pipeline->init();
-    pipeline->start();
-    print("Pipeline stopped gracefully");
+    global_solver.emplace(config);
+    global_solver->init();
+    global_solver->start();
+    print("Global Solver terminated gracefully");
 
     return 0;
 }

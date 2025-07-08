@@ -1,16 +1,10 @@
 #pragma once
 
 #include "geometry/geometry.hpp"
-#include "range/ranges.hpp"
 #include <vector>
 #include <optional>
 #include <algorithm>
 #include <queue>
-
-struct TerminalBox {
-    Range3 range3;
-    std::vector<Range2> range2s;
-};
 
 template<IntervalType Interval>
 Interval harmonic_trivial(const Interval& cos_amplitude, const Interval& sin_amplitude, const Interval& angle) {

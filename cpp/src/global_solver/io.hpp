@@ -6,8 +6,14 @@
 #pragma GCC diagnostic pop
 
 #include "global_solver/helpers.hpp"
+#include "range/ranges.hpp"
 #include <fstream>
 #include <filesystem>
+
+struct Elimination {
+    Range3 hole_orientation;
+    std::vector<Range2> plug_orientations;
+};
 
 namespace Importer {
     inline uint32_t size_from_stream(std::istream& is) {
@@ -97,10 +103,10 @@ namespace Exporter {
         id_to_stream(os, range2.phi_range());
     }
 
-    inline void terminal_box_to_stream(std::ostream& os, const TerminalBox& terminal_box) {
-        box_to_stream(os, terminal_box.range3);
-        size_to_stream(os, static_cast<uint32_t>(terminal_box.range2s.size()));
-        for(const Range2& rectangle: terminal_box.range2s) {
+    inline void terminal_box_to_stream(std::ostream& os, const Elimination& terminal_box) {
+        box_to_stream(os, terminal_box.hole_orientation);
+        size_to_stream(os, static_cast<uint32_t>(terminal_box.plug_orientations.size()));
+        for(const Range2& rectangle: terminal_box.plug_orientations) {
             rectangle_to_stream(os, rectangle);
         }
     }
@@ -127,13 +133,13 @@ namespace Exporter {
         std::cout << "Exported polyhedra to " << path << std::endl;
     }
 
-    inline void export_terminal_boxes(const std::filesystem::path& path, const std::vector<TerminalBox>& terminal_boxes) {
+    inline void export_terminal_boxes(const std::filesystem::path& path, const std::vector<Elimination>& terminal_boxes) {
         std::ofstream file(path, std::ios::binary | std::ios::app);
         if(!file.is_open()) {
             throw std::runtime_error("Failed to open " + path.string());
         }
 
-        for(const TerminalBox& terminal_box: terminal_boxes) {
+        for(const Elimination& terminal_box: terminal_boxes) {
             terminal_box_to_stream(file, terminal_box);
         }
 

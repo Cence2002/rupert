@@ -18,9 +18,9 @@ public:
 
     Range3(Range3&& range3) = default;
 
-    Range3& operator=(const Range3&) = delete;
+    Range3& operator=(const Range3&) = default;
 
-    Range3& operator=(Range3&&) = delete;
+    Range3& operator=(Range3&&) = default;
 
     bool operator<(const Range3& other) const {
         if(theta_range_ < other.theta_range_) {

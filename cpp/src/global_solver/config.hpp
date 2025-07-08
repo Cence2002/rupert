@@ -6,21 +6,16 @@
 
 template<IntervalType Interval>
 struct Config {
-    // main parameters
     Polyhedron<Interval> polyhedron;
     Interval epsilon;
-
-    // mathematical hyperparameters
-    uint32_t hole_orientations_limit;
-    uint32_t plug_orientations_limit;
     uint8_t projection_resolution;
     uint8_t rotation_resolution;
 
     // execution parameters
-    uint8_t thread_count;
+    uint8_t threads;
     std::filesystem::path root_directory;
     std::string name;
-    size_t export_size_threshold;
+    size_t export_threshold;
     bool restart;
     bool debug;
 
