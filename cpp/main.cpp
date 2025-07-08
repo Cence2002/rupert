@@ -53,8 +53,6 @@ int main() {
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);
 
-    return 0;
-
     pipeline.emplace(config);
     pipeline->init();
     pipeline->start();

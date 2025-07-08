@@ -108,7 +108,7 @@ private:
         if(config_.debug) {
             debug_exporter_.debug_builder.box_builder.set_projection(projected_hole);
         }
-        Queue<Range2> range2_queue;
+        SerialQueue<Range2> range2_queue;
         range2_queue.push(Range2(Range(), Range(1, 0)));
         std::vector<Range2> range2s;
         for(uint32_t iteration = 0; config_.range2_iteration_limit == 0 || iteration < config_.range2_iteration_limit; iteration++) {

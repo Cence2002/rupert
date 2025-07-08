@@ -18,7 +18,7 @@ private:
 
 public:
     template<IntegerType Integer>
-    explicit BoostInterval(const Integer integer) : interval_(integer) {}
+    explicit BoostInterval(const Integer value) : interval_(value) {}
 
     template<IntegerType Integer>
     explicit BoostInterval(const Integer min, const Integer max) : interval_(min, max) {

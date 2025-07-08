@@ -10,6 +10,8 @@ concept IntegerType =
     std::numeric_limits<Integer>::min() >= std::numeric_limits<int32_t>::min() &&
     std::numeric_limits<Integer>::max() <= std::numeric_limits<int32_t>::max();
 
+static_assert(IntegerType<int>);
+
 template<typename Interval>
 concept IntervalType =
     std::is_constructible_v<Interval, int> &&

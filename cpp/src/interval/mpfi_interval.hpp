@@ -19,16 +19,16 @@ private:
         }
     }
 
-    void assert_same_precision(const mpfr_t number) const {
-        if(mpfi_get_prec(interval_) != mpfr_get_prec(number)) {
-            throw std::invalid_argument("Precisions of interval and number are different");
+    void assert_same_precision(const mpfr_t value) const {
+        if(mpfi_get_prec(interval_) != mpfr_get_prec(value)) {
+            throw std::invalid_argument("Precisions of interval and value are different");
         }
     }
 
-    explicit MpfiInterval(const mpfr_t number) {
+    explicit MpfiInterval(const mpfr_t value) {
         mpfi_init(interval_);
-        assert_same_precision(number);
-        mpfi_set_fr(interval_, number);
+        assert_same_precision(value);
+        mpfi_set_fr(interval_, value);
     }
 
     explicit MpfiInterval(const mpfi_t interval) {
@@ -39,9 +39,9 @@ private:
 
 public:
     template<IntegerType Integer>
-    explicit MpfiInterval(const Integer integer) {
+    explicit MpfiInterval(const Integer value) {
         mpfi_init(interval_);
-        mpfi_set_si(interval_, integer);
+        mpfi_set_si(interval_, value);
     }
 
     template<IntegerType Integer>

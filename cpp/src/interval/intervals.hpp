@@ -12,12 +12,12 @@ enum class PrintMode {
 };
 
 inline PrintMode print_mode = PrintMode::mid_and_rad;
-inline std::streamsize print_precision = 6;
+inline std::streamsize print_precision = 4;
 
-inline std::string to_string(const double number) {
+inline std::string to_string(const double value) {
     std::ostringstream stream;
     stream.precision(print_precision);
-    stream << number;
+    stream << value;
     return stream.str();
 }
 
@@ -33,6 +33,6 @@ std::ostream& operator<<(std::ostream& ostream, const Interval& interval) {
         case PrintMode::mid_only: {
             return ostream << to_string(interval.mid().to_float());
         }
-        default: throw std::invalid_argument("Unknown IntervalPrintMode");
+        default: throw std::invalid_argument("Unknown PrintMode");
     }
 }

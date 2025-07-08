@@ -9,25 +9,24 @@ private:
     double min_;
     double max_;
 
-    explicit FloatInterval(const double min, const double max) : min_(min), max_(max) {
-        if(min != 0.0) {
-            min_ -= std::numeric_limits<double>::epsilon() * 42;
-        }
-        if(max != 0.0) {
-            max_ += std::numeric_limits<double>::epsilon() * 42;
-        }
-    }
+    explicit FloatInterval(const double min, const double max) : min_(min), max_(max) {}
 
     explicit FloatInterval(const double value) : FloatInterval(value, value) {}
 
 public:
     template<IntegerType Integer>
-    explicit FloatInterval(const Integer integer) : FloatInterval(static_cast<double>(integer)) {}
+    explicit FloatInterval(const Integer value) : FloatInterval(static_cast<double>(value)) {}
 
     template<IntegerType Integer>
     explicit FloatInterval(const Integer min, const Integer max) : FloatInterval(static_cast<double>(min), static_cast<double>(max)) {
         if(min > max) {
             throw std::invalid_argument("min > max");
+        }
+        if(min != 0) {
+            min_ -= std::numeric_limits<double>::epsilon() * 42;
+        }
+        if(max != 0) {
+            max_ += std::numeric_limits<double>::epsilon() * 42;
         }
     }
 
