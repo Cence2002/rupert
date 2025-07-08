@@ -53,15 +53,15 @@ public:
         return std::isnan(boost::numeric::lower(interval_)) || std::isnan(boost::numeric::upper(interval_));
     }
 
-    bool is_positive() const {
+    bool pos() const {
         return boost::numeric::interval_lib::cergt(interval_, 0.0);
     }
 
-    bool is_negative() const {
+    bool neg() const {
         return boost::numeric::interval_lib::cerlt(interval_, 0.0);
     }
 
-    bool is_nonzero() const {
+    bool nonz() const {
         return !is_nan() && !boost::numeric::zero_in(interval_);
     }
 
@@ -133,14 +133,14 @@ public:
     }
 
     BoostInterval operator/(const BoostInterval& interval) const {
-        if(!interval.is_nonzero()) {
+        if(!interval.nonz()) {
             return nan();
         }
         return BoostInterval(interval_ / interval.interval_);
     }
 
     BoostInterval inv() const {
-        if(!is_nonzero()) {
+        if(!nonz()) {
             return nan();
         }
         return BoostInterval(boost::numeric::interval_lib::multiplicative_inverse(interval_));
@@ -151,7 +151,7 @@ public:
     }
 
     BoostInterval sqrt() const {
-        if(min().is_negative()) {
+        if(min().neg()) {
             return nan();
         }
         return BoostInterval(boost::numeric::sqrt(interval_));
@@ -170,7 +170,7 @@ public:
     }
 
     BoostInterval tan() const {
-        if(!cos().is_nonzero()) {
+        if(!cos().nonz()) {
             return nan();
         }
         return BoostInterval(boost::numeric::tan(interval_));

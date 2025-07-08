@@ -56,15 +56,15 @@ public:
         return std::isnan(min_) || std::isnan(max_);
     }
 
-    bool is_positive() const {
+    bool pos() const {
         return min_ > 0;
     }
 
-    bool is_negative() const {
+    bool neg() const {
         return max_ < 0;
     }
 
-    bool is_nonzero() const {
+    bool nonz() const {
         return min_ > 0 || max_ < 0;
     }
 
@@ -131,7 +131,7 @@ public:
     }
 
     FloatInterval operator/(const FloatInterval& interval) const {
-        if(!interval.is_nonzero()) {
+        if(!interval.nonz()) {
             return nan();
         }
         const double min_min = min_ / interval.min_;
@@ -145,7 +145,7 @@ public:
     }
 
     FloatInterval inv() const {
-        if(!is_nonzero()) {
+        if(!nonz()) {
             return nan();
         }
         return FloatInterval(1 / max_, 1 / min_);

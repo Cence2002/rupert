@@ -62,7 +62,7 @@ public:
     }
 
     bool diff(const Vector2& vector) const {
-        return dist(vector).is_positive();
+        return dist(vector).pos();
     }
 
     Vector2 hull(const Vector2& vector) const {

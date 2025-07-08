@@ -47,7 +47,7 @@ namespace PolyhedronHelpers {
 
     template<IntervalType Interval>
     std::vector<Vector3<Interval>> flips(const Vector3<Interval>& vertex) {
-        return flips<Interval>({vertex}, vertex.x().is_nonzero(), vertex.y().is_nonzero(), vertex.z().is_nonzero());
+        return flips<Interval>({vertex}, vertex.x().nonz(), vertex.y().nonz(), vertex.z().nonz());
     }
 
     template<IntervalType Interval>

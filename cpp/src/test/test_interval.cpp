@@ -32,37 +32,37 @@ INTERVAL_TEST_CASE("nan") {
 INTERVAL_TEST_CASE("sign") {
     SECTION("[nan]") {
         const Interval interval = Interval::nan();
-        REQUIRE_FALSE(interval.is_positive());
-        REQUIRE_FALSE(interval.is_negative());
-        REQUIRE_FALSE(interval.is_nonzero());
+        REQUIRE_FALSE(interval.pos());
+        REQUIRE_FALSE(interval.neg());
+        REQUIRE_FALSE(interval.nonz());
     }
 
     SECTION("[-2,-1]") {
         const Interval interval(-2, -1);
-        REQUIRE_FALSE(interval.is_positive());
-        REQUIRE(interval.is_negative());
-        REQUIRE(interval.is_nonzero());
+        REQUIRE_FALSE(interval.pos());
+        REQUIRE(interval.neg());
+        REQUIRE(interval.nonz());
     }
 
     SECTION("[-1,0]") {
         const Interval interval(-1, 0);
-        REQUIRE_FALSE(interval.is_positive());
-        REQUIRE_FALSE(interval.is_negative());
-        REQUIRE_FALSE(interval.is_nonzero());
+        REQUIRE_FALSE(interval.pos());
+        REQUIRE_FALSE(interval.neg());
+        REQUIRE_FALSE(interval.nonz());
     }
 
     SECTION("[0,1]") {
         const Interval interval(0, 1);
-        REQUIRE_FALSE(interval.is_positive());
-        REQUIRE_FALSE(interval.is_negative());
-        REQUIRE_FALSE(interval.is_nonzero());
+        REQUIRE_FALSE(interval.pos());
+        REQUIRE_FALSE(interval.neg());
+        REQUIRE_FALSE(interval.nonz());
     }
 
     SECTION("[1,2]") {
         const Interval interval(1, 2);
-        REQUIRE(interval.is_positive());
-        REQUIRE_FALSE(interval.is_negative());
-        REQUIRE(interval.is_nonzero());
+        REQUIRE(interval.pos());
+        REQUIRE_FALSE(interval.neg());
+        REQUIRE(interval.nonz());
     }
 }
 

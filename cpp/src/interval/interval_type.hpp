@@ -31,9 +31,9 @@ concept IntervalType =
         { Interval::nan() } -> std::same_as<Interval>;
         { interval.is_nan() } -> std::same_as<bool>;
 
-        { interval.is_positive() } -> std::same_as<bool>;
-        { interval.is_negative() } -> std::same_as<bool>;
-        { interval.is_nonzero() } -> std::same_as<bool>;
+        { interval.pos() } -> std::same_as<bool>;
+        { interval.neg() } -> std::same_as<bool>;
+        { interval.nonz() } -> std::same_as<bool>;
 
         { interval > other_interval } -> std::same_as<bool>;
         { interval < other_interval } -> std::same_as<bool>;

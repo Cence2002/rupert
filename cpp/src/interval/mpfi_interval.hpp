@@ -105,15 +105,15 @@ public:
         return mpfi_nan_p(interval_);
     }
 
-    bool is_positive() const {
+    bool pos() const {
         return mpfi_is_strictly_pos(interval_);
     }
 
-    bool is_negative() const {
+    bool neg() const {
         return mpfi_is_strictly_neg(interval_);
     }
 
-    bool is_nonzero() const {
+    bool nonz() const {
         return !is_nan() && !mpfi_has_zero(interval_);
     }
 
@@ -207,7 +207,7 @@ public:
     }
 
     MpfiInterval operator/(const MpfiInterval& interval) const {
-        if(!interval.is_nonzero()) {
+        if(!interval.nonz()) {
             return nan();
         }
         mpfi_t div;
@@ -217,7 +217,7 @@ public:
     }
 
     MpfiInterval inv() const {
-        if(!is_nonzero()) {
+        if(!nonz()) {
             return nan();
         }
         mpfi_t inv;
@@ -234,7 +234,7 @@ public:
     }
 
     MpfiInterval sqrt() const {
-        if(min().is_negative()) {
+        if(min().neg()) {
             return nan();
         }
         mpfi_t sqrt;
@@ -265,7 +265,7 @@ public:
     }
 
     MpfiInterval tan() const {
-        if(!cos().is_nonzero()) {
+        if(!cos().nonz()) {
             return nan();
         }
         mpfi_t tan;

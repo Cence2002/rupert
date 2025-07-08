@@ -31,16 +31,16 @@ Interval harmonic_trivial(const Interval& cos_amplitude, const Interval& sin_amp
 
 template<IntervalType Interval>
 Interval harmonic_combined(const Interval& cos_amplitude, const Interval& sin_amplitude, const Interval& angle) {
-    if(cos_amplitude.is_nonzero()) {
+    if(cos_amplitude.nonz()) {
         const Interval amplitude = (cos_amplitude.sqr() + sin_amplitude.sqr()).sqrt();
         const Interval phase = (sin_amplitude / cos_amplitude).atan();
-        const int sign = cos_amplitude.is_positive() ? 1 : -1;
+        const int sign = cos_amplitude.pos() ? 1 : -1;
         return Interval(sign) * amplitude * (angle - phase).cos();
     }
-    if(sin_amplitude.is_nonzero()) {
+    if(sin_amplitude.nonz()) {
         const Interval amplitude = (cos_amplitude.sqr() + sin_amplitude.sqr()).sqrt();
         const Interval phase = -(cos_amplitude / sin_amplitude).atan();
-        const int sign = sin_amplitude.is_positive() ? 1 : -1;
+        const int sign = sin_amplitude.pos() ? 1 : -1;
         return Interval(sign) * amplitude * (angle - phase).sin();
     }
     return harmonic_trivial(cos_amplitude, sin_amplitude, angle);
@@ -366,7 +366,7 @@ bool is_projected_vertex_avoiding_edge_advanced_fixed_phi(const Vector3<Interval
     const Interval linear_term = Interval(2) * transformed_edge.dir().dot(transformed_edge.from());
     const Interval constant_term = transformed_edge.from().len().sqr() - radius_squared;
     const Interval discriminant = linear_term.sqr() - Interval(4) * quadratic_term * constant_term;
-    if(!discriminant.is_positive()) {
+    if(!discriminant.pos()) {
         return true;
     }
     const Interval sqrt_discriminant = discriminant.sqrt();
@@ -387,7 +387,7 @@ bool is_projected_vertex_avoiding_edge_advanced_fixed_phi(const Vector3<Interval
     );
     const Edge<Interval> transformed_projected_vertex_edge(transformed_min_projected_vertex, transformed_max_projected_vertex);
     for(const Interval& solution: solutions) {
-        if(solution.is_negative() || solution > transformed_edge.len()) {
+        if(solution.neg() || solution > transformed_edge.len()) {
             continue;
         }
         const Vector2<Interval> intersection = transformed_edge.from() + transformed_edge.dir() * transformed_edge.len() * solution;
@@ -400,7 +400,7 @@ bool is_projected_vertex_avoiding_edge_advanced_fixed_phi(const Vector3<Interval
 
 template<IntervalType Interval>
 bool is_projected_vertex_avoiding_polygon_advanced_fixed_phi(const Polygon<Interval>& polygon, const Vector3<Interval>& vertex, const Interval& theta, const Interval& phi) {
-    if(!phi.cos().is_nonzero()) {
+    if(!phi.cos().nonz()) {
         return is_projected_vertex_outside_polygon_combined(polygon, vertex, theta, phi);
     }
     return std::ranges::all_of(polygon.edges(), [&](const Edge<Interval>& edge) {

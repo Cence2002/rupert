@@ -51,7 +51,7 @@ private:
         const Interval box_angle_radius = Vector2<Interval>(Interval(range3.theta_interval<Interval>().len()) + Interval(range3.alpha_interval<Interval>().len()), Interval(range3.phi_interval<Interval>().len())).len() / Interval(2);
         const Interval range2_angle_radius = Vector2<Interval>(Interval(range2.theta_interval<Interval>().len()), Interval(range2.phi_interval<Interval>().len())).len() / Interval(2);
         const Interval remaining_angle = config_.epsilon - box_angle_radius - range2_angle_radius;
-        if(!remaining_angle.is_positive()) {
+        if(!remaining_angle.pos()) {
             return false;
         }
         const Interval cos_remaining_angle = remaining_angle.cos();

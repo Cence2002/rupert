@@ -75,7 +75,7 @@ std::vector<Matrix<Interval>> symmetries(const std::vector<Vector3<Interval>>& v
     std::vector<Matrix<Interval>> symmetries;
     for(const auto& from_vector_image: vectors) {
         for(const auto& to_vector_image: vectors) {
-            if((to_vector_image.dist(from_vector_image) - distance).is_nonzero()) {
+            if((to_vector_image.dist(from_vector_image) - distance).nonz()) {
                 continue;
             }
             Matrix<Interval> image_basis = orthonormal_basis<Interval>(from_vector_image, to_vector_image, right_handed);

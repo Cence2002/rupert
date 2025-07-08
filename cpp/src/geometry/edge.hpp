@@ -39,7 +39,7 @@ public:
     explicit Edge(const Vector2<Interval>& to) : from_(Vector2<Interval>(Interval(0), Interval(0))), to_(to) {}
 
     explicit Edge(const Vector2<Interval>& from, const Vector2<Interval>& to) : from_(from), to_(to) {
-        if(!from_.dist(to_).is_positive()) {
+        if(!from_.dist(to_).pos()) {
             throw std::runtime_error("Zero length edge");
         }
     }
@@ -76,10 +76,10 @@ public:
 
     Side side(const Vector2<Interval>& vector) const {
         const Interval cross = dir().cross(vector - from_);
-        if(cross.is_positive()) {
+        if(cross.pos()) {
             return Side::left;
         }
-        if(cross.is_negative()) {
+        if(cross.neg()) {
             return Side::right;
         }
         return Side::ambiguous;
