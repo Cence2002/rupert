@@ -98,6 +98,26 @@
         return point;
     }
 
+    function createLines(points, color = 0xffffff) {
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        const material = new THREE.LineBasicMaterial({color});
+        const line = new THREE.Line(geometry, material);
+        scene.add(line);
+        return line;
+    }
+
+    function createLine(start, end, color = 0xffffff) {
+        return createLines([start, end], color);
+    }
+
+    const circlePoints = [];
+    const segments = 64;
+    for (let i = 0; i <= segments; i++) {
+        const theta = (i / segments) * Math.PI * 2;
+        circlePoints.push(new THREE.Vector3(Math.cos(theta), Math.sin(theta), 0));
+    }
+    const unitCircle = createLines(circlePoints, 0x808080);
+
     const v = new THREE.Vector3(1, 0, 0);
     const vPoint = createPoint(v, 0xffffff, 0.02);
 
@@ -105,10 +125,7 @@
     const nPoint = createPoint(n, 0xffffff, 0.02);
 
     const reflectedV = new THREE.Vector3();
-    const lineGeom = new THREE.BufferGeometry().setFromPoints([v, reflectedV]);
-    const lineMat = new THREE.LineBasicMaterial({color: 0xffffff});
-    const reflectionLine = new THREE.Line(lineGeom, lineMat);
-    scene.add(reflectionLine);
+    const reflectionLine = createLine(v, reflectedV);
 
 
     const sliderTheta = document.getElementById('sliderTheta');
