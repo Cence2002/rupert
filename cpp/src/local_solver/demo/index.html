@@ -110,13 +110,68 @@
         return createLines([start, end], color);
     }
 
-    const circlePoints = [];
-    const segments = 64;
-    for (let i = 0; i <= segments; i++) {
-        const theta = (i / segments) * Math.PI * 2;
-        circlePoints.push(new THREE.Vector3(Math.cos(theta), Math.sin(theta), 0));
+    export function findAxes(v, n, alpha, omega) {
+        const axes = [];
+
+        const cosTheta = v.dot(n);
+        if (Math.abs(cosTheta) > 0.999999) return axes;
+
+        const theta = Math.acos(cosTheta);
+        const sinTheta = Math.sin(theta);
+
+        const ePerp = new THREE.Vector3().copy(v).cross(n).normalize();
+        const ePlus = new THREE.Vector3().copy(v).add(n).normalize();
+        const eMinus = new THREE.Vector3().copy(v).sub(n).normalize();
+
+        const cosOmega = Math.cos(omega);
+        const sinOmega = Math.sin(omega);
+        const tanHalfAlpha = Math.tan(alpha * 0.5);
+
+        const A = ((1 + cosTheta) * 0.5) * cosOmega * cosOmega - ((1 - cosTheta) * 0.5) * sinOmega * sinOmega;
+        const B = cosTheta;
+        const D = sinTheta / tanHalfAlpha;
+
+        const solveLambdaSquared = () => {
+            if (Math.abs(A) < 1e-15) {
+                const y = 1 - (B * B) / (D * D);
+                return y > 1e-15 ? [y] : [];
+            }
+            const E = D * D;
+            const disc = E * (E - 4 * A * B + 4 * A * A);
+            if (disc < 0) return [];
+            const root = Math.sqrt(disc);
+            const y1 = (2 * A * B - E + root) / (2 * A * A);
+            const y2 = (2 * A * B - E - root) / (2 * A * A);
+            return [y1, y2].filter(y => y >= 0 && y <= 1 + 1e-12);
+        };
+
+        const lambdaSquaredList = solveLambdaSquared();
+        for (const y of lambdaSquaredList) {
+            const lambda = Math.sqrt(y);
+            const aPlus = lambda * cosOmega;
+            const aMinus = lambda * sinOmega;
+            const aPerp = (B - A * y) / D;
+
+            const axis = new THREE.Vector3()
+                .addScaledVector(ePlus, aPlus)
+                .addScaledVector(eMinus, aMinus)
+                .addScaledVector(ePerp, aPerp)
+                .normalize();
+
+            axes.push(axis);
+        }
+
+        return axes;
     }
-    const unitCircle = createLines(circlePoints, 0x808080);
+
+
+    const circlePoints = [];
+    const circleSegments = 64;
+    for (let i = 0; i <= circleSegments; i++) {
+        const angle = (i / circleSegments) * Math.PI * 2;
+        circlePoints.push(new THREE.Vector3(Math.cos(angle), Math.sin(angle), 0));
+    }
+    const unitCircle = createLines(circlePoints, 0x7f7f7f);
 
     const v = new THREE.Vector3(1, 0, 0);
     const vPoint = createPoint(v, 0xffffff, 0.02);
@@ -124,10 +179,12 @@
     const n = new THREE.Vector3();
     const nPoint = createPoint(n, 0xffffff, 0.02);
 
-    const reflectedV = new THREE.Vector3();
-    const reflectedVPoint = createPoint(reflectedV, 0xffffff, 0.02);
-    const reflectionLine = createLine(v, reflectedV);
+    const v2 = new THREE.Vector3();
+    const v2Point = createPoint(v2, 0xffffff, 0.02);
+    const line = createLine(v, v2);
 
+    let all_axes = [];
+    const axisSegments = 256;
 
     const sliderTheta = document.getElementById('sliderTheta');
     const sliderAlpha = document.getElementById('sliderAlpha');
@@ -144,11 +201,19 @@
         n.set(Math.cos(theta / 2), Math.sin(theta / 2), 0);
         nPoint.position.copy(n);
 
-        reflectedV.set(Math.cos(theta), Math.sin(theta), 0);
-        reflectedVPoint.position.copy(reflectedV);
+        v2.set(Math.cos(theta), Math.sin(theta), 0);
+        v2Point.position.copy(v2);
 
-        reflectionLine.geometry.setFromPoints([v, reflectedV]);
-        reflectionLine.geometry.attributes.position.needsUpdate = true;
+        all_axes.forEach(a => scene.remove(a));
+        all_axes = [];
+        for (let i = 0; i < axisSegments; i++) {
+            const angle = (i / axisSegments) * Math.PI * 2;
+            for (const axis of findAxes(v, n, alpha, angle)) {
+                all_axes.push(createPoint(axis, 0x00ff00, 0.01));
+            }
+        }
+
+        line.geometry.setFromPoints([v, v2]);
     }
 
     [sliderTheta, sliderAlpha].forEach(slider => {
