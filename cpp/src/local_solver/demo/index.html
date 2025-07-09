@@ -17,8 +17,9 @@
         #controls {
             position: absolute;
             bottom: 10px;
-            width: 90%;
-            left: 5%;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -26,21 +27,16 @@
             font-family: Arial, Helvetica, sans-serif;
         }
 
-        .row {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin: 5px 0;
-        }
-
-        .row label {
+        #controls label {
             display: flex;
             align-items: center;
+            width: 100%;
+            margin: 2px 0;
         }
 
-        .row input[type="range"] {
+        #controls label input[type="range"] {
+            flex-grow: 1;
             margin-left: 8px;
-            width: 200px;
         }
     </style>
     <script type="importmap">
@@ -53,90 +49,86 @@
     </script>
 </head>
 <body>
-    <div id="controls">
-        <div class="row">
-            <label>
-                X:
-                <input type="range" id="sliderX" min="-1" max="1" step="0.01" value="0">
-            </label>
-            <label>
-                Y:
-                <input type="range" id="sliderY" min="-1" max="1" step="0.01" value="0">
-            </label>
-        </div>
-        <div class="row">
-            <label>
-                Z:
-                <input type="range" id="sliderZ" min="-1" max="1" step="0.01" value="0">
-            </label>
-            <label>
-                R:
-                <input type="range" id="sliderR" min="0.1" max="2" step="0.01" value="1">
-            </label>
-        </div>
-    </div>
-    <script type="module">
-        import * as THREE from 'three';
-        import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+<div id="controls">
+    <label>
+        X
+        <input type="range" id="sliderX" min="-1" max="1" step="0.01" value="0">
+    </label>
+    <label>
+        Y
+        <input type="range" id="sliderY" min="-1" max="1" step="0.01" value="0">
+    </label>
+    <label>
+        Z
+        <input type="range" id="sliderZ" min="-1" max="1" step="0.01" value="0">
+    </label>
+    <label>
+        R
+        <input type="range" id="sliderR" min="0.1" max="2" step="0.01" value="1">
+    </label>
+</div>
+<script type="module">
+    import * as THREE from 'three';
+    import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 
-        const scene = new THREE.Scene();
-        scene.up.set(0, 0, 1);
+    const scene = new THREE.Scene();
+    scene.up.set(0, 0, 1);
 
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.up.set(0, 0, 1);
-        camera.position.set(8, 0, 2);
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.up.set(0, 0, 1);
+    camera.position.set(8, 0, 2);
 
-        const renderer = new THREE.WebGLRenderer({antialias: true});
+    const renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x000000);
+    document.body.appendChild(renderer.domElement);
+
+    const axesHelper = new THREE.AxesHelper(2);
+    scene.add(axesHelper);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 0, 0);
+    controls.update();
+
+    const interactiveGeom = new THREE.SphereGeometry(0.03, 16, 16);
+    const interactiveMat = new THREE.MeshBasicMaterial({color: 0xff0000});
+    const interactivePoint = new THREE.Mesh(interactiveGeom, interactiveMat);
+    interactivePoint.position.set(0, 0, 0);
+    scene.add(interactivePoint);
+
+    const sliderX = document.getElementById('sliderX');
+    const sliderY = document.getElementById('sliderY');
+    const sliderZ = document.getElementById('sliderZ');
+    const sliderR = document.getElementById('sliderR');
+
+    function updateInteractivePoint() {
+        const x = parseFloat(sliderX.value);
+        const y = parseFloat(sliderY.value);
+        const z = parseFloat(sliderZ.value);
+        const r = parseFloat(sliderR.value);
+        interactivePoint.position.set(x, y, z);
+        interactivePoint.scale.set(r, r, r);
+    }
+
+    [sliderX, sliderY, sliderZ, sliderR].forEach(slider => {
+        slider.addEventListener('input', updateInteractivePoint);
+    });
+
+    updateInteractivePoint();
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setClearColor(0x000000);
-        document.body.appendChild(renderer.domElement);
+    });
 
-        const axesHelper = new THREE.AxesHelper(2);
-        scene.add(axesHelper);
-
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.target.set(0, 0, 0);
+    function animate() {
+        requestAnimationFrame(animate);
         controls.update();
+        renderer.render(scene, camera);
+    }
 
-        const interactiveGeom = new THREE.SphereGeometry(0.03, 16, 16);
-        const interactiveMat = new THREE.MeshBasicMaterial({color: 0xff0000});
-        const interactivePoint = new THREE.Mesh(interactiveGeom, interactiveMat);
-        interactivePoint.position.set(0, 0, 0);
-        scene.add(interactivePoint);
-
-        const sliderX = document.getElementById('sliderX');
-        const sliderY = document.getElementById('sliderY');
-        const sliderZ = document.getElementById('sliderZ');
-        const sliderR = document.getElementById('sliderR');
-
-        function updateInteractivePoint() {
-            const x = parseFloat(sliderX.value);
-            const y = parseFloat(sliderY.value);
-            const z = parseFloat(sliderZ.value);
-            const r = parseFloat(sliderR.value);
-            interactivePoint.position.set(x, y, z);
-            interactivePoint.scale.set(r, r, r);
-        }
-
-        [sliderX, sliderY, sliderZ, sliderR].forEach(slider => {
-            slider.addEventListener('input', updateInteractivePoint);
-        });
-
-        updateInteractivePoint();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-
-        animate();
-    </script>
+    animate();
+</script>
 </body>
 </html>
