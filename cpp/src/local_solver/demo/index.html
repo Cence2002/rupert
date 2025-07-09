@@ -54,12 +54,12 @@
 <div id="controls">
     <label>
         Theta
-        <input type="range" id="sliderTheta" min="0" max="1.57079632679" step="0.01" value="0.3">
+        <input type="range" id="sliderTheta" min="0" max="1.57079632679" step="0.01" value="0.8">
         <span id="thetaValue">0.00</span>
     </label>
     <label>
         Alpha
-        <input type="range" id="sliderAlpha" min="0" max="1.57079632679" step="0.01" value="0.1">
+        <input type="range" id="sliderAlpha" min="0" max="1.57079632679" step="0.01" value="0.4">
         <span id="alphaValue">0.00</span>
     </label>
 </div>
@@ -90,7 +90,7 @@
     controls.update();
 
     function createPoint(position, color = 0xffffff, size = 0.01) {
-        const geometry = new THREE.SphereGeometry(size, 16, 16);
+        const geometry = new THREE.SphereGeometry(size, 4, 4);
         const material = new THREE.MeshBasicMaterial({color});
         const point = new THREE.Mesh(geometry, material);
         point.position.copy(position);
@@ -204,14 +204,17 @@
         v2.set(Math.cos(theta), Math.sin(theta), 0);
         v2Point.position.copy(v2);
 
-        all_axes.forEach(a => scene.remove(a));
+        const old_axes = all_axes;
         all_axes = [];
+        old_axes.forEach(a => scene.remove(a));
+        const new_axes = [];
         for (let i = 0; i < axisSegments; i++) {
             const angle = (i / axisSegments) * Math.PI * 2;
             for (const axis of findAxes(v, n, alpha, angle)) {
-                all_axes.push(createPoint(axis, 0x00ff00, 0.01));
+                new_axes.push(createPoint(axis, 0x00ff00, 0.01));
             }
         }
+        all_axes = new_axes;
 
         line.geometry.setFromPoints([v, v2]);
     }
