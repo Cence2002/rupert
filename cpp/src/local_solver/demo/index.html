@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Threejs Axes with Interactive Point</title>
+    <title>Demo</title>
     <style>
         html, body {
             width: 100%;
@@ -31,12 +31,14 @@
             display: flex;
             align-items: center;
             width: 100%;
-            margin: 2px 0;
         }
 
         #controls label input[type="range"] {
             flex-grow: 1;
-            margin-left: 8px;
+        }
+
+        #controls label span {
+            display: flex;
         }
     </style>
     <script type="importmap">
@@ -51,20 +53,14 @@
 <body>
 <div id="controls">
     <label>
-        X
-        <input type="range" id="sliderX" min="-1" max="1" step="0.01" value="0">
+        Theta
+        <input type="range" id="sliderTheta" min="0" max="1.57079632679" step="0.01" value="0.3">
+        <span id="thetaValue">0.00</span>
     </label>
     <label>
-        Y
-        <input type="range" id="sliderY" min="-1" max="1" step="0.01" value="0">
-    </label>
-    <label>
-        Z
-        <input type="range" id="sliderZ" min="-1" max="1" step="0.01" value="0">
-    </label>
-    <label>
-        R
-        <input type="range" id="sliderR" min="0.1" max="2" step="0.01" value="1">
+        Alpha
+        <input type="range" id="sliderAlpha" min="0" max="1.57079632679" step="0.01" value="0.1">
+        <span id="alphaValue">0.00</span>
     </label>
 </div>
 <script type="module">
@@ -76,7 +72,7 @@
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.up.set(0, 0, 1);
-    camera.position.set(8, 0, 2);
+    camera.position.set(4, 0, 1);
 
     const renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -93,46 +89,54 @@
     controls.target.set(0, 0, 0);
     controls.update();
 
-    const interactiveGeom = new THREE.SphereGeometry(0.03, 16, 16);
-    const interactiveMat = new THREE.MeshBasicMaterial({color: 0xff0000});
-    const interactivePoint = new THREE.Mesh(interactiveGeom, interactiveMat);
-    interactivePoint.position.set(0, 0, 0);
-    scene.add(interactivePoint);
-
-    function plotPoint(position, color = 0xffffff, size = 1) {
-        const geometry = new THREE.SphereGeometry(size, 8, 8);
+    function createPoint(position, color = 0xffffff, size = 0.01) {
+        const geometry = new THREE.SphereGeometry(size, 16, 16);
         const material = new THREE.MeshBasicMaterial({color});
         const point = new THREE.Mesh(geometry, material);
         point.position.copy(position);
         scene.add(point);
+        return point;
     }
 
-    function plotLine(start, end, color = 0xffffff) {
-        const material = new THREE.LineBasicMaterial(color);
-        const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
-        const line = new THREE.Line(geometry, material);
-        scene.add(line);
+    const v = new THREE.Vector3(1, 0, 0);
+    const vPoint = createPoint(v, 0xffffff, 0.02);
+
+    const n = new THREE.Vector3();
+    const nPoint = createPoint(n, 0xffffff, 0.02);
+
+    const reflectedV = new THREE.Vector3();
+    const lineGeom = new THREE.BufferGeometry().setFromPoints([v, reflectedV]);
+    const lineMat = new THREE.LineBasicMaterial({color: 0xffffff});
+    const reflectionLine = new THREE.Line(lineGeom, lineMat);
+    scene.add(reflectionLine);
+
+
+    const sliderTheta = document.getElementById('sliderTheta');
+    const sliderAlpha = document.getElementById('sliderAlpha');
+    const thetaValueSpan = document.getElementById('thetaValue');
+    const alphaValueSpan = document.getElementById('alphaValue');
+
+    function updateScene() {
+        const theta = parseFloat(sliderTheta.value);
+        const alpha = parseFloat(sliderAlpha.value);
+
+        thetaValueSpan.textContent = theta.toFixed(2);
+        alphaValueSpan.textContent = alpha.toFixed(2);
+
+        n.set(Math.cos(theta), Math.sin(theta), 0);
+        nPoint.position.copy(n);
+
+        reflectedV.set(Math.cos(2 * theta), Math.sin(2 * theta), 0);
+
+        reflectionLine.geometry.setFromPoints([v, reflectedV]);
+        reflectionLine.geometry.attributes.position.needsUpdate = true;
     }
 
-    const sliderX = document.getElementById('sliderX');
-    const sliderY = document.getElementById('sliderY');
-    const sliderZ = document.getElementById('sliderZ');
-    const sliderR = document.getElementById('sliderR');
-
-    function updateInteractivePoint() {
-        const x = parseFloat(sliderX.value);
-        const y = parseFloat(sliderY.value);
-        const z = parseFloat(sliderZ.value);
-        const r = parseFloat(sliderR.value);
-        interactivePoint.position.set(x, y, z);
-        interactivePoint.scale.set(r, r, r);
-    }
-
-    [sliderX, sliderY, sliderZ, sliderR].forEach(slider => {
-        slider.addEventListener('input', updateInteractivePoint);
+    [sliderTheta, sliderAlpha].forEach(slider => {
+        slider.addEventListener('input', updateScene);
     });
 
-    updateInteractivePoint();
+    updateScene();
 
     window.addEventListener('resize', () => {
         camera.aspect = window.innerWidth / window.innerHeight;
