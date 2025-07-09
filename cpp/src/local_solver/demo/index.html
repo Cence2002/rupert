@@ -125,6 +125,7 @@
     const nPoint = createPoint(n, 0xffffff, 0.02);
 
     const reflectedV = new THREE.Vector3();
+    const reflectedVPoint = createPoint(reflectedV, 0xffffff, 0.02);
     const reflectionLine = createLine(v, reflectedV);
 
 
@@ -140,10 +141,11 @@
         thetaValueSpan.textContent = theta.toFixed(2);
         alphaValueSpan.textContent = alpha.toFixed(2);
 
-        n.set(Math.cos(theta), Math.sin(theta), 0);
+        n.set(Math.cos(theta / 2), Math.sin(theta / 2), 0);
         nPoint.position.copy(n);
 
-        reflectedV.set(Math.cos(2 * theta), Math.sin(2 * theta), 0);
+        reflectedV.set(Math.cos(theta), Math.sin(theta), 0);
+        reflectedVPoint.position.copy(reflectedV);
 
         reflectionLine.geometry.setFromPoints([v, reflectedV]);
         reflectionLine.geometry.attributes.position.needsUpdate = true;
