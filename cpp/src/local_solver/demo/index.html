@@ -99,6 +99,21 @@
     interactivePoint.position.set(0, 0, 0);
     scene.add(interactivePoint);
 
+    function plotPoint(position, color = 0xffffff, size = 1) {
+        const geometry = new THREE.SphereGeometry(size, 8, 8);
+        const material = new THREE.MeshBasicMaterial({color});
+        const point = new THREE.Mesh(geometry, material);
+        point.position.copy(position);
+        scene.add(point);
+    }
+
+    function plotLine(start, end, color = 0xffffff) {
+        const material = new THREE.LineBasicMaterial(color);
+        const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
+        const line = new THREE.Line(geometry, material);
+        scene.add(line);
+    }
+
     const sliderX = document.getElementById('sliderX');
     const sliderY = document.getElementById('sliderY');
     const sliderZ = document.getElementById('sliderZ');
