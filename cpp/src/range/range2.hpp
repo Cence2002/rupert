@@ -39,6 +39,10 @@ public:
         return phi_range_;
     }
 
+    bool terminal() const {
+        return theta_range_.terminal() || phi_range_.terminal();
+    }
+
     std::vector<Range2> parts() const {
         std::vector<Range2> parts;
         for(const Range& theta_part: theta_range_.parts()) {

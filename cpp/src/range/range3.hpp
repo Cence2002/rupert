@@ -50,6 +50,10 @@ public:
         return alpha_range_;
     }
 
+    bool terminal() const {
+        return theta_range_.terminal() || phi_range_.terminal() || alpha_range_.terminal();
+    }
+
     std::vector<Range3> parts() const {
         std::vector<Range3> parts;
         for(const Range& theta_part: theta_range_.parts()) {

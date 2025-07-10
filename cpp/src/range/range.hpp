@@ -48,6 +48,10 @@ public:
         return bits_;
     }
 
+    bool terminal() const {
+        return depth_ >= 15;
+    }
+
     std::vector<Range> parts() const {
         return {
             Range(static_cast<uint8_t>(depth_ + 1), static_cast<uint16_t>(bits_ << 1)),

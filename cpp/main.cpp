@@ -21,7 +21,7 @@ void signal_handler(const int signal) {
             }
         }
         std::cout << "Interrupting Global Solver..." << std::endl;
-        global_solver->stop();
+        global_solver->interrupt();
     }
 }
 
@@ -29,8 +29,8 @@ void run_global_solver(const Config<I>& config) {
     config.validate();
 
     global_solver.emplace(config);
-    global_solver->init();
-    global_solver->start();
+    global_solver->setup();
+    global_solver->run();
     std::cout << "Global Solver terminated gracefully" << std::endl;
 }
 
@@ -39,7 +39,7 @@ int main() {
 
     run_global_solver(Config(
         Polyhedron(Archimedean::rhombicosidodecahedron<I>()),
-        I::pi() / I(180),
+        I::pi() / I(18),
         2,
         2,
         1,

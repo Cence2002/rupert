@@ -282,9 +282,9 @@ Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vectors) {
     std::vector<bool> visited(vectors.size(), false);
 
     size_t start_index = 0;
-    for(size_t new_start_index = 1; new_start_index < vectors.size(); new_start_index++) {
-        if(vectors[new_start_index].len().max() > vectors[start_index].len().max()) {
-            start_index = new_start_index;
+    for(size_t i = 1; i < vectors.size(); i++) {
+        if(vectors[i].len().max() > vectors[start_index].len().max()) {
+            start_index = i;
         }
     }
     queue.emplace(start_index);
@@ -298,15 +298,15 @@ Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vectors) {
         visited[from_index] = true;
 
         std::optional<size_t> most_clockwise_index;
-        for(size_t new_most_clockwise_index = 0; new_most_clockwise_index < vectors.size(); new_most_clockwise_index++) {
-            if(new_most_clockwise_index == from_index || Edge<Interval>(vectors[from_index]).side(vectors[new_most_clockwise_index]) == Side::right) {
+        for(size_t i = 0; i < vectors.size(); i++) {
+            if(i == from_index || Edge<Interval>(vectors[from_index]).side(vectors[i]) == Side::right) {
                 continue;
             }
-            if(!vectors[from_index].diff(vectors[new_most_clockwise_index])) {
+            if(!vectors[from_index].diff(vectors[i])) {
                 throw std::runtime_error("Zero length edge found");
             }
-            if(!most_clockwise_index.has_value() || Edge<Interval>(vectors[from_index], vectors[most_clockwise_index.value()]).side(vectors[new_most_clockwise_index]) == Side::right) {
-                most_clockwise_index = new_most_clockwise_index;
+            if(!most_clockwise_index.has_value() || Edge<Interval>(vectors[from_index], vectors[most_clockwise_index.value()]).side(vectors[i]) == Side::right) {
+                most_clockwise_index = i;
             }
         }
         if(!most_clockwise_index.has_value()) {
@@ -315,29 +315,29 @@ Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vectors) {
 
         std::vector<size_t> to_indices;
         const Edge<Interval> most_clockwise_edge(vectors[from_index], vectors[most_clockwise_index.value()]);
-        for(size_t to_index = 0; to_index < vectors.size(); to_index++) {
-            if(to_index == from_index || Edge<Interval>(vectors[from_index]).side(vectors[to_index]) == Side::right) {
+        for(size_t i = 0; i < vectors.size(); i++) {
+            if(i == from_index || Edge<Interval>(vectors[from_index]).side(vectors[i]) == Side::right) {
                 continue;
             }
-            if(!vectors[from_index].diff(vectors[to_index])) {
+            if(!vectors[from_index].diff(vectors[i])) {
                 throw std::runtime_error("Zero length edge found");
             }
-            if(most_clockwise_edge.side(vectors[to_index]) == Side::left) {
+            if(most_clockwise_edge.side(vectors[i]) == Side::left) {
                 continue;
             }
             bool is_most_clockwise = true;
-            const Edge<Interval> edge(vectors[from_index], vectors[to_index]);
-            for(size_t index = 0; index < vectors.size(); index++) {
-                if(index == from_index || index == to_index) {
+            const Edge<Interval> edge(vectors[from_index], vectors[i]);
+            for(size_t j = 0; j < vectors.size(); j++) {
+                if(j == from_index || j == i) {
                     continue;
                 }
-                if(edge.side(vectors[index]) == Side::right) {
+                if(edge.side(vectors[j]) == Side::right) {
                     is_most_clockwise = false;
                     break;
                 }
             }
             if(is_most_clockwise) {
-                to_indices.push_back(to_index);
+                to_indices.push_back(i);
             }
         }
         std::ranges::stable_sort(to_indices, [&](const size_t index, const size_t other_index) {

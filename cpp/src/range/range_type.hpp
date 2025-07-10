@@ -13,6 +13,7 @@ concept RangeType =
     !std::is_default_constructible_v<Range> &&
 
     requires(const Range& range, const Range& other_range) {
+        { range.terminal() } -> std::convertible_to<bool>;
         { range.parts() } -> std::convertible_to<std::vector<Range>>;
         { range < other_range } -> std::convertible_to<bool>;
     };

@@ -88,7 +88,7 @@ std::vector<Matrix<Interval>> symmetries(const std::vector<Vector3<Interval>>& v
                 );
             });
             if(is_symmetry) {
-                symmetries.emplace_back(symmetry);
+                symmetries.push_back(symmetry);
             }
         }
     }
