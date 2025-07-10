@@ -26,7 +26,7 @@ private:
 
     DebugExporter<Interval> debug_exporter_;
 
-    Polygon<Interval> get_hole_projection(const Range3& hole_orientation) {
+    Polygon<Interval> oriented_hole_projection(const Range3& hole_orientation) {
         std::vector<Vector2<Interval>> vectors;
         for(const Vector3<Interval>& vertex: config_.polyhedron.vertices()) {
             for(const Vector2<Interval>& projected_hole_vertex: projected_orientation_hull(vertex, hole_orientation.theta<Interval>(), hole_orientation.phi<Interval>(), config_.projection_resolution)) {
@@ -100,8 +100,8 @@ private:
         });
     }
 
-    std::optional<Elimination> get_optional_terminal_box(const Range3& hole_orientation) {
-        Polygon<Interval> projected_hole = get_hole_projection(hole_orientation);
+    std::optional<Elimination> check_hole_orientation(const Range3& hole_orientation) {
+        Polygon<Interval> projected_hole = oriented_hole_projection(hole_orientation);
         if(config_.debug) {
             debug_exporter_.debug_builder.box_builder.set_projection(projected_hole);
         }
@@ -154,15 +154,15 @@ private:
         if(range3.theta_range().depth() >= 15 || range3.phi_range().depth() >= 15 || range3.alpha_range().depth() >= 15) {
             return false;
         }
-        const std::optional<Elimination> optional_terminal_box = get_optional_terminal_box(range3);
+        const std::optional<Elimination> optional_elimination = check_hole_orientation(range3);
         if(config_.debug) {
             debug_exporter_.debug_builder.box_builder.set_box(range3);
-            debug_exporter_.debug_builder.box_builder.set_terminal(optional_terminal_box.has_value());
+            debug_exporter_.debug_builder.box_builder.set_terminal(optional_elimination.has_value());
             debug_exporter_.debug_builder.add_box();
         }
-        if(optional_terminal_box.has_value()) {
+        if(optional_elimination.has_value()) {
             // std::cout << "Terminal Box: " << box << std::endl; // TODO: enable
-            export_queue_.push(optional_terminal_box.value());
+            export_queue_.push(optional_elimination.value());
         } else {
             // std::cout << "Non Terminal Box: " << box << std::endl; // TODO: enable
             for(const Range3& box_part: range3.parts()) {
