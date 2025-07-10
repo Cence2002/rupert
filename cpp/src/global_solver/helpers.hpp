@@ -197,22 +197,82 @@ bool projected_oriented_vector_avoids_polygon(const Polygon<Interval>& polygon, 
            projected_oriented_vector_avoids_polygon_fixed_phi(polygon, vector, theta, phi.max());
 }
 
+template<IntervalType Interval>
+Vector2<Interval> merge_vectors(const std::vector<Vector2<Interval>>& vectors) {
+    if(vectors.empty()) {
+        throw std::runtime_error("vectors is empty");
+    }
+    if(vectors.size() == 1) {
+        return vectors.front();
+    }
+    return vectors[0].hull(merge_vectors(std::vector<Vector2<Interval>>(vectors.begin() + 1, vectors.end())));
+}
+
 template<typename Interval>
-Interval max_uncertainty(const std::vector<Vector2<Interval>>& vectors) {
+std::vector<Vector2<Interval>> deduplicate_vectors(const std::vector<Vector2<Interval>>& vectors) {
     size_t max_index = 0;
     for(size_t i = 1; i < vectors.size(); i++) {
-        if(vectors[i].len().len() > vectors[max_index].len().len()) {
+        if(vectors[i].dist(vectors[i]).max() > vectors[max_index].dist(vectors[max_index]).max()) {
             max_index = i;
         }
     }
-    return vectors[max_index].len().len();
-}
+    const Interval epsilon = vectors[max_index].dist(vectors[max_index]).max() * Interval(static_cast<int>(vectors.size()));
 
-// template<typename Interval>
-// std::vector<Vector<Interval>> merge_vectors(const std::vector<Vector<Interval>>& vectors) {
-//     const Interval epsilon = Interval(max_uncertainty(vectors)) * Interval(static_cast<int>(vectors.size())) * Interval(2);
-//     ...
-// }
+    std::vector<size_t> parent(vectors.size());
+    for(size_t i = 0; i < vectors.size(); i++) {
+        parent[i] = i;
+    }
+    for(size_t i = 1; i < vectors.size(); i++) {
+        for(size_t j = 0; j < i; j++) {
+            const Interval dist = vectors[i].dist(vectors[j]);
+            if(dist > epsilon) {
+                continue;
+            }
+            if(!dist.pos()) {
+                parent[i] = j;
+                break;
+            }
+        }
+    }
+    std::vector<size_t> root(vectors.size());
+    for(size_t i = 0; i < vectors.size(); i++) {
+        size_t current = i;
+        while(parent[current] != current) {
+            current = parent[current];
+        }
+        root[i] = current;
+    }
+    std::vector<Vector2<Interval>> merged_vectors;
+    bool merged_any = false;
+    for(size_t i = 0; i < vectors.size(); i++) {
+        std::vector<Vector2<Interval>> vector_group;
+        for(size_t j = 0; j < vectors.size(); j++) {
+            if(root[j] == i) {
+                vector_group.push_back(vectors[j]);
+            }
+        }
+        if(vector_group.empty()) {
+            continue;
+        }
+        if(vector_group.size() == 1) {
+            merged_vectors.push_back(vector_group.front());
+            continue;
+        }
+        merged_vectors.push_back(merge_vectors(vector_group));
+        merged_any = true;
+    }
+    for(size_t i = 0; i < vectors.size(); i++) {
+        if(parent[i] != i) {
+            std::cout << "Vector " << i << " is a duplicate of vector " << parent[i] << ": " << vectors[i] << " ~ " << vectors[parent[i]] << std::endl;
+        }
+    }
+    std::cout << std::endl;
+    std::cout << std::endl;
+    if(merged_any) {
+        return deduplicate_vectors(merged_vectors);
+    }
+    return merged_vectors;
+}
 
 template<IntervalType Interval>
 Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vectors) {
