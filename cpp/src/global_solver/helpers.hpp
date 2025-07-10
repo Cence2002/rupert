@@ -234,6 +234,7 @@ std::vector<Vector2<Interval>> deduplicate_vectors(const std::vector<Vector2<Int
             }
         }
     }
+
     std::vector<size_t> root(vectors.size());
     for(size_t i = 0; i < vectors.size(); i++) {
         size_t current = i;
@@ -242,6 +243,7 @@ std::vector<Vector2<Interval>> deduplicate_vectors(const std::vector<Vector2<Int
         }
         root[i] = current;
     }
+
     std::vector<Vector2<Interval>> merged_vectors;
     bool merged_any = false;
     for(size_t i = 0; i < vectors.size(); i++) {
@@ -266,43 +268,21 @@ std::vector<Vector2<Interval>> deduplicate_vectors(const std::vector<Vector2<Int
             std::cout << "Vector " << i << " is a duplicate of vector " << parent[i] << ": " << vectors[i] << " ~ " << vectors[parent[i]] << std::endl;
         }
     }
-    std::cout << std::endl;
-    std::cout << std::endl;
-    if(merged_any) {
-        return deduplicate_vectors(merged_vectors);
+    if(!merged_any) {
+        return merged_vectors;
     }
-    return merged_vectors;
+    return deduplicate_vectors(merged_vectors);
 }
 
 template<IntervalType Interval>
 Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vectors) {
     std::vector<Edge<Interval>> edges;
 
-    std::vector<bool> duplicate(vectors.size(), false); // TODO: replace ignoring duplicates with merging them
-    bool any_non_duplicate = false;
-    for(size_t i = 1; i < vectors.size(); i++) {
-        for(size_t j = 0; j < i; j++) {
-            if(!vectors[i].diff(vectors[j])) {
-                duplicate[i] = true;
-                break;
-            }
-        }
-        if(!duplicate[i]) {
-            any_non_duplicate = true;
-        }
-    }
-    if(!any_non_duplicate) {
-        throw std::runtime_error("All vectors are duplicates");
-    }
-
     std::queue<size_t> queue;
     std::vector<bool> visited(vectors.size(), false);
 
     size_t start_index = 0;
     for(size_t new_start_index = 1; new_start_index < vectors.size(); new_start_index++) {
-        if(duplicate[new_start_index]) {
-            continue;
-        }
         if(vectors[new_start_index].len().max() > vectors[start_index].len().max()) {
             start_index = new_start_index;
         }
@@ -319,7 +299,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vectors) {
 
         std::optional<size_t> most_clockwise_index;
         for(size_t new_most_clockwise_index = 0; new_most_clockwise_index < vectors.size(); new_most_clockwise_index++) {
-            if(duplicate[new_most_clockwise_index] || new_most_clockwise_index == from_index || Edge<Interval>(vectors[from_index]).side(vectors[new_most_clockwise_index]) == Side::right) {
+            if(new_most_clockwise_index == from_index || Edge<Interval>(vectors[from_index]).side(vectors[new_most_clockwise_index]) == Side::right) {
                 continue;
             }
             if(!vectors[from_index].diff(vectors[new_most_clockwise_index])) {
@@ -336,7 +316,7 @@ Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vectors) {
         std::vector<size_t> to_indices;
         const Edge<Interval> most_clockwise_edge(vectors[from_index], vectors[most_clockwise_index.value()]);
         for(size_t to_index = 0; to_index < vectors.size(); to_index++) {
-            if(duplicate[to_index] || to_index == from_index || Edge<Interval>(vectors[from_index]).side(vectors[to_index]) == Side::right) {
+            if(to_index == from_index || Edge<Interval>(vectors[from_index]).side(vectors[to_index]) == Side::right) {
                 continue;
             }
             if(!vectors[from_index].diff(vectors[to_index])) {

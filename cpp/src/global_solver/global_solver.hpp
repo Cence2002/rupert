@@ -41,7 +41,7 @@ private:
                 debug_exporter_.debug_builder.box_builder.add_projection();
             }
         }
-        return convex_hull(vectors);
+        return convex_hull(deduplicate_vectors(vectors));
     }
 
     bool is_plug_orientation_ignored(const Range3& hole_orientation, const Range2& plug_orientation) {
