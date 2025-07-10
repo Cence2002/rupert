@@ -80,10 +80,10 @@ std::vector<Matrix<Interval>> symmetries(const std::vector<Vector3<Interval>>& v
             }
             Matrix<Interval> image_basis = orthonormal_basis<Interval>(from_vector_image, to_vector_image, right_handed);
             Matrix<Interval> symmetry = Matrix<Interval>::relative_rotation(basis, image_basis);
-            const bool is_symmetry = std::ranges::all_of(vectors, [&](const Vector3<Interval>& vertex) {
-                const Vector3<Interval> vector3_image = symmetry * vertex;
-                return std::ranges::any_of(vectors, [&](const Vector3<Interval>& other_vertex) {
-                                               return !vector3_image.diff(other_vertex);
+            const bool is_symmetry = std::ranges::all_of(vectors, [&](const Vector3<Interval>& vector) {
+                const Vector3<Interval> vector_image = symmetry * vector;
+                return std::ranges::any_of(vectors, [&](const Vector3<Interval>& other_vector) {
+                                               return !vector_image.diff(other_vector);
                                            }
                 );
             });

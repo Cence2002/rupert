@@ -101,10 +101,10 @@ std::vector<Vector2<Interval>> projected_orientation_hull(const Vector3<Interval
         return vector_hull(combined_projected_orientation(vector, theta, phi));
     }
     std::vector<Vector2<Interval>> hull;
-    for(const Vector2<Interval>& rotated_vector2: rotation_hull(Vector2<Interval>(vector.x(), vector.y()), theta, resolution)) {
-        const Interval harmonic = combined_harmonic(rotated_vector2.y(), -vector.z(), phi);
-        hull.emplace_back(rotated_vector2.x(), harmonic.min());
-        hull.emplace_back(rotated_vector2.x(), harmonic.max());
+    for(const Vector2<Interval>& rotated_vector: rotation_hull(Vector2<Interval>(vector.x(), vector.y()), theta, resolution)) {
+        const Interval harmonic = combined_harmonic(rotated_vector.y(), -vector.z(), phi);
+        hull.emplace_back(rotated_vector.x(), harmonic.min());
+        hull.emplace_back(rotated_vector.x(), harmonic.max());
     }
     return hull;
 }
@@ -198,14 +198,14 @@ bool projected_oriented_vector_avoids_polygon(const Polygon<Interval>& polygon, 
 }
 
 template<typename Interval>
-Interval max_uncertainty(const std::vector<Vector2<Interval>>& vector2s) {
+Interval max_uncertainty(const std::vector<Vector2<Interval>>& vectors) {
     size_t max_index = 0;
-    for(size_t i = 1; i < vector2s.size(); i++) {
-        if(vector2s[i].len().len() > vector2s[max_index].len().len()) {
+    for(size_t i = 1; i < vectors.size(); i++) {
+        if(vectors[i].len().len() > vectors[max_index].len().len()) {
             max_index = i;
         }
     }
-    return vector2s[max_index].len().len();
+    return vectors[max_index].len().len();
 }
 
 // template<typename Interval>

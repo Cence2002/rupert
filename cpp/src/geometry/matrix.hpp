@@ -47,11 +47,11 @@ public:
                       xz_, yz_, zz_);
     }
 
-    Vector3<Interval> operator*(const Vector3<Interval>& vector3) const {
+    Vector3<Interval> operator*(const Vector3<Interval>& vector) const {
         return Vector3<Interval>(
-            xx_ * vector3.x() + xy_ * vector3.y() + xz_ * vector3.z(),
-            yx_ * vector3.x() + yy_ * vector3.y() + yz_ * vector3.z(),
-            zx_ * vector3.x() + zy_ * vector3.y() + zz_ * vector3.z()
+            xx_ * vector.x() + xy_ * vector.y() + xz_ * vector.z(),
+            yx_ * vector.x() + yy_ * vector.y() + yz_ * vector.z(),
+            zx_ * vector.x() + zy_ * vector.y() + zz_ * vector.z()
         );
     }
 
