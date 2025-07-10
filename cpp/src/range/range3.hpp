@@ -10,7 +10,7 @@ private:
     Range alpha_range_;
 
 public:
-    explicit Range3(const Range& theta_range, const Range& phi_range, const Range& alpha_range) noexcept : theta_range_(theta_range), phi_range_(phi_range), alpha_range_(alpha_range) {}
+    explicit Range3(const Range& theta_range, const Range& phi_range, const Range& alpha_range) : theta_range_(theta_range), phi_range_(phi_range), alpha_range_(alpha_range) {}
 
     ~Range3() = default;
 

@@ -55,7 +55,7 @@ add_compile_options(
     -Wvector-operation-performance
 
     -Winvalid-imported-macros
-    -Wnoexcept
+    #-Wnoexcept
     -Wreorder
     -Wredundant-tags
     -Weffc++

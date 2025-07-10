@@ -9,7 +9,7 @@ private:
     Interval y_;
 
 public:
-    explicit Vector2(const Interval& x, const Interval& y) noexcept : x_(x), y_(y) {}
+    explicit Vector2(const Interval& x, const Interval& y) : x_(x), y_(y) {}
 
     ~Vector2() = default;
 
