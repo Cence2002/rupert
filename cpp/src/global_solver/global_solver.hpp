@@ -5,6 +5,7 @@
 #include "global_solver/helpers.hpp"
 #include "queue/queues.hpp"
 #include <thread>
+#include <latch>
 
 const std::string polyhedra_file_name = "polyhedra.bin";
 const std::string terminal_boxes_file_name = "terminal_boxes.bin";
@@ -19,10 +20,10 @@ private:
 
     ConcurrentPriorityQueue<Range3> hole_orientation_queue_;
     std::vector<std::thread> threads_;
-    std::atomic<uint8_t> terminated_threads_;
 
     ConcurrentQueue<Elimination> export_queue_;
     std::thread export_thread_;
+    std::latch exporter_latch_;
 
     DebugExporter<Interval> debug_exporter_;
 
@@ -179,7 +180,7 @@ private:
             }
         }
         mpfr_free_cache2(MPFR_FREE_LOCAL_CACHE);
-        ++terminated_threads_;
+        exporter_latch_.count_down();
     }
 
     void start_exporter() {
@@ -190,9 +191,8 @@ private:
             }
             Exporter::export_terminal_boxes(config_.working_directory() / terminal_boxes_file_name, export_queue_.pop_all());
         }
-        while(terminated_threads_ < config_.threads) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        }
+        exporter_latch_.wait();
+
         Exporter::export_terminal_boxes(config_.working_directory() / terminal_boxes_file_name, export_queue_.pop_all());
         Exporter::export_boxes(config_.working_directory() / boxes_file_name, hole_orientation_queue_.pop_all());
 
@@ -208,9 +208,9 @@ public:
                                                             interrupted_(false),
                                                             hole_orientation_queue_(),
                                                             threads_(),
-                                                            terminated_threads_(0),
                                                             export_queue_(),
                                                             export_thread_(),
+                                                            exporter_latch_(config.threads),
                                                             debug_exporter_() {
         if(config_.debug) {
             debug_exporter_.debug_builder.set_hole(config_.polyhedron);
