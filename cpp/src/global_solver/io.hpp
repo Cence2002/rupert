@@ -10,7 +10,7 @@
 #include <fstream>
 #include <filesystem>
 
-struct Elimination {
+struct EliminatedHoleOrientation {
     Range3 hole_orientation;
     std::vector<Range2> plug_orientations;
 };
@@ -103,7 +103,7 @@ namespace Exporter {
         id_to_stream(os, range2.phi_range());
     }
 
-    inline void terminal_box_to_stream(std::ostream& os, const Elimination& terminal_box) {
+    inline void terminal_box_to_stream(std::ostream& os, const EliminatedHoleOrientation& terminal_box) {
         box_to_stream(os, terminal_box.hole_orientation);
         size_to_stream(os, static_cast<uint32_t>(terminal_box.plug_orientations.size()));
         for(const Range2& rectangle: terminal_box.plug_orientations) {
@@ -133,13 +133,13 @@ namespace Exporter {
         std::cout << "Exported polyhedra to " << path << std::endl;
     }
 
-    inline void export_terminal_boxes(const std::filesystem::path& path, const std::vector<Elimination>& terminal_boxes) {
+    inline void export_terminal_boxes(const std::filesystem::path& path, const std::vector<EliminatedHoleOrientation>& terminal_boxes) {
         std::ofstream file(path, std::ios::binary | std::ios::app);
         if(!file.is_open()) {
             throw std::runtime_error("Failed to open " + path.string());
         }
 
-        for(const Elimination& terminal_box: terminal_boxes) {
+        for(const EliminatedHoleOrientation& terminal_box: terminal_boxes) {
             terminal_box_to_stream(file, terminal_box);
         }
 

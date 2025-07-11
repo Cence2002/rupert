@@ -29,14 +29,20 @@ struct Config {
         if(rotation_resolution < 1) {
             throw std::runtime_error("Rotation resolution must be at least 1");
         }
-        if(!std::regex_match(name, std::regex("^[a-zA-Z0-9_]+$"))) {
-            throw std::runtime_error(name + " is not a valid name (only letters, digits, and underscores are allowed)");
+        if(threads < 1) {
+            throw std::runtime_error("Threads must be at least 1");
         }
         if(!std::filesystem::exists(root_directory)) {
             throw std::runtime_error(root_directory.string() + " does not exist");
         }
         if(!std::filesystem::is_directory(root_directory)) {
             throw std::runtime_error(root_directory.string() + " is not a directory");
+        }
+        if(!std::regex_match(name, std::regex("^[a-zA-Z0-9_]+$"))) {
+            throw std::runtime_error(name + " is not a valid name (only letters, digits, and underscores are allowed)");
+        }
+        if(debug && threads > 1) {
+            throw std::runtime_error("Debug mode is not compatible with multiple threads");
         }
     }
 

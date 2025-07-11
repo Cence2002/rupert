@@ -216,7 +216,7 @@ std::vector<Vector2<Interval>> deduplicate_vectors(const std::vector<Vector2<Int
             max_index = i;
         }
     }
-    const Interval epsilon = vectors[max_index].dist(vectors[max_index]).max() * Interval(static_cast<int>(vectors.size()));
+    const Interval max_dist = vectors[max_index].dist(vectors[max_index]).max() * Interval(static_cast<int>(vectors.size()));
 
     std::vector<size_t> parent(vectors.size());
     for(size_t i = 0; i < vectors.size(); i++) {
@@ -225,7 +225,7 @@ std::vector<Vector2<Interval>> deduplicate_vectors(const std::vector<Vector2<Int
     for(size_t i = 1; i < vectors.size(); i++) {
         for(size_t j = 0; j < i; j++) {
             const Interval dist = vectors[i].dist(vectors[j]);
-            if(dist > epsilon) {
+            if(dist > max_dist) {
                 continue;
             }
             if(!dist.pos()) {

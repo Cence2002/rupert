@@ -21,7 +21,7 @@ private:
     std::vector<std::thread> threads_;
     std::atomic<bool> interrupted_;
 
-    ConcurrentQueue<Elimination> eliminated_hole_orientations_;
+    ConcurrentQueue<EliminatedHoleOrientation> eliminated_hole_orientations_;
     std::thread exporter_thread_;
     std::latch exporter_latch_;
 
@@ -46,8 +46,8 @@ private:
     }
 
     bool skip_plug_orientation(const Range3& hole_orientation, const Range2& plug_orientation) {
-        const Interval hole_orientation_angle_radius = Vector2<Interval>(hole_orientation.theta<Interval>().len() + hole_orientation.alpha<Interval>().len(), hole_orientation.phi<Interval>().len()).len() / Interval(2);
-        const Interval plug_orientation_angle_radius = Vector2<Interval>(plug_orientation.theta<Interval>().len(), plug_orientation.phi<Interval>().len()).len() / Interval(2);
+        const Interval hole_orientation_angle_radius = Vector2<Interval>(hole_orientation.theta<Interval>().rad() + hole_orientation.alpha<Interval>().rad(), hole_orientation.phi<Interval>().rad()).len();
+        const Interval plug_orientation_angle_radius = Vector2<Interval>(plug_orientation.theta<Interval>().rad(), plug_orientation.phi<Interval>().rad()).len();
         const Interval remaining_angle = config_.epsilon - hole_orientation_angle_radius - plug_orientation_angle_radius;
         if(!remaining_angle.pos()) {
             return false;
@@ -85,7 +85,7 @@ private:
         return eliminated;
     }
 
-    std::optional<Elimination> check_hole_orientation(const Range3& hole_orientation) {
+    std::pair<std::vector<Range2>, std::vector<Range2>> check_hole_orientation(const Range3& hole_orientation) {
         Polygon<Interval> projected_oriented_hole = oriented_hole_projection(hole_orientation);
         if(config_.debug) {
             debug_exporter_.debug_builder.box_builder.set_projection(projected_oriented_hole);
@@ -93,6 +93,7 @@ private:
         SerialQueue<Range2> plug_orientations;
         plug_orientations.push(Range2(Range(0, 0), Range(0, 0)));
         std::vector<Range2> eliminated_plug_orientations;
+        std::vector<Range2> terminal_plug_orientations;
         while(plug_orientations.size() > 0) {
             const std::optional<Range2> optional_plug_orientation = plug_orientations.pop();
             if(!optional_plug_orientation.has_value()) {
@@ -117,39 +118,39 @@ private:
                     debug_exporter_.debug_builder.box_builder.add_rectangle();
                     debug_exporter_.debug_builder.box_builder.set_last_as_in_index();
                 }
-                return std::nullopt;
+                return std::make_pair(std::vector<Range2>{}, std::vector<Range2>{});
             }
             if(config_.debug) {
                 debug_exporter_.debug_builder.box_builder.add_rectangle();
             }
             if(plug_orientation.terminal()) {
-                return std::nullopt;
+                terminal_plug_orientations.push_back(plug_orientation);
+                continue;
             }
             for(const Range2& rectangle_part: plug_orientation.parts()) {
                 plug_orientations.push(rectangle_part);
             }
         }
-        return std::make_optional(Elimination(hole_orientation, eliminated_plug_orientations));
+        return std::make_pair(eliminated_plug_orientations, terminal_plug_orientations);
     }
 
     void process_hole_orientation() {
-        const std::optional<Range3> optional_hole_orientation = hole_orientations_.pop();
-        if(!optional_hole_orientation.has_value()) {
-            return;
-        }
-        const Range3& hole_orientation = optional_hole_orientation.value();
-        const std::optional<Elimination> optional_elimination = check_hole_orientation(hole_orientation);
+        const Range3 hole_orientation = hole_orientations_.pop().value();
+        const auto [eliminated_plug_orientations, terminal_plug_orientations] = check_hole_orientation(hole_orientation);
+        const bool hole_orientation_eliminated = eliminated_plug_orientations.size() > 0 && terminal_plug_orientations.size() == 0;
         if(config_.debug) {
             debug_exporter_.debug_builder.box_builder.set_box(hole_orientation);
-            debug_exporter_.debug_builder.box_builder.set_terminal(optional_elimination.has_value());
+            debug_exporter_.debug_builder.box_builder.set_terminal(hole_orientation_eliminated);
             debug_exporter_.debug_builder.add_box();
         }
-        if(optional_elimination.has_value()) {
-            std::cout << "Terminal hole orientation: " << hole_orientation << std::endl;
-            eliminated_hole_orientations_.push(optional_elimination.value());
+        if(hole_orientation_eliminated) {
+            std::cout << "Eliminated hole orientation: " << hole_orientation << std::endl;
+            eliminated_hole_orientations_.push(EliminatedHoleOrientation(hole_orientation, eliminated_plug_orientations));
             return;
         }
+        // TODO: refine termination criterion to use epsilon (potentially a new one)
         if(hole_orientation.terminal()) {
+            // TODO: Export terminal_plug_orientations and deduplicate orientation pairs
             throw std::runtime_error("Range overflow");
         }
         for(const Range3& box_part: hole_orientation.parts()) {
@@ -203,7 +204,7 @@ public:
     void setup() {
         if(config_.restart) {
             Importer::restart(config_.working_directory());
-            // box_queue_.push(Box()); // TODO: Use this instead of the magic numbers
+            // TODO: Find starting point (or subset)
             hole_orientations_.push(Range3(
                 Range(9, 0b011011010),
                 Range(10, 0b1011001001),
