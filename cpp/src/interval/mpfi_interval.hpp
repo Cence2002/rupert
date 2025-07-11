@@ -5,7 +5,7 @@
 
 struct MpfiInterval {
 private:
-    mpfi_t interval_;
+    mpfi_t interval_{};
 
     void assert_same_precision(const mpfi_t interval) const {
         if(mpfi_get_prec(interval_) != mpfi_get_prec(interval)) {

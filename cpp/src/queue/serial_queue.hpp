@@ -7,10 +7,10 @@
 template<bool Priority, typename Task> requires (Priority ? PriorityTaskType<Task> : TaskType<Task>)
 struct BaseSerialQueue {
 private:
-    std::conditional_t<Priority, std::priority_queue<Task>, std::queue<Task>> queue_;
+    std::conditional_t<Priority, std::priority_queue<Task>, std::queue<Task>> queue_{};
 
 public:
-    explicit BaseSerialQueue() : queue_() {}
+    explicit BaseSerialQueue() = default;
 
     size_t size() const {
         return queue_.size();

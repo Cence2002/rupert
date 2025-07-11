@@ -8,22 +8,30 @@ template<IntervalType Interval>
 struct Polyhedron {
 private:
     std::vector<Vector3<Interval>> vertices_;
-    // std::vector<std::pair<size_t, size_t>> edge_indices_;
-    // std::vector<std::vector<size_t>> face_indices_;
-    // std::vector<Vertex<Interval>> face_normals_;
-    // // any always non-negative value (distances and angles) smaller than this IS zero
-    // Interval epsilon_; // TODO has to be symbolically verified with an external system
+    // any trivially non-negative value (distances and angles) smaller than this equals zero
+    Interval epsilon_; // TODO this has to be symbolically verified
+    std::vector<std::pair<size_t, size_t>> edge_indices_{};
+    std::vector<std::vector<size_t>> face_indices_{};
+    std::vector<Vector3<Interval>> face_normals_{};
 
-    std::vector<Matrix<Interval>> rotations_;
-    std::vector<Matrix<Interval>> reflections_;
+    std::vector<Matrix<Interval>> rotations_{};
+    std::vector<Matrix<Interval>> reflections_{};
 
-public:
-    explicit Polyhedron(const std::vector<Vector3<Interval>>& vertices) : vertices_(vertices), rotations_(), reflections_() {
+    void setup_symmetries() {
+        rotations_ = symmetries<Interval>(vertices_, true);
+        reflections_ = symmetries<Interval>(vertices_, false);
+    }
+
+    void setup() {
         if(!is_centrally_symmetric(vertices_)) {
             throw std::runtime_error("Polyhedron is not centrally symmetric");
         }
-        rotations_ = symmetries<Interval>(vertices_, true);
-        reflections_ = symmetries<Interval>(vertices_, false);
+        setup_symmetries();
+    }
+
+public:
+    explicit Polyhedron(const std::vector<Vector3<Interval>>& vertices) : vertices_(vertices), epsilon_(Interval(1) / Interval(1000000)) {
+        setup();
     }
 
     const std::vector<Vector3<Interval>>& vertices() const {

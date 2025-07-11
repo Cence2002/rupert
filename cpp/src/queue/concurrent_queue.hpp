@@ -9,11 +9,11 @@
 template<bool Priority, typename Task> requires (Priority ? PriorityTaskType<Task> : TaskType<Task>)
 struct BaseConcurrentQueue {
 private:
-    std::conditional_t<Priority, std::priority_queue<Task>, std::queue<Task>> queue_;
-    mutable std::mutex mutex_;
+    std::conditional_t<Priority, std::priority_queue<Task>, std::queue<Task>> queue_{};
+    mutable std::mutex mutex_{};
 
 public:
-    explicit BaseConcurrentQueue() : queue_(), mutex_() {}
+    explicit BaseConcurrentQueue() = default;
 
     size_t size() const {
         std::lock_guard<std::mutex> lock(mutex_);

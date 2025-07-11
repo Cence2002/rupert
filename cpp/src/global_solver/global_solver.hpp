@@ -17,15 +17,16 @@ struct GlobalSolver {
 private:
     const Config<Interval>& config_;
 
-    ConcurrentPriorityQueue<Range3> hole_orientations_;
-    std::vector<std::thread> threads_;
+    ConcurrentPriorityQueue<Range3> hole_orientations_{};
+    std::atomic<size_t> pending_hole_orientations_{0};
+    std::vector<std::thread> threads_{};
     std::atomic<bool> interrupted_;
 
-    ConcurrentQueue<EliminatedHoleOrientation> eliminated_hole_orientations_;
-    std::thread exporter_thread_;
+    ConcurrentQueue<EliminatedHoleOrientation> eliminated_hole_orientations_{};
+    std::thread exporter_thread_{};
     std::latch exporter_latch_;
 
-    DebugExporter<Interval> debug_exporter_;
+    DebugExporter<Interval> debug_exporter_{};
 
     Polygon<Interval> oriented_hole_projection(const Range3& hole_orientation) {
         std::vector<Vector2<Interval>> all_vectors;
@@ -134,8 +135,7 @@ private:
         return std::make_pair(eliminated_plug_orientations, terminal_plug_orientations);
     }
 
-    void process_hole_orientation() {
-        const Range3 hole_orientation = hole_orientations_.pop().value();
+    void process_hole_orientation(const Range3& hole_orientation) {
         const auto [eliminated_plug_orientations, terminal_plug_orientations] = check_hole_orientation(hole_orientation);
         const bool hole_orientation_eliminated = eliminated_plug_orientations.size() > 0 && terminal_plug_orientations.size() == 0;
         if(config_.debug) {
@@ -160,7 +160,20 @@ private:
 
     void start_box_processor() {
         while(!interrupted_) {
-            process_hole_orientation();
+            const size_t pending_hole_orientations_before = pending_hole_orientations_.fetch_add(1);
+            const std::optional<Range3> optional_hole_orientation = hole_orientations_.pop();
+            if(optional_hole_orientation.has_value()) {
+                process_hole_orientation(optional_hole_orientation.value());
+                pending_hole_orientations_.fetch_sub(1);
+            } else {
+                if(pending_hole_orientations_before == 0) {
+                    pending_hole_orientations_.fetch_sub(1);
+                    interrupt();
+                    continue;
+                }
+                pending_hole_orientations_.fetch_sub(1);
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
         }
         mpfr_free_cache2(MPFR_FREE_LOCAL_CACHE);
         exporter_latch_.count_down();
@@ -170,9 +183,8 @@ private:
         while(!interrupted_) {
             if(eliminated_hole_orientations_.size() > config_.export_threshold) {
                 Exporter::export_terminal_boxes(config_.working_directory() / eliminated_hole_orientations_file_name, eliminated_hole_orientations_.pop_all());
-            } else {
-                std::this_thread::sleep_for(std::chrono::seconds(1));
             }
+            std::this_thread::yield();
         }
         exporter_latch_.wait();
 
@@ -188,13 +200,8 @@ private:
 
 public:
     explicit GlobalSolver(const Config<Interval>& config) : config_(config),
-                                                            hole_orientations_(),
-                                                            threads_(),
                                                             interrupted_(false),
-                                                            eliminated_hole_orientations_(),
-                                                            exporter_thread_(),
-                                                            exporter_latch_(config.threads),
-                                                            debug_exporter_() {
+                                                            exporter_latch_(config.threads) {
         if(config_.debug) {
             debug_exporter_.debug_builder.set_hole(config_.polyhedron);
             debug_exporter_.debug_builder.set_plug(config_.polyhedron);

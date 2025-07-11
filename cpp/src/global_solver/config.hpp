@@ -8,16 +8,18 @@ template<IntervalType Interval>
 struct Config {
     Polyhedron<Interval> polyhedron;
     Interval epsilon;
-    uint8_t projection_resolution;
-    uint8_t rotation_resolution;
+    uint8_t projection_resolution = 1;
+    uint8_t rotation_resolution = 1;
 
     // execution parameters
-    uint8_t threads;
+    uint8_t threads = 1;
+
+    // io parameters
     std::filesystem::path root_directory;
     std::string name;
-    size_t export_threshold;
-    bool restart;
-    bool debug;
+    size_t export_threshold = 0;
+    bool restart = true;
+    bool debug = true;
 
     void validate() const {
         if(epsilon.min().neg()) {
