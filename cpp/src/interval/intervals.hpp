@@ -5,7 +5,7 @@
 #include "interval/boost_interval.hpp"
 #include "interval/mpfi_interval.hpp"
 
-enum class PrintMode {
+enum struct PrintMode {
     min_and_max,
     mid_and_rad,
     mid_only,

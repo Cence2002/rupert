@@ -2,7 +2,7 @@
 
 #include "geometry/vector2.hpp"
 
-enum class Side {
+enum struct Side {
     left,
     right,
     ambiguous
