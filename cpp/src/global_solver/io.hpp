@@ -10,7 +10,7 @@
 #include <fstream>
 #include <filesystem>
 
-class EliminatedHoleOrientation {
+struct EliminatedHoleOrientation {
     Range3 hole_orientation;
     std::vector<Range2> plug_orientations;
 };

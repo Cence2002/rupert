@@ -7,6 +7,24 @@
 
 template<IntervalType Interval>
 class Polyhedron {
+    class Edge {
+        std::pair<size_t, size_t> indices_;
+
+        explicit Edge(const size_t index_0, const size_t index_1): indices_(std::minmax(index_0, index_1)) {}
+
+        explicit Edge(const std::pair<size_t, size_t>& indices): indices_(indices) {}
+
+        ~Edge() = default;
+
+        Edge(const Edge& edge) = default;
+
+        Edge(Edge&& edge) = default;
+
+        Edge& operator=(const Edge&) = delete;
+
+        Edge& operator=(Edge&&) = delete;
+    };
+
     std::vector<Vector3<Interval>> vertices_;
     // any trivially non-negative value (distances and angles) smaller than this equals zero
     Interval epsilon_; // TODO this has to be symbolically verified
@@ -150,15 +168,10 @@ class Polyhedron {
         }
     }
 
-    void setup_silhouettes() {
-        sil
-    }
-
     void setup() {
         check_centrally_symmetric();
         setup_faces();
         setup_symmetries();
-        setup_silhouettes();
     }
 
 public:

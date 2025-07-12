@@ -5,7 +5,7 @@
 #include <filesystem>
 
 template<IntervalType Interval>
-class Config {
+struct Config {
     Polyhedron<Interval> polyhedron;
     Interval epsilon;
     uint8_t projection_resolution = 1;
