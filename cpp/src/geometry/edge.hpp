@@ -31,7 +31,6 @@ constexpr bool diff_side(const Side side, const Side other_side) {
 
 template<IntervalType Interval>
 class Edge {
-private:
     Vector2<Interval> from_;
     Vector2<Interval> to_;
 

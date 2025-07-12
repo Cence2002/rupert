@@ -415,7 +415,6 @@ namespace DebugHelpers {
 
 template<IntervalType Interval>
 class DebugExporter {
-private:
     flatbuffers::FlatBufferBuilder builder_;
 
 public:

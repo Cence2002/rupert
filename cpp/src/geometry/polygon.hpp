@@ -5,7 +5,6 @@
 
 template<IntervalType Interval>
 class Polygon {
-private:
     std::vector<Edge<Interval>> edges_;
 
 public:

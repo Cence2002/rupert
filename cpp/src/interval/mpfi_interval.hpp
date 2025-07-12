@@ -4,7 +4,6 @@
 #include <mpfi.h>
 
 class MpfiInterval {
-private:
     mpfi_t interval_{};
 
     void assert_same_precision(const mpfi_t interval) const {

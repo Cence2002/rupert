@@ -5,7 +5,6 @@
 
 template<IntervalType Interval>
 class Matrix {
-private:
     Interval xx_, xy_, xz_;
     Interval yx_, yy_, yz_;
     Interval zx_, zy_, zz_;

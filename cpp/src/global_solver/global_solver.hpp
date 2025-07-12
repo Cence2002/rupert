@@ -14,7 +14,6 @@ const std::string debug_file_name = "debug.bin";
 
 template<IntervalType Interval>
 class GlobalSolver {
-private:
     const Config<Interval>& config_;
 
     ConcurrentPriorityQueue<Range3> hole_orientations_{};

@@ -4,7 +4,6 @@
 #include "range/range.hpp"
 
 class Range2 {
-private:
     Range theta_range_;
     Range phi_range_;
 

@@ -7,7 +7,6 @@
 
 template<IntervalType Interval>
 class Polyhedron {
-private:
     std::vector<Vector3<Interval>> vertices_;
     // any trivially non-negative value (distances and angles) smaller than this equals zero
     Interval epsilon_; // TODO this has to be symbolically verified

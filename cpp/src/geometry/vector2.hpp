@@ -4,7 +4,6 @@
 
 template<IntervalType Interval>
 class Vector2 {
-private:
     Interval x_;
     Interval y_;
 

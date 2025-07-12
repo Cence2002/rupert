@@ -31,7 +31,6 @@ inline std::chrono::duration<long>::rep elapsed_seconds(const std::chrono::time_
 }
 
 class RandomNumberGenerator {
-private:
     static constexpr uint32_t default_seed = 42;
     std::mt19937_64 engine_;
 

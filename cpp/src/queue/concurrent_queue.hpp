@@ -8,7 +8,6 @@
 
 template<bool Priority, typename Task> requires (Priority ? PriorityTaskType<Task> : TaskType<Task>)
 class BaseConcurrentQueue {
-private:
     std::conditional_t<Priority, std::priority_queue<Task>, std::queue<Task>> queue_{};
     mutable std::mutex mutex_{};
 

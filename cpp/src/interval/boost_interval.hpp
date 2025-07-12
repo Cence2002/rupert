@@ -4,7 +4,6 @@
 #include <boost/numeric/interval.hpp>
 
 class BoostInterval {
-private:
     using BoostIntervalType = boost::numeric::interval<
         double,
         boost::numeric::interval_lib::policies<

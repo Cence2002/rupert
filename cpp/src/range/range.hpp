@@ -6,7 +6,6 @@
 #include <bitset>
 
 class Range {
-private:
     uint8_t depth_;
     uint16_t bits_;
 
