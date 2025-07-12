@@ -4,33 +4,33 @@
 #include "geometry/matrix.hpp"
 #include <vector>
 #include <set>
+#include <boost/dynamic_bitset.hpp>
+
+using Bitset = boost::dynamic_bitset<>;
 
 template<IntervalType Interval>
 class Polyhedron {
-    class Edge {
-        std::pair<size_t, size_t> indices_;
+    struct Edge {
+        std::pair<size_t, size_t> indices;
 
-        explicit Edge(const size_t index_0, const size_t index_1): indices_(std::minmax(index_0, index_1)) {}
+        auto operator<=>(const Edge&) const = default;
+    };
 
-        explicit Edge(const std::pair<size_t, size_t>& indices): indices_(indices) {}
+    struct Outline {
+        Bitset normal_mask;
+        std::vector<size_t> vertex_indices;
 
-        ~Edge() = default;
-
-        Edge(const Edge& edge) = default;
-
-        Edge(Edge&& edge) = default;
-
-        Edge& operator=(const Edge&) = delete;
-
-        Edge& operator=(Edge&&) = delete;
+        bool operator==(const Outline& outline) const {
+            return normal_mask == outline.normal_mask;
+        }
     };
 
     std::vector<Vector3<Interval>> vertices_;
-    // any trivially non-negative value (distances and angles) smaller than this equals zero
-    Interval epsilon_; // TODO this has to be symbolically verified
 
     std::vector<Vector3<Interval>> face_normals_{};
     std::vector<std::vector<size_t>> faces_{};
+
+    std::vector<Outline> outlines_{};
 
     std::vector<Matrix<Interval>> rotations_{};
     std::vector<Matrix<Interval>> reflections_{};
@@ -38,7 +38,7 @@ class Polyhedron {
     void check_centrally_symmetric() {
         if(!std::ranges::all_of(vertices_, [&](const Vector3<Interval>& vertex) {
             return std::ranges::any_of(vertices_, [&](const Vector3<Interval>& other_vertex) {
-                return !(vertex + other_vertex).len().pos();
+                return !other_vertex.diff(-vertex);
             });
         })) {
             throw std::runtime_error("Polyhedron is not centrally symmetric");
@@ -61,7 +61,7 @@ class Polyhedron {
         reflections_.clear();
 
         const Vector3<Interval> from = vertices_[0];
-        const Vector3<Interval> to = (from + vertices_[1]).len().pos() ? vertices_[1] : vertices_[2];
+        const Vector3<Interval> to = vertices_[1].diff(-from) ? vertices_[1] : vertices_[2];
         const Matrix<Interval> basis = orthonormal_basis(from, to, true);
         for(const bool right_handed: {true, false}) {
             for(const auto& from_image: vertices_) {
@@ -89,7 +89,7 @@ class Polyhedron {
         face_normals_.clear();
         faces_.clear();
 
-        std::vector<std::pair<std::tuple<size_t, size_t, size_t>, size_t>> triangles_with_normal_indices;
+        std::vector<std::pair<Edge, size_t>> triangle_edges_with_normal_indices;
         for(size_t index_0 = 0; index_0 < vertices_.size(); ++index_0) {
             for(size_t index_1 = 0; index_1 < vertices_.size(); ++index_1) {
                 for(size_t index_2 = 0; index_2 < vertices_.size(); ++index_2) {
@@ -112,22 +112,14 @@ class Polyhedron {
                     if(normal_index_iterator == face_normals_.end()) {
                         face_normals_.push_back(normal);
                     }
-                    triangles_with_normal_indices.emplace_back(std::make_tuple(index_0, index_1, index_2), normal_index);
+                    triangle_edges_with_normal_indices.emplace_back(std::minmax(index_0, index_1), normal_index);
+                    triangle_edges_with_normal_indices.emplace_back(std::minmax(index_1, index_2), normal_index);
+                    triangle_edges_with_normal_indices.emplace_back(std::minmax(index_2, index_0), normal_index);
                 }
             }
         }
 
-        std::vector<std::pair<std::pair<size_t, size_t>, size_t>> triangle_edges_with_normal_indices;
-        for(const auto& [triangle, normal_index]: triangles_with_normal_indices) {
-            const size_t index_0 = std::get<0>(triangle);
-            const size_t index_1 = std::get<1>(triangle);
-            const size_t index_2 = std::get<2>(triangle);
-            triangle_edges_with_normal_indices.emplace_back(std::minmax(index_0, index_1), normal_index);
-            triangle_edges_with_normal_indices.emplace_back(std::minmax(index_1, index_2), normal_index);
-            triangle_edges_with_normal_indices.emplace_back(std::minmax(index_2, index_0), normal_index);
-        }
-
-        std::set<std::pair<std::pair<size_t, size_t>, size_t>> edges_with_normal_indices;
+        std::set<std::pair<Edge, size_t>> edges_with_normal_indices;
         for(const auto& [edge, normal_index]: triangle_edges_with_normal_indices) {
             if(std::ranges::any_of(triangle_edges_with_normal_indices, [&](const auto& other_edge_with_normal_index) {
                 const auto& [other_edge, other_normal_index] = other_edge_with_normal_index;
@@ -141,8 +133,8 @@ class Polyhedron {
             std::set<size_t> vertex_indices;
             for(const auto& [edge, edge_normal_index]: edges_with_normal_indices) {
                 if(normal_index == edge_normal_index) {
-                    vertex_indices.insert(edge.first);
-                    vertex_indices.insert(edge.second);
+                    vertex_indices.insert(edge.indices.first);
+                    vertex_indices.insert(edge.indices.second);
                 }
             }
 
@@ -168,23 +160,110 @@ class Polyhedron {
         }
     }
 
+    void setup_outlines() {
+        outlines_.clear();
+
+        for(size_t index_0 = 0; index_0 < face_normals_.size(); ++index_0) {
+            for(size_t index_1 = 0; index_1 < face_normals_.size(); ++index_1) {
+                if(index_0 == index_1) {
+                    continue;
+                }
+                const Vector3<Interval> normal_0 = face_normals_[index_0];
+                const Vector3<Interval> normal_1 = face_normals_[index_1];
+                if(!normal_1.diff(-normal_0)) {
+                    continue;
+                }
+                const Vector3<Interval> cross_product = normal_0.cross(normal_1).unit();
+                const Vector3<Interval> bisector = (normal_0 + normal_1).unit();
+
+                std::optional<size_t> closest_index;
+                for(size_t index = 0; index < face_normals_.size(); ++index) {
+                    const Interval dot = cross_product.dot(face_normals_[index]);
+                    if(!dot.pos()) {
+                        continue;
+                    }
+                    if(!closest_index.has_value() || dot < cross_product.dot(face_normals_[closest_index.value()])) {
+                        closest_index = index;
+                    }
+                }
+                const Interval epsilon = cross_product.dot(face_normals_[closest_index.value()]) / Interval(1000);
+                const Vector3<Interval> direction = (cross_product + bisector * epsilon).unit();
+
+                Bitset normal_mask(face_normals_.size());
+                bool invalid = false;
+                for(size_t index = 0; index < face_normals_.size(); ++index) {
+                    const Interval dot = direction.dot(face_normals_[index]);
+                    if(dot.pos()) {
+                        normal_mask.set(index);
+                    }
+                    if(dot.neg()) {
+                        normal_mask.reset(index);
+                    }
+                    if(!dot.nonz()) {
+                        invalid = true;
+                        break;
+                    }
+                }
+                if(invalid) {
+                    continue;
+                }
+                if(std::ranges::any_of(outlines_, [&](const Outline& outline) {
+                    return outline.normal_mask == normal_mask;
+                })) {
+                    continue;
+                }
+
+                std::set<size_t> vertex_indices;
+                for(size_t face_index = 0; face_index < faces_.size(); ++face_index) {
+                    if(!normal_mask.test(face_index)) {
+                        continue;
+                    }
+                    for(const size_t vertex_index: faces_[face_index]) {
+                        for(size_t other_face_index = 0; other_face_index < faces_.size(); ++other_face_index) {
+                            if(!normal_mask.test(other_face_index) && std::ranges::find(faces_[other_face_index], vertex_index) != faces_[other_face_index].end()) {
+                                vertex_indices.insert(vertex_index);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                std::vector<size_t> outline;
+                const size_t first_index = *std::ranges::min_element(vertex_indices);
+                outline.push_back(first_index);
+                vertex_indices.erase(first_index);
+
+                while(!vertex_indices.empty()) {
+                    const size_t last_index = outline.back();
+                    const Vector3<Interval> projected_last_vertex = (vertices_[last_index] - direction * vertices_[last_index].dot(direction)).unit();
+                    const size_t next_index = *std::ranges::max_element(vertex_indices, [&](const size_t vertex_index_0, const size_t vertex_index_1) {
+                        const Vector3<Interval> projected_vertex_0 = (vertices_[vertex_index_0] - direction * vertices_[vertex_index_0].dot(direction)).unit();
+                        const Vector3<Interval> projected_vertex_1 = (vertices_[vertex_index_1] - direction * vertices_[vertex_index_1].dot(direction)).unit();
+                        return projected_last_vertex.cross(projected_vertex_0).dot(cross_product) < projected_last_vertex.cross(projected_vertex_1).dot(cross_product);
+                    });
+                    outline.push_back(next_index);
+                    vertex_indices.erase(next_index);
+                }
+
+                outlines_.push_back(Outline{normal_mask, outline});
+            }
+        }
+    }
+
     void setup() {
         check_centrally_symmetric();
         setup_faces();
+        setup_outlines();
         setup_symmetries();
     }
 
 public:
-    explicit Polyhedron(const std::vector<Vector3<Interval>>& vertices) : vertices_(vertices), epsilon_(Interval(1) / Interval(1000000)) {
+    explicit Polyhedron(const std::vector<Vector3<Interval>>& vertices) : vertices_(vertices) {
         setup();
     }
 
     const std::vector<Vector3<Interval>>& vertices() const {
         return vertices_;
-    }
-
-    const Interval& epsilon() const {
-        return epsilon_;
     }
 
     const std::vector<Vector3<Interval>>& face_normals() const {
