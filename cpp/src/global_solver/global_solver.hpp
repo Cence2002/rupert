@@ -19,7 +19,7 @@ class GlobalSolver {
     ConcurrentPriorityQueue<Range3> hole_orientations_{};
     std::atomic<size_t> pending_hole_orientations_{0};
     std::vector<std::thread> threads_{};
-    std::atomic<bool> interrupted_;
+    std::atomic<bool> interrupted_{false};
 
     ConcurrentQueue<EliminatedHoleOrientation> eliminated_hole_orientations_{};
     std::thread exporter_thread_{};
@@ -199,7 +199,6 @@ class GlobalSolver {
 
 public:
     explicit GlobalSolver(const Config<Interval>& config) : config_(config),
-                                                            interrupted_(false),
                                                             exporter_latch_(config.threads) {
         if(config_.debug) {
             debug_exporter_.debug_builder.set_hole(config_.polyhedron);
