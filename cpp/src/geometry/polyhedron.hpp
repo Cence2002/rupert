@@ -8,23 +8,17 @@
 
 using Bitset = boost::dynamic_bitset<>;
 
+struct Outline {
+    Bitset normal_mask;
+    std::vector<size_t> vertex_indices;
+
+    bool operator==(const Outline& outline) const {
+        return normal_mask == outline.normal_mask;
+    }
+};
+
 template<IntervalType Interval>
 class Polyhedron {
-    struct Edge {
-        std::pair<size_t, size_t> indices;
-
-        auto operator<=>(const Edge&) const = default;
-    };
-
-    struct Outline {
-        Bitset normal_mask;
-        std::vector<size_t> vertex_indices;
-
-        bool operator==(const Outline& outline) const {
-            return normal_mask == outline.normal_mask;
-        }
-    };
-
     std::vector<Vector3<Interval>> vertices_;
 
     std::vector<Vector3<Interval>> face_normals_{};
@@ -49,7 +43,7 @@ class Polyhedron {
         face_normals_.clear();
         faces_.clear();
 
-        std::vector<std::pair<Edge, size_t>> triangle_edges_with_normal_indices;
+        std::vector<std::pair<std::pair<size_t, size_t>, size_t>> triangle_edges_with_normal_indices;
         for(size_t index_0 = 0; index_0 < vertices_.size(); ++index_0) {
             for(size_t index_1 = 0; index_1 < vertices_.size(); ++index_1) {
                 for(size_t index_2 = 0; index_2 < vertices_.size(); ++index_2) {
@@ -79,7 +73,7 @@ class Polyhedron {
             }
         }
 
-        std::set<std::pair<Edge, size_t>> edges_with_normal_indices;
+        std::set<std::pair<std::pair<size_t, size_t>, size_t>> edges_with_normal_indices;
         for(const auto& [edge, normal_index]: triangle_edges_with_normal_indices) {
             if(std::ranges::any_of(triangle_edges_with_normal_indices, [&](const auto& other_edge_with_normal_index) {
                 const auto& [other_edge, other_normal_index] = other_edge_with_normal_index;
@@ -93,8 +87,8 @@ class Polyhedron {
             std::set<size_t> vertex_indices;
             for(const auto& [edge, edge_normal_index]: edges_with_normal_indices) {
                 if(normal_index == edge_normal_index) {
-                    vertex_indices.insert(edge.indices.first);
-                    vertex_indices.insert(edge.indices.second);
+                    vertex_indices.insert(edge.first);
+                    vertex_indices.insert(edge.second);
                 }
             }
 
