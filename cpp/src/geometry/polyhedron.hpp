@@ -45,46 +45,6 @@ class Polyhedron {
         }
     }
 
-    static Matrix<Interval> orthonormal_basis(const Vector3<Interval>& from, const Vector3<Interval>& to, const bool right_handed) {
-        const Vector3<Interval> x_axis = from.unit();
-        const Vector3<Interval> y_axis = (to - x_axis * to.dot(x_axis)).unit();
-        const Vector3<Interval> z_axis = right_handed ? x_axis.cross(y_axis).unit() : y_axis.cross(x_axis).unit();
-        return Matrix<Interval>(
-            x_axis.x(), y_axis.x(), z_axis.x(),
-            x_axis.y(), y_axis.y(), z_axis.y(),
-            x_axis.z(), y_axis.z(), z_axis.z()
-        );
-    }
-
-    void setup_symmetries() {
-        rotations_.clear();
-        reflections_.clear();
-
-        const Vector3<Interval> from = vertices_[0];
-        const Vector3<Interval> to = vertices_[1].diff(-from) ? vertices_[1] : vertices_[2];
-        const Matrix<Interval> basis = orthonormal_basis(from, to, true);
-        for(const bool right_handed: {true, false}) {
-            for(const auto& from_image: vertices_) {
-                for(const auto& to_image: vertices_) {
-                    const Matrix<Interval> image_basis = orthonormal_basis(from_image, to_image, right_handed);
-                    const Matrix<Interval> symmetry = Matrix<Interval>::relative_rotation(basis, image_basis);
-                    if(std::ranges::all_of(vertices_, [&](const Vector3<Interval>& vertex) {
-                        const Vector3<Interval> vertex_image = symmetry * vertex;
-                        return std::ranges::any_of(vertices_, [&](const Vector3<Interval>& other_vertex) {
-                            return !vertex_image.diff(other_vertex);
-                        });
-                    })) {
-                        if(right_handed) {
-                            rotations_.push_back(symmetry);
-                        } else {
-                            reflections_.push_back(symmetry);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     void setup_faces() {
         face_normals_.clear();
         faces_.clear();
@@ -246,6 +206,46 @@ class Polyhedron {
                 }
 
                 outlines_.push_back(Outline{normal_mask, outline});
+            }
+        }
+    }
+
+    static Matrix<Interval> orthonormal_basis(const Vector3<Interval>& from, const Vector3<Interval>& to, const bool right_handed) {
+        const Vector3<Interval> x_axis = from.unit();
+        const Vector3<Interval> y_axis = (to - x_axis * to.dot(x_axis)).unit();
+        const Vector3<Interval> z_axis = right_handed ? x_axis.cross(y_axis).unit() : y_axis.cross(x_axis).unit();
+        return Matrix<Interval>(
+            x_axis.x(), y_axis.x(), z_axis.x(),
+            x_axis.y(), y_axis.y(), z_axis.y(),
+            x_axis.z(), y_axis.z(), z_axis.z()
+        );
+    }
+
+    void setup_symmetries() {
+        rotations_.clear();
+        reflections_.clear();
+
+        const Vector3<Interval> from = vertices_[0];
+        const Vector3<Interval> to = vertices_[1].diff(-from) ? vertices_[1] : vertices_[2];
+        const Matrix<Interval> basis = orthonormal_basis(from, to, true);
+        for(const bool right_handed: {true, false}) {
+            for(const auto& from_image: vertices_) {
+                for(const auto& to_image: vertices_) {
+                    const Matrix<Interval> image_basis = orthonormal_basis(from_image, to_image, right_handed);
+                    const Matrix<Interval> symmetry = Matrix<Interval>::relative_rotation(basis, image_basis);
+                    if(std::ranges::all_of(vertices_, [&](const Vector3<Interval>& vertex) {
+                        const Vector3<Interval> vertex_image = symmetry * vertex;
+                        return std::ranges::any_of(vertices_, [&](const Vector3<Interval>& other_vertex) {
+                            return !vertex_image.diff(other_vertex);
+                        });
+                    })) {
+                        if(right_handed) {
+                            rotations_.push_back(symmetry);
+                        } else {
+                            reflections_.push_back(symmetry);
+                        }
+                    }
+                }
             }
         }
     }
