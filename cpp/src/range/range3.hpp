@@ -3,7 +3,7 @@
 #include "range/range_type.hpp"
 #include "range/range.hpp"
 
-struct Range3 {
+class Range3 {
 private:
     Range theta_range_;
     Range phi_range_;

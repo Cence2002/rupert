@@ -3,7 +3,7 @@
 #include "interval/interval_type.hpp"
 #include <boost/numeric/interval.hpp>
 
-struct BoostInterval {
+class BoostInterval {
 private:
     using BoostIntervalType = boost::numeric::interval<
         double,

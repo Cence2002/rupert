@@ -4,7 +4,7 @@
 #include <cmath>
 #include <algorithm>
 
-struct FloatInterval {
+class FloatInterval {
 private:
     double min_;
     double max_;

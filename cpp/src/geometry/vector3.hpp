@@ -3,7 +3,7 @@
 #include "interval/intervals.hpp"
 
 template<IntervalType Interval>
-struct Vector3 {
+class Vector3 {
 private:
     Interval x_;
     Interval y_;

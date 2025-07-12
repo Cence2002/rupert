@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <bitset>
 
-struct Range {
+class Range {
 private:
     uint8_t depth_;
     uint16_t bits_;

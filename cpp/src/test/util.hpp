@@ -30,7 +30,7 @@ inline std::chrono::duration<long>::rep elapsed_seconds(const std::chrono::time_
     return std::chrono::duration_cast<std::chrono::seconds>(current_time() - start).count();
 }
 
-struct RandomNumberGenerator {
+class RandomNumberGenerator {
 private:
     static constexpr uint32_t default_seed = 42;
     std::mt19937_64 engine_;

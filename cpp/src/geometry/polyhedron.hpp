@@ -6,7 +6,7 @@
 #include <set>
 
 template<IntervalType Interval>
-struct Polyhedron {
+class Polyhedron {
 private:
     std::vector<Vector3<Interval>> vertices_;
     // any trivially non-negative value (distances and angles) smaller than this equals zero
@@ -40,6 +40,9 @@ private:
     }
 
     void setup_symmetries() {
+        rotations_.clear();
+        reflections_.clear();
+
         const Vector3<Interval> from = vertices_[0];
         const Vector3<Interval> to = (from + vertices_[1]).len().pos() ? vertices_[1] : vertices_[2];
         const Matrix<Interval> basis = orthonormal_basis(from, to, true);
@@ -66,6 +69,9 @@ private:
     }
 
     void setup_faces() {
+        face_normals_.clear();
+        faces_.clear();
+
         std::vector<std::pair<std::tuple<size_t, size_t, size_t>, size_t>> triangles_with_normal_indices;
         for(size_t index_0 = 0; index_0 < vertices_.size(); ++index_0) {
             for(size_t index_1 = 0; index_1 < vertices_.size(); ++index_1) {
@@ -145,10 +151,15 @@ private:
         }
     }
 
+    void setup_silhouettes() {
+        sil
+    }
+
     void setup() {
         check_centrally_symmetric();
         setup_faces();
         setup_symmetries();
+        setup_silhouettes();
     }
 
 public:

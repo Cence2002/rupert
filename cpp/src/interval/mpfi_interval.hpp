@@ -3,7 +3,7 @@
 #include "interval/interval_type.hpp"
 #include <mpfi.h>
 
-struct MpfiInterval {
+class MpfiInterval {
 private:
     mpfi_t interval_{};
 

@@ -4,7 +4,7 @@
 #include "geometry/vector3.hpp"
 
 template<IntervalType Interval>
-struct Matrix {
+class Matrix {
 private:
     Interval xx_, xy_, xz_;
     Interval yx_, yy_, yz_;

@@ -10,7 +10,7 @@
 #include <fstream>
 #include <filesystem>
 
-struct EliminatedHoleOrientation {
+class EliminatedHoleOrientation {
     Range3 hole_orientation;
     std::vector<Range2> plug_orientations;
 };
@@ -210,7 +210,7 @@ namespace DebugHelpers {
         );
     }
 
-    struct ProjectionBuilder {
+    class ProjectionBuilder {
     private:
         flatbuffers::FlatBufferBuilder& builder_;
 
@@ -236,7 +236,7 @@ namespace DebugHelpers {
         }
     };
 
-    struct RectangleBuilder {
+    class RectangleBuilder {
     private:
         flatbuffers::FlatBufferBuilder& builder_;
 
@@ -286,7 +286,7 @@ namespace DebugHelpers {
         }
     };
 
-    struct BoxBuilder {
+    class BoxBuilder {
     private:
         flatbuffers::FlatBufferBuilder& builder_;
 
@@ -370,7 +370,7 @@ namespace DebugHelpers {
         }
     };
 
-    struct DebugBuilder {
+    class DebugBuilder {
     private:
         flatbuffers::FlatBufferBuilder& builder_;
 
@@ -414,7 +414,7 @@ namespace DebugHelpers {
 }
 
 template<IntervalType Interval>
-struct DebugExporter {
+class DebugExporter {
 private:
     flatbuffers::FlatBufferBuilder builder_;
 

@@ -4,7 +4,7 @@
 #include <vector>
 
 template<IntervalType Interval>
-struct Polygon {
+class Polygon {
 private:
     std::vector<Edge<Interval>> edges_;
 

@@ -13,7 +13,7 @@ const std::string hole_orientations_file_name = "boxes.bin";
 const std::string debug_file_name = "debug.bin";
 
 template<IntervalType Interval>
-struct GlobalSolver {
+class GlobalSolver {
 private:
     const Config<Interval>& config_;
 

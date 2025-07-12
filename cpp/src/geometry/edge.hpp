@@ -2,7 +2,7 @@
 
 #include "geometry/vector2.hpp"
 
-enum struct Side {
+enum class Side {
     left,
     right,
     ambiguous
@@ -30,7 +30,7 @@ constexpr bool diff_side(const Side side, const Side other_side) {
 }
 
 template<IntervalType Interval>
-struct Edge {
+class Edge {
 private:
     Vector2<Interval> from_;
     Vector2<Interval> to_;

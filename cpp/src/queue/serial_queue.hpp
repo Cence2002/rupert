@@ -5,7 +5,7 @@
 #include <optional>
 
 template<bool Priority, typename Task> requires (Priority ? PriorityTaskType<Task> : TaskType<Task>)
-struct BaseSerialQueue {
+class BaseSerialQueue {
 private:
     std::conditional_t<Priority, std::priority_queue<Task>, std::queue<Task>> queue_{};
 
