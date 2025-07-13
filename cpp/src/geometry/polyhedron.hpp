@@ -272,6 +272,7 @@ class Polyhedron {
                 }
             }
         }
+
         std::cout << "Found " << rotations_.size() << " rotations" << std::endl;
         std::cout << "Found " << reflections_.size() << " reflections" << std::endl;
     }
