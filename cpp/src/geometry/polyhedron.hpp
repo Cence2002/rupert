@@ -4,6 +4,7 @@
 #include "geometry/matrix.hpp"
 #include <vector>
 #include <set>
+#include <map>
 #include <boost/dynamic_bitset.hpp>
 
 using Bitset = boost::dynamic_bitset<>;
@@ -112,6 +113,21 @@ class Polyhedron {
             }
             faces_.push_back(face);
         }
+
+        std::map<size_t, size_t> face_sizes;
+        for(const auto& face: faces_) {
+            const size_t size = face.size();
+            if(face_sizes.contains(size)) {
+                face_sizes[size]++;
+            } else {
+                face_sizes[size] = 1;
+            }
+        }
+
+        std::cout << "Found " << face_normals_.size() << " faces normals (" << faces_.size() << " faces):" << std::endl;
+        for(const auto& [size, count]: face_sizes) {
+            std::cout << " - " << count << "x " << size << "-sided" << std::endl;
+        }
     }
 
     void setup_outlines() {
@@ -202,6 +218,8 @@ class Polyhedron {
                 outlines_.push_back(Outline{normal_mask, outline});
             }
         }
+
+        std::cout << "Found " << outlines_.size() << " outlines" << std::endl;
     }
 
     static Matrix<Interval> orthonormal_basis(const Vector3<Interval>& from, const Vector3<Interval>& to, const bool right_handed) {
@@ -221,10 +239,14 @@ class Polyhedron {
 
         const Vector3<Interval> from = vertices_[0];
         const Vector3<Interval> to = vertices_[1].diff(-from) ? vertices_[1] : vertices_[2];
+        const Interval dist = from.dist(to);
         const Matrix<Interval> basis = orthonormal_basis(from, to, true);
         for(const bool right_handed: {true, false}) {
             for(const auto& from_image: vertices_) {
                 for(const auto& to_image: vertices_) {
+                    if((from_image.dist(to_image) - dist).nonz()) {
+                        continue;
+                    }
                     const Matrix<Interval> image_basis = orthonormal_basis(from_image, to_image, right_handed);
                     const Matrix<Interval> symmetry = Matrix<Interval>::relative_rotation(basis, image_basis);
                     if(std::ranges::all_of(vertices_, [&](const Vector3<Interval>& vertex) {
@@ -234,14 +256,24 @@ class Polyhedron {
                         });
                     })) {
                         if(right_handed) {
-                            rotations_.push_back(symmetry);
+                            if(std::ranges::all_of(rotations_, [&](const Matrix<Interval>& rotation) {
+                                return Matrix<Interval>::relative_rotation(symmetry, rotation).cos_angle() < Interval(1);
+                            })) {
+                                rotations_.push_back(symmetry);
+                            }
                         } else {
-                            reflections_.push_back(symmetry);
+                            if(std::ranges::all_of(reflections_, [&](const Matrix<Interval>& reflection) {
+                                return Matrix<Interval>::relative_rotation(symmetry, reflection).cos_angle() < Interval(1);
+                            })) {
+                                reflections_.push_back(symmetry);
+                            }
                         }
                     }
                 }
             }
         }
+        std::cout << "Found " << rotations_.size() << " rotations" << std::endl;
+        std::cout << "Found " << reflections_.size() << " reflections" << std::endl;
     }
 
     void setup() {

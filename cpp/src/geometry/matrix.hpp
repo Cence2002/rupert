@@ -124,10 +124,6 @@ public:
         return (xx_ + yy_ + zz_ - Interval(1)) / Interval(2);
     }
 
-    static Interval cos_angle_between(const Matrix& matrix_0, const Matrix& matrix_1) {
-        return relative_rotation(matrix_0, matrix_1).cos_angle();
-    }
-
     friend std::ostream& operator<<(std::ostream& os, const Matrix& matrix) {
         return os << "[" <<
                "[" << matrix.xx_ << "," << matrix.xy_ << "," << matrix.xz_ << "]," <<
