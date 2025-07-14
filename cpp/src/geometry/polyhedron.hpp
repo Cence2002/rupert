@@ -14,8 +14,24 @@ struct Outline {
     Bitset normal_mask;
     std::vector<size_t> vertex_indices;
 
-    bool operator==(const Outline& outline) const {
-        return normal_mask == outline.normal_mask;
+    bool same_vertices(const Outline& other) const {
+        if(vertex_indices.size() != other.vertex_indices.size()) {
+            return false;
+        }
+        const size_t size = vertex_indices.size();
+        for(size_t offset = 0; offset < size; ++offset) {
+            bool same = true;
+            for(size_t index = 0; index < size; ++index) {
+                if(vertex_indices[index] != other.vertex_indices[(index + offset) % size]) {
+                    same = false;
+                    break;
+                }
+            }
+            if(same) {
+                return true;
+            }
+        }
+        return false;
     }
 };
 
