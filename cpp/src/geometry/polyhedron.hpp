@@ -6,6 +6,7 @@
 #include <set>
 #include <map>
 #include <boost/dynamic_bitset.hpp>
+#include <boost/algorithm/string/join.hpp>
 
 using Bitset = boost::dynamic_bitset<>;
 
@@ -123,11 +124,13 @@ class Polyhedron {
                 face_sizes[size] = 1;
             }
         }
-
-        std::cout << "Found " << face_normals_.size() << " faces normals (" << faces_.size() << " faces):" << std::endl;
+        std::vector<std::string> face_sizes_strings;
         for(const auto& [size, count]: face_sizes) {
-            std::cout << " - " << count << "x " << size << "-sided" << std::endl;
+            face_sizes_strings.emplace_back(std::to_string(count) + " " + std::to_string(size) + "-sided");
         }
+        const std::string face_sizes_string = boost::algorithm::join(face_sizes_strings, ", ");
+
+        std::cout << "Found " << face_normals_.size() << " faces: " << face_sizes_string << std::endl;
     }
 
     void setup_outlines() {

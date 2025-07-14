@@ -2,6 +2,7 @@
 
 #include "geometry/edge.hpp"
 #include <vector>
+#include <boost/algorithm/string/join.hpp>
 
 template<IntervalType Interval>
 class Polygon {
@@ -43,17 +44,14 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& ostream, const Polygon& polygon) {
-        ostream << "[";
-        bool first = true;
+        std::vector<std::string> edges_strings;
         for(const Edge<Interval>& edge: polygon.edges_) {
-            if(!first) {
-                ostream << ",";
-            } else {
-                first = false;
-            }
-            ostream << edge;
+            std::stringstream stream;
+            stream << edge;
+            edges_strings.push_back(stream.str());
         }
-        ostream << "]";
-        return ostream;
+        const std::string edges_string = boost::algorithm::join(edges_strings, ", ");
+
+        return ostream << "[" << edges_string << "]";
     }
 };
