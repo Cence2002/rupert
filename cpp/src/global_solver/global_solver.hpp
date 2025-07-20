@@ -17,7 +17,6 @@ class GlobalSolver {
     const Config<Interval>& config_;
 
     ConcurrentPriorityQueue<Range3> hole_orientations_{};
-    std::atomic<size_t> pending_hole_orientations_{0};
     std::vector<std::thread> threads_{};
     std::atomic<bool> interrupted_{false};
 
@@ -91,12 +90,12 @@ class GlobalSolver {
             debug_exporter_.debug_builder.box_builder.set_projection(projected_oriented_hole);
         }
         SerialQueue<Range2> plug_orientations;
-        plug_orientations.push(Range2(Range(1, 0), Range(1, 0)));
-        plug_orientations.push(Range2(Range(1, 1), Range(1, 0)));
+        plug_orientations.add(Range2(Range(1, 0), Range(1, 0)));
+        plug_orientations.add(Range2(Range(1, 1), Range(1, 0)));
         std::vector<Range2> eliminated_plug_orientations;
         std::vector<Range2> terminal_plug_orientations;
         while(plug_orientations.size() > 0) {
-            const std::optional<Range2> optional_plug_orientation = plug_orientations.pop();
+            const std::optional<Range2> optional_plug_orientation = plug_orientations.fetch();
             if(!optional_plug_orientation.has_value()) {
                 throw std::runtime_error("plug_orientations.size() > 0 but none popped");
             }
@@ -110,6 +109,7 @@ class GlobalSolver {
                     debug_exporter_.debug_builder.box_builder.add_rectangle();
                 }
                 eliminated_plug_orientations.push_back(plug_orientation);
+                plug_orientations.ack();
                 continue;
             }
             if(std::ranges::all_of(config_.polyhedron.vertices(), [&](const Vector3<Interval>& vertex) {
@@ -126,11 +126,13 @@ class GlobalSolver {
             }
             if(plug_orientation.terminal()) {
                 terminal_plug_orientations.push_back(plug_orientation);
+                plug_orientations.ack();
                 continue;
             }
             for(const Range2& rectangle_part: plug_orientation.parts()) {
-                plug_orientations.push(rectangle_part);
+                plug_orientations.add(rectangle_part);
             }
+            plug_orientations.ack();
         }
         return std::make_pair(eliminated_plug_orientations, terminal_plug_orientations);
     }
@@ -145,7 +147,7 @@ class GlobalSolver {
         }
         if(hole_orientation_eliminated) {
             std::cout << "Eliminated hole orientation: " << hole_orientation << std::endl;
-            eliminated_hole_orientations_.push(EliminatedHoleOrientation(hole_orientation, eliminated_plug_orientations));
+            eliminated_hole_orientations_.add(EliminatedHoleOrientation(hole_orientation, eliminated_plug_orientations));
             return;
         }
         // TODO: refine termination criterion to use epsilon (potentially a new one)
@@ -154,24 +156,20 @@ class GlobalSolver {
             throw std::runtime_error("Range overflow");
         }
         for(const Range3& box_part: hole_orientation.parts()) {
-            hole_orientations_.push(box_part);
+            hole_orientations_.add(box_part);
         }
     }
 
     void start_box_processor() {
         while(!interrupted_) {
-            const size_t pending_hole_orientations_before = pending_hole_orientations_.fetch_add(1);
-            const std::optional<Range3> optional_hole_orientation = hole_orientations_.pop();
+            const std::optional<Range3> optional_hole_orientation = hole_orientations_.fetch();
             if(optional_hole_orientation.has_value()) {
                 process_hole_orientation(optional_hole_orientation.value());
-                pending_hole_orientations_.fetch_sub(1);
+                hole_orientations_.ack();
             } else {
-                if(pending_hole_orientations_before == 0) {
-                    pending_hole_orientations_.fetch_sub(1);
+                if(hole_orientations_.size() == 0) {
                     interrupt();
-                    continue;
                 }
-                pending_hole_orientations_.fetch_sub(1);
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
             }
         }
@@ -199,8 +197,7 @@ class GlobalSolver {
     }
 
 public:
-    explicit GlobalSolver(const Config<Interval>& config) : config_(config),
-                                                            exporter_latch_(config.threads) {
+    explicit GlobalSolver(const Config<Interval>& config) : config_(config), exporter_latch_(config.threads) {
         if(config_.debug) {
             debug_exporter_.debug_builder.set_hole(config_.polyhedron);
             debug_exporter_.debug_builder.set_plug(config_.polyhedron);
@@ -211,13 +208,16 @@ public:
         if(config_.restart) {
             Importer::restart(config_.working_directory());
             // TODO: Find starting point (or subset)
-            hole_orientations_.push(Range3(
+            hole_orientations_.add(Range3(
                 Range(9, 0b011011010),
                 Range(10, 0b1011001001),
                 Range(9, 0b101101110)
             ));
         } else {
-            hole_orientations_.push_all(Importer::import_boxes(config_.working_directory() / hole_orientations_file_name));
+            const std::vector<Range3> hole_orientations = Importer::import_boxes(config_.working_directory() / hole_orientations_file_name);
+            for(const Range3& range: hole_orientations) {
+                hole_orientations_.add(range);
+            }
         }
         Exporter::create_working_directory(config_.working_directory());
         Exporter::export_polyhedra(config_.working_directory() / polyhedron_file_name, config_.polyhedron);

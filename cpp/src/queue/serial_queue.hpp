@@ -1,25 +1,37 @@
 #pragma once
 
-#include "queue/task_type.hpp"
+#include "queue/queue_type.hpp"
 #include <queue>
 #include <optional>
 
 template<bool Priority, typename Task> requires (Priority ? PriorityTaskType<Task> : TaskType<Task>)
 class BaseSerialQueue {
     std::conditional_t<Priority, std::priority_queue<Task>, std::queue<Task>> queue_{};
+    size_t size_{0};
 
 public:
     explicit BaseSerialQueue() = default;
 
+    ~BaseSerialQueue() = default;
+
+    BaseSerialQueue(const BaseSerialQueue& queue) = delete;
+
+    BaseSerialQueue(BaseSerialQueue&& queue) = delete;
+
+    BaseSerialQueue& operator=(const BaseSerialQueue&) = delete;
+
+    BaseSerialQueue& operator=(BaseSerialQueue&&) = delete;
+
     size_t size() const {
-        return queue_.size();
+        return size_;
     }
 
-    void push(const Task& task) {
+    void add(const Task& task) {
         queue_.push(task);
+        size_++;
     }
 
-    std::optional<Task> pop() {
+    std::optional<Task> fetch() {
         if(queue_.empty()) {
             return std::nullopt;
         }
@@ -33,10 +45,18 @@ public:
             return std::make_optional(task);
         }
     }
+
+    void ack() {
+        size_--;
+    }
 };
 
 template<TaskType Task>
 using SerialQueue = BaseSerialQueue<false, Task>;
 
+static_assert(QueueType<SerialQueue<int>, int>);
+
 template<PriorityTaskType Task>
 using SerialPriorityQueue = BaseSerialQueue<true, Task>;
+
+static_assert(QueueType<SerialPriorityQueue<int>, int>);

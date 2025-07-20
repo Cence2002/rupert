@@ -19,9 +19,25 @@ template<typename Task>
 concept PriorityTaskType =
     TaskType<Task> &&
 
-    requires(std::priority_queue<Task>& queue, const Task& task, const Task& other_task) {
+    requires(std::priority_queue<Task>& queue, const Task& task) {
         { queue.push(task) } -> std::same_as<void>;
         { queue.top() } -> std::convertible_to<Task>;
         { queue.pop() } -> std::same_as<void>;
-        { std::less<Task>{}(task, other_task) } -> std::convertible_to<bool>;
+    };
+
+template<typename Queue, typename Task>
+concept QueueType =
+    std::is_default_constructible_v<Queue> &&
+    std::is_destructible_v<Queue> &&
+
+    !std::is_copy_constructible_v<Queue> &&
+    !std::is_move_constructible_v<Queue> &&
+    !std::is_copy_assignable_v<Queue> &&
+    !std::is_move_assignable_v<Queue> &&
+
+    requires(Queue& queue, const Task& task) {
+        { queue.size() } -> std::same_as<size_t>;
+        { queue.add(task) } -> std::same_as<void>;
+        { queue.fetch() } -> std::convertible_to<std::optional<Task>>;
+        { queue.ack() } -> std::same_as<void>;
     };

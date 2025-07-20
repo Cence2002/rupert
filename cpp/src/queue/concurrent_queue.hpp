@@ -1,30 +1,43 @@
 #pragma once
 
-#include "queue/task_type.hpp"
+#include "queue/queue_type.hpp"
 #include <queue>
 #include <optional>
 #include <mutex>
 #include <vector>
+#include <atomic>
 
 template<bool Priority, typename Task> requires (Priority ? PriorityTaskType<Task> : TaskType<Task>)
 class BaseConcurrentQueue {
     std::conditional_t<Priority, std::priority_queue<Task>, std::queue<Task>> queue_{};
     mutable std::mutex mutex_{};
+    size_t size_{0};
 
 public:
     explicit BaseConcurrentQueue() = default;
 
+    ~BaseConcurrentQueue() = default;
+
+    BaseConcurrentQueue(const BaseConcurrentQueue& queue) = delete;
+
+    BaseConcurrentQueue(BaseConcurrentQueue&& queue) = delete;
+
+    BaseConcurrentQueue& operator=(const BaseConcurrentQueue&) = delete;
+
+    BaseConcurrentQueue& operator=(BaseConcurrentQueue&&) = delete;
+
     size_t size() const {
         std::lock_guard<std::mutex> lock(mutex_);
-        return queue_.size();
+        return size_;
     }
 
-    void push(const Task& task) {
+    void add(const Task& task) {
         std::lock_guard<std::mutex> lock(mutex_);
         queue_.push(task);
+        size_++;
     }
 
-    std::optional<Task> pop() {
+    std::optional<Task> fetch() {
         std::lock_guard<std::mutex> lock(mutex_);
         if(queue_.empty()) {
             return std::nullopt;
@@ -40,11 +53,9 @@ public:
         }
     }
 
-    void push_all(const std::vector<Task>& tasks) {
+    void ack() {
         std::lock_guard<std::mutex> lock(mutex_);
-        for(const Task& task: tasks) {
-            queue_.push(task);
-        }
+        size_--;
     }
 
     std::vector<Task> pop_all() {
@@ -55,9 +66,11 @@ public:
             if constexpr(Priority) {
                 tasks.push_back(queue_.top());
                 queue_.pop();
+                size_--;
             } else {
                 tasks.push_back(queue_.front());
                 queue_.pop();
+                size_--;
             }
         }
         return tasks;
@@ -67,5 +80,9 @@ public:
 template<TaskType Task>
 using ConcurrentQueue = BaseConcurrentQueue<false, Task>;
 
+static_assert(QueueType<ConcurrentQueue<int>, int>);
+
 template<PriorityTaskType Task>
 using ConcurrentPriorityQueue = BaseConcurrentQueue<true, Task>;
+
+static_assert(QueueType<ConcurrentPriorityQueue<int>, int>);
