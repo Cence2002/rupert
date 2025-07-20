@@ -12,6 +12,40 @@ const std::string eliminated_hole_orientations_file_name = "terminal_boxes.bin";
 const std::string hole_orientations_file_name = "boxes.bin";
 const std::string debug_file_name = "debug.bin";
 
+/*
+HO = Hole Orientation
+PO = Plug Orientation
+
+HOs = [full]
+prunedHOs = []
+unprunedHOs = []
+for HO in HOs:
+    POs = [full]
+    prunedPOs = []
+    unprunedPOs = []
+    for PO in POs:
+        if PO fits in HO:
+            export(HO, PO)
+            terminate
+        if |PO, HO| < threshold
+            continue
+        if PO is prunable:
+            add PO to prunedPOs
+        else:
+            if |PO| < threshold:
+                add PO and all POs to unprunedPOs
+            else:
+                add pieces of PO to POs
+    if unprunedPOs is empty:
+        add HO and prunedPOs to prunedHOs
+    else:
+        if |HO| < threshold:
+            add HO and unprunedPOs to unprunedHOs
+        else:
+            add pieces of HO to HOs
+export(prunedHOs, unprunedHOs)
+*/
+
 template<IntervalType Interval>
 class GlobalSolver {
     const Config<Interval>& config_;
