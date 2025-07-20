@@ -19,7 +19,6 @@ struct Config {
     std::string name;
     size_t export_threshold = 0;
     bool restart = true;
-    bool debug = true;
 
     void validate() const {
         if(epsilon.min().neg()) {
@@ -42,9 +41,6 @@ struct Config {
         }
         if(!std::regex_match(name, std::regex("^[a-zA-Z0-9_]+$"))) {
             throw std::runtime_error(name + " is not a valid name (only letters, digits, and underscores are allowed)");
-        }
-        if(debug && threads > 1) {
-            throw std::runtime_error("Debug mode is not compatible with multiple threads");
         }
     }
 

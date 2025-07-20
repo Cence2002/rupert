@@ -46,7 +46,6 @@ int main() {
         "../../web/static",
         "temp",
         100,
-        true,
         true
     ));
 

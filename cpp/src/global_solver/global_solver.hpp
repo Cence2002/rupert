@@ -24,21 +24,13 @@ class GlobalSolver {
     std::thread exporter_thread_{};
     std::latch exporter_latch_;
 
-    DebugExporter<Interval> debug_exporter_{};
-
     Polygon<Interval> oriented_hole_projection(const Range3& hole_orientation) {
         std::vector<Vector2<Interval>> all_vectors;
         for(const Vector3<Interval>& vertex: config_.polyhedron.vertices()) {
             for(const Vector2<Interval>& vectors: projected_orientation_hull(vertex, hole_orientation.theta<Interval>(), hole_orientation.phi<Interval>(), config_.projection_resolution)) {
                 for(const Vector2<Interval>& vector: rotation_hull(vectors, hole_orientation.alpha<Interval>(), config_.rotation_resolution)) {
                     all_vectors.push_back(vector);
-                    if(config_.debug) {
-                        debug_exporter_.debug_builder.box_builder.projection_builder.add_vertex(vector);
-                    }
                 }
-            }
-            if(config_.debug) {
-                debug_exporter_.debug_builder.box_builder.add_projection();
             }
         }
         return convex_hull(deduplicate_vectors(all_vectors));
@@ -65,20 +57,8 @@ class GlobalSolver {
     bool check_plug_orientation(const Range2& plug_orientation, const Polygon<Interval>& projected_oriented_hole) {
         bool eliminated = false;
         for(const Vector3<Interval>& vertex: config_.polyhedron.vertices()) {
-            if(config_.debug) {
-                for(const Vector2<Interval>& projected_plug_vertex: projected_orientation_hull(vertex, plug_orientation.theta<Interval>(), plug_orientation.phi<Interval>(), config_.projection_resolution)) {
-                    debug_exporter_.debug_builder.box_builder.rectangle_builder.projection_builder.add_vertex(projected_plug_vertex);
-                }
-                debug_exporter_.debug_builder.box_builder.rectangle_builder.add_projection();
-            }
             if(projected_oriented_vector_avoids_polygon(projected_oriented_hole, vertex, plug_orientation.theta<Interval>(), plug_orientation.phi<Interval>())) {
-                if(config_.debug) {
-                    debug_exporter_.debug_builder.box_builder.rectangle_builder.add_last_as_out_index();
-                }
                 eliminated = true;
-                if(!config_.debug) {
-                    break;
-                }
             }
         }
         return eliminated;
@@ -86,9 +66,6 @@ class GlobalSolver {
 
     std::pair<std::vector<Range2>, std::vector<Range2>> check_hole_orientation(const Range3& hole_orientation) {
         const Polygon<Interval> projected_oriented_hole = oriented_hole_projection(hole_orientation);
-        if(config_.debug) {
-            debug_exporter_.debug_builder.box_builder.set_projection(projected_oriented_hole);
-        }
         SerialQueue<Range2> plug_orientations;
         plug_orientations.add(Range2(Range(1, 0), Range(1, 0)));
         plug_orientations.add(Range2(Range(1, 1), Range(1, 0)));
@@ -101,13 +78,7 @@ class GlobalSolver {
             }
 
             const Range2& plug_orientation = optional_plug_orientation.value();
-            if(config_.debug) {
-                debug_exporter_.debug_builder.box_builder.rectangle_builder.set_rectangle(plug_orientation);
-            }
             if(skip_plug_orientation(hole_orientation, plug_orientation) || check_plug_orientation(plug_orientation, projected_oriented_hole)) {
-                if(config_.debug) {
-                    debug_exporter_.debug_builder.box_builder.add_rectangle();
-                }
                 eliminated_plug_orientations.push_back(plug_orientation);
                 plug_orientations.ack();
                 continue;
@@ -115,14 +86,7 @@ class GlobalSolver {
             if(std::ranges::all_of(config_.polyhedron.vertices(), [&](const Vector3<Interval>& vertex) {
                 return projected_oriented_hole.inside(trivial_projected_orientation(vertex, plug_orientation.theta<Interval>().mid(), plug_orientation.phi<Interval>().mid()));
             })) {
-                if(config_.debug) {
-                    debug_exporter_.debug_builder.box_builder.add_rectangle();
-                    debug_exporter_.debug_builder.box_builder.set_last_as_in_index();
-                }
                 return std::make_pair(std::vector<Range2>{}, std::vector<Range2>{});
-            }
-            if(config_.debug) {
-                debug_exporter_.debug_builder.box_builder.add_rectangle();
             }
             if(plug_orientation.terminal()) {
                 terminal_plug_orientations.push_back(plug_orientation);
@@ -140,11 +104,6 @@ class GlobalSolver {
     void process_hole_orientation(const Range3& hole_orientation) {
         const auto [eliminated_plug_orientations, terminal_plug_orientations] = check_hole_orientation(hole_orientation);
         const bool hole_orientation_eliminated = eliminated_plug_orientations.size() > 0 && terminal_plug_orientations.size() == 0;
-        if(config_.debug) {
-            debug_exporter_.debug_builder.box_builder.set_box(hole_orientation);
-            debug_exporter_.debug_builder.box_builder.set_terminal(hole_orientation_eliminated);
-            debug_exporter_.debug_builder.add_box();
-        }
         if(hole_orientation_eliminated) {
             std::cout << "Eliminated hole orientation: " << hole_orientation << std::endl;
             eliminated_hole_orientations_.add(EliminatedHoleOrientation(hole_orientation, eliminated_plug_orientations));
@@ -189,20 +148,11 @@ class GlobalSolver {
         Exporter::export_terminal_boxes(config_.working_directory() / eliminated_hole_orientations_file_name, eliminated_hole_orientations_.pop_all());
         Exporter::export_boxes(config_.working_directory() / hole_orientations_file_name, hole_orientations_.pop_all());
 
-        if(config_.debug) {
-            debug_exporter_.export_debug(config_.working_directory() / debug_file_name);
-        }
-
         mpfr_free_cache();
     }
 
 public:
-    explicit GlobalSolver(const Config<Interval>& config) : config_(config), exporter_latch_(config.threads) {
-        if(config_.debug) {
-            debug_exporter_.debug_builder.set_hole(config_.polyhedron);
-            debug_exporter_.debug_builder.set_plug(config_.polyhedron);
-        }
-    }
+    explicit GlobalSolver(const Config<Interval>& config) : config_(config), exporter_latch_(config.threads) {}
 
     void setup() {
         if(config_.restart) {
