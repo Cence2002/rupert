@@ -87,7 +87,7 @@ function parseBox(reader: BinaryReader): Box {
         throw new Error("Not enough bytes to read box.");
     }
     const theta = parseId(reader, TWO_PI);
-    const phi = parseId(reader, PI);
+    const phi = parseId(reader, TWO_PI);
     const alpha = parseId(reader, TWO_PI);
     return new Box(theta, phi, alpha, true);
 }
@@ -97,7 +97,7 @@ function parseRectangle(reader: BinaryReader): Rectangle {
         throw new Error("Not enough bytes to read rectangle.");
     }
     const theta = parseId(reader, TWO_PI);
-    const phi = parseId(reader, PI);
+    const phi = parseId(reader, TWO_PI);
     return new Rectangle(theta, phi, true);
 }
 

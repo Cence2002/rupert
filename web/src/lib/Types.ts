@@ -38,7 +38,7 @@ export class Rectangle {
     public position(): Vector3 {
         return new Vector3(
             this.theta.interval.mid / TWO_PI,
-            this.phi.interval.mid / PI,
+            this.phi.interval.mid / TWO_PI,
             0,
         );
     }
@@ -46,7 +46,7 @@ export class Rectangle {
     public scale(): Vector3 {
         return new Vector3(
             this.theta.interval.len / TWO_PI,
-            this.phi.interval.len / PI,
+            this.phi.interval.len / TWO_PI,
             1,
         );
     }
@@ -64,7 +64,7 @@ export class Box {
     public position(): Vector3 {
         return new Vector3(
             this.theta.interval.mid / TWO_PI,
-            this.phi.interval.mid / PI,
+            this.phi.interval.mid / TWO_PI,
             this.alpha.interval.mid / TWO_PI,
         );
     }
@@ -72,7 +72,7 @@ export class Box {
     public scale(): Vector3 {
         return new Vector3(
             this.theta.interval.len / TWO_PI,
-            this.phi.interval.len / PI,
+            this.phi.interval.len / TWO_PI,
             this.alpha.interval.len / TWO_PI,
         );
     }
