@@ -39,7 +39,7 @@ int main() {
 
     run_global_solver(Config(
         Polyhedron(Archimedean::rhombicosidodecahedron<I>()),
-        I::pi() / I(18),
+        I::pi() / I(36),
         2,
         2,
         1,

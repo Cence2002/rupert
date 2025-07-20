@@ -86,12 +86,13 @@ class GlobalSolver {
     }
 
     std::pair<std::vector<Range2>, std::vector<Range2>> check_hole_orientation(const Range3& hole_orientation) {
-        Polygon<Interval> projected_oriented_hole = oriented_hole_projection(hole_orientation);
+        const Polygon<Interval> projected_oriented_hole = oriented_hole_projection(hole_orientation);
         if(config_.debug) {
             debug_exporter_.debug_builder.box_builder.set_projection(projected_oriented_hole);
         }
         SerialQueue<Range2> plug_orientations;
-        plug_orientations.push(Range2(Range(0, 0), Range(0, 0)));
+        plug_orientations.push(Range2(Range(1, 0), Range(1, 0)));
+        plug_orientations.push(Range2(Range(1, 1), Range(1, 0)));
         std::vector<Range2> eliminated_plug_orientations;
         std::vector<Range2> terminal_plug_orientations;
         while(plug_orientations.size() > 0) {
@@ -183,7 +184,7 @@ class GlobalSolver {
             if(eliminated_hole_orientations_.size() > config_.export_threshold) {
                 Exporter::export_terminal_boxes(config_.working_directory() / eliminated_hole_orientations_file_name, eliminated_hole_orientations_.pop_all());
             }
-            std::this_thread::yield();
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
         exporter_latch_.wait();
 
