@@ -29,7 +29,6 @@ void run_global_solver(const Config<I>& config) {
     config.validate();
 
     global_solver.emplace(config);
-    global_solver->setup();
     global_solver->run();
     std::cout << "Global Solver terminated gracefully" << std::endl;
 }
@@ -45,8 +44,7 @@ int main() {
         1,
         "../../web/static",
         "temp",
-        100,
-        true
+        100
     ));
 
     return 0;

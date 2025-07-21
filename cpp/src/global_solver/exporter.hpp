@@ -95,21 +95,4 @@ namespace Exporter {
         }
         std::cout << "Exported " << combined_orientations.size() << " combined orientations to " << path << std::endl;
     }
-
-    inline void export_hole_orientations(const std::filesystem::path& path, const std::vector<Range3>& hole_orientations) {
-        std::ofstream file(path, std::ios::binary | std::ios::trunc);
-        if(!file.is_open()) {
-            throw std::runtime_error("Failed to open " + path.string());
-        }
-
-        size_to_stream(file, static_cast<uint32_t>(hole_orientations.size()));
-        for(const Range3& hole_orientation: hole_orientations) {
-            range3_to_stream(file, hole_orientation);
-        }
-
-        if(file.fail()) {
-            throw std::runtime_error("Failed to write to " + path.string());
-        }
-        std::cout << "Exported " << hole_orientations.size() << " hole orientations to " << path << std::endl;
-    }
 }

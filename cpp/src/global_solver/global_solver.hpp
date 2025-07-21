@@ -1,16 +1,15 @@
 #pragma once
 
 #include "global_solver/config.hpp"
-#include "global_solver/io.hpp"
+#include "global_solver/exporter.hpp"
 #include "global_solver/helpers.hpp"
 #include "queue/queues.hpp"
 #include <thread>
 #include <latch>
 
 const std::string polyhedron_file_name = "polyhedra.bin";
-const std::string eliminated_hole_orientations_file_name = "terminal_boxes.bin";
-const std::string hole_orientations_file_name = "boxes.bin";
-const std::string debug_file_name = "debug.bin";
+const std::string pruned_hole_orientations_file_name = "pruned_hole_orientations.bin";
+const std::string unpruned_hole_orientations_file_name = "unpruned_hole_orientations.bin";
 
 /*
 HO = Hole Orientation
@@ -38,9 +37,10 @@ class GlobalSolver {
     ConcurrentPriorityQueue<Range3> hole_orientations_{};
     std::vector<std::thread> threads_{};
     std::atomic<bool> interrupted_{false};
+    std::atomic<bool> rupert_{false};
 
-    ConcurrentQueue<CombinedOrientation> eliminated_hole_orientations_{};
-    std::thread exporter_thread_{};
+    ConcurrentQueue<CombinedOrientation> pruned_hole_orientations_{};
+    ConcurrentQueue<CombinedOrientation> unpruned_hole_orientations_{};
     std::latch exporter_latch_;
 
     Polygon<Interval> oriented_hole_projection(const Range3& hole_orientation) {
@@ -125,7 +125,7 @@ class GlobalSolver {
         const bool hole_orientation_eliminated = eliminated_plug_orientations.size() > 0 && terminal_plug_orientations.size() == 0;
         if(hole_orientation_eliminated) {
             std::cout << "Eliminated hole orientation: " << hole_orientation << std::endl;
-            eliminated_hole_orientations_.add(CombinedOrientation(hole_orientation, eliminated_plug_orientations));
+            pruned_hole_orientations_.add(CombinedOrientation(hole_orientation, eliminated_plug_orientations));
             return;
         }
         // TODO: refine termination criterion to use epsilon (potentially a new one)
@@ -155,25 +155,10 @@ class GlobalSolver {
         exporter_latch_.count_down();
     }
 
-    void start_exporter() {
-        while(!interrupted_) {
-            if(eliminated_hole_orientations_.size() > config_.export_threshold) {
-                Exporter::export_combined_orientations(config_.working_directory() / eliminated_hole_orientations_file_name, eliminated_hole_orientations_.pop_all());
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
-        exporter_latch_.wait();
-
-        Exporter::export_combined_orientations(config_.working_directory() / eliminated_hole_orientations_file_name, eliminated_hole_orientations_.pop_all());
-        Exporter::export_hole_orientations(config_.working_directory() / hole_orientations_file_name, hole_orientations_.pop_all());
-
-        mpfr_free_cache();
-    }
-
 public:
     explicit GlobalSolver(const Config<Interval>& config) : config_(config), exporter_latch_(config.threads) {}
 
-    void setup() {
+    void run() {
         hole_orientations_.add(Range3(
             Range(9, 0b011011010),
             Range(10, 0b1011001001),
@@ -181,22 +166,20 @@ public:
         ));
         Exporter::create_empty_working_directory(config_.working_directory());
         Exporter::export_polyhedron(config_.working_directory() / polyhedron_file_name, config_.polyhedron);
-    }
-
-    void run() {
         std::ranges::generate_n(std::back_inserter(threads_), config_.threads, [this] {
             return std::thread([this] {
                 start_box_processor();
             });
         });
-        exporter_thread_ = std::thread([this] {
-            start_exporter();
-        });
-
         for(std::thread& thread: threads_) {
             thread.join();
         }
-        exporter_thread_.join();
+        exporter_latch_.wait();
+        if(!rupert_) {
+            Exporter::export_combined_orientations(config_.working_directory() / pruned_hole_orientations_file_name, pruned_hole_orientations_.pop_all());
+            Exporter::export_combined_orientations(config_.working_directory() / unpruned_hole_orientations_file_name, unpruned_hole_orientations_.pop_all());
+        }
+        mpfr_free_cache();
     }
 
     void interrupt() {
