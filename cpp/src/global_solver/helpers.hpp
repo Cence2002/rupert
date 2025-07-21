@@ -1,6 +1,7 @@
 #pragma once
 
 #include "geometry/geometry.hpp"
+#include "range/ranges.hpp"
 #include <vector>
 #include <optional>
 #include <algorithm>
@@ -53,7 +54,7 @@ Vector2<Interval> combined_rotation(const Vector2<Interval>& vector, const Inter
 // Y = (y * cos(theta) + x * sin(theta)) * cos(phi) - z * sin(phi)
 
 template<IntervalType Interval>
-Vector2<Interval> trivial_projected_orientation(const Vector3<Interval>& vector, const Interval& theta, const Interval& phi) {
+Vector2<Interval> trivial_orientation(const Vector3<Interval>& vector, const Interval& theta, const Interval& phi) {
     return Vector2<Interval>(
         trivial_harmonic(vector.x(), -vector.y(), theta),
         trivial_harmonic(trivial_harmonic(vector.y(), vector.x(), theta), -vector.z(), phi)
@@ -149,8 +150,8 @@ bool projected_oriented_vector_avoids_edge_fixed_phi(const Vector3<Interval>& ve
         (-linear_term - sqrt_discriminant) / (Interval(2) * quadratic_term)
     };
 
-    const Vector2<Interval> min_projected_vector = trivial_projected_orientation(vector, theta.min(), phi);
-    const Vector2<Interval> max_projected_vector = trivial_projected_orientation(vector, theta.max(), phi);
+    const Vector2<Interval> min_projected_vector = trivial_orientation(vector, theta.min(), phi);
+    const Vector2<Interval> max_projected_vector = trivial_orientation(vector, theta.max(), phi);
     const Vector2<Interval> transformed_min_projected_vector = Vector2<Interval>(
         min_projected_vector.x(),
         (min_projected_vector.y() + translation_factor) / scaling_factor
@@ -187,10 +188,10 @@ bool projected_oriented_vector_avoids_polygon(const Polygon<Interval>& polygon, 
     if(!(theta.len() < Interval::pi() / Interval(2))) {
         return polygon.outside(combined_projected_orientation(vector, theta, phi));
     }
-    return polygon.outside(trivial_projected_orientation(vector, theta.min(), phi.min())) &&
-           polygon.outside(trivial_projected_orientation(vector, theta.max(), phi.max())) &&
-           polygon.outside(trivial_projected_orientation(vector, theta.min(), phi.max())) &&
-           polygon.outside(trivial_projected_orientation(vector, theta.max(), phi.min())) &&
+    return polygon.outside(trivial_orientation(vector, theta.min(), phi.min())) &&
+           polygon.outside(trivial_orientation(vector, theta.max(), phi.max())) &&
+           polygon.outside(trivial_orientation(vector, theta.min(), phi.max())) &&
+           polygon.outside(trivial_orientation(vector, theta.max(), phi.min())) &&
            projected_oriented_vector_avoids_polygon_fixed_theta(polygon, vector, theta.min(), phi) &&
            projected_oriented_vector_avoids_polygon_fixed_theta(polygon, vector, theta.max(), phi) &&
            projected_oriented_vector_avoids_polygon_fixed_phi(polygon, vector, theta, phi.min()) &&
@@ -366,4 +367,17 @@ Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vectors) {
         }
     }
     return Polygon(edges);
+}
+
+template<IntervalType Interval>
+Polygon<Interval> project_polyhedron(const Polyhedron<Interval>& polyhedron, const Range3& orientation, const int projection_resolution, const int rotation_resolution) {
+    std::vector<Vector2<Interval>> projected_vectors;
+    for(const Vector3<Interval>& vertex: polyhedron.vertices()) {
+        for(const Vector2<Interval>& vectors: projected_orientation_hull(vertex, orientation.theta<Interval>(), orientation.phi<Interval>(), projection_resolution)) {
+            for(const Vector2<Interval>& vector: rotation_hull(vectors, orientation.alpha<Interval>(), rotation_resolution)) {
+                projected_vectors.push_back(vector);
+            }
+        }
+    }
+    return convex_hull(deduplicate_vectors(projected_vectors));
 }
