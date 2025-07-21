@@ -80,6 +80,21 @@ public:
         return alpha_range_.angle<Interval>();
     }
 
+    template<IntervalType Interval>
+    Interval theta_mid() const {
+        return theta_range_.angle_mid<Interval>();
+    }
+
+    template<IntervalType Interval>
+    Interval phi_mid() const {
+        return phi_range_.angle_mid<Interval>();
+    }
+
+    template<IntervalType Interval>
+    Interval alpha_mid() const {
+        return alpha_range_.angle_mid<Interval>();
+    }
+
     friend std::ostream& operator<<(std::ostream& ostream, const Range3& box) {
         return ostream << box.theta_range_ << box.phi_range_ << box.alpha_range_;
     }

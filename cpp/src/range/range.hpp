@@ -31,10 +31,10 @@ public:
 
     bool operator<(const Range& other) const {
         if(depth_ < other.depth_) {
-            return true;
+            return false;
         }
         if(depth_ > other.depth_) {
-            return false;
+            return true;
         }
         return bits_ < other.bits_;
     }
@@ -64,8 +64,18 @@ public:
     }
 
     template<IntervalType Interval>
+    Interval interval_mid() const {
+        return Interval(static_cast<uint16_t>(bits_ << 1 | 1)) / Interval(static_cast<uint16_t>(1 << (depth_ + 1)));
+    }
+
+    template<IntervalType Interval>
     Interval angle() const {
         return Interval(2) * Interval::pi() * interval<Interval>();
+    }
+
+    template<IntervalType Interval>
+    Interval angle_mid() const {
+        return Interval(2) * Interval::pi() * interval_mid<Interval>();
     }
 
     friend std::ostream& operator<<(std::ostream& ostream, const Range& id) {
