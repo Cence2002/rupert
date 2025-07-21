@@ -264,11 +264,6 @@ std::vector<Vector2<Interval>> deduplicate_vectors(const std::vector<Vector2<Int
         merged_vectors.push_back(merge_vectors(vector_group));
         merged_any = true;
     }
-    for(size_t i = 0; i < vectors.size(); i++) {
-        if(parent[i] != i) {
-            std::cout << "Vector " << i << " is a duplicate of vector " << parent[i] << ": " << vectors[i] << " ~ " << vectors[parent[i]] << std::endl;
-        }
-    }
     if(!merged_any) {
         return merged_vectors;
     }

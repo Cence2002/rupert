@@ -25,7 +25,7 @@ for HO in HOs:
         if PO is prunable: add PO to prunedPOs
         elif |PO| < threshold: add PO and all POs to unprunedPOs
         else: add pieces of PO to POs
-    if unprunedPOs is empty: add HO and prunedPOs to prunedHOs
+    if HOprunable: add HO and prunedPOs to prunedHOs
     elif |HO| < threshold: add HO and unprunedPOs to unprunedHOs
     else: add pieces of HO to HOs
 export(prunedHOs, unprunedHOs)
@@ -44,9 +44,45 @@ class GlobalSolver {
     ConcurrentQueue<CombinedOrientation> unpruned_hole_orientations_{};
     std::latch exporter_latch_;
 
-    bool plug_orientation_sample_fits(const Polygon<Interval>& projected_hole, const Interval& theta, const Interval& phi) const {
+    bool plug_orientation_sample_inside_hole_orientation_sample(const Range3& hole_orientation, const Range2& plug_orientation) const {
+        const Interval hole_theta = hole_orientation.theta<Interval>().mid();
+        const Interval hole_phi = hole_orientation.phi<Interval>().mid();
+        const Interval hole_alpha = hole_orientation.alpha<Interval>().mid();
+        const Vector3<Interval> direction = Vector3<Interval>(
+            hole_theta.sin() * hole_phi.sin(),
+            hole_theta.cos() * hole_phi.sin(),
+            hole_phi.cos()
+        );
+        const Bitset normal_mask = config_.polyhedron.get_normal_mask(direction);
+        const auto outline_iterator = std::ranges::find_if(config_.polyhedron.outlines(), [&](const Outline& candidate_outline) {
+            return candidate_outline.normal_mask == normal_mask;
+        });
+        if(outline_iterator == config_.polyhedron.outlines().end()) {
+            return false;
+        }
+        const Outline& outline = *outline_iterator;
+        const Matrix<Interval> hole_matrix = Matrix<Interval>::rotation_z(hole_alpha) * Matrix<Interval>::orientation(hole_theta, hole_phi);
+        std::vector<Vector3<Interval>> projected_vertices;
+        for(const size_t vertex_index: outline.vertex_indices) {
+            const Vector3<Interval> vertex = config_.polyhedron.vertices()[vertex_index];
+            const Vector3<Interval> projected_vertex = hole_matrix * vertex;
+            projected_vertices.push_back(projected_vertex);
+        }
+        std::vector<Edge<Interval>> projected_edges;
+        for(size_t i = 0; i < projected_vertices.size(); ++i) {
+            const Vector3<Interval>& vertex_0 = projected_vertices[i];
+            const Vector3<Interval>& vertex_1 = projected_vertices[(i + 1) % projected_vertices.size()];
+            projected_edges.emplace_back(Vector2<Interval>(vertex_0.x(), vertex_0.y()), Vector2<Interval>(vertex_1.x(), vertex_1.y()));
+        }
+        const Polygon<Interval> projected_hole(projected_edges);
+        return plug_orientation_sample_inside_hole_orientation(projected_hole, plug_orientation);
+    }
+
+    bool plug_orientation_sample_inside_hole_orientation(const Polygon<Interval>& projected_hole, const Range2& plug_orientation) const {
+        const Interval plug_theta = plug_orientation.theta<Interval>().mid();
+        const Interval plug_phi = plug_orientation.phi<Interval>().mid();
         return std::ranges::all_of(config_.polyhedron.vertices(), [&](const Vector3<Interval>& vertex) {
-            return projected_hole.inside(trivial_orientation(vertex, theta, phi));
+            return projected_hole.inside(trivial_orientation(vertex, plug_theta, plug_phi));
         });
     }
 
@@ -74,7 +110,7 @@ class GlobalSolver {
         });
     }
 
-    std::tuple<bool, std::vector<Range2>, std::vector<Range2>> process_plug_orientations(const Range3& hole_orientation) const {
+    std::tuple<bool, std::vector<Range2>, std::vector<Range2>> process_plug_orientations(const Range3& hole_orientation) {
         const Polygon<Interval> projected_hole = project_polyhedron(config_.polyhedron, hole_orientation, config_.projection_resolution, config_.rotation_resolution);
         SerialQueue<Range2> plug_orientations;
         plug_orientations.add(Range2(Range(0, 0), Range(1, 0)));
@@ -86,6 +122,14 @@ class GlobalSolver {
                 throw std::runtime_error("plug_orientations is empty");
             }
             const Range2& plug_orientation = optional_plug_orientation.value();
+            if(plug_orientation_sample_inside_hole_orientation_sample(hole_orientation, plug_orientation)) {
+                std::cout << "Rupert passage found for hole orientation: " << hole_orientation << " and plug orientation: " << plug_orientation << std::endl;
+                rupert_ = true;
+                return std::make_tuple(false, std::vector<Range2>{}, std::vector<Range2>{});
+            }
+            if(plug_orientation_sample_inside_hole_orientation(projected_hole, plug_orientation)) { //.theta<Interval>().mid(), plug_orientation.phi<Interval>().mid())) {
+                return std::make_tuple(false, std::vector<Range2>{}, std::vector<Range2>{});
+            }
             if(plug_orientation_skippable(hole_orientation, plug_orientation)) {
                 plug_orientations.ack();
                 continue;
@@ -94,9 +138,6 @@ class GlobalSolver {
                 pruned_plug_orientations.push_back(plug_orientation);
                 plug_orientations.ack();
                 continue;
-            }
-            if(plug_orientation_sample_fits(projected_hole, plug_orientation.theta<Interval>().mid(), plug_orientation.phi<Interval>().mid())) {
-                return std::make_tuple(false, std::vector<Range2>{}, std::vector<Range2>{});
             }
             if(plug_orientation.terminal()) {
                 // TODO: use a better threshold

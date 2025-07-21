@@ -42,10 +42,10 @@ class Polyhedron {
     std::vector<Vector3<Interval>> face_normals_{};
     std::vector<std::vector<size_t>> faces_{};
 
-    std::vector<Outline> outlines_{};
-
     std::vector<Matrix<Interval>> rotations_{};
     std::vector<Matrix<Interval>> reflections_{};
+
+    std::vector<Outline> outlines_{};
 
     void check_centrally_symmetric() {
         if(!std::ranges::all_of(vertices_, [&](const Vector3<Interval>& vertex) {
@@ -175,25 +175,11 @@ class Polyhedron {
                         closest_index = index;
                     }
                 }
-                const Interval epsilon = cross_product.dot(face_normals_[closest_index.value()]) / Interval(1000);
+                const Interval epsilon = cross_product.dot(face_normals_[closest_index.value()]) / Interval(100);
                 const Vector3<Interval> direction = (cross_product + bisector * epsilon).unit();
 
-                Bitset normal_mask(face_normals_.size());
-                bool invalid = false;
-                for(size_t index = 0; index < face_normals_.size(); ++index) {
-                    const Interval dot = direction.dot(face_normals_[index]);
-                    if(dot.pos()) {
-                        normal_mask.set(index);
-                    }
-                    if(dot.neg()) {
-                        normal_mask.reset(index);
-                    }
-                    if(!dot.nonz()) {
-                        invalid = true;
-                        break;
-                    }
-                }
-                if(invalid) {
+                Bitset normal_mask = get_normal_mask(direction);
+                if(normal_mask.none()) {
                     continue;
                 }
                 if(std::ranges::any_of(outlines_, [&](const Outline& outline) {
@@ -326,5 +312,25 @@ public:
 
     const std::vector<Matrix<Interval>>& reflections() const {
         return reflections_;
+    }
+
+    const std::vector<Outline>& outlines() const {
+        return outlines_;
+    }
+
+    Bitset get_normal_mask(const Vector3<Interval>& direction) const {
+        Bitset normal_mask(face_normals_.size());
+        for(size_t index = 0; index < face_normals_.size(); ++index) {
+            const Interval dot = direction.dot(face_normals_[index]);
+            if(dot.pos()) {
+                normal_mask.set(index);
+            } else if(dot.neg()) {
+                normal_mask.reset(index);
+            } else {
+                normal_mask.reset();
+                return normal_mask;
+            }
+        }
+        return normal_mask;
     }
 };
