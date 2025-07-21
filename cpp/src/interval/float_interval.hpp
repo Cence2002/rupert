@@ -7,6 +7,7 @@
 class FloatInterval {
     double min_;
     double max_;
+    static constexpr double epsilon = std::numeric_limits<double>::epsilon() * 42;
 
     explicit FloatInterval(const double min, const double max) : min_(min), max_(max) {}
 
@@ -22,10 +23,10 @@ public:
             throw std::invalid_argument("min > max");
         }
         if(min != 0) {
-            min_ -= std::numeric_limits<double>::epsilon() * 42;
+            min_ -= epsilon;
         }
         if(max != 0) {
-            max_ += std::numeric_limits<double>::epsilon() * 42;
+            max_ += epsilon;
         }
     }
 
@@ -171,7 +172,8 @@ public:
     }
 
     static FloatInterval pi() {
-        return FloatInterval(std::numbers::pi_v<double>);
+        constexpr double pi = std::numbers::pi_v<double>;
+        return FloatInterval(pi - epsilon, pi + epsilon);
     }
 
     FloatInterval cos() const {
