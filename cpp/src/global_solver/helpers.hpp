@@ -225,11 +225,7 @@ std::vector<Vector2<Interval>> deduplicate_vectors(const std::vector<Vector2<Int
     }
     for(size_t i = 1; i < vectors.size(); i++) {
         for(size_t j = 0; j < i; j++) {
-            const Interval dist = vectors[i].dist(vectors[j]);
-            if(dist > max_dist) {
-                continue;
-            }
-            if(!dist.pos()) {
+            if(vectors[i].dist(vectors[j]) < max_dist) {
                 parent[i] = j;
                 break;
             }

@@ -89,7 +89,7 @@ namespace Platonic {
 
     template<IntervalType Interval>
     static std::vector<Vector3<Interval>> cube() {
-        return normalize(flips<Interval>(Vector3<Interval>(Interval(1) / 2, Interval(1) / 2, Interval(1) / 2)));
+        return normalize(flips<Interval>(Vector3<Interval>(Interval(1), Interval(1), Interval(1))));
     }
 
     template<IntervalType Interval>
@@ -100,10 +100,10 @@ namespace Platonic {
 
     template<IntervalType Interval>
     static std::vector<Vector3<Interval>> dodecahedron() {
-        const Interval c0 = (Interval(1) + Interval(5).sqrt()) / 4;
-        const Interval c1 = (Interval(3) + Interval(5).sqrt()) / 4;
+        const Interval c0 = (Interval(1) + Interval(5).sqrt()) / Interval(4);
+        const Interval c1 = (Interval(3) + Interval(5).sqrt()) / Interval(4);
         return normalize(combine<Interval>({
-            rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(0), Interval(1) / 2, c1))),
+            rotations<Interval>(flips<Interval>(Vector3<Interval>(Interval(0), Interval(1) / Interval(2), c1))),
             flips<Interval>(Vector3<Interval>(c0, c0, c0))
         }));
     }

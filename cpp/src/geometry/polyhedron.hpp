@@ -182,6 +182,9 @@ class Polyhedron {
                 if(normal_mask.none()) {
                     continue;
                 }
+                if(normal_mask.count() != face_normals_.size() / 2) {
+                    continue;
+                }
                 if(std::ranges::any_of(outlines_, [&](const Outline& outline) {
                     return outline.normal_mask == normal_mask;
                 })) {

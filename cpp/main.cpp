@@ -37,11 +37,11 @@ int main() {
     std::signal(SIGINT, signal_handler);
 
     run_global_solver(Config(
-        Polyhedron(Archimedean::rhombicosidodecahedron<I>()),
+        Polyhedron(Platonic::cube<I>()),
         I::pi() / I(36),
         2,
         2,
-        1,
+        10,
         "../../web/static",
         "temp",
         100
