@@ -18,7 +18,6 @@ struct Config {
     std::filesystem::path root_directory;
     std::string name;
     size_t export_threshold = 0;
-    bool restart = true;
 
     void validate() const {
         if(epsilon.min().neg()) {
