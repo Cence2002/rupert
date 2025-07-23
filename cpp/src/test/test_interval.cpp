@@ -375,44 +375,44 @@ INTERVAL_TEST_CASE("basic_operations") {
 
     SECTION("x/y") {
         REQUIRE(check_interval(m2_m1 / m2_m1, 0.5, 2.0));
-        REQUIRE((m2_m1 / m1_z ).is_nan());
-        REQUIRE((m2_m1 / z_z ).is_nan());
-        REQUIRE((m2_m1 / z_p1 ).is_nan());
+        REQUIRE((m2_m1 / m1_z).is_nan());
+        REQUIRE((m2_m1 / z_z).is_nan());
+        REQUIRE((m2_m1 / z_p1).is_nan());
         REQUIRE(check_interval(m2_m1 / p1_p2, -2.0, -0.5));
         REQUIRE((m2_m1 / m1_p1).is_nan());
 
         REQUIRE(check_interval(m1_z / m2_m1, 0.0, 1.0));
-        REQUIRE((m1_z / m1_z ).is_nan());
-        REQUIRE((m1_z / z_z ).is_nan());
-        REQUIRE((m1_z / z_p1 ).is_nan());
+        REQUIRE((m1_z / m1_z).is_nan());
+        REQUIRE((m1_z / z_z).is_nan());
+        REQUIRE((m1_z / z_p1).is_nan());
         REQUIRE(check_interval(m1_z / p1_p2, -1.0, 0.0));
         REQUIRE((m1_z / m1_p1).is_nan());
 
         REQUIRE(check_interval(z_z / m2_m1, 0.0, 0.0));
-        REQUIRE((z_z / m1_z ).is_nan());
-        REQUIRE((z_z / z_z ).is_nan());
-        REQUIRE((z_z / z_p1 ).is_nan());
+        REQUIRE((z_z / m1_z).is_nan());
+        REQUIRE((z_z / z_z).is_nan());
+        REQUIRE((z_z / z_p1).is_nan());
         REQUIRE(check_interval(z_z / p1_p2, 0.0, 0.0));
         REQUIRE((z_z / m1_p1).is_nan());
 
         REQUIRE(check_interval(z_p1 / m2_m1, -1.0, 0.0));
-        REQUIRE((z_p1 / m1_z ).is_nan());
-        REQUIRE((z_p1 / z_z ).is_nan());
-        REQUIRE((z_p1 / z_p1 ).is_nan());
+        REQUIRE((z_p1 / m1_z).is_nan());
+        REQUIRE((z_p1 / z_z).is_nan());
+        REQUIRE((z_p1 / z_p1).is_nan());
         REQUIRE(check_interval(z_p1 / p1_p2, 0.0, 1.0));
         REQUIRE((z_p1 / m1_p1).is_nan());
 
         REQUIRE(check_interval(p1_p2 / m2_m1, -2.0, -0.5));
-        REQUIRE((p1_p2 / m1_z ).is_nan());
-        REQUIRE((p1_p2 / z_z ).is_nan());
-        REQUIRE((p1_p2 / z_p1 ).is_nan());
+        REQUIRE((p1_p2 / m1_z).is_nan());
+        REQUIRE((p1_p2 / z_z).is_nan());
+        REQUIRE((p1_p2 / z_p1).is_nan());
         REQUIRE(check_interval(p1_p2 / p1_p2, 0.5, 2.0));
         REQUIRE((p1_p2 / m1_p1).is_nan());
 
         REQUIRE(check_interval(m1_p1 / m2_m1, -1.0, 1.0));
-        REQUIRE((m1_p1 / m1_z ).is_nan());
-        REQUIRE((m1_p1 / z_z ).is_nan());
-        REQUIRE((m1_p1 / z_p1 ).is_nan());
+        REQUIRE((m1_p1 / m1_z).is_nan());
+        REQUIRE((m1_p1 / z_z).is_nan());
+        REQUIRE((m1_p1 / z_p1).is_nan());
         REQUIRE(check_interval(m1_p1 / p1_p2, -1.0, 1.0));
         REQUIRE((m1_p1 / m1_p1).is_nan());
     }
@@ -439,8 +439,8 @@ INTERVAL_TEST_CASE("basic_operations") {
         REQUIRE(m2_m1.sqrt().is_nan());
         REQUIRE(m1_z.sqrt().is_nan());
         REQUIRE(check_interval(z_z.sqrt(), 0, 0));
-        REQUIRE(check_interval( z_p1.sqrt(), 0.0, 1.0));
-        REQUIRE(check_interval( p1_p2.sqrt(), 1.0, 1.4142135623730951));
+        REQUIRE(check_interval(z_p1.sqrt(), 0.0, 1.0));
+        REQUIRE(check_interval(p1_p2.sqrt(), 1.0, 1.4142135623730951));
         REQUIRE(m1_p1.sqrt().is_nan());
     }
 }
