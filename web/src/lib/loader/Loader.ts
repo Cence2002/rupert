@@ -117,7 +117,7 @@ function parseTerminalBox(reader: BinaryReader): TerminalBox {
 export function parsePolyhedraFile(buffer: ArrayBuffer) {
     const reader = new BinaryReader(buffer);
     const hole = parsePolyhedron(reader);
-    const plug = parsePolyhedron(reader);
+    const plug = null;
     return {hole, plug};
 }
 
@@ -176,7 +176,7 @@ export class Loader implements AbstractLoader {
         console.log("Loaded polyhedra file (" + humanReadableBytes(buffer.byteLength) + ")");
         const {hole, plug} = parsePolyhedraFile(buffer);
         this.hole = hole;
-        this.plug = plug;
+        this.plug = hole;
     }
 
     async loadTerminalBoxes(path: string): Promise<void> {
@@ -202,9 +202,9 @@ export class Loader implements AbstractLoader {
     }
 
     async load(directory: string): Promise<void> {
-        await this.loadPolyhedra(directory + "/polyhedra.bin");
-        await this.loadTerminalBoxes(directory + "/terminal_boxes.bin");
-        await this.loadNonTerminalBoxes(directory + "/boxes.bin");
+        await this.loadPolyhedra(directory + "/polyhedron.bin");
+        await this.loadTerminalBoxes(directory + "/pruned_hole_orientations.bin");
+        // await this.loadNonTerminalBoxes(directory + "/boxes.bin");
     }
 
     getBox(boxIndex: number): Box {

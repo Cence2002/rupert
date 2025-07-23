@@ -7,7 +7,7 @@
 #include <thread>
 #include <latch>
 
-const std::string polyhedron_file_name = "polyhedra.bin";
+const std::string polyhedron_file_name = "polyhedron.bin";
 const std::string pruned_hole_orientations_file_name = "pruned_hole_orientations.bin";
 const std::string unpruned_hole_orientations_file_name = "unpruned_hole_orientations.bin";
 

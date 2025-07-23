@@ -12,7 +12,7 @@
     import type {AbstractLoader} from "$lib/loader/AbstractLoader";
 
     const directory: string = "temp";
-    const debug: boolean = true;
+    const debug: boolean = false;
 
     const loader: AbstractLoader = debug ? new DebugLoader() : new Loader();
 
