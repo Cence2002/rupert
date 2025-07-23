@@ -36,15 +36,15 @@ void run_global_solver(const Config<I>& config) {
 int main() {
     std::signal(SIGINT, signal_handler);
 
+    const I one_degree = I::pi() / I(180);
     run_global_solver(Config(
         Polyhedron(Platonic::cube<I>()),
-        I::pi() / I(36),
+        one_degree * I(10),
         2,
         2,
         10,
         "../../web/static",
-        "temp",
-        100
+        "temp"
     ));
 
     return 0;
