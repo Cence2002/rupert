@@ -65,11 +65,11 @@ class GlobalSolver {
             if(plug_orientation_sample_inside_hole_orientation(config_.polyhedron, projected_hole, plug_orientation)) {
                 return std::make_tuple(false, std::vector<Range2>{}, std::vector<Range2>{});
             }
-            if(plug_orientation_skippable(config_.polyhedron, hole_orientation, plug_orientation, config_.epsilon)) {
+            if(hole_orientation_close_to_plug_orientation(config_.polyhedron, hole_orientation, plug_orientation, config_.epsilon)) {
                 plug_orientations.ack();
                 continue;
             }
-            if(plug_orientation_prunable(config_.polyhedron, plug_orientation, projected_hole)) {
+            if(plug_orientation_outside_hole_orientation(config_.polyhedron, plug_orientation, projected_hole)) {
                 pruned_plug_orientations.push_back(plug_orientation);
                 plug_orientations.ack();
                 continue;
@@ -89,7 +89,7 @@ class GlobalSolver {
     }
 
     void process_hole_orientation(const Range3& hole_orientation) {
-        const auto [hole_orientation_prunable, pruned_plug_orientations, unpruned_plug_orientations] = process_plug_orientations(hole_orientation);
+        const auto& [hole_orientation_prunable, pruned_plug_orientations, unpruned_plug_orientations] = process_plug_orientations(hole_orientation);
         if(hole_orientation_prunable) {
             std::cout << "Hole orientation is prunable: " << hole_orientation << std::endl;
             pruned_hole_orientations_.add(CombinedOrientation(hole_orientation, pruned_plug_orientations));

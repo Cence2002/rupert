@@ -420,7 +420,7 @@ bool plug_orientation_sample_inside_hole_orientation(const Polyhedron<Interval>&
 }
 
 template<IntervalType Interval>
-bool plug_orientation_skippable(const Polyhedron<Interval>& polyhedron, const Range3& hole_orientation, const Range2& plug_orientation, const Interval& epsilon) {
+bool hole_orientation_close_to_plug_orientation(const Polyhedron<Interval>& polyhedron, const Range3& hole_orientation, const Range2& plug_orientation, const Interval& epsilon) {
     const Interval hole_orientation_angle_radius = Vector2<Interval>(hole_orientation.theta<Interval>().rad() + hole_orientation.alpha<Interval>().rad(), hole_orientation.phi<Interval>().rad()).len();
     const Interval plug_orientation_angle_radius = Vector2<Interval>(plug_orientation.theta<Interval>().rad(), plug_orientation.phi<Interval>().rad()).len();
     const Interval remaining_angle = epsilon - hole_orientation_angle_radius - plug_orientation_angle_radius;
@@ -439,7 +439,7 @@ bool plug_orientation_skippable(const Polyhedron<Interval>& polyhedron, const Ra
 }
 
 template<IntervalType Interval>
-bool plug_orientation_prunable(const Polyhedron<Interval>& polyhedron, const Range2& plug_orientation, const Polygon<Interval>& projected_hole) {
+bool plug_orientation_outside_hole_orientation(const Polyhedron<Interval>& polyhedron, const Range2& plug_orientation, const Polygon<Interval>& projected_hole) {
     return std::ranges::any_of(polyhedron.vertices(), [&](const Vector3<Interval>& vertex) {
         return projected_oriented_vector_avoids_polygon(projected_hole, vertex, plug_orientation.theta<Interval>(), plug_orientation.phi<Interval>());
     });

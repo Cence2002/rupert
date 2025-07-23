@@ -32,7 +32,7 @@ inline bool check_float_is_nan(const double value) {
 
 template<typename Interval>
 bool check_interval(const Interval interval, const double target_min, const double target_max) {
-    const auto [interval_min, interval_max] = interval.to_floats();
+    const auto& [interval_min, interval_max] = interval.to_floats();
     if(std::isnan(interval_min) || std::isnan(interval_max) ||
        std::isnan(target_min) || std::isnan(target_max)) {
         return std::isnan(interval_min) && std::isnan(target_min) &&
