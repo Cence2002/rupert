@@ -7,28 +7,31 @@
 class FloatInterval {
     double min_;
     double max_;
-    static constexpr double epsilon = std::numeric_limits<double>::epsilon() * 42;
+    static constexpr double EPS = std::numeric_limits<double>::epsilon() * 42;
+    static constexpr double PI = std::numbers::pi_v<double>;
+    static constexpr double HALF_PI = PI / 2;
+    static constexpr double TWO_PI = 2 * PI;
 
-    explicit FloatInterval(const double min, const double max) : min_(min), max_(max) {}
+    explicit FloatInterval(const double min, const double max, const bool expand_min = true, const bool expand_max = true) : min_(min), max_(max) {
+        if(min > max) {
+            throw std::invalid_argument("min > max");
+        }
+        if(expand_min && min != 0) {
+            min_ -= EPS;
+        }
+        if(expand_max && max != 0) {
+            max_ += EPS;
+        }
+    }
 
-    explicit FloatInterval(const double value) : FloatInterval(value, value) {}
+    explicit FloatInterval(const double value, const bool expand = true) : FloatInterval(value, value, expand, expand) {}
 
 public:
     template<IntegerType Integer>
     explicit FloatInterval(const Integer value) : FloatInterval(value, value) {}
 
     template<IntegerType Integer>
-    explicit FloatInterval(const Integer min, const Integer max) : FloatInterval(static_cast<double>(min), static_cast<double>(max)) {
-        if(min > max) {
-            throw std::invalid_argument("min > max");
-        }
-        if(min != 0) {
-            min_ -= epsilon;
-        }
-        if(max != 0) {
-            max_ += epsilon;
-        }
-    }
+    explicit FloatInterval(const Integer min, const Integer max) : FloatInterval(static_cast<double>(min), static_cast<double>(max)) {}
 
     ~FloatInterval() = default;
 
@@ -49,7 +52,7 @@ public:
     }
 
     static FloatInterval nan() {
-        return FloatInterval(std::numeric_limits<double>::quiet_NaN());
+        return FloatInterval(std::numeric_limits<double>::quiet_NaN(), false);
     }
 
     bool is_nan() const {
@@ -161,7 +164,7 @@ public:
         if(max_ <= 0) {
             return FloatInterval(max_ * max_, min_ * min_);
         }
-        return FloatInterval(0, std::max(min_ * min_, max_ * max_));
+        return FloatInterval(0, std::max(min_ * min_, max_ * max_), false);
     }
 
     FloatInterval sqrt() const {
@@ -172,16 +175,13 @@ public:
     }
 
     static FloatInterval pi() {
-        constexpr double pi = std::numbers::pi_v<double>;
-        return FloatInterval(pi - epsilon, pi + epsilon);
+        return FloatInterval(PI);
     }
 
     FloatInterval cos() const {
         if(is_nan()) {
             return nan();
         }
-        constexpr double PI = std::numbers::pi_v<double>;
-        constexpr double TWO_PI = 2 * std::numbers::pi_v<double>;
         const double cos_min = std::cos(min_);
         const double cos_max = std::cos(max_);
         double min = std::min(cos_min, cos_max);
@@ -199,8 +199,6 @@ public:
         if(is_nan()) {
             return nan();
         }
-        constexpr double TWO_PI = 2 * std::numbers::pi_v<double>;
-        constexpr double HALF_PI = std::numbers::pi_v<double> / 2;
         const double sin_min = std::sin(min_);
         const double sin_max = std::sin(max_);
         double min = std::min(sin_min, sin_max);
@@ -218,8 +216,6 @@ public:
         if(is_nan()) {
             return nan();
         }
-        constexpr double HALF_PI = std::numbers::pi_v<double> / 2;
-        constexpr double PI = std::numbers::pi_v<double>;
         if(std::floor((min_ - HALF_PI) / PI) != std::floor((max_ - HALF_PI) / PI)) {
             return nan();
         }
