@@ -71,8 +71,13 @@ class GlobalSolver {
                 projected_vertex.y()
             );
         }
-        // TODO make this work without the convex hull: outline vertices should always be in order
-        return plug_orientation_sample_inside_hole_orientation(convex_hull(projected_vertices), plug_orientation);
+        std::vector<Edge<Interval>> projected_edges;
+        for(size_t index = 0; index < projected_vertices.size(); ++index) {
+            const size_t next_index = (index + 1) % projected_vertices.size();
+            projected_edges.emplace_back(projected_vertices[index], projected_vertices[next_index]);
+        }
+        const Polygon<Interval> projected_hole = Polygon<Interval>(projected_edges);
+        return plug_orientation_sample_inside_hole_orientation(projected_hole, plug_orientation);
     }
 
     bool plug_orientation_sample_inside_hole_orientation(const Polygon<Interval>& projected_hole, const Range2& plug_orientation) const {

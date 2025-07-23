@@ -121,9 +121,18 @@ class Polyhedron {
 
             while(!vertex_indices.empty()) {
                 const size_t last_index = face.back();
-                const size_t next_index = *std::ranges::max_element(vertex_indices, [&](const size_t index_0, const size_t index_1) {
-                    return (vertices_[last_index] - face_interior).unit().cross((vertices_[index_0] - face_interior).unit()).dot(face_normals_[normal_index]) <
-                           (vertices_[last_index] - face_interior).unit().cross((vertices_[index_1] - face_interior).unit()).dot(face_normals_[normal_index]);
+                const Vector3<Interval> projected_last_vertex = (vertices_[last_index] - face_interior).unit();
+                const size_t next_index = *std::ranges::min_element(vertex_indices, [&](const size_t index_0, const size_t index_1) {
+                    const Vector3<Interval> projected_vertex_0 = (vertices_[index_0] - face_interior).unit();
+                    const Vector3<Interval> projected_vertex_1 = (vertices_[index_1] - face_interior).unit();
+                    const bool angle_0_pos = face_normals_[normal_index].dot(projected_last_vertex.cross(projected_vertex_0)).pos();
+                    const bool angle_1_pos = face_normals_[normal_index].dot(projected_last_vertex.cross(projected_vertex_1)).pos();
+                    if(angle_0_pos != angle_1_pos) {
+                        return angle_0_pos;
+                    }
+                    const Interval dot_0 = projected_last_vertex.dot(projected_vertex_0);
+                    const Interval dot_1 = projected_last_vertex.dot(projected_vertex_1);
+                    return angle_0_pos ? dot_0 > dot_1 : dot_0 < dot_1;
                 });
                 face.push_back(next_index);
                 vertex_indices.erase(next_index);
@@ -214,10 +223,17 @@ class Polyhedron {
                 while(!vertex_indices.empty()) {
                     const size_t last_index = outline.back();
                     const Vector3<Interval> projected_last_vertex = (vertices_[last_index] - direction * vertices_[last_index].dot(direction)).unit();
-                    const size_t next_index = *std::ranges::max_element(vertex_indices, [&](const size_t vertex_index_0, const size_t vertex_index_1) {
+                    const size_t next_index = *std::ranges::min_element(vertex_indices, [&](const size_t vertex_index_0, const size_t vertex_index_1) {
                         const Vector3<Interval> projected_vertex_0 = (vertices_[vertex_index_0] - direction * vertices_[vertex_index_0].dot(direction)).unit();
                         const Vector3<Interval> projected_vertex_1 = (vertices_[vertex_index_1] - direction * vertices_[vertex_index_1].dot(direction)).unit();
-                        return projected_last_vertex.cross(projected_vertex_0).dot(cross_product) < projected_last_vertex.cross(projected_vertex_1).dot(cross_product);
+                        const bool angle_0_pos = direction.dot(projected_last_vertex.cross(projected_vertex_0)).pos();
+                        const bool angle_1_pos = direction.dot(projected_last_vertex.cross(projected_vertex_1)).pos();
+                        if(angle_0_pos != angle_1_pos) {
+                            return angle_0_pos;
+                        }
+                        const Interval dot_0 = projected_last_vertex.dot(projected_vertex_0);
+                        const Interval dot_1 = projected_last_vertex.dot(projected_vertex_1);
+                        return angle_0_pos ? dot_0 > dot_1 : dot_0 < dot_1;
                     });
                     outline.push_back(next_index);
                     vertex_indices.erase(next_index);
