@@ -374,7 +374,12 @@ Polygon<Interval> project_polyhedron(const Polyhedron<Interval>& polyhedron, con
 }
 
 template<IntervalType Interval>
-bool plug_orientation_sample_inside_hole_orientation_sample(const Polyhedron<Interval>& polyhedron, const Interval& hole_theta, const Interval& hole_phi, const Interval& hole_alpha, const Interval& plug_theta, const Interval& plug_phi) {
+bool plug_orientation_sample_inside_hole_orientation_sample(const Polyhedron<Interval>& polyhedron, const Range3& hole_orientation, const Range2& plug_orientation) {
+    const Interval hole_theta = hole_orientation.theta_mid<Interval>();
+    const Interval hole_phi = hole_orientation.phi_mid<Interval>();
+    const Interval hole_alpha = hole_orientation.alpha_mid<Interval>();
+    const Interval plug_theta = plug_orientation.theta_mid<Interval>();
+    const Interval plug_phi = plug_orientation.phi_mid<Interval>();
     const Matrix<Interval> hole_matrix = Matrix<Interval>::orientation(hole_theta, hole_phi, hole_alpha);
     const Vector3<Interval> direction = hole_matrix.transpose() * Vector3<Interval>(Interval(0), Interval(0), Interval(1));
     const Bitset normal_mask = polyhedron.get_normal_mask(direction);
@@ -400,11 +405,13 @@ bool plug_orientation_sample_inside_hole_orientation_sample(const Polyhedron<Int
         projected_edges.emplace_back(projected_vertices[index], projected_vertices[next_index]);
     }
     const Polygon<Interval> projected_hole = Polygon<Interval>(projected_edges);
-    return plug_orientation_sample_inside_hole_orientation(polyhedron, projected_hole, plug_theta, plug_phi);
+    return plug_orientation_sample_inside_hole_orientation(polyhedron, projected_hole, plug_orientation);
 }
 
 template<IntervalType Interval>
-bool plug_orientation_sample_inside_hole_orientation(const Polyhedron<Interval>& polyhedron, const Polygon<Interval>& projected_hole, const Interval& plug_theta, const Interval& plug_phi) {
+bool plug_orientation_sample_inside_hole_orientation(const Polyhedron<Interval>& polyhedron, const Polygon<Interval>& projected_hole, const Range2& plug_orientation) {
+    const Interval plug_theta = plug_orientation.theta_mid<Interval>();
+    const Interval plug_phi = plug_orientation.phi_mid<Interval>();
     return std::ranges::all_of(polyhedron.vertices(), [&](const Vector3<Interval>& vertex) {
         return projected_hole.inside(trivial_orientation(vertex, plug_theta, plug_phi));
     });

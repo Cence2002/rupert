@@ -76,30 +76,18 @@ class GlobalSolver {
                 plug_orientations.ack();
                 continue;
             }
-            if(plug_orientation_sample_inside_hole_orientation_sample(
-                config_.polyhedron,
-                hole_orientation.theta_mid<Interval>(),
-                hole_orientation.phi_mid<Interval>(),
-                hole_orientation.alpha_mid<Interval>(),
-                plug_orientation.theta_mid<Interval>(),
-                plug_orientation.phi_mid<Interval>()
-            )) {
+            if(plug_orientation_sample_inside_hole_orientation_sample(config_.polyhedron, hole_orientation, plug_orientation)) {
                 std::cout << "Rupert passage found for hole orientation: " << hole_orientation << " and plug orientation: " << plug_orientation << std::endl;
                 throw std::runtime_error("Rupert passage found");
             }
-            if(plug_orientation_sample_inside_hole_orientation(
-                   config_.polyhedron,
-                   projected_hole,
-                   plug_orientation.theta_mid<Interval>(),
-                   plug_orientation.phi_mid<Interval>()
-               ) &&
+            if(plug_orientation_sample_inside_hole_orientation(config_.polyhedron, projected_hole, plug_orientation) &&
                !hole_orientation_close_to_plug_orientation(
                    config_.polyhedron,
                    hole_orientation.theta<Interval>(),
                    hole_orientation.phi<Interval>(),
                    hole_orientation.alpha<Interval>(),
-                   plug_orientation.theta<Interval>(),
-                   plug_orientation.phi<Interval>(),
+                   plug_orientation.theta_mid<Interval>(),
+                   plug_orientation.phi_mid<Interval>(),
                    config_.epsilon
                )) {
                 unpruned_plug_orientations.push_back(plug_orientation);
@@ -112,8 +100,7 @@ class GlobalSolver {
                 plug_orientations.ack();
                 continue;
             }
-            if(plug_orientation.terminal()) {
-                // TODO: use a better threshold
+            if(plug_orientation.terminal() || Vector2<Interval>(plug_orientation.theta<Interval>().len(), plug_orientation.phi<Interval>().len()).len() < config_.plug_epsilon) {
                 unpruned_plug_orientations.push_back(plug_orientation);
                 plug_orientations.ack();
                 continue;
@@ -129,13 +116,12 @@ class GlobalSolver {
     void process_hole_orientation(const Range3& hole_orientation) {
         const auto& [pruned_plug_orientations, unpruned_plug_orientations] = process_plug_orientations(hole_orientation);
         if(unpruned_plug_orientations.empty()) {
-            std::cout << "Hole orientation is prunable: " << hole_orientation << std::endl;
+            std::cout << "Prunable: " << hole_orientation << std::endl;
             pruned_hole_orientations_.add(CombinedOrientation(hole_orientation, pruned_plug_orientations));
             return;
         }
-        if(hole_orientation.terminal()) {
-            // TODO: use a better threshold
-            std::cout << "Hole orientation is unprunable: " << hole_orientation << std::endl;
+        if(hole_orientation.terminal() || Vector2<Interval>(hole_orientation.theta<Interval>().len() + hole_orientation.phi<Interval>().len(), hole_orientation.alpha<Interval>()).len() < config_.hole_epsilon) {
+            std::cout << "Not prunable: " << hole_orientation << std::endl;
             unpruned_hole_orientations_.add(CombinedOrientation(hole_orientation, unpruned_plug_orientations));
             return;
         }

@@ -40,8 +40,10 @@ int main() {
     run_global_solver(Config(
         Polyhedron(Platonic::cube<I>()),
         one_degree * I(10),
-        2,
-        2,
+        one_degree,
+        one_degree / I(1000),
+        1,
+        1,
         10,
         "../../web/static",
         "temp"

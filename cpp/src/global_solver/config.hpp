@@ -6,10 +6,15 @@
 
 template<IntervalType Interval>
 struct Config {
+    //parameters
     Polyhedron<Interval> polyhedron;
     Interval epsilon;
-    uint8_t projection_resolution = 1;
-    uint8_t rotation_resolution = 1;
+
+    // hyperparameters
+    Interval hole_epsilon;
+    Interval plug_epsilon;
+    uint8_t projection_resolution;
+    uint8_t rotation_resolution;
 
     // execution parameters
     uint8_t threads = 1;
