@@ -40,4 +40,5 @@ concept QueueType =
         { queue.add(task) } -> std::same_as<void>;
         { queue.fetch() } -> std::convertible_to<std::optional<Task>>;
         { queue.ack() } -> std::same_as<void>;
+        { queue.flush() } -> std::convertible_to<std::vector<Task>>;
     };

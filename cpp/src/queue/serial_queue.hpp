@@ -49,6 +49,21 @@ public:
     void ack() {
         size_--;
     }
+
+    std::vector<Task> flush() {
+        std::vector<Task> tasks;
+        while(!queue_.empty()) {
+            if constexpr(Priority) {
+                tasks.push_back(queue_.top());
+                queue_.pop();
+            } else {
+                tasks.push_back(queue_.front());
+                queue_.pop();
+            }
+        }
+        size_ = 0;
+        return tasks;
+    }
 };
 
 template<TaskType Task>

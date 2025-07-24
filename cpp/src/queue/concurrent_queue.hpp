@@ -58,7 +58,7 @@ public:
         size_--;
     }
 
-    std::vector<Task> pop_all() {
+    std::vector<Task> flush() {
         std::lock_guard<std::mutex> lock(mutex_);
         std::vector<Task> tasks;
         tasks.reserve(queue_.size());
