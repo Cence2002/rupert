@@ -14,15 +14,15 @@ struct Outline {
     Bitset normal_mask;
     std::vector<size_t> vertex_indices;
 
-    bool same_vertices(const Outline& other) const {
-        if(vertex_indices.size() != other.vertex_indices.size()) {
+    bool same_vertex_indices(const std::vector<size_t>& other_vertex_indices) const {
+        if(vertex_indices.size() != other_vertex_indices.size()) {
             return false;
         }
         const size_t size = vertex_indices.size();
         for(size_t offset = 0; offset < size; ++offset) {
             bool same = true;
             for(size_t index = 0; index < size; ++index) {
-                if(vertex_indices[index] != other.vertex_indices[(index + offset) % size]) {
+                if(vertex_indices[index] != other_vertex_indices[(index + offset) % size]) {
                     same = false;
                     break;
                 }
@@ -42,10 +42,13 @@ class Polyhedron {
     std::vector<Vector3<Interval>> face_normals_{};
     std::vector<std::vector<size_t>> faces_{};
 
+    std::vector<Outline> outlines_{};
+
     std::vector<Matrix<Interval>> rotations_{};
     std::vector<Matrix<Interval>> reflections_{};
 
-    std::vector<Outline> outlines_{};
+    std::vector<std::vector<size_t>> outline_rotations_{};
+    std::vector<std::vector<size_t>> outline_reflections_{};
 
     void check_centrally_symmetric() {
         if(!std::ranges::all_of(vertices_, [&](const Vector3<Interval>& vertex) {
@@ -149,13 +152,14 @@ class Polyhedron {
                 face_sizes[size] = 1;
             }
         }
-        std::vector<std::string> face_sizes_strings;
+        std::vector<std::string> face_size_strings;
         for(const auto& [size, count]: face_sizes) {
-            face_sizes_strings.emplace_back(std::to_string(count) + " " + std::to_string(size) + "-sided");
+            face_size_strings.emplace_back("\t" + std::to_string(count) + " x " + std::to_string(size) + "-sided polygons");
         }
-        const std::string face_sizes_string = boost::algorithm::join(face_sizes_strings, ", ");
+        const std::string face_sizes_string = boost::algorithm::join(face_size_strings, "\n");
 
-        std::cout << "Found " << face_normals_.size() << " faces: " << face_sizes_string << std::endl;
+        std::cout << "Found " << face_normals_.size() << " faces" << std::endl;
+        std::cout << face_sizes_string << std::endl;
     }
 
     void setup_outlines() {
@@ -243,7 +247,23 @@ class Polyhedron {
             }
         }
 
+        std::map<size_t, size_t> outline_sizes;
+        for(const auto& [normal_mask, vertex_indices]: outlines_) {
+            const size_t size = vertex_indices.size();
+            if(outline_sizes.contains(size)) {
+                outline_sizes[size]++;
+            } else {
+                outline_sizes[size] = 1;
+            }
+        }
+        std::vector<std::string> outline_size_strings;
+        for(const auto& [size, count]: outline_sizes) {
+            outline_size_strings.emplace_back("\t" + std::to_string(count) + " x " + std::to_string(size) + "-sided skew polygons");
+        }
+        const std::string outline_sizes_string = boost::algorithm::join(outline_size_strings, "\n");
+
         std::cout << "Found " << outlines_.size() << " outlines" << std::endl;
+        std::cout << outline_sizes_string << std::endl;
     }
 
     static Matrix<Interval> orthonormal_basis(const Vector3<Interval>& from, const Vector3<Interval>& to, const bool right_handed) {
@@ -279,26 +299,81 @@ class Polyhedron {
                             return !vertex_image.diff(other_vertex);
                         });
                     })) {
-                        if(right_handed) {
-                            if(std::ranges::all_of(rotations_, [&](const Matrix<Interval>& rotation) {
-                                return Matrix<Interval>::relative_rotation(symmetry, rotation).cos_angle() < Interval(1);
-                            })) {
-                                rotations_.push_back(symmetry);
-                            }
-                        } else {
-                            if(std::ranges::all_of(reflections_, [&](const Matrix<Interval>& reflection) {
-                                return Matrix<Interval>::relative_rotation(symmetry, reflection).cos_angle() < Interval(1);
-                            })) {
-                                reflections_.push_back(symmetry);
-                            }
+                        std::vector<Matrix<Interval>>& symmetries = right_handed ? rotations_ : reflections_;
+                        if(std::ranges::all_of(symmetries, [&](const Matrix<Interval>& rotation) {
+                            return Matrix<Interval>::relative_rotation(symmetry, rotation).cos_angle() < Interval(1);
+                        })) {
+                            symmetries.push_back(symmetry);
                         }
                     }
                 }
             }
         }
 
+        std::map<int, size_t> rotation_angles;
+        for(const Matrix<Interval>& rotation: rotations_) {
+            const Interval cos_angle = rotation.cos_angle();
+            const double angle = (cos_angle.min().acos() / Interval::pi() * Interval(180)).to_float();
+            const int rounded_angle = static_cast<int>(std::round(angle));
+            if(rotation_angles.contains(rounded_angle)) {
+                ++rotation_angles[rounded_angle];
+            } else {
+                rotation_angles[rounded_angle] = 1;
+            }
+        }
+        std::vector<std::string> rotation_angle_strings;
+        for(const auto& [angle, count]: rotation_angles) {
+            rotation_angle_strings.emplace_back("\t" + std::to_string(count) + " x " + std::to_string(angle) + "-degree rotations");
+        }
+        const std::string rotation_angles_string = boost::algorithm::join(rotation_angle_strings, "\n");
+
         std::cout << "Found " << rotations_.size() << " rotations" << std::endl;
+        std::cout << rotation_angles_string << std::endl;
         std::cout << "Found " << reflections_.size() << " reflections" << std::endl;
+    }
+
+    void setup_outline_symmetries() {
+        outline_rotations_.clear();
+        outline_reflections_.clear();
+
+        for(const auto& [normal_mask, vertex_indices]: outlines_) {
+            std::set<size_t> rotations;
+            std::set<size_t> reflections;
+
+            for(const bool right_handed: {true, false}) {
+                const std::vector<Matrix<Interval>>& symmetries = right_handed ? rotations_ : reflections_;
+                std::set<size_t>& outline_symmetries = right_handed ? rotations : reflections;
+                for(const Matrix<Interval>& symmetry: symmetries) {
+                    std::vector<size_t> transformed_vertex_indices;
+                    for(const size_t vertex_index: vertex_indices) {
+                        const Vector3<Interval> rotated_vertex = symmetry * vertices_[vertex_index];
+                        const auto vertex_iterator = std::ranges::find_if(vertices_, [&](const Vector3<Interval>& vertex) {
+                            return !rotated_vertex.diff(vertex);
+                        });
+                        const size_t transformed_vertex_index = std::distance(vertices_.begin(), vertex_iterator);
+                        transformed_vertex_indices.push_back(transformed_vertex_index);
+                    }
+                    for(size_t outline_index = 0; outline_index < outlines_.size(); outline_index++) {
+                        if(outlines_[outline_index].same_vertex_indices(transformed_vertex_indices)) {
+                            outline_symmetries.insert(outline_index);
+                        }
+                    }
+                }
+            }
+
+            if(rotations.size() != rotations_.size()) {
+                throw std::runtime_error("Outline rotations size mismatch");
+            }
+            if(reflections.size() != reflections_.size()) {
+                throw std::runtime_error("Outline reflections size mismatch");
+            }
+
+            outline_rotations_.push_back(std::vector<size_t>(rotations.begin(), rotations.end()));
+            outline_reflections_.push_back(std::vector<size_t>(reflections.begin(), reflections.end()));
+        }
+
+        std::cout << "Found all outline rotations" << std::endl;
+        std::cout << "Found all outline reflections" << std::endl;
     }
 
     void setup() {
@@ -306,6 +381,7 @@ class Polyhedron {
         setup_faces();
         setup_outlines();
         setup_symmetries();
+        setup_outline_symmetries();
     }
 
 public:
