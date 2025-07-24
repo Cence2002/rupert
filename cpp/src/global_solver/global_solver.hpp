@@ -43,7 +43,6 @@ class GlobalSolver {
     ConcurrentPriorityQueue<Range3> hole_orientations_{};
     std::vector<std::thread> threads_{};
     std::atomic<bool> interrupted_{false};
-    std::atomic<bool> rupert_{false};
 
     ConcurrentQueue<CombinedOrientation> pruned_hole_orientations_{};
     ConcurrentQueue<CombinedOrientation> unpruned_hole_orientations_{};
@@ -61,18 +60,16 @@ class GlobalSolver {
                 throw std::runtime_error("plug_orientations is empty");
             }
             const Range2& plug_orientation = optional_plug_orientation.value();
-            if(plug_orientation_sample_inside_hole_orientation_sample(config_.polyhedron, hole_orientation, plug_orientation)) {
-                std::cout << "Rupert passage found for hole orientation: " << hole_orientation << " and plug orientation: " << plug_orientation << std::endl;
-                rupert_ = true;
-                interrupt();
-                return std::make_tuple(false, std::vector<Range2>{}, std::vector<Range2>{});
-            }
-            if(plug_orientation_sample_inside_hole_orientation(config_.polyhedron, projected_hole, plug_orientation)) {
-                return std::make_tuple(false, std::vector<Range2>{}, std::vector<Range2>{});
-            }
             if(hole_orientation_close_to_plug_orientation(config_.polyhedron, hole_orientation, plug_orientation, config_.epsilon)) {
                 plug_orientations.ack();
                 continue;
+            }
+            if(plug_orientation_sample_inside_hole_orientation_sample(config_.polyhedron, hole_orientation, plug_orientation)) {
+                std::cout << "Rupert passage found for hole orientation: " << hole_orientation << " and plug orientation: " << plug_orientation << std::endl;
+                throw std::runtime_error("Rupert passage found");
+            }
+            if(plug_orientation_sample_inside_hole_orientation(config_.polyhedron, projected_hole, plug_orientation)) {
+                return std::make_tuple(false, std::vector<Range2>{}, std::vector<Range2>{});
             }
             if(plug_orientation_outside_hole_orientation(config_.polyhedron, plug_orientation, projected_hole)) {
                 pruned_plug_orientations.push_back(plug_orientation);
@@ -150,10 +147,8 @@ public:
             thread.join();
         }
         exporter_latch_.wait();
-        if(!rupert_) {
-            Exporter::export_combined_orientations(config_.working_directory() / pruned_hole_orientations_file_name, pruned_hole_orientations_.pop_all());
-            Exporter::export_combined_orientations(config_.working_directory() / unpruned_hole_orientations_file_name, unpruned_hole_orientations_.pop_all());
-        }
+        Exporter::export_combined_orientations(config_.working_directory() / pruned_hole_orientations_file_name, pruned_hole_orientations_.pop_all());
+        Exporter::export_combined_orientations(config_.working_directory() / unpruned_hole_orientations_file_name, unpruned_hole_orientations_.pop_all());
         mpfr_free_cache();
     }
 
