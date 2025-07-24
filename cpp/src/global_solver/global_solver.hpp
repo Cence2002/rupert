@@ -17,15 +17,20 @@ PO = Plug Orientation
 
 HOs, prunedHOs, unprunedHOs = [full], [], []
 for HO in HOs:
-    POs, prunedPOs, unprunedPOs = [full], [], []
+    if HO outside base symmetries: continue
+    POs, prunedPOs, unprunedPOs, prunable = [full], [], [], true
     for PO in POs:
-        if PO sample fits in HO sample: export(HO, PO) and terminate
-        if PO sample fits in HO: set HOprunable to false, break
+        if PO outside base rotations: continue
         if |PO, HO| < threshold: continue
-        if PO is prunable: add PO to prunedPOs
+
+        if PO sample fits in HO sample: export(HO, PO), terminate
+        if PO sample fits in HO: set prunable to false, break
+
+        if PO not fit in HO: add PO to prunedPOs
         elif |PO| < threshold: add PO and all POs to unprunedPOs
         else: add pieces of PO to POs
-    if HOprunable: add HO and prunedPOs to prunedHOs
+
+    if prunable and unprunedPOs is empty: add HO and prunedPOs to prunedHOs
     elif |HO| < threshold: add HO and unprunedPOs to unprunedHOs
     else: add pieces of HO to HOs
 export(prunedHOs, unprunedHOs)
