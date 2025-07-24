@@ -116,6 +116,10 @@ public:
         return rotation_x(phi) * rotation_z(theta);
     }
 
+    static Matrix orientation(const Interval& theta, const Interval& phi, const Interval& alpha) {
+        return rotation_z(alpha) * rotation_x(phi) * rotation_z(theta);
+    }
+
     static Matrix relative_rotation(const Matrix& from, const Matrix& to) {
         return to * from.transpose();
     }
