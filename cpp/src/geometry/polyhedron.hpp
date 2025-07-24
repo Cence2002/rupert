@@ -361,13 +361,6 @@ class Polyhedron {
                 }
             }
 
-            if(rotations.size() != rotations_.size()) {
-                throw std::runtime_error("Outline rotations size mismatch");
-            }
-            if(reflections.size() != reflections_.size()) {
-                throw std::runtime_error("Outline reflections size mismatch");
-            }
-
             outline_rotations_.push_back(std::vector<size_t>(rotations.begin(), rotations.end()));
             outline_reflections_.push_back(std::vector<size_t>(reflections.begin(), reflections.end()));
         }
