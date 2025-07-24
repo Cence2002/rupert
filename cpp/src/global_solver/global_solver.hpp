@@ -17,22 +17,26 @@ PO = Plug Orientation
 
 HOs, prunedHOs, unprunedHOs = [full], [], []
 for HO in HOs:
-    if HO outside base symmetries: continue
-    POs, prunedPOs, unprunedPOs, prunable = [full], [], [], true
+    if HO outside base symmetries: continue (redundant)
+    POs, prunedPOs, unprunedPOs = [full], [], []
+
     for PO in POs:
-        if PO outside base rotations: continue
-        if |PO, HO| < threshold: continue
+        if PO outside base rotations: continue (redundant)
+        if |PO, HO| < threshold: continue (out of scope)
 
-        if PO sample fits in HO sample: export(HO, PO), terminate
-        if PO sample fits in HO: set prunable to false, break
+        if PO sample inside HO sample: export(HO, PO), terminate (rupert)
+        if PO sample inside HO and not close: add PO and all of POs to unprunedPOs, break (shortcut)
 
-        if PO not fit in HO: add PO to prunedPOs
-        elif |PO| < threshold: add PO and all POs to unprunedPOs
-        else: add pieces of PO to POs
+        if PO outside HO: add PO to prunedPOs, continue (pruned)
+        if |PO| < threshold: add PO to unprunedPOs, continue (too small)
 
-    if prunable and unprunedPOs is empty: add HO and prunedPOs to prunedHOs
-    elif |HO| < threshold: add HO and unprunedPOs to unprunedHOs
-    else: add pieces of HO to HOs
+        add pieces of PO to POs
+
+    if unprunedPOs is empty: add HO and prunedPOs to prunedHOs, continue (pruned)
+    if |HO| < threshold: add HO and unprunedPOs to unprunedHOs, continue (too small)
+
+    add pieces of HO to HOs
+
 export(prunedHOs, unprunedHOs)
 */
 
@@ -48,7 +52,7 @@ class GlobalSolver {
     ConcurrentQueue<CombinedOrientation> unpruned_hole_orientations_{};
     std::latch exporter_latch_;
 
-    std::tuple<bool, std::vector<Range2>, std::vector<Range2>> process_plug_orientations(const Range3& hole_orientation) {
+    std::tuple<std::vector<Range2>, std::vector<Range2>> process_plug_orientations(const Range3& hole_orientation) {
         const Polygon<Interval> projected_hole = project_polyhedron(config_.polyhedron, hole_orientation, config_.projection_resolution, config_.rotation_resolution);
         SerialQueue<Range2> plug_orientations;
         plug_orientations.add(Range2(Range(0, 0), Range(1, 0)));
@@ -69,7 +73,10 @@ class GlobalSolver {
                 throw std::runtime_error("Rupert passage found");
             }
             if(plug_orientation_sample_inside_hole_orientation(config_.polyhedron, projected_hole, plug_orientation)) {
-                return std::make_tuple(false, std::vector<Range2>{}, std::vector<Range2>{});
+                unpruned_plug_orientations.push_back(plug_orientation);
+                const std::vector<Range2> remaining_plug_orientations = plug_orientations.flush();
+                unpruned_plug_orientations.insert(unpruned_plug_orientations.end(), remaining_plug_orientations.begin(), remaining_plug_orientations.end());
+                return std::make_tuple(std::vector<Range2>{}, unpruned_plug_orientations);
             }
             if(plug_orientation_outside_hole_orientation(config_.polyhedron, plug_orientation, projected_hole)) {
                 pruned_plug_orientations.push_back(plug_orientation);
@@ -87,12 +94,12 @@ class GlobalSolver {
             }
             plug_orientations.ack();
         }
-        return std::make_tuple(unpruned_plug_orientations.empty(), pruned_plug_orientations, unpruned_plug_orientations);
+        return std::make_tuple(pruned_plug_orientations, unpruned_plug_orientations);
     }
 
     void process_hole_orientation(const Range3& hole_orientation) {
-        const auto& [hole_orientation_prunable, pruned_plug_orientations, unpruned_plug_orientations] = process_plug_orientations(hole_orientation);
-        if(hole_orientation_prunable) {
+        const auto& [pruned_plug_orientations, unpruned_plug_orientations] = process_plug_orientations(hole_orientation);
+        if(unpruned_plug_orientations.empty()) {
             std::cout << "Hole orientation is prunable: " << hole_orientation << std::endl;
             pruned_hole_orientations_.add(CombinedOrientation(hole_orientation, pruned_plug_orientations));
             return;
@@ -147,8 +154,8 @@ public:
             thread.join();
         }
         exporter_latch_.wait();
-        Exporter::export_combined_orientations(config_.working_directory() / pruned_hole_orientations_file_name, pruned_hole_orientations_.pop_all());
-        Exporter::export_combined_orientations(config_.working_directory() / unpruned_hole_orientations_file_name, unpruned_hole_orientations_.pop_all());
+        Exporter::export_combined_orientations(config_.working_directory() / pruned_hole_orientations_file_name, pruned_hole_orientations_.flush());
+        Exporter::export_combined_orientations(config_.working_directory() / unpruned_hole_orientations_file_name, unpruned_hole_orientations_.flush());
         mpfr_free_cache();
     }
 
