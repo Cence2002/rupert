@@ -64,19 +64,48 @@ class GlobalSolver {
                 throw std::runtime_error("plug_orientations is empty");
             }
             const Range2& plug_orientation = optional_plug_orientation.value();
-            if(hole_orientation_close_to_plug_orientation(config_.polyhedron, hole_orientation, plug_orientation, config_.epsilon)) {
+            if(hole_orientation_close_to_plug_orientation(
+                config_.polyhedron,
+                hole_orientation.theta<Interval>(),
+                hole_orientation.phi<Interval>(),
+                hole_orientation.alpha<Interval>(),
+                plug_orientation.theta<Interval>(),
+                plug_orientation.phi<Interval>(),
+                config_.epsilon
+            )) {
                 plug_orientations.ack();
                 continue;
             }
-            if(plug_orientation_sample_inside_hole_orientation_sample(config_.polyhedron, hole_orientation, plug_orientation)) {
+            if(plug_orientation_sample_inside_hole_orientation_sample(
+                config_.polyhedron,
+                hole_orientation.theta_mid<Interval>(),
+                hole_orientation.phi_mid<Interval>(),
+                hole_orientation.alpha_mid<Interval>(),
+                plug_orientation.theta_mid<Interval>(),
+                plug_orientation.phi_mid<Interval>()
+            )) {
                 std::cout << "Rupert passage found for hole orientation: " << hole_orientation << " and plug orientation: " << plug_orientation << std::endl;
                 throw std::runtime_error("Rupert passage found");
             }
-            if(plug_orientation_sample_inside_hole_orientation(config_.polyhedron, projected_hole, plug_orientation)) {
+            if(plug_orientation_sample_inside_hole_orientation(
+                   config_.polyhedron,
+                   projected_hole,
+                   plug_orientation.theta_mid<Interval>(),
+                   plug_orientation.phi_mid<Interval>()
+               ) &&
+               !hole_orientation_close_to_plug_orientation(
+                   config_.polyhedron,
+                   hole_orientation.theta<Interval>(),
+                   hole_orientation.phi<Interval>(),
+                   hole_orientation.alpha<Interval>(),
+                   plug_orientation.theta<Interval>(),
+                   plug_orientation.phi<Interval>(),
+                   config_.epsilon
+               )) {
                 unpruned_plug_orientations.push_back(plug_orientation);
                 const std::vector<Range2> remaining_plug_orientations = plug_orientations.flush();
                 unpruned_plug_orientations.insert(unpruned_plug_orientations.end(), remaining_plug_orientations.begin(), remaining_plug_orientations.end());
-                return std::make_tuple(std::vector<Range2>{}, unpruned_plug_orientations);
+                return std::make_tuple(pruned_plug_orientations, unpruned_plug_orientations);
             }
             if(plug_orientation_outside_hole_orientation(config_.polyhedron, plug_orientation, projected_hole)) {
                 pruned_plug_orientations.push_back(plug_orientation);

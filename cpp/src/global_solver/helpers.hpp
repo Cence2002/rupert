@@ -374,10 +374,7 @@ Polygon<Interval> project_polyhedron(const Polyhedron<Interval>& polyhedron, con
 }
 
 template<IntervalType Interval>
-bool plug_orientation_sample_inside_hole_orientation_sample(const Polyhedron<Interval>& polyhedron, const Range3& hole_orientation, const Range2& plug_orientation) {
-    const Interval hole_theta = hole_orientation.theta_mid<Interval>();
-    const Interval hole_phi = hole_orientation.phi_mid<Interval>();
-    const Interval hole_alpha = hole_orientation.alpha_mid<Interval>();
+bool plug_orientation_sample_inside_hole_orientation_sample(const Polyhedron<Interval>& polyhedron, const Interval& hole_theta, const Interval& hole_phi, const Interval& hole_alpha, const Interval& plug_theta, const Interval& plug_phi) {
     const Matrix<Interval> hole_matrix = Matrix<Interval>::orientation(hole_theta, hole_phi, hole_alpha);
     const Vector3<Interval> direction = hole_matrix.transpose() * Vector3<Interval>(Interval(0), Interval(0), Interval(1));
     const Bitset normal_mask = polyhedron.get_normal_mask(direction);
@@ -403,29 +400,27 @@ bool plug_orientation_sample_inside_hole_orientation_sample(const Polyhedron<Int
         projected_edges.emplace_back(projected_vertices[index], projected_vertices[next_index]);
     }
     const Polygon<Interval> projected_hole = Polygon<Interval>(projected_edges);
-    return plug_orientation_sample_inside_hole_orientation(polyhedron, projected_hole, plug_orientation);
+    return plug_orientation_sample_inside_hole_orientation(polyhedron, projected_hole, plug_theta, plug_phi);
 }
 
 template<IntervalType Interval>
-bool plug_orientation_sample_inside_hole_orientation(const Polyhedron<Interval>& polyhedron, const Polygon<Interval>& projected_hole, const Range2& plug_orientation) {
-    const Interval plug_theta = plug_orientation.theta_mid<Interval>();
-    const Interval plug_phi = plug_orientation.phi_mid<Interval>();
+bool plug_orientation_sample_inside_hole_orientation(const Polyhedron<Interval>& polyhedron, const Polygon<Interval>& projected_hole, const Interval& plug_theta, const Interval& plug_phi) {
     return std::ranges::all_of(polyhedron.vertices(), [&](const Vector3<Interval>& vertex) {
         return projected_hole.inside(trivial_orientation(vertex, plug_theta, plug_phi));
     });
 }
 
 template<IntervalType Interval>
-bool hole_orientation_close_to_plug_orientation(const Polyhedron<Interval>& polyhedron, const Range3& hole_orientation, const Range2& plug_orientation, const Interval& epsilon) {
-    const Interval hole_orientation_angle_radius = Vector2<Interval>(hole_orientation.theta<Interval>().rad() + hole_orientation.alpha<Interval>().rad(), hole_orientation.phi<Interval>().rad()).len();
-    const Interval plug_orientation_angle_radius = Vector2<Interval>(plug_orientation.theta<Interval>().rad(), plug_orientation.phi<Interval>().rad()).len();
+bool hole_orientation_close_to_plug_orientation(const Polyhedron<Interval>& polyhedron, const Interval& hole_theta, const Interval& hole_phi, const Interval& hole_alpha, const Interval& plug_theta, const Interval& plug_phi, const Interval& epsilon) {
+    const Interval hole_orientation_angle_radius = Vector2<Interval>(hole_theta.rad() + hole_alpha.rad(), hole_phi.rad()).len();
+    const Interval plug_orientation_angle_radius = Vector2<Interval>(plug_theta.rad(), plug_phi.rad()).len();
     const Interval remaining_angle = epsilon - hole_orientation_angle_radius - plug_orientation_angle_radius;
     if(!remaining_angle.pos()) {
         return false;
     }
     const Interval cos_remaining_angle = remaining_angle.cos();
-    const Matrix<Interval> hole_matrix = Matrix<Interval>::orientation(hole_orientation.theta<Interval>().mid(), hole_orientation.phi<Interval>().mid(), hole_orientation.alpha<Interval>().mid());
-    const Matrix<Interval> plug_matrix = Matrix<Interval>::orientation(plug_orientation.theta<Interval>().mid(), plug_orientation.phi<Interval>().mid());
+    const Matrix<Interval> hole_matrix = Matrix<Interval>::orientation(hole_theta.mid(), hole_phi.mid(), hole_alpha.mid());
+    const Matrix<Interval> plug_matrix = Matrix<Interval>::orientation(plug_theta.mid(), plug_phi.mid());
     return std::ranges::any_of(polyhedron.rotations(), [&](const Matrix<Interval>& rotation) {
                return cos_remaining_angle < Matrix<Interval>::relative_rotation(plug_matrix, hole_matrix * rotation).cos_angle();
            }) ||
