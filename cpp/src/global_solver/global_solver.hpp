@@ -53,7 +53,7 @@ class GlobalSolver {
     std::latch exporter_latch_;
 
     std::tuple<std::vector<Range2>, std::vector<Range2>> process_plug_orientations(const Range3& hole_orientation) {
-        const Polygon<Interval> projected_hole = project_polyhedron(config_.polyhedron, hole_orientation, config_.projection_resolution, config_.rotation_resolution);
+        const Polygon<Interval> projected_hole = project_polyhedron(config_.polyhedron, hole_orientation, config_.resolution);
         SerialQueue<Range2> plug_orientations;
         plug_orientations.add(Range2(Range(0, 0), Range(1, 0)));
         std::vector<Range2> pruned_plug_orientations;
@@ -114,6 +114,15 @@ class GlobalSolver {
     }
 
     void process_hole_orientation(const Range3& hole_orientation) {
+        if(hole_orientation.theta_range().depth() < 3 ||
+           hole_orientation.phi_range().depth() < 3 ||
+           hole_orientation.alpha_range().depth() < 3) {
+            std::cout << "Skippable: " << hole_orientation << std::endl;
+            for(const Range3& hole_orientation_part: hole_orientation.parts()) {
+                hole_orientations_.add(hole_orientation_part);
+            }
+            return;
+        }
         const auto& [pruned_plug_orientations, unpruned_plug_orientations] = process_plug_orientations(hole_orientation);
         if(unpruned_plug_orientations.empty()) {
             std::cout << "Prunable: " << hole_orientation << std::endl;

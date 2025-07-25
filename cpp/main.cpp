@@ -44,7 +44,6 @@ int main() {
         one_degree / I(1000),
         1,
         1,
-        10,
         "../../web/static",
         "temp"
     ));

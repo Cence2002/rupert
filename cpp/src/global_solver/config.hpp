@@ -13,8 +13,7 @@ struct Config {
     // hyperparameters
     Interval hole_epsilon;
     Interval plug_epsilon;
-    uint8_t projection_resolution;
-    uint8_t rotation_resolution;
+    uint8_t resolution;
 
     // execution parameters
     uint8_t threads = 1;
@@ -27,11 +26,8 @@ struct Config {
         if(epsilon.min().neg()) {
             throw std::runtime_error("Epsilon must be non-negative");
         }
-        if(projection_resolution < 1) {
-            throw std::runtime_error("Projection resolution must be at least 1");
-        }
-        if(rotation_resolution < 1) {
-            throw std::runtime_error("Rotation resolution must be at least 1");
+        if(resolution < 1) {
+            throw std::runtime_error("Resolution must be at least 1");
         }
         if(threads < 1) {
             throw std::runtime_error("Threads must be at least 1");
