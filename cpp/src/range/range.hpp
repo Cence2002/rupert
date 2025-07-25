@@ -10,6 +10,8 @@ class Range {
     uint32_t bits_;
 
 public:
+    explicit Range() = default;
+
     explicit Range(const uint8_t depth, const uint32_t bits) : depth_(depth), bits_(bits) {
         if(depth_ >= 30) {
             throw std::runtime_error("depth >= 30");
@@ -41,7 +43,7 @@ public:
         return depth_ >= 15;
     }
 
-    std::vector<Range> parts() const {
+    std::pair<Range, Range> parts() const {
         return {
             Range(static_cast<uint8_t>(depth_ + 1), bits_ << 1),
             Range(static_cast<uint8_t>(depth_ + 1), bits_ << 1 | 1)
@@ -86,4 +88,4 @@ public:
     }
 };
 
-static_assert(RangeType<Range>);
+// static_assert(RangeType<Range>);

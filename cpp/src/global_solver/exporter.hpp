@@ -11,7 +11,7 @@
 #include <filesystem>
 
 struct CombinedOrientation {
-    Range3 hole_orientation;
+    Box3 hole_orientation;
     std::vector<Range2> plug_orientations;
 };
 
@@ -44,10 +44,10 @@ namespace Exporter {
         range_to_stream(os, range2.phi_range());
     }
 
-    inline void range3_to_stream(std::ostream& os, const Range3& range3) {
-        range_to_stream(os, range3.theta_range());
-        range_to_stream(os, range3.phi_range());
-        range_to_stream(os, range3.alpha_range());
+    inline void range3_to_stream(std::ostream& os, const Box3& range3) {
+        range_to_stream(os, Angle::theta_range(range3));
+        range_to_stream(os, Angle::phi_range(range3));
+        range_to_stream(os, Angle::alpha_range(range3));
     }
 
     inline void combined_orientation_to_stream(std::ostream& os, const CombinedOrientation& terminal_box) {

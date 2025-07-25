@@ -44,11 +44,17 @@ public:
 
     std::vector<Range2> parts() const {
         std::vector<Range2> parts;
-        for(const Range& theta_part: theta_range_.parts()) {
-            for(const Range& phi_part: phi_range_.parts()) {
-                parts.emplace_back(theta_part, phi_part);
-            }
-        }
+        // for(const Range& theta_part: theta_range_.parts()) {
+        //     for(const Range& phi_part: phi_range_.parts()) {
+        //         parts.emplace_back(theta_part, phi_part);
+        //     }
+        // }
+        const auto [theta_part1, theta_part2] = theta_range_.parts();
+        const auto [phi_part1, phi_part2] = phi_range_.parts();
+        parts.emplace_back(theta_part1, phi_part1);
+        parts.emplace_back(theta_part1, phi_part2);
+        parts.emplace_back(theta_part2, phi_part1);
+        parts.emplace_back(theta_part2, phi_part2);
         return parts;
     }
 
