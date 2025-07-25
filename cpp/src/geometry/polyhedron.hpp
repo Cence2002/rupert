@@ -313,8 +313,8 @@ class Polyhedron {
         std::map<int, size_t> rotation_angles;
         for(const Matrix<Interval>& rotation: rotations_) {
             const Interval cos_angle = rotation.cos_angle();
-            const double angle = (cos_angle.min().acos() / Interval::pi() * Interval(180)).to_float();
-            const int rounded_angle = static_cast<int>(std::round(angle));
+            const Interval angle = cos_angle.pos() ? cos_angle.min().acos() : cos_angle.max().acos();
+            const int rounded_angle = static_cast<int>(std::round((angle / Interval::pi() * Interval(180)).to_float()));
             if(rotation_angles.contains(rounded_angle)) {
                 ++rotation_angles[rounded_angle];
             } else {
