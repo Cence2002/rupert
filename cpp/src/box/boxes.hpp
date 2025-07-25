@@ -55,3 +55,7 @@ struct Box {
         return ostream << "<" << ranges_string << ">";
     }
 };
+
+using Box1 = Box<1>;
+using Box2 = Box<2>;
+using Box3 = Box<3>;
