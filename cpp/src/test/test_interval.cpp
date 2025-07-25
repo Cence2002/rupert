@@ -184,6 +184,16 @@ INTERVAL_TEST_CASE("to_float") {
         REQUIRE(check_float(interval.to_float(), 1.5));
         REQUIRE(check_interval(interval, 1.0, 2.0));
     }
+
+    SECTION("[int_min]") {
+        const Interval interval(std::numeric_limits<int>::min());
+        REQUIRE(interval.to_float() == std::numeric_limits<int>::min());
+    }
+
+    SECTION("[int_max]") {
+        const Interval interval(std::numeric_limits<int>::max());
+        REQUIRE(interval.to_float() == std::numeric_limits<int>::max());
+    }
 }
 
 INTERVAL_TEST_CASE("min_max_mid_len_rad") {
@@ -456,8 +466,9 @@ INTERVAL_TEST_CASE("trigonometric_functions") {
         REQUIRE(interval.atan().is_nan());
     }
 
-    SECTION("pi") {
-        REQUIRE(check_interval(Interval::pi(), std::numbers::pi_v<double>, std::numbers::pi_v<double>));
+    SECTION("pi_tau") {
+        REQUIRE(check_interval(Interval::pi(), std::numbers::pi_v<double>));
+        REQUIRE(check_interval(Interval::tau(), std::numbers::pi_v<double> * 2));
     }
 
     SECTION("cos_sin_tan") {
