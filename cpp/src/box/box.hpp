@@ -6,7 +6,7 @@ template<size_t Size>
 struct Box {
     std::array<Range, Size> ranges;
 
-    explicit Box(const std::array<Range, Size>& ranges) : ranges(ranges) {}
+    explicit Box(const std::array<Range, Size>& box) : ranges(box) {}
 
     bool operator<(const Box& box) const {
         for(size_t i = 0; i < Size; i++) {
@@ -30,10 +30,10 @@ struct Box {
             range_parts.at(i) = ranges.at(i).parts();
         }
         std::vector<Box> parts;
-        for(size_t mask = 0; mask < 1ull << Size; mask++) {
+        for(size_t mask = 0; mask < static_cast<size_t>(1) << Size; mask++) {
             std::array<Range, Size> part;
             for(size_t i = 0; i < Size; i++) {
-                if(mask & 1ull << i) {
+                if(mask & static_cast<size_t>(1) << i) {
                     part.at(i) = range_parts.at(i).first;
                 } else {
                     part.at(i) = range_parts.at(i).second;
