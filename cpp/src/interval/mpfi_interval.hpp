@@ -37,14 +37,12 @@ class MpfiInterval {
     }
 
 public:
-    template<IntegerType Integer>
-    explicit MpfiInterval(const Integer value) {
+    explicit MpfiInterval(const int value) {
         mpfi_init(interval_);
         mpfi_set_si(interval_, value);
     }
 
-    template<IntegerType Integer>
-    explicit MpfiInterval(const Integer min, const Integer max) {
+    explicit MpfiInterval(const int min, const int max) {
         if(min > max) {
             throw std::invalid_argument("min > max");
         }

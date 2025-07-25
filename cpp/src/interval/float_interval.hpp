@@ -27,11 +27,9 @@ class FloatInterval {
     explicit FloatInterval(const double value, const bool expand = true) : FloatInterval(value, value, expand, expand) {}
 
 public:
-    template<IntegerType Integer>
-    explicit FloatInterval(const Integer value) : FloatInterval(value, value) {}
+    explicit FloatInterval(const int min, const int max) : FloatInterval(static_cast<double>(min), static_cast<double>(max)) {}
 
-    template<IntegerType Integer>
-    explicit FloatInterval(const Integer min, const Integer max) : FloatInterval(static_cast<double>(min), static_cast<double>(max)) {}
+    explicit FloatInterval(const int value) : FloatInterval(value, value) {}
 
     ~FloatInterval() = default;
 

@@ -1,16 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include <limits>
 #include <sstream>
-
-template<typename Integer>
-concept IntegerType =
-    std::integral<Integer> &&
-    std::numeric_limits<Integer>::min() >= std::numeric_limits<int32_t>::min() &&
-    std::numeric_limits<Integer>::max() <= std::numeric_limits<int32_t>::max();
-
-static_assert(IntegerType<int>);
 
 template<typename Interval>
 concept IntervalType =

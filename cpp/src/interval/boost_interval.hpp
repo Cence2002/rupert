@@ -15,16 +15,18 @@ class BoostInterval {
 
     explicit BoostInterval(const BoostIntervalType& interval) : interval_(interval) {}
 
-public:
-    template<IntegerType Integer>
-    explicit BoostInterval(const Integer value) : interval_(value) {}
+    explicit BoostInterval(const double min, const double max) : interval_(min, max) {}
 
-    template<IntegerType Integer>
-    explicit BoostInterval(const Integer min, const Integer max) : interval_(min, max) {
+    explicit BoostInterval(const double value) : interval_(value) {}
+
+public:
+    explicit BoostInterval(const int min, const int max) : interval_(min, max) {
         if(min > max) {
             throw std::invalid_argument("min > max");
         }
     }
+
+    explicit BoostInterval(const int value) : interval_(value) {}
 
     ~BoostInterval() = default;
 
