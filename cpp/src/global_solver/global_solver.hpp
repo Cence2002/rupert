@@ -18,22 +18,24 @@ PO = Plug Orientation
 HOs, prunedHOs, unprunedHOs = [full], [], []
 for HO in HOs:
     if HO outside base symmetries: continue (redundant)
-    POs, prunedPOs, unprunedPOs = [full], [], []
+    prunable, POs, prunedPOs, unprunedPOs, collect_unpruned = true, [full], [], [], |HO| < threshold
 
     for PO in POs:
         if PO outside base rotations: continue (redundant)
         if |PO, HO| < threshold: continue (out of scope)
 
         if PO sample inside HO sample: export(HO, PO), terminate (rupert)
-        if PO sample inside HO and not close: add PO and all of POs to unprunedPOs, break (shortcut)
+        if PO sample inside HO and not close:
+            if collect_unpruned: set prunable to false, add PO to unprunedPOs, continue (unpruned)
+            set prunable to false, break (shortcut)
 
         if PO outside HO: add PO to prunedPOs, continue (pruned)
-        if |PO| < threshold: add PO to unprunedPOs, continue (too small)
+        if |PO| < threshold: set prunable to false, add PO to unprunedPOs, continue (too small)
 
         add pieces of PO to POs
 
-    if unprunedPOs is empty: add HO and prunedPOs to prunedHOs, continue (pruned)
-    if |HO| < threshold: add HO and unprunedPOs to unprunedHOs, continue (too small)
+    if prunable: add HO and prunedPOs to prunedHOs, continue (pruned)
+    if collect_unpruned: add HO and unprunedPOs to unprunedHOs, continue (too small)
 
     add pieces of HO to HOs
 
@@ -52,8 +54,9 @@ class GlobalSolver {
     ConcurrentQueue<CombinedOrientation> unpruned_hole_orientations_{};
     std::latch exporter_latch_;
 
-    std::tuple<std::vector<Range2>, std::vector<Range2>> process_plug_orientations(const Range3& hole_orientation) {
+    std::tuple<bool, std::vector<Range2>, std::vector<Range2>> process_plug_orientations(const Range3& hole_orientation, const bool collect_unpruned_plug_orientations) {
         const Polygon<Interval> projected_hole = project_polyhedron(config_.polyhedron, hole_orientation, config_.resolution);
+        bool prunable = true;
         SerialQueue<Range2> plug_orientations;
         plug_orientations.add(Range2(Range(0, 0), Range(1, 0)));
         std::vector<Range2> pruned_plug_orientations;
@@ -90,27 +93,33 @@ class GlobalSolver {
                    plug_orientation.phi_mid<Interval>(),
                    config_.epsilon
                )) {
-                unpruned_plug_orientations.push_back(plug_orientation);
-                const std::vector<Range2> remaining_plug_orientations = plug_orientations.flush();
-                unpruned_plug_orientations.insert(unpruned_plug_orientations.end(), remaining_plug_orientations.begin(), remaining_plug_orientations.end());
-                return std::make_tuple(pruned_plug_orientations, unpruned_plug_orientations);
+                if(collect_unpruned_plug_orientations) {
+                    prunable = false;
+                    unpruned_plug_orientations.push_back(plug_orientation);
+                    plug_orientations.ack();
+                    continue;
+                }
+                return std::make_tuple(false, std::vector<Range2>(), std::vector<Range2>());
             }
             if(plug_orientation_outside_hole_orientation(config_.polyhedron, plug_orientation, projected_hole)) {
                 pruned_plug_orientations.push_back(plug_orientation);
                 plug_orientations.ack();
                 continue;
             }
-            if(plug_orientation.terminal() || Vector2<Interval>(plug_orientation.theta<Interval>().len(), plug_orientation.phi<Interval>().len()).len() < config_.plug_epsilon) {
-                unpruned_plug_orientations.push_back(plug_orientation);
-                plug_orientations.ack();
-                continue;
+            if(collect_unpruned_plug_orientations) {
+                if(plug_orientation.terminal() || Vector2<Interval>(plug_orientation.theta<Interval>().len(), plug_orientation.phi<Interval>().len()).len() < config_.plug_epsilon) {
+                    prunable = false;
+                    unpruned_plug_orientations.push_back(plug_orientation);
+                    plug_orientations.ack();
+                    continue;
+                }
             }
             for(const Range2& rectangle_part: plug_orientation.parts()) {
                 plug_orientations.add(rectangle_part);
             }
             plug_orientations.ack();
         }
-        return std::make_tuple(pruned_plug_orientations, unpruned_plug_orientations);
+        return std::make_tuple(prunable, pruned_plug_orientations, unpruned_plug_orientations);
     }
 
     void process_hole_orientation(const Range3& hole_orientation) {
@@ -123,13 +132,14 @@ class GlobalSolver {
             }
             return;
         }
-        const auto& [pruned_plug_orientations, unpruned_plug_orientations] = process_plug_orientations(hole_orientation);
-        if(unpruned_plug_orientations.empty()) {
+        const bool collect_unpruned_plug_orientations = hole_orientation.terminal() || Vector2<Interval>(hole_orientation.theta<Interval>().len() + hole_orientation.phi<Interval>().len(), hole_orientation.alpha<Interval>()).len() < config_.hole_epsilon;
+        const auto& [prunable, pruned_plug_orientations, unpruned_plug_orientations] = process_plug_orientations(hole_orientation, collect_unpruned_plug_orientations);
+        if(prunable) {
             std::cout << "Prunable: " << hole_orientation << std::endl;
             pruned_hole_orientations_.add(CombinedOrientation(hole_orientation, pruned_plug_orientations));
             return;
         }
-        if(hole_orientation.terminal() || Vector2<Interval>(hole_orientation.theta<Interval>().len() + hole_orientation.phi<Interval>().len(), hole_orientation.alpha<Interval>()).len() < config_.hole_epsilon) {
+        if(collect_unpruned_plug_orientations) {
             std::cout << "Not prunable: " << hole_orientation << std::endl;
             unpruned_hole_orientations_.add(CombinedOrientation(hole_orientation, unpruned_plug_orientations));
             return;
