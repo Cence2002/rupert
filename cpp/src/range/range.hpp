@@ -19,21 +19,11 @@ public:
         }
     }
 
-    ~Range() = default;
-
-    Range(const Range& range) = default;
-
-    Range(Range&& range) = default;
-
-    Range& operator=(const Range&) = default;
-
-    Range& operator=(Range&&) = default;
-
     bool operator<(const Range& other) const {
         if(depth_ < other.depth_) {
             return false;
         }
-        if(depth_ > other.depth_) {
+        if(other.depth_ < depth_) {
             return true;
         }
         return bits_ < other.bits_;
