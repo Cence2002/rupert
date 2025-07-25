@@ -6,13 +6,13 @@
 #pragma GCC diagnostic pop
 
 #include "global_solver/helpers.hpp"
-#include "range/ranges.hpp"
+#include "range/range.hpp"
 #include <fstream>
 #include <filesystem>
 
 struct CombinedOrientation {
     Box3 hole_orientation;
-    std::vector<Range2> plug_orientations;
+    std::vector<Box2> plug_orientations;
 };
 
 namespace Exporter {
@@ -39,9 +39,9 @@ namespace Exporter {
         os.write(reinterpret_cast<const char*>(&packed), sizeof(packed));
     }
 
-    inline void range2_to_stream(std::ostream& os, const Range2& range2) {
-        range_to_stream(os, range2.theta_range());
-        range_to_stream(os, range2.phi_range());
+    inline void range2_to_stream(std::ostream& os, const Box2& range2) {
+        range_to_stream(os, Angle::theta_range(range2));
+        range_to_stream(os, Angle::phi_range(range2));
     }
 
     inline void range3_to_stream(std::ostream& os, const Box3& range3) {
@@ -53,7 +53,7 @@ namespace Exporter {
     inline void combined_orientation_to_stream(std::ostream& os, const CombinedOrientation& terminal_box) {
         range3_to_stream(os, terminal_box.hole_orientation);
         size_to_stream(os, static_cast<uint32_t>(terminal_box.plug_orientations.size()));
-        for(const Range2& rectangle: terminal_box.plug_orientations) {
+        for(const Box2& rectangle: terminal_box.plug_orientations) {
             range2_to_stream(os, rectangle);
         }
     }

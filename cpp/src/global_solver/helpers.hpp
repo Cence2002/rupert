@@ -1,7 +1,6 @@
 #pragma once
 
 #include "geometry/geometry.hpp"
-#include "range/ranges.hpp"
 #include "box/boxes.hpp"
 #include <vector>
 #include <optional>
@@ -380,7 +379,7 @@ Polygon<Interval> project_polyhedron(const Polyhedron<Interval>& polyhedron, con
 }
 
 template<IntervalType Interval>
-bool plug_orientation_sample_inside_hole_orientation_sample(const Polyhedron<Interval>& polyhedron, const Box3& hole_orientation, const Range2& plug_orientation) {
+bool plug_orientation_sample_inside_hole_orientation_sample(const Polyhedron<Interval>& polyhedron, const Box3& hole_orientation, const Box2& plug_orientation) {
     const Interval hole_theta = Angle::theta_mid<Interval>(hole_orientation);
     const Interval hole_phi = Angle::phi_mid<Interval>(hole_orientation);
     const Interval hole_alpha = Angle::alpha_mid<Interval>(hole_orientation);
@@ -413,9 +412,9 @@ bool plug_orientation_sample_inside_hole_orientation_sample(const Polyhedron<Int
 }
 
 template<IntervalType Interval>
-bool plug_orientation_sample_inside_hole_orientation(const Polyhedron<Interval>& polyhedron, const Polygon<Interval>& projected_hole, const Range2& plug_orientation) {
-    const Interval plug_theta = plug_orientation.theta_range().angle_mid<Interval>();
-    const Interval plug_phi = plug_orientation.phi_range().angle_mid<Interval>();
+bool plug_orientation_sample_inside_hole_orientation(const Polyhedron<Interval>& polyhedron, const Polygon<Interval>& projected_hole, const Box2& plug_orientation) {
+    const Interval plug_theta = Angle::theta_mid<Interval>(plug_orientation);
+    const Interval plug_phi = Angle::phi_mid<Interval>(plug_orientation);
     return std::ranges::all_of(polyhedron.vertices(), [&](const Vector3<Interval>& vertex) {
         return projected_hole.inside(trivial_orientation(vertex, plug_theta, plug_phi));
     });
@@ -441,8 +440,8 @@ bool hole_orientation_close_to_plug_orientation(const Polyhedron<Interval>& poly
 }
 
 template<IntervalType Interval>
-bool plug_orientation_outside_hole_orientation(const Polyhedron<Interval>& polyhedron, const Range2& plug_orientation, const Polygon<Interval>& projected_hole) {
+bool plug_orientation_outside_hole_orientation(const Polyhedron<Interval>& polyhedron, const Box2& plug_orientation, const Polygon<Interval>& projected_hole) {
     return std::ranges::any_of(polyhedron.vertices(), [&](const Vector3<Interval>& vertex) {
-        return projected_oriented_vector_avoids_polygon(projected_hole, vertex, plug_orientation.theta_range().angle<Interval>(), plug_orientation.phi_range().angle<Interval>());
+        return projected_oriented_vector_avoids_polygon_fixed_theta(projected_hole, vertex, Angle::theta<Interval>(plug_orientation), Angle::phi<Interval>(plug_orientation));
     });
 }

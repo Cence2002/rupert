@@ -54,26 +54,26 @@ class GlobalSolver {
     ConcurrentQueue<CombinedOrientation> unpruned_hole_orientations_{};
     std::latch exporter_latch_;
 
-    std::tuple<bool, std::vector<Range2>, std::vector<Range2>> process_plug_orientations(const Box3& hole_orientation, const bool collect_unpruned_plug_orientations) {
+    std::tuple<bool, std::vector<Box2>, std::vector<Box2>> process_plug_orientations(const Box3& hole_orientation, const bool collect_unpruned_plug_orientations) {
         const Polygon<Interval> projected_hole = project_polyhedron(config_.polyhedron, hole_orientation, config_.resolution);
         bool prunable = true;
-        SerialQueue<Range2> plug_orientations;
-        plug_orientations.add(Range2(Range(0, 0), Range(1, 0)));
-        std::vector<Range2> pruned_plug_orientations;
-        std::vector<Range2> unpruned_plug_orientations;
+        SerialQueue<Box2> plug_orientations;
+        plug_orientations.add(Box2(std::array{Range(0, 0), Range(0, 0)}));
+        std::vector<Box2> pruned_plug_orientations;
+        std::vector<Box2> unpruned_plug_orientations;
         while(plug_orientations.size() > 0) {
-            const std::optional<Range2> optional_plug_orientation = plug_orientations.fetch();
+            const std::optional<Box2> optional_plug_orientation = plug_orientations.fetch();
             if(!optional_plug_orientation.has_value()) {
                 throw std::runtime_error("plug_orientations is empty");
             }
-            const Range2& plug_orientation = optional_plug_orientation.value();
+            const Box2& plug_orientation = optional_plug_orientation.value();
             if(hole_orientation_close_to_plug_orientation(
                 config_.polyhedron,
                 Angle::theta<Interval>(hole_orientation),
                 Angle::phi<Interval>(hole_orientation),
                 Angle::alpha<Interval>(hole_orientation),
-                plug_orientation.theta_range().angle<Interval>(),
-                plug_orientation.phi_range().angle<Interval>(),
+                Angle::theta<Interval>(plug_orientation),
+                Angle::phi<Interval>(plug_orientation),
                 config_.epsilon
             )) {
                 plug_orientations.ack();
@@ -89,8 +89,8 @@ class GlobalSolver {
                    Angle::theta<Interval>(hole_orientation),
                    Angle::phi<Interval>(hole_orientation),
                    Angle::alpha<Interval>(hole_orientation),
-                   plug_orientation.theta_range().angle_mid<Interval>(),
-                   plug_orientation.phi_range().angle_mid<Interval>(),
+                   Angle::theta_mid<Interval>(plug_orientation),
+                   Angle::phi_mid<Interval>(plug_orientation),
                    config_.epsilon
                )) {
                 if(collect_unpruned_plug_orientations) {
@@ -99,7 +99,7 @@ class GlobalSolver {
                     plug_orientations.ack();
                     continue;
                 }
-                return std::make_tuple(false, std::vector<Range2>(), std::vector<Range2>());
+                return std::make_tuple(false, std::vector<Box2>(), std::vector<Box2>());
             }
             if(plug_orientation_outside_hole_orientation(config_.polyhedron, plug_orientation, projected_hole)) {
                 pruned_plug_orientations.push_back(plug_orientation);
@@ -107,14 +107,14 @@ class GlobalSolver {
                 continue;
             }
             if(collect_unpruned_plug_orientations) {
-                if(plug_orientation.terminal() || Vector2<Interval>(plug_orientation.theta_range().angle<Interval>().len(), plug_orientation.phi_range().angle<Interval>().len()).len() < config_.plug_epsilon) {
+                if(Vector2<Interval>(Angle::theta<Interval>(plug_orientation).len(), Angle::phi<Interval>(plug_orientation).len()).len() < config_.plug_epsilon) {
                     prunable = false;
                     unpruned_plug_orientations.push_back(plug_orientation);
                     plug_orientations.ack();
                     continue;
                 }
             }
-            for(const Range2& rectangle_part: plug_orientation.parts()) {
+            for(const Box2& rectangle_part: plug_orientation.parts()) {
                 plug_orientations.add(rectangle_part);
             }
             plug_orientations.ack();
@@ -167,11 +167,7 @@ public:
     explicit GlobalSolver(const Config<Interval>& config) : config_(config), exporter_latch_(config.threads) {}
 
     void run() {
-        hole_orientations_.add(Box3(std::array<Range, 3>{
-            Range(0, 0),
-            Range(1, 0),
-            Range(1, 0)
-        }));
+        hole_orientations_.add(Box3(std::array{Range(0, 0), Range(1, 0), Range(1, 0)}));
         Exporter::create_empty_working_directory(config_.working_directory());
         Exporter::export_polyhedron(config_.working_directory() / polyhedron_file_name, config_.polyhedron);
         std::ranges::generate_n(std::back_inserter(threads_), config_.threads, [this] {

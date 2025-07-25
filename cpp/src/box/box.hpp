@@ -3,6 +3,7 @@
 #include "range/range.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <array>
+#include <vector>
 
 template<size_t Size>
 struct Box {

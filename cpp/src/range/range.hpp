@@ -1,6 +1,5 @@
 #pragma once
 
-#include "range_type.hpp"
 #include "interval/intervals.hpp"
 #include <cstdint>
 #include <bitset>
@@ -87,5 +86,3 @@ public:
         return Range(depth, bits);
     }
 };
-
-// static_assert(RangeType<Range>);
