@@ -162,6 +162,10 @@ public:
         return BoostInterval(boost::numeric::interval_lib::pi<BoostIntervalType>());
     }
 
+    static BoostInterval tau() {
+        return BoostInterval(2.0 * boost::numeric::interval_lib::pi<BoostIntervalType>());
+    }
+
     BoostInterval cos() const {
         return BoostInterval(boost::numeric::cos(interval_));
     }

@@ -176,6 +176,10 @@ public:
         return FloatInterval(PI);
     }
 
+    static FloatInterval tau() {
+        return FloatInterval(TWO_PI);
+    }
+
     FloatInterval cos() const {
         if(is_nan()) {
             return nan();

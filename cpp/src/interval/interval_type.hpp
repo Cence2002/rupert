@@ -48,6 +48,8 @@ concept IntervalType =
         { interval.sqrt() } -> std::same_as<Interval>;
 
         { Interval::pi() } -> std::same_as<Interval>;
+        { Interval::tau() } -> std::same_as<Interval>;
+
         { interval.cos() } -> std::same_as<Interval>;
         { interval.sin() } -> std::same_as<Interval>;
         { interval.tan() } -> std::same_as<Interval>;

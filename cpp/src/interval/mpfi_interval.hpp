@@ -247,6 +247,14 @@ public:
         return MpfiInterval(pi);
     }
 
+    static MpfiInterval tau() {
+        mpfi_t tau;
+        mpfi_init(tau);
+        mpfi_const_pi(tau);
+        mpfi_mul_ui(tau, tau, 2);
+        return MpfiInterval(tau);
+    }
+
     MpfiInterval cos() const {
         mpfi_t cos;
         mpfi_init(cos);
