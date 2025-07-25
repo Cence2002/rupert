@@ -362,11 +362,6 @@ Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vectors) {
 
 template<IntervalType Interval>
 Polygon<Interval> project_polyhedron(const Polyhedron<Interval>& polyhedron, const Box3& orientation, const int resolution) {
-    if(Angle::theta<Interval>(orientation).len() > Interval::pi() / Interval(2) * Interval(resolution) ||
-       Angle::phi<Interval>(orientation).len() > Interval::pi() / Interval(2) * Interval(resolution) ||
-       Angle::alpha<Interval>(orientation).len() > Interval::pi() / Interval(2) * Interval(resolution)) {
-        throw std::runtime_error("Too large angle range");
-    }
     std::vector<Vector2<Interval>> projected_vectors;
     for(const Vector3<Interval>& vertex: polyhedron.vertices()) {
         for(const Vector2<Interval>& vectors: projected_orientation_hull(vertex, Angle::theta<Interval>(orientation).len(), Angle::phi<Interval>(orientation).len(), resolution)) {
@@ -380,10 +375,7 @@ Polygon<Interval> project_polyhedron(const Polyhedron<Interval>& polyhedron, con
 
 template<IntervalType Interval>
 bool plug_orientation_sample_inside_hole_orientation_sample(const Polyhedron<Interval>& polyhedron, const Box3& hole_orientation, const Box2& plug_orientation) {
-    const Interval hole_theta = Angle::theta_mid<Interval>(hole_orientation);
-    const Interval hole_phi = Angle::phi_mid<Interval>(hole_orientation);
-    const Interval hole_alpha = Angle::alpha_mid<Interval>(hole_orientation);
-    const Matrix<Interval> hole_matrix = Matrix<Interval>::orientation(hole_theta, hole_phi, hole_alpha);
+    const Matrix<Interval> hole_matrix = Matrix<Interval>::orientation(Angle::theta_mid<Interval>(hole_orientation), Angle::phi_mid<Interval>(hole_orientation), Angle::alpha_mid<Interval>(hole_orientation));
     const Vector3<Interval> direction = hole_matrix.transpose() * Vector3<Interval>(Interval(0), Interval(0), Interval(1));
     const Bitset normal_mask = polyhedron.get_normal_mask(direction);
     const auto outline_iterator = std::ranges::find_if(polyhedron.outlines(), [&](const Outline& candidate_outline) {
@@ -413,10 +405,8 @@ bool plug_orientation_sample_inside_hole_orientation_sample(const Polyhedron<Int
 
 template<IntervalType Interval>
 bool plug_orientation_sample_inside_hole_orientation(const Polyhedron<Interval>& polyhedron, const Polygon<Interval>& projected_hole, const Box2& plug_orientation) {
-    const Interval plug_theta = Angle::theta_mid<Interval>(plug_orientation);
-    const Interval plug_phi = Angle::phi_mid<Interval>(plug_orientation);
     return std::ranges::all_of(polyhedron.vertices(), [&](const Vector3<Interval>& vertex) {
-        return projected_hole.inside(trivial_orientation(vertex, plug_theta, plug_phi));
+        return projected_hole.inside(trivial_orientation(vertex, Angle::theta_mid<Interval>(plug_orientation), Angle::phi_mid<Interval>(plug_orientation)));
     });
 }
 

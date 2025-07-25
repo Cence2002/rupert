@@ -83,4 +83,18 @@ namespace Angle {
     Interval alpha_mid(const Box3& box) {
         return angle_mid<Interval>(alpha_range(box));
     }
+
+    template<IntervalType Interval>
+    Interval angle_radius(const Box2& box) {
+        const Interval horizontal_radius = theta<Interval>(box).rad();
+        const Interval vertical_radius = phi<Interval>(box).rad();
+        return (horizontal_radius.sqr() + vertical_radius.sqr()).sqrt();
+    }
+
+    template<IntervalType Interval>
+    Interval angle_radius(const Box3& box) {
+        const Interval horizontal_radius = theta<Interval>(box).rad() + Angle::alpha<Interval>(box).rad();
+        const Interval vertical_radius = phi<Interval>(box).rad();
+        return (horizontal_radius.sqr() + vertical_radius.sqr()).sqrt();
+    }
 }

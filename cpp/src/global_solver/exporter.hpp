@@ -39,22 +39,22 @@ namespace Exporter {
         os.write(reinterpret_cast<const char*>(&packed), sizeof(packed));
     }
 
-    inline void range2_to_stream(std::ostream& os, const Box2& range2) {
-        range_to_stream(os, Angle::theta_range(range2));
-        range_to_stream(os, Angle::phi_range(range2));
+    inline void box2_to_stream(std::ostream& os, const Box2& box) {
+        range_to_stream(os, Angle::theta_range(box));
+        range_to_stream(os, Angle::phi_range(box));
     }
 
-    inline void range3_to_stream(std::ostream& os, const Box3& range3) {
-        range_to_stream(os, Angle::theta_range(range3));
-        range_to_stream(os, Angle::phi_range(range3));
-        range_to_stream(os, Angle::alpha_range(range3));
+    inline void box3_to_stream(std::ostream& os, const Box3& box) {
+        range_to_stream(os, Angle::theta_range(box));
+        range_to_stream(os, Angle::phi_range(box));
+        range_to_stream(os, Angle::alpha_range(box));
     }
 
-    inline void combined_orientation_to_stream(std::ostream& os, const CombinedOrientation& terminal_box) {
-        range3_to_stream(os, terminal_box.hole_orientation);
-        size_to_stream(os, static_cast<uint32_t>(terminal_box.plug_orientations.size()));
-        for(const Box2& rectangle: terminal_box.plug_orientations) {
-            range2_to_stream(os, rectangle);
+    inline void combined_orientation_to_stream(std::ostream& os, const CombinedOrientation& combined_orientation) {
+        box3_to_stream(os, combined_orientation.hole_orientation);
+        size_to_stream(os, static_cast<uint32_t>(combined_orientation.plug_orientations.size()));
+        for(const Box2& box: combined_orientation.plug_orientations) {
+            box2_to_stream(os, box);
         }
     }
 
