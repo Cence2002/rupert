@@ -69,11 +69,11 @@ class GlobalSolver {
             const Range2& plug_orientation = optional_plug_orientation.value();
             if(hole_orientation_close_to_plug_orientation(
                 config_.polyhedron,
-                hole_orientation.theta<Interval>(),
-                hole_orientation.phi<Interval>(),
-                hole_orientation.alpha<Interval>(),
-                plug_orientation.theta<Interval>(),
-                plug_orientation.phi<Interval>(),
+                hole_orientation.theta_range().angle<Interval>(),
+                hole_orientation.phi_range().angle<Interval>(),
+                hole_orientation.alpha_range().angle<Interval>(),
+                plug_orientation.theta_range().angle<Interval>(),
+                plug_orientation.phi_range().angle<Interval>(),
                 config_.epsilon
             )) {
                 plug_orientations.ack();
@@ -86,11 +86,11 @@ class GlobalSolver {
             if(plug_orientation_sample_inside_hole_orientation(config_.polyhedron, projected_hole, plug_orientation) &&
                !hole_orientation_close_to_plug_orientation(
                    config_.polyhedron,
-                   hole_orientation.theta<Interval>(),
-                   hole_orientation.phi<Interval>(),
-                   hole_orientation.alpha<Interval>(),
-                   plug_orientation.theta_mid<Interval>(),
-                   plug_orientation.phi_mid<Interval>(),
+                   hole_orientation.theta_range().angle<Interval>(),
+                   hole_orientation.phi_range().angle<Interval>(),
+                   hole_orientation.alpha_range().angle<Interval>(),
+                   plug_orientation.theta_range().angle_mid<Interval>(),
+                   plug_orientation.phi_range().angle_mid<Interval>(),
                    config_.epsilon
                )) {
                 if(collect_unpruned_plug_orientations) {
@@ -107,7 +107,7 @@ class GlobalSolver {
                 continue;
             }
             if(collect_unpruned_plug_orientations) {
-                if(plug_orientation.terminal() || Vector2<Interval>(plug_orientation.theta<Interval>().len(), plug_orientation.phi<Interval>().len()).len() < config_.plug_epsilon) {
+                if(plug_orientation.terminal() || Vector2<Interval>(plug_orientation.theta_range().angle<Interval>().len(), plug_orientation.phi_range().angle<Interval>().len()).len() < config_.plug_epsilon) {
                     prunable = false;
                     unpruned_plug_orientations.push_back(plug_orientation);
                     plug_orientations.ack();
@@ -132,7 +132,7 @@ class GlobalSolver {
             }
             return;
         }
-        const bool collect_unpruned_plug_orientations = hole_orientation.terminal() || Vector2<Interval>(hole_orientation.theta<Interval>().len() + hole_orientation.phi<Interval>().len(), hole_orientation.alpha<Interval>()).len() < config_.hole_epsilon;
+        const bool collect_unpruned_plug_orientations = hole_orientation.terminal() || Vector2<Interval>(hole_orientation.theta_range().angle<Interval>().len() + hole_orientation.phi_range().angle<Interval>().len(), hole_orientation.alpha_range().angle<Interval>()).len() < config_.hole_epsilon;
         const auto& [prunable, pruned_plug_orientations, unpruned_plug_orientations] = process_plug_orientations(hole_orientation, collect_unpruned_plug_orientations);
         if(prunable) {
             std::cout << "Prunable: " << hole_orientation << std::endl;

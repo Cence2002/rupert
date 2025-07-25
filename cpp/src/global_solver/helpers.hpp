@@ -362,15 +362,15 @@ Polygon<Interval> convex_hull(const std::vector<Vector2<Interval>>& vectors) {
 
 template<IntervalType Interval>
 Polygon<Interval> project_polyhedron(const Polyhedron<Interval>& polyhedron, const Range3& orientation, const int resolution) {
-    if(orientation.theta<Interval>().len() > Interval::pi() / Interval(2) * Interval(resolution) ||
-       orientation.phi<Interval>().len() > Interval::pi() / Interval(2) * Interval(resolution) ||
-       orientation.alpha<Interval>().len() > Interval::pi() / Interval(2) * Interval(resolution)) {
+    if(orientation.theta_range().angle<Interval>().len() > Interval::pi() / Interval(2) * Interval(resolution) ||
+       orientation.phi_range().angle<Interval>().len() > Interval::pi() / Interval(2) * Interval(resolution) ||
+       orientation.alpha_range().angle<Interval>().len() > Interval::pi() / Interval(2) * Interval(resolution)) {
         throw std::runtime_error("Too large angle range");
     }
     std::vector<Vector2<Interval>> projected_vectors;
     for(const Vector3<Interval>& vertex: polyhedron.vertices()) {
-        for(const Vector2<Interval>& vectors: projected_orientation_hull(vertex, orientation.theta<Interval>(), orientation.phi<Interval>(), resolution)) {
-            for(const Vector2<Interval>& vector: rotation_hull(vectors, orientation.alpha<Interval>(), resolution)) {
+        for(const Vector2<Interval>& vectors: projected_orientation_hull(vertex, orientation.theta_range().angle<Interval>(), orientation.phi_range().angle<Interval>(), resolution)) {
+            for(const Vector2<Interval>& vector: rotation_hull(vectors, orientation.alpha_range().angle<Interval>(), resolution)) {
                 projected_vectors.push_back(vector);
             }
         }
@@ -380,9 +380,9 @@ Polygon<Interval> project_polyhedron(const Polyhedron<Interval>& polyhedron, con
 
 template<IntervalType Interval>
 bool plug_orientation_sample_inside_hole_orientation_sample(const Polyhedron<Interval>& polyhedron, const Range3& hole_orientation, const Range2& plug_orientation) {
-    const Interval hole_theta = hole_orientation.theta_mid<Interval>();
-    const Interval hole_phi = hole_orientation.phi_mid<Interval>();
-    const Interval hole_alpha = hole_orientation.alpha_mid<Interval>();
+    const Interval hole_theta = hole_orientation.theta_range().angle_mid<Interval>();
+    const Interval hole_phi = hole_orientation.phi_range().angle_mid<Interval>();
+    const Interval hole_alpha = hole_orientation.alpha_range().angle_mid<Interval>();
     const Matrix<Interval> hole_matrix = Matrix<Interval>::orientation(hole_theta, hole_phi, hole_alpha);
     const Vector3<Interval> direction = hole_matrix.transpose() * Vector3<Interval>(Interval(0), Interval(0), Interval(1));
     const Bitset normal_mask = polyhedron.get_normal_mask(direction);
@@ -413,8 +413,8 @@ bool plug_orientation_sample_inside_hole_orientation_sample(const Polyhedron<Int
 
 template<IntervalType Interval>
 bool plug_orientation_sample_inside_hole_orientation(const Polyhedron<Interval>& polyhedron, const Polygon<Interval>& projected_hole, const Range2& plug_orientation) {
-    const Interval plug_theta = plug_orientation.theta_mid<Interval>();
-    const Interval plug_phi = plug_orientation.phi_mid<Interval>();
+    const Interval plug_theta = plug_orientation.theta_range().angle_mid<Interval>();
+    const Interval plug_phi = plug_orientation.phi_range().angle_mid<Interval>();
     return std::ranges::all_of(polyhedron.vertices(), [&](const Vector3<Interval>& vertex) {
         return projected_hole.inside(trivial_orientation(vertex, plug_theta, plug_phi));
     });
@@ -442,6 +442,6 @@ bool hole_orientation_close_to_plug_orientation(const Polyhedron<Interval>& poly
 template<IntervalType Interval>
 bool plug_orientation_outside_hole_orientation(const Polyhedron<Interval>& polyhedron, const Range2& plug_orientation, const Polygon<Interval>& projected_hole) {
     return std::ranges::any_of(polyhedron.vertices(), [&](const Vector3<Interval>& vertex) {
-        return projected_oriented_vector_avoids_polygon(projected_hole, vertex, plug_orientation.theta<Interval>(), plug_orientation.phi<Interval>());
+        return projected_oriented_vector_avoids_polygon(projected_hole, vertex, plug_orientation.theta_range().angle<Interval>(), plug_orientation.phi_range().angle<Interval>());
     });
 }
