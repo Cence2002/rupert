@@ -35,7 +35,7 @@ namespace Exporter {
     }
 
     inline void range_to_stream(std::ostream& os, const Range& range) {
-        const uint16_t packed = range.pack();
+        const uint32_t packed = range.pack();
         os.write(reinterpret_cast<const char*>(&packed), sizeof(packed));
     }
 

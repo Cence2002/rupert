@@ -7,14 +7,14 @@
 
 class Range {
     uint8_t depth_;
-    uint16_t bits_;
+    uint32_t bits_;
 
 public:
-    explicit Range(const uint8_t depth, const uint16_t bits) : depth_(depth), bits_(bits) {
-        if(depth_ >= 16) {
-            throw std::runtime_error("depth >= 16");
+    explicit Range(const uint8_t depth, const uint32_t bits) : depth_(depth), bits_(bits) {
+        if(depth_ >= 30) {
+            throw std::runtime_error("depth >= 30");
         }
-        if(bits_ >= 1 << depth_) {
+        if(bits_ >= 1u << depth_) {
             throw std::runtime_error("bits >= 2^depth");
         }
     }
@@ -33,7 +33,7 @@ public:
         return depth_;
     }
 
-    uint16_t bits() const {
+    uint32_t bits() const {
         return bits_;
     }
 
@@ -43,19 +43,19 @@ public:
 
     std::vector<Range> parts() const {
         return {
-            Range(static_cast<uint8_t>(depth_ + 1), static_cast<uint16_t>(bits_ << 1)),
-            Range(static_cast<uint8_t>(depth_ + 1), static_cast<uint16_t>(bits_ << 1 | 1))
+            Range(static_cast<uint8_t>(depth_ + 1), bits_ << 1),
+            Range(static_cast<uint8_t>(depth_ + 1), bits_ << 1 | 1)
         };
     }
 
     template<IntervalType Interval>
     Interval interval() const {
-        return Interval(bits_, static_cast<uint16_t>(bits_ + 1)) / Interval(static_cast<uint16_t>(1 << depth_));
+        return Interval(static_cast<int>(bits_), static_cast<int>(bits_ + 1)) / Interval(1 << depth_);
     }
 
     template<IntervalType Interval>
     Interval interval_mid() const {
-        return Interval(static_cast<uint16_t>(bits_ << 1 | 1)) / Interval(static_cast<uint16_t>(1 << (depth_ + 1)));
+        return Interval(static_cast<int>(bits_ << 1 | 1)) / Interval(1 << (depth_ + 1));
     }
 
     template<IntervalType Interval>
@@ -72,16 +72,16 @@ public:
         return ostream << "<" << std::bitset<16>(id.bits_).to_string().substr(16 - id.depth_) << ">";
     }
 
-    uint16_t pack() const {
-        return static_cast<uint16_t>(1 << depth_) | bits_;
+    uint32_t pack() const {
+        return (1 << depth_) | bits_;
     }
 
-    static Range unpack(const uint16_t packed) {
+    static Range unpack(const uint32_t packed) {
         if(packed == 0) {
             return Range(16, 0);
         }
         const uint8_t depth = static_cast<uint8_t>(31 - __builtin_clz(packed));
-        const uint16_t bits = packed & static_cast<uint16_t>((1 << depth) - 1);
+        const uint32_t bits = packed & static_cast<uint32_t>((1 << depth) - 1);
         return Range(depth, bits);
     }
 };
