@@ -106,13 +106,14 @@ class GlobalSolver {
                 plug_orientations.ack();
                 continue;
             }
-            if(collect_unpruned_plug_orientations) {
-                if(Angle::angle_radius<Interval>(plug_orientation) < config_.plug_epsilon) {
+            if(plug_orientation.terminal() || Angle::angle_radius<Interval>(plug_orientation) < config_.plug_epsilon) {
+                if(collect_unpruned_plug_orientations) {
                     prunable = false;
                     unpruned_plug_orientations.push_back(plug_orientation);
                     plug_orientations.ack();
                     continue;
                 }
+                return std::make_tuple(false, std::vector<Box2>(), std::vector<Box2>());
             }
             for(const Box2& rectangle_part: plug_orientation.parts()) {
                 plug_orientations.add(rectangle_part);
@@ -123,14 +124,14 @@ class GlobalSolver {
     }
 
     void process_hole_orientation(const Box3& hole_orientation) {
-        if(!Angle::angle_radius<Interval>(hole_orientation) < Interval::pi() / Interval(2) * config_.resolution) {
+        if(!(Angle::angle_radius<Interval>(hole_orientation) < Interval::pi() / Interval(2) * Interval(config_.resolution))) {
             std::cout << "Skippable: " << hole_orientation << std::endl;
             for(const Box3& hole_orientation_part: hole_orientation.parts()) {
                 hole_orientations_.add(hole_orientation_part);
             }
             return;
         }
-        const bool collect_unpruned_plug_orientations = Angle::angle_radius<Interval>(hole_orientation) < config_.hole_epsilon;
+        const bool collect_unpruned_plug_orientations = hole_orientation.terminal() || Angle::angle_radius<Interval>(hole_orientation) < config_.hole_epsilon;
         const auto& [prunable, pruned_plug_orientations, unpruned_plug_orientations] = process_plug_orientations(hole_orientation, collect_unpruned_plug_orientations);
         if(prunable) {
             std::cout << "Prunable: " << hole_orientation << std::endl;

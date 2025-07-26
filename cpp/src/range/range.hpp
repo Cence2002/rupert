@@ -30,14 +30,6 @@ public:
         return bits_ < other.bits_;
     }
 
-    uint8_t depth() const {
-        return depth_;
-    }
-
-    uint32_t bits() const {
-        return bits_;
-    }
-
     bool terminal() const {
         return depth_ >= 15;
     }
@@ -55,18 +47,28 @@ public:
     }
 
     template<IntervalType Interval>
+    Interval interval_min() const {
+        return Interval(static_cast<int>(bits_)) / Interval(1 << depth_);
+    }
+
+    template<IntervalType Interval>
+    Interval interval_max() const {
+        return Interval(static_cast<int>(bits_ + 1)) / Interval(1 << depth_);
+    }
+
+    template<IntervalType Interval>
     Interval interval_mid() const {
-        return Interval(static_cast<int>(bits_ << 1 | 1)) / Interval(1 << (depth_ + 1));
+        return Interval(static_cast<int>(bits_ << 1 | 1)) / Interval(2 << depth_);
     }
 
     template<IntervalType Interval>
-    Interval angle() const {
-        return Interval(2) * Interval::pi() * interval<Interval>();
+    Interval interval_len() const {
+        return Interval(1) / Interval(1 << depth_);
     }
 
     template<IntervalType Interval>
-    Interval angle_mid() const {
-        return Interval(2) * Interval::pi() * interval_mid<Interval>();
+    Interval interval_rad() const {
+        return Interval(1) / Interval(2 << depth_);
     }
 
     friend std::ostream& operator<<(std::ostream& ostream, const Range& id) {

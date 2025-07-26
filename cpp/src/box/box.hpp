@@ -11,6 +11,12 @@ struct Box {
 
     explicit Box(const std::array<Range, Size>& box) : ranges(box) {}
 
+    bool terminal() const {
+        return std::ranges::any_of(ranges, [](const Range& range) {
+            return range.terminal();
+        });
+    }
+
     bool operator<(const Box& box) const {
         for(size_t i = 0; i < Size; i++) {
             if(ranges.at(i) < box.ranges.at(i)) {
@@ -54,8 +60,8 @@ struct Box {
             stream << range;
             range_strings.push_back(stream.str());
         }
-        const std::string ranges_string = boost::algorithm::join(range_strings, ", ");
-        return ostream << "<" << ranges_string << ">";
+        const std::string ranges_string = boost::algorithm::join(range_strings, ",");
+        return ostream << "(" << ranges_string << ")";
     }
 };
 
