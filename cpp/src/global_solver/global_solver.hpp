@@ -67,15 +67,7 @@ class GlobalSolver {
                 throw std::runtime_error("plug_orientations is empty");
             }
             const Box2& plug_orientation = optional_plug_orientation.value();
-            if(hole_orientation_close_to_plug_orientation(
-                config_.polyhedron,
-                Angle::theta<Interval>(hole_orientation),
-                Angle::phi<Interval>(hole_orientation),
-                Angle::alpha<Interval>(hole_orientation),
-                Angle::theta<Interval>(plug_orientation),
-                Angle::phi<Interval>(plug_orientation),
-                config_.epsilon
-            )) {
+            if(hole_orientation_close_to_plug_orientation(config_.polyhedron, hole_orientation, plug_orientation, config_.epsilon - Angle::angle_radius<Interval>(hole_orientation) - Angle::angle_radius<Interval>(plug_orientation))) {
                 plug_orientations.ack();
                 continue;
             }
@@ -84,15 +76,7 @@ class GlobalSolver {
                 throw std::runtime_error("Rupert passage found");
             }
             if(plug_orientation_sample_inside_hole_orientation(config_.polyhedron, projected_hole, plug_orientation) &&
-               !hole_orientation_close_to_plug_orientation(
-                   config_.polyhedron,
-                   Angle::theta<Interval>(hole_orientation),
-                   Angle::phi<Interval>(hole_orientation),
-                   Angle::alpha<Interval>(hole_orientation),
-                   Angle::theta_mid<Interval>(plug_orientation),
-                   Angle::phi_mid<Interval>(plug_orientation),
-                   config_.epsilon
-               )) {
+               !hole_orientation_close_to_plug_orientation(config_.polyhedron, hole_orientation, plug_orientation, config_.epsilon - Angle::angle_radius<Interval>(hole_orientation))) {
                 if(collect_unpruned_plug_orientations) {
                     prunable = false;
                     unpruned_plug_orientations.push_back(plug_orientation);

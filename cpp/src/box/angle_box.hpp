@@ -10,8 +10,28 @@ namespace Angle {
     }
 
     template<IntervalType Interval>
+    Interval angle_min(const Range& range) {
+        return Interval::tau() * range.interval_min<Interval>();
+    }
+
+    template<IntervalType Interval>
+    Interval angle_max(const Range& range) {
+        return Interval::tau() * range.interval_max<Interval>();
+    }
+
+    template<IntervalType Interval>
     Interval angle_mid(const Range& range) {
         return Interval::tau() * range.interval_mid<Interval>();
+    }
+
+    template<IntervalType Interval>
+    Interval angle_len(const Range& range) {
+        return Interval::tau() * range.interval_len<Interval>();
+    }
+
+    template<IntervalType Interval>
+    Interval angle_rad(const Range& range) {
+        return Interval::tau() * range.interval_rad<Interval>();
     }
 
     inline Range theta_range(const Box2& box) {
