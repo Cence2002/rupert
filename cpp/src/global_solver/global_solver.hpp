@@ -50,8 +50,8 @@ class GlobalSolver {
     std::vector<std::thread> threads_{};
     std::atomic<bool> interrupted_{false};
 
-    ConcurrentQueue<CombinedOrientation> pruned_hole_boxes_{};
-    ConcurrentQueue<CombinedOrientation> unpruned_hole_boxes_{};
+    ConcurrentQueue<CombinedBoxes> pruned_hole_boxes_{};
+    ConcurrentQueue<CombinedBoxes> unpruned_hole_boxes_{};
     std::latch exporter_latch_;
 
     std::tuple<bool, std::vector<Box2>, std::vector<Box2>> process_plug_boxes(const Box3& hole_box, const bool collect_unpruned_plug_boxes) {
@@ -119,12 +119,12 @@ class GlobalSolver {
         const auto& [prunable, pruned_plug_boxes, unpruned_plug_boxes] = process_plug_boxes(hole_box, collect_unpruned_plug_boxes);
         if(prunable) {
             std::cout << "Prunable: " << hole_box << std::endl;
-            pruned_hole_boxes_.add(CombinedOrientation(hole_box, pruned_plug_boxes));
+            pruned_hole_boxes_.add(CombinedBoxes(hole_box, pruned_plug_boxes));
             return;
         }
         if(collect_unpruned_plug_boxes) {
             std::cout << "Not prunable: " << hole_box << std::endl;
-            unpruned_hole_boxes_.add(CombinedOrientation(hole_box, unpruned_plug_boxes));
+            unpruned_hole_boxes_.add(CombinedBoxes(hole_box, unpruned_plug_boxes));
             return;
         }
         for(const Box3& hole_box_part: hole_box.parts()) {

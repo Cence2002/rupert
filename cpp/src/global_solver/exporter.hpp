@@ -10,7 +10,7 @@
 #include <fstream>
 #include <filesystem>
 
-struct CombinedOrientation {
+struct CombinedBoxes {
     Box3 hole_box;
     std::vector<Box2> plug_boxes;
 };
@@ -50,7 +50,7 @@ namespace Exporter {
         range_to_stream(os, Angle::alpha_range(box));
     }
 
-    inline void combined_box_to_stream(std::ostream& os, const CombinedOrientation& combined_box) {
+    inline void combined_box_to_stream(std::ostream& os, const CombinedBoxes& combined_box) {
         box3_to_stream(os, combined_box.hole_box);
         size_to_stream(os, static_cast<uint32_t>(combined_box.plug_boxes.size()));
         for(const Box2& box: combined_box.plug_boxes) {
@@ -80,13 +80,13 @@ namespace Exporter {
         std::cout << "Exported polyhedra to " << path << std::endl;
     }
 
-    inline void export_combined_boxes(const std::filesystem::path& path, const std::vector<CombinedOrientation>& combined_boxes) {
+    inline void export_combined_boxes(const std::filesystem::path& path, const std::vector<CombinedBoxes>& combined_boxes) {
         std::ofstream file(path, std::ios::binary | std::ios::app);
         if(!file.is_open()) {
             throw std::runtime_error("Failed to open " + path.string());
         }
 
-        for(const CombinedOrientation& combined_box: combined_boxes) {
+        for(const CombinedBoxes& combined_box: combined_boxes) {
             combined_box_to_stream(file, combined_box);
         }
 
