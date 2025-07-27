@@ -11,8 +11,8 @@
 #include <filesystem>
 
 struct CombinedOrientation {
-    Box3 hole_orientation;
-    std::vector<Box2> plug_orientations;
+    Box3 hole_box;
+    std::vector<Box2> plug_boxes;
 };
 
 namespace Exporter {
@@ -50,10 +50,10 @@ namespace Exporter {
         range_to_stream(os, Angle::alpha_range(box));
     }
 
-    inline void combined_orientation_to_stream(std::ostream& os, const CombinedOrientation& combined_orientation) {
-        box3_to_stream(os, combined_orientation.hole_orientation);
-        size_to_stream(os, static_cast<uint32_t>(combined_orientation.plug_orientations.size()));
-        for(const Box2& box: combined_orientation.plug_orientations) {
+    inline void combined_box_to_stream(std::ostream& os, const CombinedOrientation& combined_box) {
+        box3_to_stream(os, combined_box.hole_box);
+        size_to_stream(os, static_cast<uint32_t>(combined_box.plug_boxes.size()));
+        for(const Box2& box: combined_box.plug_boxes) {
             box2_to_stream(os, box);
         }
     }
@@ -80,19 +80,19 @@ namespace Exporter {
         std::cout << "Exported polyhedra to " << path << std::endl;
     }
 
-    inline void export_combined_orientations(const std::filesystem::path& path, const std::vector<CombinedOrientation>& combined_orientations) {
+    inline void export_combined_boxes(const std::filesystem::path& path, const std::vector<CombinedOrientation>& combined_boxes) {
         std::ofstream file(path, std::ios::binary | std::ios::app);
         if(!file.is_open()) {
             throw std::runtime_error("Failed to open " + path.string());
         }
 
-        for(const CombinedOrientation& combined_orientation: combined_orientations) {
-            combined_orientation_to_stream(file, combined_orientation);
+        for(const CombinedOrientation& combined_box: combined_boxes) {
+            combined_box_to_stream(file, combined_box);
         }
 
         if(file.fail()) {
             throw std::runtime_error("Failed to write to " + path.string());
         }
-        std::cout << "Exported " << combined_orientations.size() << " combined orientations to " << path << std::endl;
+        std::cout << "Exported " << combined_boxes.size() << " combined boxes to " << path << std::endl;
     }
 }
