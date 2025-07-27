@@ -30,7 +30,6 @@ add_compile_options(
     -Wuninitialized
     -Wstringop-overflow=4
 
-    -Wsuggest-attribute=pure
     -Wsuggest-attribute=const
     -Wsuggest-attribute=noreturn
     -Wmissing-noreturn

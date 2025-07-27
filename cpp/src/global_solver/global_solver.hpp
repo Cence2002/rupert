@@ -90,7 +90,7 @@ class GlobalSolver {
                 plug_orientations.ack();
                 continue;
             }
-            if(plug_orientation.terminal() || Angle::angle_radius<Interval>(plug_orientation) < config_.plug_epsilon) {
+            if(Angle::angle_radius<Interval>(plug_orientation) < config_.plug_epsilon) {
                 if(collect_unpruned_plug_orientations) {
                     prunable = false;
                     unpruned_plug_orientations.push_back(plug_orientation);
@@ -115,7 +115,7 @@ class GlobalSolver {
             }
             return;
         }
-        const bool collect_unpruned_plug_orientations = hole_orientation.terminal() || Angle::angle_radius<Interval>(hole_orientation) < config_.hole_epsilon;
+        const bool collect_unpruned_plug_orientations = Angle::angle_radius<Interval>(hole_orientation) < config_.hole_epsilon;
         const auto& [prunable, pruned_plug_orientations, unpruned_plug_orientations] = process_plug_orientations(hole_orientation, collect_unpruned_plug_orientations);
         if(prunable) {
             std::cout << "Prunable: " << hole_orientation << std::endl;
