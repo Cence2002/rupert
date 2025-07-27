@@ -67,9 +67,9 @@ add_compile_options(
 include_directories(
     src
     src/interval
-    src/geometry
-    src/range
+    src/box
     src/queue
+    src/geometry
     src/flatbuffers
     src/global_solver
 )

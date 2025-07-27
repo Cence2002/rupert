@@ -6,7 +6,7 @@
 #pragma GCC diagnostic pop
 
 #include "global_solver/helpers.hpp"
-#include "range/range.hpp"
+#include "box/range.hpp"
 #include <fstream>
 #include <filesystem>
 

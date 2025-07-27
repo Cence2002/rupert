@@ -58,7 +58,7 @@ class GlobalSolver {
         const Polygon<Interval> projected_hole = project_polyhedron(config_.polyhedron, hole_orientation, config_.resolution);
         bool prunable = true;
         SerialQueue<Box2> plug_orientations;
-        plug_orientations.add(Box2(std::array{Range(0, 0), Range(0, 0)}));
+        plug_orientations.add(Box2(std::array{Range(Bitset(0, 0)), Range(Bitset(0, 0))}));
         std::vector<Box2> pruned_plug_orientations;
         std::vector<Box2> unpruned_plug_orientations;
         while(plug_orientations.size() > 0) {
@@ -150,7 +150,7 @@ public:
     explicit GlobalSolver(const Config<Interval>& config) : config_(config), exporter_latch_(config.threads) {}
 
     void run() {
-        hole_orientations_.add(Box3(std::array{Range(0, 0), Range(1, 0), Range(1, 0)}));
+        hole_orientations_.add(Box3(std::array{Range(Bitset(0, 0)), Range(Bitset(1, 0)), Range(Bitset(1, 0))}));
         Exporter::create_empty_working_directory(config_.working_directory());
         Exporter::export_polyhedron(config_.working_directory() / polyhedron_file_name, config_.polyhedron);
         std::ranges::generate_n(std::back_inserter(threads_), config_.threads, [this] {

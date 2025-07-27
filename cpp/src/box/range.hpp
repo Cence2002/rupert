@@ -11,17 +11,11 @@ constexpr uint8_t range_depth_limit = 30;
 class Range {
     Bitset bits_;
 
-    explicit Range(const Bitset& bits) : bits_(bits) {
-        if(bits.size() >= range_depth_limit) {
-            throw std::runtime_error("Range depth limit exceeded");
-        }
-    }
-
 public:
     explicit Range(): bits_(0) {}
 
-    explicit Range(const uint8_t depth, const uint32_t bits) : bits_(depth, bits) {
-        if(depth >= range_depth_limit) {
+    explicit Range(const Bitset& bits) : bits_(bits) {
+        if(bits.size() > range_depth_limit) {
             throw std::runtime_error("Range depth limit exceeded");
         }
     }
@@ -93,6 +87,6 @@ public:
     static Range unpack(const uint32_t packed) {
         const uint8_t depth = static_cast<uint8_t>(31 - __builtin_clz(packed));
         const uint32_t bits = packed & static_cast<uint32_t>((1 << depth) - 1);
-        return Range(depth, bits);
+        return Range(Bitset(depth, bits));
     }
 };
