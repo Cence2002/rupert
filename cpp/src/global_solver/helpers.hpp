@@ -429,6 +429,6 @@ bool hole_orientation_close_to_plug_orientation(const Polyhedron<Interval>& poly
 template<IntervalType Interval>
 bool plug_orientation_outside_hole_orientation(const Polyhedron<Interval>& polyhedron, const Box2& plug_orientation, const Polygon<Interval>& projected_hole) {
     return std::ranges::any_of(polyhedron.vertices(), [&](const Vector3<Interval>& vertex) {
-        return projected_oriented_vector_avoids_polygon_fixed_theta(projected_hole, vertex, Angle::theta<Interval>(plug_orientation), Angle::phi<Interval>(plug_orientation));
+        return projected_oriented_vector_avoids_polygon(projected_hole, vertex, Angle::theta<Interval>(plug_orientation), Angle::phi<Interval>(plug_orientation));
     });
 }
